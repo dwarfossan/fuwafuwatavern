@@ -74,7 +74,7 @@ const SKILL_GROUPS = [
     {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精。"},
     {id:"aimed_shot", name:"瞄準射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"本回合不能移動；攻擊一次，命中 +2，傷害多 1 顆武器骰。"},
     {id:"arrow_rain", name:"箭雨", kind:"豁免", req:"bow", tier:1,   up:"每高一階，範圍往外多 1 圈。", text:"指定 3×3 格的區域，區域內的敵人做敏捷豁免，失敗受 1 顆武器骰傷害。"},
-    {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，命中的話目標下次攻擊有劣勢。"}]},
+    {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
   {id:"crossbow", name:"弩類", stat:"敏捷",
    weapons:["輕弩","手弩","重弩"],
@@ -89,7 +89,7 @@ const SKILL_GROUPS = [
    skills:[
     {name:"投擲", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精。"},
     {id:"multi_throw", name:"連投", kind:"遠程", req:"thrown", tier:1,   up:"每高一階多投 1 個不同目標。", text:"對兩個不同目標各攻擊一次。"},
-    {id:"precise_throw", name:"精準一擲", kind:"遠程", req:"thrown", tier:1,   text:"攻擊有優勢，命中的話目標下次攻擊有劣勢。"}]},
+    {id:"precise_throw", name:"精準一擲", kind:"遠程", req:"thrown", tier:1,   text:"攻擊有優勢，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
   {id:"unarmed", name:"徒手", stat:"力量",
    weapons:["（沒拿武器）"],

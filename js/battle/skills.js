@@ -118,7 +118,7 @@ function hitThen(u, t, o, fx){ const r = weaponAttack(u, t, o||{}); if(r.hit && 
 const bestOfSave = (t, a, b) => (t.mods[a]||0) >= (t.mods[b]||0) ? a : b;
 const fxProne  = (u, t, stat, save, up=0) => { if(!saveRoll(t, save, dcOf(u, stat) + up)){ knockProne(t); blog(`　${t.name}倒地！`, "skill"); } };
 const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, n:up}); blog(`　${t.name}下回合移動 −${2+up} 格`, "skill"); };
-const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　${t.name}下次攻擊有劣勢`, "skill"); };
+const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　削弱：${t.name}下次攻擊有劣勢`, "skill"); };
 const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat) + up)){ addStatus(t, "dazed", {until:"end", of:t.id}); blog(`　${t.name}被震暈了！下回合只能移動或行動二選一`, "skill"); } };
 const standStill = {can:u=>!B().movedThisTurn, why:"這回合已經移動過了"};
 // 近身類的「靠過去」：2 格內、目標身旁的空位（花費照地形算），找最近的
