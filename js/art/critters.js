@@ -39,7 +39,7 @@ function critterSVG(id){
     extra=`${eye(37,51,4.8)}${eye(63,51,4.8)}
       <path d="M30 48 L44 48.6 L44 43 L30 43 Z M56 48.6 L70 48 L70 43 L56 43 Z" fill="${c}"/>
       <path d="M30 48 L44 48.6 M56 48.6 L70 48" stroke="#1f1a24" stroke-width="2.2" stroke-linecap="round"/>
-      <ellipse cx="50" cy="70" rx="5" ry="3.8" fill="#1f1a24"/><path d="M45 78 Q50 81 55 78" stroke="#1f1a24" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      <ellipse cx="50" cy="70" rx="5" ry="3.8" fill="#1f1a24"/><path d="M47 78 L53 78" stroke="#1f1a24" stroke-width="1.8" stroke-linecap="round"/>`;
   } else {
     // 默默＝狸貓（2026-10-01 大爺給參考圖）：咖啡色、深咖啡眼罩往外下垂、奶油色口鼻；額頭刷痕是默默指定的，保留
     ears=`<circle cx="24" cy="30" r="12" fill="${c}"/><circle cx="76" cy="30" r="12" fill="${c}"/><circle cx="24" cy="30" r="6" fill="#4a3226"/><circle cx="76" cy="30" r="6" fill="#4a3226"/>`;
