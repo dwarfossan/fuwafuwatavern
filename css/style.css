@@ -772,8 +772,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .status-eqslot{position:absolute;width:54px;height:58px;border:1px dashed rgba(255,255,255,.24);border-radius:9px;background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;padding:3px;z-index:2}
 .status-eqslot>small{position:absolute;left:5px;top:3px;font-size:9px;opacity:.55;pointer-events:none}.status-eqslot.acc1{left:10px;top:35px}.status-eqslot.acc2{left:10px;top:112px}.status-eqslot.armor{right:10px;top:75px}.status-eqslot.main{left:calc(50% - 64px);bottom:0}.status-eqslot.off{left:calc(50% + 10px);bottom:0}
 .status-eqitem{width:42px;height:42px;border:0;background:transparent;color:inherit;padding:0;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none}.status-eqitem svg{width:38px;height:38px}.status-eqitem .eq-text{font-size:9px;line-height:1.05;text-align:center}.status-eqempty{opacity:.22;font-size:18px}.status-switch{position:absolute;right:-5px;top:-7px;width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:#2c2531;color:inherit;font-size:12px;line-height:18px;padding:0;cursor:pointer;z-index:4}.status-bagbtn{position:absolute;right:8px;top:8px;width:50px;height:50px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.055);color:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:5px}.status-bagbtn svg{width:34px;height:34px;display:block}.status-bagbtn.on{border-color:var(--honey);background:rgba(255,255,255,.11)}
-.status-bagdrawer{position:absolute;left:calc(100% + 10px);top:0;bottom:0;width:205px;height:auto;box-sizing:border-box;padding:9px;border-radius:11px;background:#2b242f;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 28px rgba(0,0,0,.38);z-index:30;overflow:hidden;display:flex;flex-direction:column}.status-bagdrawer:before{content:"";position:absolute;left:-7px;top:35px;width:12px;height:12px;background:#2b242f;border-left:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14);transform:rotate(45deg)}.status-bagdrawer .gear-bagitems{min-height:0;flex:1;overflow:auto;padding-right:2px}.status-bagdrawer .gear-item{display:flex;align-items:center;gap:7px}.status-bagdrawer .gear-item svg{flex:0 0 auto}.status-bagdrawer .bag-drop{min-height:42px}
-@media(max-width:700px){.gear-info.status-view{overflow:visible}.status-bagdrawer{left:calc(100% + 6px);right:auto;top:0;bottom:0;width:min(205px,calc(100vw - 20px));height:auto}.status-bagdrawer:before{display:none}}
+.status-bagdrawer{box-sizing:border-box;margin-top:3px;max-height:160px;padding:7px;border-radius:9px;background:#2b242f;border:1px solid rgba(255,255,255,.14);overflow:hidden;display:flex;flex-direction:column}.status-bagdrawer .gear-bagitems{min-height:0;flex:1;overflow:auto;padding-right:2px}.status-bagdrawer .gear-item{display:flex;align-items:center;gap:7px}.status-bagdrawer .gear-item svg{flex:0 0 auto}.status-bagdrawer .bag-drop{min-height:42px}
 .eq-tip{position:relative}.eq-tip[data-tip]:hover:after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);z-index:20;width:max-content;max-width:190px;padding:6px 8px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#241e29;color:#eee;font-size:10px;line-height:1.35;white-space:pre-line;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 @media(max-width:600px){
   /* 手機狀態頁：壓成一眼能讀完的角色摘要；桌機版不受影響 */
@@ -797,9 +796,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .status-summary{display:none}
 }.note-page{padding:12px 4px 4px}.note-empty{opacity:.6;padding:18px 8px;text-align:center}.note-list{display:grid;gap:8px}.note-entry{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:34px 1fr;align-items:center;gap:8px}.note-entry>div{min-width:0}.note-entry small{display:block;opacity:.6;margin-top:3px}.note-check{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:inherit;font-size:18px;font-weight:900;cursor:pointer}.note-check.on{background:rgba(255,255,255,.18);border-color:var(--honey)}.note-check:disabled{opacity:.3;cursor:not-allowed}.note-cap{font-size:11px;opacity:.62;margin:2px 0 9px}.note-skill-row{display:grid;grid-template-columns:1fr 36px;gap:6px;align-items:center}.note-skill-main{display:flex;align-items:center;gap:8px;min-width:0;font-weight:700}.note-skill-main .skicon{flex:0 0 auto}.note-skill-main .sk-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.note-skill-row .sk-info{height:36px}.note-pager{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 2px}.note-pager button{width:32px;height:28px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:rgba(255,255,255,.06);color:inherit;cursor:pointer}.note-pager button:disabled{opacity:.25;cursor:not-allowed}.note-pager span{min-width:52px;text-align:center;font-size:12px;font-weight:700;opacity:.8}
 /* 狀態頁緊湊版：避免在較矮視窗超出畫面 */
-.gear-info.status-view{width:min(350px,calc(100vw - 24px));max-width:350px}
+.gear-info.status-view,.gear-info.notes-view{width:260px;max-width:calc(100vw - 20px)}
 .gear-info.status-view .status-page{padding-top:2px}
-.gear-info.status-view .status-loadout{min-height:225px;margin-top:0}
+.gear-info.status-view .status-loadout{width:236px;margin:0 auto;min-height:225px}
 .gear-info.status-view .status-paper{min-height:205px}
 .gear-info.status-view .status-paper .inf-doll>svg{width:150px;height:150px}
 .gear-info.status-view .status-eqslot{width:48px;height:51px}
@@ -812,7 +811,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .gear-info.status-view .status-eqslot.off{left:calc(50% + 8px);bottom:0}
 .gear-info.status-view .status-bagbtn{right:7px;top:4px;width:50px;height:50px}
 @media(max-width:600px){
-  .gear-info.status-view{width:min(350px,calc(100vw - 20px));padding:8px}
+  .gear-info.status-view,.gear-info.notes-view{right:auto;width:260px;padding:8px}
   .gear-info.status-view .status-loadout{min-height:218px}
   .gear-info.status-view .status-paper{min-height:198px}
 }
@@ -839,7 +838,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .rest-box{margin:12px 0;padding:12px;border:1px solid #c9ad7c;border-radius:12px;background:#fffaf0;text-align:left;max-height:52vh;overflow:auto}.rest-box h4{margin:0 0 8px}.rest-unit{padding:8px 0;border-top:1px dashed #d9c8a8}.rest-unit:first-of-type{border-top:0}.rest-unit small{display:block;margin:4px 0}.rest-skill{display:block;margin:4px 0}.rest-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 
 /* 背包側欄：實色面板，避免被共用 .gear-bag 透明底覆蓋 */
-.gear-info.status-view .status-bagdrawer.gear-bag{background:#2b242f !important;background-color:#2b242f !important;opacity:1;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 28px rgba(0,0,0,.38)}
+.gear-info.status-view .status-bagdrawer.gear-bag{min-height:0;background:#2b242f !important;background-color:#2b242f !important;opacity:1;border:1px solid rgba(255,255,255,.14)}
 .gear-info.status-view .status-bagdrawer .gear-item{background:#3a323f}
 
 /* 狀態欄縮放：狀態＋右側背包視為同一組；以左側中線為縮放基準。 */
