@@ -51,7 +51,8 @@ node tests/smoke.mjs    # 全部通過才可以推；看 exit code（0＝通過�
 
 ### 4. 給大爺測試
 
-- 大爺用手機開線上網址測試，網址加 `#battle` 直接進快速戰鬥（推上 main 後一兩分鐘網站會更新）
+- **平常看 dev**：大爺用手機開 dev 預覽網址 https://raw.githack.com/dwarfossan/fuwafuwatavern/dev/index.html#battle （2026-10-01 大爺手機確認打得開）。第三方網站會快取，推上 dev 後可能要等幾分鐘才看得到
+- **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）
 - **不要再傳下載用的單一檔案給大爺**，GitHub 才是唯一的版本
 
 ### 5. 實作紀律（大爺確認，所有 AI 都要遵守）
