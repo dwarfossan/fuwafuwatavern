@@ -696,7 +696,14 @@ function menuHTML(u, b){
   } else if(lv==="skills"){
     title = "技能";
     const atkKeys = new Set(attackSkills(u).map(s=>s.key));
-    body = `<div class="skills">${unitSkills(u).filter(s=>!atkKeys.has(s.key)).map(s=>skillBtn(u,s)).join("")}</div>` + back;
+    // 照要求的階分組（大爺 2026-10-01，參考索拉塔）：每組標題寫階數和那一階剩的格子，之後有高階招式就自動多一組
+    const sks = unitSkills(u).filter(s=>!atkKeys.has(s.key)), max = slotMax(u), sl = slotsOf(u);
+    const tiers = [...new Set(sks.map(baseTierOf))].sort((a,c)=>a-c);
+    body = `<div class="skills">${tiers.map(t=>{
+      const n = Math.min(max[t-1]||0, sl[t-1]||0);
+      const head = t ? `${TIER_NAME[t]} <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,(max[t-1]||0)-n))}</i></b>` : "不用格子";
+      return `<div class="sk-tier">${head}</div>` + sks.filter(s=>baseTierOf(s)===t).map(s=>skillBtn(u,s)).join("");
+    }).join("")}</div>` + back;
   }
   return dockWrap(u, b, `dk-${lv}`, title, body);
 }
@@ -716,13 +723,18 @@ function aimHTML(u, b){
   if(k==="item"){ const it = u.items.find(i=>i.id===b.mode.item); return plain(it ? it.n : "道具", "點紅色格子：敵人＝丟，貼身隊友＝交給他"); }
   if(GEN_ACT[k]) return plain(GEN_ACT[k].name, "點紅色格子裡的敵人");
   const sk = unitSkills(u).find(s=>s.key===k); if(!sk) return "";
-  const ts = canUp(sk) ? tiersFor(u, sk) : [], tier = ts.includes(b.tier) ? b.tier : ts[0], i = ts.indexOf(tier);
+  const ts = canUp(sk) ? tiersFor(u, sk) : [], tier = ts.includes(b.tier) ? b.tier : ts[0];
   const up = upOf(u, sk, tier), self = sk.impl.target==="self";
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
   if(ts.length < 2 && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
-  if(ts.length > 1 || up) rows.push(`<div class="aim-up"><button class="mn-b" data-aim="down" ${i>0?"":"disabled"} aria-label="用低一階的格子">−</button>
-      <span>用 <b>${TIER_NAME[tier]}</b> 格${up?`<small>升 ${up} 階</small>`:""}</span><button class="mn-b" data-aim="up" ${i<ts.length-1?"":"disabled"} aria-label="用高一階的格子">＋</button></div>`);
+  // 每一階一顆（從招式要求的階到這個等級有的最高階），寫剩幾格；沒格子的變灰
+  if(ts.length > 1 || up){
+    const max = slotMax(u), s = slotsOf(u), chips = [];
+    for(let t=baseTierOf(sk); t<=max.length; t++){ const n = s[t-1]||0;
+      chips.push(`<button class="mn-b aim-tier ${t===tier?"on":""}" data-aim="t${t}" ${n?"":"disabled"}><span>${TIER_NAME[t]}</span><small>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,max[t-1]-n))}</i></small></button>`); }
+    rows.push(`<div class="aim-tiers">${chips.join("")}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
+  }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
   if(self) rows.push(`<button class="mn-b ok" data-aim="cast"><span>施放</span></button>`);
@@ -1084,7 +1096,7 @@ function bindBattle(){
   document.querySelectorAll("[data-swap]").forEach(el=>el.addEventListener("click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>el.addEventListener("click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-aim]").forEach(el=>el.addEventListener("click", ()=>{ const a = el.dataset.aim;
-    if(a==="up") aimUp(1); else if(a==="down") aimUp(-1); else if(a==="cast") aimCast(); else aimCancel(); }));
+    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>el.addEventListener("click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
   document.querySelectorAll("[data-cmd]").forEach(el=>el.addEventListener("click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
   document.getElementById("sndToggle")?.addEventListener("click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="volume"?null:"volume"; render(); });

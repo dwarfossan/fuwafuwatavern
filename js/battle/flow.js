@@ -202,11 +202,10 @@ function pickSkill(key){
   b.menu = b.mode ? null : "act";
   render();
 }
-// 瞄準列：換用低一階／高一階的格子（只在還有格子的階之間換）；已經點了幾發魔法飛彈就不能降到比那個少
-function aimUp(d){
+// 瞄準列：直接點要用哪一階的格子（只能點還有格子的階）；已經點了幾發魔法飛彈就不能降到比那個少
+function aimTier(t){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
-  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk)) return;
-  const ts = tiersFor(u, sk), i = ts.indexOf(b.tier), t = ts[Math.max(0, Math.min(ts.length-1, (i<0?0:i) + d))];
+  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;
   const n = upOf(u, sk, t);
   if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 2 + n) return;
   b.tier = t; b.up = n; sfx("pop"); render();
