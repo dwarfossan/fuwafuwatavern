@@ -627,11 +627,14 @@ function econHTML(u, b){
   if(!(b && u===cur())) return "";
   return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${b.freeUsed?"used":""}" title="免費動作（每回合一次）">免費</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${ptsHTML(u)}`;
 }
-// 熟練格：每一階一組，實心＝還剩的格子，空心＝用掉的（例：一階 ●○ 二階 ●●）
+// 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
+// I 那一排留在燈號列裡，II 以上疊在它上面（絕對定位往上長，不會把燈號列撐高）
 function ptsHTML(u){
   const max = slotMax(u), s = slotsOf(u);
-  return max.map((m,i)=>{ const n = Math.min(m, s[i]||0);
-    return `<span class="eco mv pts" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}">${TIER_NAME[i+1]} <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; }).join("");
+  const row = i => { const m = max[i], n = Math.min(m, s[i]||0);
+    return `<span class="sl-r" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}"><em>${ROMAN[i+1]}</em><b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; };
+  const up = max.map((_,i)=>i).slice(1).reverse().map(row).join("");
+  return `<span class="eco mv pts">${up?`<span class="sl-up">${up}</span>`:""}${row(0)}</span>`;
 }
 const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
 // 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
@@ -701,7 +704,7 @@ function menuHTML(u, b){
     const tiers = [...new Set(sks.map(baseTierOf))].sort((a,c)=>a-c);
     body = `<div class="skills">${tiers.map(t=>{
       const n = Math.min(max[t-1]||0, sl[t-1]||0);
-      const head = t ? `${TIER_NAME[t]} <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,(max[t-1]||0)-n))}</i></b>` : "不用格子";
+      const head = t ? `${ROMAN[t]} <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,(max[t-1]||0)-n))}</i></b>` : "不用格子";
       return `<div class="sk-tier">${head}</div>` + sks.filter(s=>baseTierOf(s)===t).map(s=>skillBtn(u,s)).join("");
     }).join("")}</div>` + back;
   }
@@ -728,11 +731,11 @@ function aimHTML(u, b){
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
   if(ts.length < 2 && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
-  // 每一階一顆（從招式要求的階到這個等級有的最高階），寫剩幾格；沒格子的變灰
+  // 每一階一顆（從招式要求的階到這個等級有的最高階），寫剩幾格；沒格子的變灰。直的一排，高階在上、I 在最下（跟燈號同方向）
   if(ts.length > 1 || up){
     const max = slotMax(u), s = slotsOf(u), chips = [];
     for(let t=baseTierOf(sk); t<=max.length; t++){ const n = s[t-1]||0;
-      chips.push(`<button class="mn-b aim-tier ${t===tier?"on":""}" data-aim="t${t}" ${n?"":"disabled"}><span>${TIER_NAME[t]}</span><small>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,max[t-1]-n))}</i></small></button>`); }
+      chips.push(`<button class="mn-b aim-tier ${t===tier?"on":""}" data-aim="t${t}" ${n?"":"disabled"}><span>${ROMAN[t]}</span><small>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,max[t-1]-n))}</i></small></button>`); }
     rows.push(`<div class="aim-tiers">${chips.join("")}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
   }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
