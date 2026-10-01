@@ -275,9 +275,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes alertpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
 
 /* 戰鬥 */
-.battle .order{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.ord{border-radius:50%;border:3px solid var(--c);background:var(--night);line-height:0;transition:transform .2s}
-.ord.now{transform:translateY(-4px) scale(1.12);box-shadow:0 0 0 3px var(--honey)}
+.battle .order{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.ord{border-radius:50%;border:2px solid var(--c);background:var(--night);line-height:0}.ord>svg{width:28px;height:28px;transition:width .2s,height .2s}.ord.now>svg{width:44px;height:44px}
+.ord.now{border-width:3px;box-shadow:0 0 0 3px var(--honey)}
 .ord.out{opacity:.3;filter:grayscale(1)}
 .tut{background:#2f3a26;border:1px solid var(--moss);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .tut b{color:var(--moss)}
