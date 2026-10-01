@@ -10,7 +10,7 @@ try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const r=await pg.evaluate(async()=>{
-  const b=B(),u=cur(),f=b.units.find(v=>v.side!=='pc'&&!v.dead);
+  const b=B(),u=cur(),f=b.units.find(v=>v.side!=='pc'&&!v.dead&&!foeHid(v));   // 躲著的敵人點不到，要挑看得到的
   const s=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[u.x+dx,u.y+dy]).find(([x,y])=>!unitAt(x,y)&&!b.def.blocks.some(o=>o.x===x&&o.y===y));
   f.x=s[0];f.y=s[1];refreshBattle();
   const seen=new Set(),orig=window.dollSVG;window.dollSVG=o=>{if(o.anim)seen.add(o.id);return orig(o);};
