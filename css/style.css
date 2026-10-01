@@ -787,7 +787,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .status-page{padding:5px 0 0}
   .status-core{min-height:190px}
   .status-paper{min-height:185px}
-  .status-paper svg{width:165px;height:165px}
+  .status-paper>svg,.status-paper .inf-doll>svg{width:165px;height:165px}   /* 只放大紙娃娃、頭像，不要套到狀態圖示 */
   .status-stats{display:none}
   .status-stat{padding:4px 3px;border-radius:7px;min-height:45px}
   .status-stat small{font-size:9px;line-height:1.1}
