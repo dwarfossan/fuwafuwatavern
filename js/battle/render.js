@@ -868,35 +868,54 @@ function equipItemAt(u, from, to){
 }
 function bindGearDrag(){
   let drag=null, ghost=null, over=null, sx=0, sy=0;
+  // 手機上背包清單要能上下滑（大爺 2026-10-01 選 A）：清單裡的道具用手指要「長按」才開始拖曳，
+  // 長按前手指移動超過門檻就當成捲動，交給瀏覽器捲清單。滑鼠、裝備格照舊一按住就能拖
+  const LONG_PRESS=300, SCROLL_TOL=8;
   document.querySelectorAll("[data-gearitem]").forEach(el=>{
     el.addEventListener("pointerdown",e=>{
       if(e.button!==undefined&&e.button!==0)return;
+      const needHold=e.pointerType==="touch"&&!!el.closest(".gear-bagitems");
+      let armed=!needHold, timer=null;
       drag={uid:el.dataset.uid,from:el.dataset.gearitem}; sx=e.clientX; sy=e.clientY;
+      const lift=()=>{ ghost=el.cloneNode(true); ghost.classList.add("gear-ghost"); document.body.appendChild(ghost); el.classList.add("gear-lift"); ghost.style.left=sx+"px"; ghost.style.top=sy+"px"; };
+      // 浮起來之後擋掉瀏覽器的捲動，手指的移動才會一路交給拖曳
+      const noScroll=ev=>{ if(armed) ev.preventDefault(); };
       const move=ev=>{
+        if(!armed){
+          if(Math.hypot(ev.clientX-sx,ev.clientY-sy)>SCROLL_TOL) stop();
+          return;
+        }
         if(!ghost){
           if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<5)return;
-          ghost=el.cloneNode(true); ghost.classList.add("gear-ghost"); document.body.appendChild(ghost); el.classList.add("gear-lift");
+          lift();
         }
         ghost.style.left=ev.clientX+"px"; ghost.style.top=ev.clientY+"px";
         const t=document.elementFromPoint(ev.clientX,ev.clientY)?.closest("[data-gearslot],[data-gearbag]");
         if(over!==t){over?.classList.remove("gear-over");t?.classList.add("gear-over");over=t;}
         ev.preventDefault();
       };
-      const up=ev=>{
-        window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);
-        const didDrag=!!ghost;
+      const stop=()=>{
+        clearTimeout(timer);
+        window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);window.removeEventListener("touchmove",noScroll);
         ghost?.remove(); ghost=null; el.classList.remove("gear-lift"); over?.classList.remove("gear-over");
-        const t=document.elementFromPoint(ev.clientX,ev.clientY)?.closest("[data-gearslot],[data-gearbag]");
-        // 單純點擊裝備圖示不是拖曳。只有真的移動到拖曳門檻後才執行換裝，
-        // 否則像背包圖示的 click 會在 pointerup 時被 render() 吃掉，導致背包無法打開。
-        if(didDrag&&t&&drag){
-          const b=B(),u=b&&b.units.find(x=>x.id===drag.uid);
-          const to=t.dataset.gearslot||"bag";
-          if(equipItemAt(u,drag.from,to)){ b.info=u.id; render(); }
-        }
         drag=null;over=null;
       };
+      const up=ev=>{
+        const didDrag=!!ghost, d=drag;
+        // 被瀏覽器拿去捲動（pointercancel）不算放下
+        const t=ev.type==="pointerup"?(ghost&&(ghost.style.display="none"),document.elementFromPoint(ev.clientX,ev.clientY)?.closest("[data-gearslot],[data-gearbag]")):null;
+        stop();
+        // 單純點擊裝備圖示不是拖曳。只有真的移動到拖曳門檻後才執行換裝，
+        // 否則像背包圖示的 click 會在 pointerup 時被 render() 吃掉，導致背包無法打開。
+        if(didDrag&&t&&d){
+          const b=B(),u=b&&b.units.find(x=>x.id===d.uid);
+          const to=t.dataset.gearslot||"bag";
+          if(equipItemAt(u,d.from,to)){ b.info=u.id; render(); }
+        }
+      };
+      if(needHold) timer=setTimeout(()=>{ armed=true; lift(); },LONG_PRESS);
       window.addEventListener("pointermove",move,{passive:false});window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
+      window.addEventListener("touchmove",noScroll,{passive:false});
     });
   });
 }
