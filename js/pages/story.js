@@ -6,7 +6,9 @@ const SCENES = {
 };
 /* 劇情裡的被動感知演出（大爺 2026-10-01）
    只在察覺台詞（line.shake）時出現，而且 ambushScript 只有至少一隻察覺到才會插入那幾句，所以全失敗時什麼都不顯示（不劇透）
-   每隻：骰子停在 10（被動不擲骰）＋感知調整值＝總和；成功跳 ❗、失敗跳 ❓（跟戰鬥同一個泡泡），成功的卡片抖一下 */
+   每隻：骰子停在 10（被動不擲骰）＋感知調整值＝總和；成功跳 ❗、失敗跳 ❓（跟戰鬥同一個泡泡），成功的卡片抖一下
+   順序（大爺）：骰子先出來，停 SPOT_SYMBOL_DELAY 毫秒才跳符號、抖卡片，兩個演出才不會疊在一起 */
+const SPOT_SYMBOL_DELAY = 1000;
 function spotRowHTML(){
   const who = scoutSpotters();
   return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">被動感知</span>${CRITTERS.map(c=>{
@@ -23,7 +25,8 @@ function showSpot(on){
     stage.insertAdjacentHTML("beforeend", spotRowHTML());
     const who = scoutSpotters();
     party.querySelectorAll("[data-info]").forEach(el=>{ const ok = who.includes(el.dataset.info);
-      el.insertAdjacentHTML("beforeend", obsBubbleHTML(ok ? "ok" : "fail")); if(ok) el.classList.add("spot-hit"); });
+      el.insertAdjacentHTML("beforeend", obsBubbleHTML(ok ? "ok" : "fail", SPOT_SYMBOL_DELAY));
+      if(ok){ el.style.setProperty("--spot-delay", SPOT_SYMBOL_DELAY+"ms"); el.classList.add("spot-hit"); } });
   }
   if(!on && had){
     stage.querySelector(".spot-row").remove();

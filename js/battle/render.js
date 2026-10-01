@@ -333,7 +333,8 @@ function obsMarkSVG(v, m, now){
   return `<g class="obs obs-${m.kind}" transform="translate(${ax} ${ay}) scale(${overlayK().toFixed(3)})" data-exp="${m.t + m.dur}">${obsBubbleBody(m.kind, m.t - now)}</g>`;
 }
 // 畫面上一般的 HTML 用（劇情的卡片）：一個獨立的小 svg
-const obsBubbleHTML = kind => `<svg class="obs obs-${kind}" viewBox="-22 -48 44 50" aria-hidden="true">${obsBubbleBody(kind, 0)}</svg>`;
+// delay：幾毫秒後才開始演（劇情裡先讓骰子停一下）
+const obsBubbleHTML = (kind, delay=0) => `<svg class="obs obs-${kind}" viewBox="-22 -48 44 50" aria-hidden="true">${obsBubbleBody(kind, delay)}</svg>`;
 
 // 台詞氣泡框：錨在角色頭上（血條上方）；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 function bubbleSVG(v, x, now){
