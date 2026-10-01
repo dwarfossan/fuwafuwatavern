@@ -4,12 +4,41 @@ const SCENES = {
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]}
 };
+/* 劇情裡的被動感知演出（大爺 2026-10-01）
+   只在察覺台詞（line.shake）時出現，而且 ambushScript 只有至少一隻察覺到才會插入那幾句，所以全失敗時什麼都不顯示（不劇透）
+   每隻：骰子停在 10（被動不擲骰）＋感知調整值＝總和；成功跳 ❗、失敗跳 ❓（跟戰鬥同一個泡泡），成功的卡片抖一下 */
+function spotRowHTML(){
+  const who = scoutSpotters();
+  return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">被動感知</span>${CRITTERS.map(c=>{
+    const m = modOf(finalScore(c.id,"WIS")), ok = who.includes(c.id);
+    return `<div class="spot-cell">${dieFace(20, 10, 0, 0, [], false, null, true)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span>
+      <span class="dp-total ${ok?"res-hit":"res-miss"}"><b>${10+m}</b></span></div>`;
+  }).join("")}</div>`;
+}
+function showSpot(on){
+  const stage = document.getElementById("stage"), party = document.querySelector(".fp-page .party");
+  if(!stage || !party) return;
+  const had = !!stage.querySelector(".spot-row");
+  if(on && !had){
+    stage.insertAdjacentHTML("beforeend", spotRowHTML());
+    const who = scoutSpotters();
+    party.querySelectorAll("[data-info]").forEach(el=>{ const ok = who.includes(el.dataset.info);
+      el.insertAdjacentHTML("beforeend", obsBubbleHTML(ok ? "ok" : "fail")); if(ok) el.classList.add("spot-hit"); });
+  }
+  if(!on && had){
+    stage.querySelector(".spot-row").remove();
+    party.querySelectorAll(".obs").forEach(e=>e.remove()); party.querySelectorAll(".spot-hit").forEach(e=>e.classList.remove("spot-hit"));
+  }
+  stage.querySelector(".dialog")?.classList.toggle("with-spot", !!on);
+}
+
 function updateStoryLine(){
   const scene = SCENES[state.scene], line = scene.script[state.line], who = WHO(line.who);
   const last = state.line === scene.script.length-1, stage = document.getElementById("stage");
   if(!stage) return render();
   stage.classList.toggle("hugging", !!line.hug);
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
+  showSpot(!!line.shake);
   stage.querySelector(".dwarf")?.classList.toggle("talk", line.who==="dwarf");
   const dialog = stage.querySelector(".dialog");
   if(dialog){

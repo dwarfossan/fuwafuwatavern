@@ -316,18 +316,24 @@ function rangeOutline(u, r){
 }
 
 // 被動觀察符號：白色泡泡框，錨點跟台詞氣泡框一樣在頭上；大小見 overlayK
-function obsMarkSVG(v, m, now){
-  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (v.statuses.some(s=>STATUS_BADGE[s.k]) ? 38*overlayK() : 0);
-  const k = overlayK(), d = m.t - now, w = 42, h = 38, L = -w/2, T = -h - 9;   // 三種符號同一個泡泡框大小
+// 泡泡框＋符號本體（原點＝尾巴尖端），戰場和劇情共用；d＝動畫延遲（負數＝已經播了多久）
+function obsBubbleBody(kind, d){
+  const w = 42, h = 38, L = -w/2, T = -h - 9;   // 三種符號同一個泡泡框大小
   const bubble = `<path d="M${L+10} ${T} H${-L-10} Q${-L} ${T} ${-L} ${T+10} V${T+h-10} Q${-L} ${T+h} ${-L-10} ${T+h} H7 L0 ${T+h+9} L-7 ${T+h} H${L+10} Q${L} ${T+h} ${L} ${T+h-10} V${T+10} Q${L} ${T} ${L+10} ${T} Z"
       fill="#fff" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>`;
   let inner;
-  if(m.kind==="ok") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
-  else if(m.kind==="fail") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
+  if(kind==="ok") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
+  else if(kind==="fail") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
   else inner = [-11,0,11].map((x,i)=>`<circle class="obs-dot" cx="${x}" cy="${T+h/2}" r="3.5" fill="#1f1a24" style="animation-delay:${d + 350 + i*420}ms"/>`).join("");
-  return `<g class="obs obs-${m.kind}" transform="translate(${ax} ${ay}) scale(${k.toFixed(3)})" data-exp="${m.t + m.dur}">
-    <g class="obs-life" style="animation-delay:${d}ms;--dur:${m.dur}ms"><g class="obs-anim" style="animation-delay:${d}ms;--dur:${m.dur}ms">${bubble}${inner}</g></g></g>`;
+  return `<g class="obs-life" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms"><g class="obs-anim" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms">${bubble}${inner}</g></g>`;
 }
+// 戰場用：錨在角色頭上
+function obsMarkSVG(v, m, now){
+  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (v.statuses.some(s=>STATUS_BADGE[s.k]) ? 38*overlayK() : 0);
+  return `<g class="obs obs-${m.kind}" transform="translate(${ax} ${ay}) scale(${overlayK().toFixed(3)})" data-exp="${m.t + m.dur}">${obsBubbleBody(m.kind, m.t - now)}</g>`;
+}
+// 畫面上一般的 HTML 用（劇情的卡片）：一個獨立的小 svg
+const obsBubbleHTML = kind => `<svg class="obs obs-${kind}" viewBox="-22 -48 44 50" aria-hidden="true">${obsBubbleBody(kind, 0)}</svg>`;
 
 // 台詞氣泡框：錨在角色頭上（血條上方）；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 function bubbleSVG(v, x, now){
@@ -524,10 +530,11 @@ const DIE_SHAPE = {
 };
 const RES_TEXT = {hit:"HIT", miss:"MISS", crit:"CRITICAL!", fumble:"MISS", save:"SAVE", fail:"FAIL"};
 // 一顆骰子：start＝開始滾的時間、land＝停住的時間（相對現在，毫秒）；drop＝優劣勢沒用到的那顆
-function dieFace(sides, v, start, land, flick, drop, tint){
+// still：不滾動，直接停在 v（被動檢定用）
+function dieFace(sides, v, start, land, flick, drop, tint, still){
   const nat = sides===20 ? (v===20 ? " nat20" : v===1 ? " nat1" : "") : "";
   const edge = sides===20 ? `<path class="dp-edge" d="M0 -9.5 L8.8 5.8 L-8.8 5.8 Z"/>` : "";
-  return `<span class="dp-die${drop?" dp-drop":""}${nat}" style="--tint:${tint||"#f6e9d8"};--land:${land}ms"><svg viewBox="-18 -18 36 36" width="34" height="34">
+  return `<span class="dp-die${drop?" dp-drop":""}${still?" dp-still":""}${nat}" style="--tint:${tint||"#f6e9d8"};--land:${land}ms"><svg viewBox="-18 -18 36 36" width="34" height="34">
     <g class="dp-spin" style="animation-delay:${start}ms"><path class="dp-body" d="${DIE_SHAPE[sides]||DIE_SHAPE[6]}"/>${edge}
     ${flick.map((f,j)=>`<text class="dp-f" y="4.5" text-anchor="middle" style="animation-delay:${start + j*DICE_TUMBLE/3}ms">${(f % sides) + 1}</text>`).join("")}
     <text class="dp-n" y="4.5" text-anchor="middle" style="animation-delay:${land}ms">${v}</text></g></svg><small>d${sides}</small></span>`;

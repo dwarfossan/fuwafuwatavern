@@ -60,6 +60,14 @@ for(const spot of [true, false]){
     const s = SCENES.ambush.script; return {n:s.length, base:AMBUSH.length, shake:s.some(l=>l.shake), wolf:s.some(l=>l.who==='wolf' && l.text===SPOT_QUIP.wolf)};
   }, spot);
   ok('察覺的台詞與草叢晃動', spot ? (r.shake && r.wolf) : (!r.shake && r.n===r.base), JSON.stringify(r));
+  // 被動感知演出：走到第一句察覺台詞時出現；沒人察覺就整段都不出現
+  const sp = await pg.evaluate(()=>{ const out=[]; const n=SCENES.ambush.script.length;
+    for(let i=0;i<n;i++){ state.line=i; updateStoryLine(); const L=SCENES.ambush.script[i];
+      out.push({shake:!!L.shake, row:!!document.querySelector('.spot-row'), ok:document.querySelectorAll('.pf .obs-ok').length, fail:document.querySelectorAll('.pf .obs-fail').length,
+        dice:[...document.querySelectorAll('.spot-cell .dp-n')].map(e=>e.textContent)}); }
+    state.line=0; updateStoryLine(); return out; });
+  ok('被動感知：察覺台詞時才出現、之後消失', sp.every(x=>x.row===x.shake), JSON.stringify(sp.map(x=>+x.row)));
+  ok('被動感知：骰子都停在 10、成功 ❗ 失敗 ❓', spot ? sp.filter(x=>x.row).every(x=>x.dice.join()==='10,10,10,10' && x.ok===1 && x.fail===3) : sp.every(x=>!x.row));
   await pg.evaluate(()=>{ state.line = SCENES.ambush.script.length-1; render(); });
   await pg.click('#toBattle'); await pg.waitForTimeout(500);
   const b = await pg.evaluate(()=>{ const sh=B().units.find(u=>u.type==='goblin_shaman'); return {hidden: !!sh.statuses.find(s=>s.k==='hidden'), npc: B().units.filter(u=>u.side==='npc').length}; });

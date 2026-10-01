@@ -139,6 +139,7 @@ function bind(){
   $("back2")?.addEventListener("click", ()=>{state.page="roll";render()});
   $("next")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)});
   const stage = $("stage");
+  if(state.page==="story" && stage) showSpot(!!SCENES[state.scene].script[state.line].shake);   // 整頁重畫時補上被動感知
   const adv = ()=>{ if(state.line < SCENES[state.scene].script.length-1){ state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true}); } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
     if(e.target.closest("button, .info, .nav")) return;
