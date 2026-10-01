@@ -4,18 +4,16 @@ function render(){
   // 只有換頁（或換劇情場景）時才播淡入動畫，避免每次點擊都閃一下
   const key = state.page + ":" + state.scene;
   const entering = key !== render.last; render.last = key;
-  if(state.page==="battle" && B() && app.querySelector("#board-floor")){
-    updateBattleFrame();
-    app.querySelector(".modal-back")?.remove();
-    app.insertAdjacentHTML("beforeend",renderModal());
-    bind(); bindModal(); return;
+  if(state.page==="battle" && B() && app.querySelector("#board-floor") && refreshBattle.battle===B()){
+    updateBattleFrame(); return;
   }
   app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
-  if(state.page==="battle" && B()) document.getElementById("board-floor").terrainKey=boardTerrainKey();
+  if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", renderModal());
   if(entering) app.firstElementChild?.classList.add("enter");
   bind();
   bindModal();
+  if(state.page==="battle" && B()) refreshBattle.keys=battleLayerKeys();
 }
 
 // 大地圖：棋子沿路走到 stop 的位置停下，跳出驚嘆號，接著切到第一人稱伏擊劇情

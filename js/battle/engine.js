@@ -544,7 +544,7 @@ function say(u, text, delay=0, lang=null){
   else if(un.who) blog(`${u.name}（${lang}，${un.who.name}聽懂了）：「${text}」`, "talk");
   else blog(`${u.name}說了一句異族語。`, "talk");
   if(!un.all) blog(`　被動智力 ${un.v} ${un.who?"≥":"<"} ${lang} ${un.dc}${un.who?`，${un.who.name}聽得懂`:"，沒人聽得懂"}`);
-  setTimeout(()=>{ if(B()===b) render(); }, delay + 20);
+  setTimeout(()=>{ if(B()===b) refreshBattle(); }, delay + 20);
 }
 
 // ---------- 爆擊慢動作 ----------
@@ -557,7 +557,7 @@ function critMoment(t){
   setTimeout(()=>{
     if(B()!==b) return;
     b.critOn = {x:t.x, y:t.y};
-    render();
+    refreshBattle();
     document.getAnimations().forEach(a=>{ if(!/crit/.test(a.animationName||"")) a.playbackRate = .3; });
     setTimeout(()=>{
       if(B()!==b) return;

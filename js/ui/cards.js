@@ -105,17 +105,23 @@ function renderModal(){
   return `<div class="modal-back" data-close="1"><div class="modal" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;
 }
+const modalEvents=new WeakMap();
+function modalListen(el,type,fn){
+  let types=modalEvents.get(el);if(!types){types=new Set();modalEvents.set(el,types);}
+  if(types.has(type))return;types.add(type);el.addEventListener(type,fn);
+}
+function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
-  document.querySelectorAll("[data-close]").forEach(el=>el.addEventListener("click", e=>{ if(e.target===el){ state.modal=null; render(); } }));
-  document.querySelectorAll("[data-iteminfo]").forEach(el=>el.addEventListener("click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo}; render(); }));
-  document.querySelectorAll("[data-skinfo]").forEach(el=>el.addEventListener("click", e=>{
+  document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el){ state.modal=null; refreshGameUI(); } }));
+  document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo}; refreshGameUI(); }));
+  document.querySelectorAll("[data-skinfo]").forEach(el=>modalListen(el,"click", e=>{
     e.stopPropagation();
     const [group, idx, item, unit] = el.dataset.skinfo.split(":");
     state.modal = {kind:"skill", group, idx:+idx, item:item||null, unit:unit||null, back: state.modal && state.modal.kind==="item"};
-    render();
+    refreshGameUI();
   }));
 }
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; render(); } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; refreshGameUI(); } });
 
 // 全域返回／取消：滑鼠右鍵一律當作遊戲的「返回」鍵，不開瀏覽器選單。
 // 只撤銷尚未確定的 UI／選擇；已經結算的攻擊、移動途中事件等不倒帶。
@@ -125,24 +131,24 @@ function gameBack(){
     if(state.modal.kind==="skill" && state.modal.back && state.modal.item){
       state.modal={kind:"item",id:state.modal.item};
     }else state.modal=null;
-    sfx("back"); render(); return true;
+    sfx("back"); refreshGameUI(); return true;
   }
   if(state.page==="battle"){
     const b=B(); if(!b || b.busy) return false;
-    if(b.sysPop){ b.sysPop=null; sfx("back"); render(); return true; }
-    if(b.gearBagOpen){ b.gearBagOpen=false; sfx("back"); render(); return true; }
-    if(b.info){ b.info=null; sfx("back"); render(); return true; }
+    if(b.sysPop){ b.sysPop=null; sfx("back"); refreshGameUI(); return true; }
+    if(b.gearBagOpen){ b.gearBagOpen=false; sfx("back"); refreshGameUI(); return true; }
+    if(b.info){ b.info=null; sfx("back"); refreshGameUI(); return true; }
     if(b.pendingMove){ sfx("back"); confirmMove(false); return true; }
     if(b.mode){ aimCancel(); return true; }
-    if(b.moveMode){ b.moveMode=false; b.menu="move"; sfx("back"); render(); return true; }
+    if(b.moveMode){ b.moveMode=false; b.menu="move"; sfx("back"); refreshGameUI(); return true; }
     if(b.menu && b.menu!=="root"){
       b.menu=["skills","shove"].includes(b.menu)?"act":"root";
-      sfx("back"); render(); return true;
+      sfx("back"); refreshGameUI(); return true;
     }
     return false;
   }
   // 劇情角色小卡先收起，不直接跳頁。
-  if(state.info){ state.info=null; sfx("back"); render(); return true; }
+  if(state.info){ state.info=null; sfx("back"); refreshGameUI(); return true; }
   // 其他頁面沿用畫面上既有的返回按鈕，避免另外維護第二套路徑。
   const back=document.querySelector("#backShop,#backStory,#back2,#back");
   if(back){ sfx("back"); back.click(); return true; }

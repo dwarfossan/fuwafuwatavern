@@ -1,0 +1,26 @@
+{
+  "battle": {
+    "changed_pixels": 0,
+    "max_channel_difference": 0
+  },
+  "move": {
+    "changed_pixels": 22103,
+    "max_channel_difference": 2
+  },
+  "attack": {
+    "changed_pixels": 386,
+    "max_channel_difference": 2
+  },
+  "status": {
+    "changed_pixels": 0,
+    "max_channel_difference": 0
+  },
+  "dice": {
+    "changed_pixels": 0,
+    "max_channel_difference": 0
+  },
+  "cliff": {
+    "changed_pixels": 11113,
+    "max_channel_difference": 3
+  }
+}

@@ -11,11 +11,11 @@ function nextTurn(){
   const u = cur();
   beginTurn(u);
   // 回合一開始就倒下（例如流血）：直接換下一個
-  if(u.dead || u.down){ render(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
+  if(u.dead || u.down){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
-  if(B().skipTurn){ B().busy = true; render(); setTimeout(()=>{ B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
+  if(B().skipTurn){ B().busy = true; refreshBattle(); setTimeout(()=>{ B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
-  render();
+  refreshBattle();
   if(u.side==="foe") setTimeout(()=>aiTurn(u), 650);
 }
 
@@ -66,8 +66,8 @@ function endTurn(){
 function checkResult(){
   const b = B();
   if(b.result) return true;
-  if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); render(); return true; }
-  if(!alive("pc").length){ b.result = "lose"; blog("四隻都倒下了……", "kill"); sfx("lose", 900); render(); return true; }
+  if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); refreshBattle(); return true; }
+  if(!alive("pc").length){ b.result = "lose"; blog("四隻都倒下了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }
   return false;
 }
 
@@ -116,7 +116,7 @@ function walk(u, path, done){
       const foes = oaTriggers(u, path[i]);
       if(foes.length){
         foes.forEach(h=>{ if(!u.down && !u.dead) opportunityAttack(h, u); });
-        render();
+        refreshBattle();
         setTimeout(step, 750);
         return;
       }
@@ -129,7 +129,7 @@ function walk(u, path, done){
     if(pickUp(u)){ b.pickedUp = true; }
     if(u.side==="foe") checkGuards(u, prev);
     checkExposure();
-    render();
+    refreshBattle();
     setTimeout(step, 140);
   };
   step();
@@ -180,22 +180,22 @@ function pcMove(x, y){
   if(b.dazed) b.actionUsed = true;          // 震暈：移動後就不能行動
   walk(u, path, ()=>{
     b.busy = false;
-    if(u.down || u.dead || b.result){ render(); return; }
+    if(u.down || u.dead || b.result){ refreshBattle(); return; }
     if(b.moveRolled || b.pickedUp){ if(b.moveRolled) blog(`　途中被藉機攻擊，這次移動不能取消。`); b.menu = "root"; b.pickedUp = false; }
     else b.pendingMove = snap;
-    render();
+    refreshBattle();
   });
 }
 function confirmMove(ok){
   const b = B(), u = cur(), s = b.pendingMove;
   if(!s || b.busy) return;
   b.pendingMove = null;
-  if(ok){ b.menu = "root"; render(); return; }
+  if(ok){ b.menu = "root"; refreshBattle(); return; }
   u.x = s.x; u.y = s.y; u.face = s.face;
   s.drag.forEach(d=>{ d.v.x = d.x; d.v.y = d.y; });
   b.moveLeft = s.moveLeft; b.movedThisTurn = s.moved; b.actionUsed = s.acted;
   b.moveMode = true;                         // 回到選格子
-  render();
+  refreshBattle();
 }
 
 // 選技能 → 進入瞄準模式；self 類直接施放
@@ -204,15 +204,15 @@ function pickSkill(key){
   if(b.busy || b.result || u.side!=="pc") return;
   const sk = unitSkills(u).find(s=>s.key===key);
   if(sk && !skillCanUse(u, sk)) return;
-  if(sk && fromTwoHanded(u, sk) && inGrapple(u)){ blog(`${sk.def.name}：擒抱中不能用雙手武器`); render(); return; }
+  if(sk && fromTwoHanded(u, sk) && inGrapple(u)){ blog(`${sk.def.name}：擒抱中不能用雙手武器`); refreshBattle(); return; }
   if(!sk || sk.impl.passive || !skillReady(u,sk)) return;
-  if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); render(); return; }
+  if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); refreshBattle(); return; }
   // 用最低階的格子；對自己放、又沒得選（不能升階或只剩一種格子）：直接施放；能選的先進瞄準列，選好用哪一階再按「施放」
   b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier); b.tierOpen = false;
   if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1)){ doSkill(u, sk, u); return; }
   b.mode = (b.mode && b.mode.key===key) ? null : {key, darts:[]};
   b.menu = b.mode ? null : "act";
-  render();
+  refreshBattle();
 }
 // 瞄準列：直接點要用哪一階的格子（只能點還有格子的階）；已經點了幾發魔法飛彈就不能降到比那個少
 function aimTier(t){
@@ -220,10 +220,10 @@ function aimTier(t){
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;
   const n = upOf(u, sk, t);
   if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 2 + n) return;
-  b.tier = t; b.up = n; b.tierOpen = false; sfx("pop"); render();   // 選好就收起來
+  b.tier = t; b.up = n; b.tierOpen = false; sfx("pop"); refreshBattle();   // 選好就收起來
 }
 // 瞄準列的「＋／×」：展開、收起其他階（大爺 2026-10-01：升階平常收起來，點＋才展開）
-function aimTierToggle(){ const b = B(); if(!b.mode || b.busy) return; b.tierOpen = !b.tierOpen; sfx("pop"); render(); }
+function aimTierToggle(){ const b = B(); if(!b.mode || b.busy) return; b.tierOpen = !b.tierOpen; sfx("pop"); refreshBattle(); }
 function aimCast(){                                   // 對自己放的招，選好用哪一階後按「施放」
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key);
@@ -232,7 +232,7 @@ function aimCast(){                                   // 對自己放的招，�
 // 取消瞄準：回到選這招的那一層（道具 → 道具、推開／推倒 → 推撞、其他 → 動作）
 function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
   b.menu = k==="item" ? "items" : (k==="shove_push" || k==="shove_prone") ? "shove" : "act";
-  b.mode = null; b.up = 0; b.tier = 0; b.tierOpen = false; sfx("back"); render(); }
+  b.mode = null; b.up = 0; b.tier = 0; b.tierOpen = false; sfx("back"); refreshBattle(); }
 
 // 瞄準模式下，這格能不能當目標
 function validTarget(u, sk, x, y){
@@ -253,27 +253,27 @@ function clickTile(x, y){
   const myTurn = u.side==="pc" && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
   if(myTurn && b.mode){
-    if(b.mode.key==="help"){ const a = helpTarget(u, x, y); if(a) doHelp(u, a); else { b.mode = null; b.menu = "act"; render(); } return; }
+    if(b.mode.key==="help"){ const a = helpTarget(u, x, y); if(a) doHelp(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item), a = t0 && !foeHid(t0) ? t0 : null;
-      if(it && a && itemTargets(u, it).includes(a)) useItem(u, it, a); else { b.mode = null; b.menu = "items"; render(); } return; }
+      if(it && a && itemTargets(u, it).includes(a)) useItem(u, it, a); else { b.mode = null; b.menu = "items"; refreshBattle(); } return; }
     if(GEN_ACT[b.mode.key]){ const g = GEN_ACT[b.mode.key], a = unitAt(x,y);
-      if(a && g.targets(u).includes(a)) doGenAct(u, b.mode.key, a); else { b.mode = null; b.menu = "act"; render(); } return; }
+      if(a && g.targets(u).includes(a)) doGenAct(u, b.mode.key, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     const sk = unitSkills(u).find(s=>s.key===b.mode.key);
     const tg = validTarget(u, sk, x, y);
     if(tg && sk.impl.multi){                       // 魔法飛彈：每點一下分一發，點滿就射
       b.mode.darts = [...(b.mode.darts||[]), tg]; sfx("pop");
-      if(b.mode.darts.length >= sk.impl.darts()) doSkill(u, sk, b.mode.darts); else render();
+      if(b.mode.darts.length >= sk.impl.darts()) doSkill(u, sk, b.mode.darts); else refreshBattle();
       return;
     }
     if(tg) doSkill(u, sk, tg);
     else if(sk && sk.impl.target==="self") return;   // 對自己放的招在等「施放」，點地圖不取消
-    else { b.mode = null; b.up = 0; b.tier = 0; b.menu = "act"; render(); }
+    else { b.mode = null; b.up = 0; b.tier = 0; b.menu = "act"; refreshBattle(); }
     return;
   }
   // 指令列一直在右下角，點角色（包括自己）就是看狀態卡
-  if(t){ b.info = b.info===t.id ? null : t.id; sfx(b.info ? "pop" : "back"); render(); return; }
+  if(t){ b.info = b.info===t.id ? null : t.id; sfx(b.info ? "pop" : "back"); refreshBattle(); return; }
   if(myTurn && b.moveMode && reachable(u, b.moveLeft).has(`${x},${y}`)){ b.info = null; pcMove(x, y); return; }
-  if((b.menu && b.menu!=="root") || b.info || b.moveMode){ b.menu = null; b.info = null; b.moveMode = false; render(); }
+  if((b.menu && b.menu!=="root") || b.info || b.moveMode){ b.menu = null; b.info = null; b.moveMode = false; refreshBattle(); }
 }
 
 // ---------- 指令選單 ----------
@@ -416,7 +416,7 @@ function takeRest(kind, selections={}){
     state.proficiency[u.id]=u.slots.slice();
   });
   if(kind==="short") state.shortRestsUsed++; else state.shortRestsUsed=0;
-  syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`,"skill"); render(); return true;
+  syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`,"skill"); refreshBattle(); return true;
 }
 
 function battleCmd(c){
@@ -456,7 +456,7 @@ function battleCmd(c){
     case "douse": if(!canAct() || !has(u,"burning")) return; doDouse(u); return;
     case "unnet": if(!canAct() || !hasVia(u,"restrained","net")) return; doUnnet(u); return;
   }
-  render();
+  refreshBattle();
 }
 // ---------- 通用動作：擒抱、推撞（SRD 5.2 徒手攻擊的選項，每個人都能用） ----------
 // 目標做力量或敏捷豁免（挑高的），DC = 8 + 力量 + 熟練 2
@@ -477,7 +477,7 @@ function doGenAct(u, key, t){
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + b.impact);
   blog(`${u.name}${g.name}${t.name}！`, "skill");
   reveal(u, "出手，現身了！");
-  if(key==="disarm"){ tryDisarm(u, t); b.impact = 0; panelEnd(); if(checkResult()) return; if(u.side==="pc") afterShow(u, 1300 + DICE_LEAD); else render(); return; }
+  if(key==="disarm"){ tryDisarm(u, t); b.impact = 0; panelEnd(); if(checkResult()) return; if(u.side==="pc") afterShow(u, 1300 + DICE_LEAD); else refreshBattle(); return; }
   const s = t.mods.STR>=t.mods.DEX ? "STR" : "DEX";
   if(saveRoll(t, s, dc)){ blog(`　${t.name}沒被${g.name==="擒抱"?"抓住":g.name}。`); fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact); }
   else if(key==="grapple"){ addStatus(t, "restrained", {via:"grapple", src:u.id, dc}); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被抓住了！不能移動，直到掙脫。`, "skill"); }
@@ -486,7 +486,7 @@ function doGenAct(u, key, t){
   else { knockProne(t); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被推倒在地！`, "skill"); }
   b.impact = 0; panelEnd();
   if(checkResult()) return;
-  if(u.side==="pc") afterShow(u, 1100 + DICE_LEAD); else render();
+  if(u.side==="pc") afterShow(u, 1100 + DICE_LEAD); else refreshBattle();
 }
 // 掙脫：力量或敏捷檢定（挑高的）對抗擒抱的 DC
 function doEscape(u){
@@ -495,7 +495,7 @@ function doEscape(u){
   const r = d20(), total = r + u.mods[s], ok = total >= gs.dc;
   blog(`${u.name}想掙脫：d20=${r}${fmtN(u.mods[s])} = ${total} ${ok?"≥":"<"} DC ${gs.dc} → ${ok?"成功":"失敗"}`, ok?"skill":"miss");
   if(ok){ releaseGrapple(u, "掙脫了！"); u.anim = {k:"hop", t:Date.now()}; sfx("swing"); }
-  if(u.side==="pc") afterShow(u, 700); else render();
+  if(u.side==="pc") afterShow(u, 700); else refreshBattle();
 }
 
 // 協助：相鄰的隊友（倒下的也行，改成扶起來）
@@ -544,8 +544,8 @@ function useItem(u, it, t){
   // 特殊彈藥：用道具規則切換，不在切換時消耗；下一次相容射擊才真正用掉。
   if(it.use.kind==="ammo"){
     const k=ammoKind(u.weapon);
-    if(!k || it.ammoFor!==k){ blog(`${it.n}不能用在目前的武器上`); render(); return; }
-    spendFree(u); u.loadedAmmo=it; blog(`${u.name}切換成${it.n}，下一次射擊會使用它`, "skill"); sfx("pop"); render(); return;
+    if(!k || it.ammoFor!==k){ blog(`${it.n}不能用在目前的武器上`); refreshBattle(); return; }
+    spendFree(u); u.loadedAmmo=it; blog(`${u.name}切換成${it.n}，下一次射擊會使用它`, "skill"); sfx("pop"); refreshBattle(); return;
   }
   spendFree(u); dropItem(u, it);
   if(t!==u) faceTo(u, t);
@@ -578,7 +578,7 @@ function useItem(u, it, t){
     b.impact = 0; panelEnd();
   }
   if(checkResult()) return;
-  if(u.side==="pc") afterShow(u, Math.max(900, (b.impactEnd||0) - Date.now() + 500)); else render();
+  if(u.side==="pc") afterShow(u, Math.max(900, (b.impactEnd||0) - Date.now() + 500)); else refreshBattle();
 }
 // 切換整組手持配置：主手＋副手一起切換；整理裝備不消耗動作
 function swapWeapon(u, i){
@@ -590,14 +590,14 @@ function swapWeapon(u, i){
   u.offhand2=oldOff;
   if(isTwoHand(u.weapon) && u.shield){u.offhand2={n:"盾牌",type:"shield",_shield:true};u.shield=false;}
   blog(`${u.name}切換了武器組：${u.weapon.n}${u.shield?"＋盾牌":""}`,"skill");
-  render();
+  refreshBattle();
 }
 // 撲滅火焰（動作）
 function doDouse(u){
   useAction(u); u.statuses = u.statuses.filter(s=>s.k!=="burning");
   u.anim = {k:"guard", t:Date.now()}; sfx("swing");
   blog(`${u.name}拍熄身上的火`, "skill");
-  if(u.side==="pc") afterShow(u, 600); else render();
+  if(u.side==="pc") afterShow(u, 600); else refreshBattle();
 }
 // 掙脫網子（動作）：力量檢定對網子的難度
 function doUnnet(u){
@@ -605,7 +605,7 @@ function doUnnet(u){
   useAction(u);
   blog(`${u.name}想掙脫網子：力量 d20=${r}${fmtN(u.mods.STR)} = ${total} ${ok?"≥":"<"} ${rs.dc} → ${ok?"掙脫了！":"還纏著"}`, ok?"skill":"miss");
   if(ok){ u.statuses = u.statuses.filter(s=>s!==rs); u.anim = {k:"hop", t:Date.now()}; sfx("swing"); }
-  if(u.side==="pc") afterShow(u, 700); else render();
+  if(u.side==="pc") afterShow(u, 700); else refreshBattle();
 }
 // 靈巧脫逃（哥布林的天生能力，免費動作）：撤離或躲藏
 const nimble = u => (u.innate||[]).includes("nimble") && freeLeft() && u===cur();   // 只用免費那格，主動作留著出手
@@ -652,17 +652,17 @@ function doSkill(u, sk, t){
   b.mode = null;
   if(checkResult()) return;
   if(u.side==="pc") afterShow(u, Math.max(DOLL_DUR[k]||500, hitAt + 900, (b.impactEnd||0) - Date.now()));
-  else render();
+  else refreshBattle();
 }
 // 動作演出期間：鎖住操作、選單先收起來，演完才重新打開
 function afterShow(u, ms){
   const b = B();
-  b.busy = true; b.menu = null; render();
+  b.busy = true; b.menu = null; refreshBattle();
   setTimeout(()=>{
     if(B()!==b) return;
     b.busy = false;
     if(!b.result && cur()===u && !u.down && !u.dead) b.menu = "root";
-    render();
+    refreshBattle();
   }, ms);
 }
 
@@ -758,7 +758,7 @@ function aiTurn(e){
   // 免費那格用過了、同伴快倒（剩四分之一）→ 用主動作再補一次
   { const f = foeFreePick(e);
     if(f && (!b.freeUsed || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); setTimeout(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
-  if(!canAct()){ render(); setTimeout(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
+  if(!canAct()){ refreshBattle(); setTimeout(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
   // 學習系統測試：每隻哥布林先使用一項「既有技能表」裡的招式一次。
   // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
   if(!e.testSkillUsed && e.testSkill){
@@ -795,7 +795,7 @@ function aiTurn(e){
         const r = foeRange(e) || reachOf(e), t = seenPcs().filter(p=>dist(p,e)<=r)[0];
         let wait = 700;
         if(t && !e.dead) wait = foeHit(e, t) || 700;
-        render(); setTimeout(endTurn, wait); });
+        refreshBattle(); setTimeout(endTurn, wait); });
       return;
     }
   }
@@ -824,7 +824,7 @@ function aiTurn(e){
       const m = foeManeuver(e, first);
       if(m){ doGenAct(e, m.key, m.t); wait = settle(1300); } else wait = foeHit(e, first[0]) || 700;
     }
-    render();
+    refreshBattle();
     setTimeout(endTurn, wait);
   });
 }
@@ -834,14 +834,14 @@ function aiRanged(e, pcs, R){
   const nearest = p => Math.min(...seenPcs().map(q=>dist(q,p)));
   const shoot = ()=>{
     // 跳開途中被打倒（藉機攻擊）或戰鬥已經結束：不射、不留遺言；戰鬥還沒結束就照常換人
-    if(e.dead || e.down || b.result){ render(); if(!b.result) setTimeout(endTurn, settle(700)); return; }
+    if(e.dead || e.down || b.result){ refreshBattle(); if(!b.result) setTimeout(endTurn, settle(700)); return; }
     // 挑好打的：沒掩護、沒躲草叢的優先，再挑血少的
     const hard = p => coverAC(coverOf(e,p)) + (hidden(p) ? 5 : 0);
     const inRange = seenPcs().filter(p=>dist(p,e)<=R).sort((a,c)=>hard(a)-hard(c) || a.hp-c.hp);
     let wait = 700;
     if(inRange.length && !e.dead){ wait = foeHit(e, inRange[0]) || 700; nimbleHide(e); }
     else blog(`${e.name}找不到可以射的目標。`);
-    render(); setTimeout(endTurn, wait);
+    refreshBattle(); setTimeout(endTurn, wait);
   };
   let path = null;
   if(nearest(e) <= 1 && b.moveLeft){
@@ -875,7 +875,7 @@ function aiShaman(e){
   if(!isHid(e) && e.castLast && !hideBlock(e)){
     e.castLast = false;
     blog(`${e.name}縮回藏身處……`, "skill"); e.anim = {k:"guard", t:Date.now()}; animSfx("guard");
-    tryHide(e); render(); setTimeout(endTurn, 1000); return;
+    tryHide(e); refreshBattle(); setTimeout(endTurn, 1000); return;
   }
   e.castLast = false;
   const bane = spell("災禍術"), bolt = spell("火焰箭");      // 治癒真言是免費動作，回合一開始就用了（foeFreePick）
