@@ -38,7 +38,8 @@ function itemCardHTML(it){
     rows.push([`專精：${it.mastery}`, MASTERY_TEXT[m]||""]);
   } else if(it.type==="armor"){
     rows.push(["護甲等級", `AC ${it.ac}${it.dex==="full"?" + 敏捷調整值":it.dex==="max2"?" + 敏捷調整值（最多 +2）":"（不加敏捷）"}`]);
-    if(it.cloth) rows.push(["布甲", "不算穿護甲：法師護甲照樣可以用。"]);
+    rows.push(["分類", it.tier]);
+    if(it.cloth) rows.push(["衣服", "不算穿護甲：法師護甲照樣可以用。"]);
     if(it.str) rows.push(["力量需求", `力量 ${it.str} 以上才能穿`]);
     if(it.stealth) rows.push(["潛行劣勢", TERM_TEXT["潛行劣勢"]]);
     rows.push(["技能", "護甲不給主動技能，只提高 AC。"]);

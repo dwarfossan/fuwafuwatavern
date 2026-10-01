@@ -669,7 +669,7 @@ function menuHTML(u, b){
     const hb = hideBlock(u);
     body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !act, `用掉動作，移動 +${b.baseMove}`) +
            mbtn("disengage","撤離", !act, "用掉動作，不被藉機攻擊") +
-           mbtn("hide","潛行", !act || !!hb, hb || `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? "（重甲劣勢）" : ""}`) + back;
+           mbtn("hide","潛行", !act || !!hb, hb || `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
   } else if(lv==="act"){
     title = "動作";
     const atks = attackSkills(u);

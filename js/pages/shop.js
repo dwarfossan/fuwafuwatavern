@@ -10,7 +10,7 @@ function renderShop(){
     const why = blockReason(id,it);
     let spec="";
     if(it.type==="weapon") spec = `${it.dmg}${it.props.length?" · "+it.props.join("、"):""} · 專精：${it.mastery}`;
-    else if(it.type==="armor") spec = `AC ${it.ac}${it.dex==="full"?" + 敏捷":it.dex==="max2"?" + 敏捷（最多 2）":""}${it.str?` · 力量 ${it.str}`:""}${it.cloth?" · 不算護甲（法師護甲照開）":""}${it.stealth?" · 潛行劣勢":""}`;
+    else if(it.type==="armor") spec = `${it.tier} · AC ${it.ac}${it.dex==="full"?" + 敏捷":it.dex==="max2"?" + 敏捷（最多 2）":""}${it.str?` · 力量 ${it.str}`:""}${it.cloth?" · 不算護甲（法師護甲照開）":""}${it.stealth?" · 潛行劣勢":""}`;
     else if(it.type==="shield") spec = "AC +2";
     else if(it.type==="consumable") spec = `${it.desc} · 戰鬥中用掉免費動作`;
     else if(it.type==="focus") spec = `${ABILITIES.find(a=>a.k===it.stat).n}施法 · ${it.spells}`;

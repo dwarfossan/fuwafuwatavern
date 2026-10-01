@@ -52,23 +52,53 @@ function tailSVG(id, c){
 }
 
 // 護甲（紙娃娃的衣服層，蓋在身體上）
+/* 身體裝備（2026-10-01：改回 SRD 的 12 件＋法袍，每件畫出差異，大爺之後修）
+   kind＝裝備名稱；沒有專屬畫法的照分類（輕甲／中甲／重甲）畫。畫在紙娃娃的身體上（身體約 x 48~92、y 83~133） */
+const ARMOR_ART = (()=>{
+  const INK="#2a2630", T="M54 90 Q70 83 86 90 Q93 110 88 125 Q70 133 52 125 Q47 110 54 90 Z";        // 一般上衣
+  const LONG="M52 88 Q70 81 88 88 Q96 110 93 131 Q70 139 47 131 Q44 110 52 88 Z";                    // 長到大腿
+  const body = (d, fill, w=3) => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}"/>`;
+  const line = (d, c, w=2.5, extra="") => `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" ${extra}/>`;
+  const dots = (pts, r, fill, stroke) => pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${stroke?`stroke="${stroke}" stroke-width="1.3"`:""}/>`).join("");
+  const rings = (pts, r, c) => pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c}" stroke-width="1.6"/>`).join("");
+  const grid = (x0,x1,y0,y1,dx,dy,off=true) => { const o=[]; for(let y=y0,k=0;y<=y1;y+=dy,k++) for(let x=x0+(off&&k%2?dx/2:0);x<=x1;x+=dx) o.push([x,y]); return o; };
+  const belt = (c="#5e3a20") => line("M52 116 Q70 122 88 116", c, 4.5);
+  return {
+    // 衣服：法袍，長到腳邊，深紫配金邊、V 領和腰帶
+    "法袍": `<path d="M48 86 Q70 78 92 86 Q99 108 101 132 Q70 141 39 132 Q41 108 48 86 Z" fill="#5b4f8f" stroke="${INK}" stroke-width="3"/>
+      ${line("M70 101 L70 136","#473d73")}${line("M42 128 Q70 137 98 128","#e0ab45",3)}${line("M47 110 Q70 117 93 110","#e0ab45",4)}
+      ${line("M57 84 L70 101 L83 84","#e0ab45",3,'stroke-linejoin="round"')}`,
+    // 輕甲
+    "軟甲": body(T,"#d8c7a0") + line("M54 98 L86 120 M54 112 L76 126 M60 90 L88 108 M86 98 L54 120 M86 112 L64 126 M80 90 L52 108","#b59f72",1.8) + line("M58 89 Q70 94 82 89","#b59f72",3),   // 菱格縫線的棉甲
+    "皮甲": body(T,"#9a6a3e") + line("M70 88 L70 128","#6e4a32",2.2,'stroke-dasharray="3 3"') + belt(),                                   // 素面皮衣
+    "鑲釘皮甲": body(T,"#7a4a2a") + line("M70 88 L70 128","#5e3a20",2.2,'stroke-dasharray="3 3"') + belt("#4a2c18")
+      + dots([[59,97],[81,97],[57,106],[83,106],[60,125],[80,125],[64,93],[76,93]],2.2,"#d9dee6","#2a2630"),                            // 皮衣＋金屬鉚釘
+    // 中甲
+    "獸皮甲": body(T,"#a8865e") + `<path d="M52 121 L56 129 L60 122 L64 130 L68 123 L72 130 L76 123 L80 130 L84 122 L88 128 L88 121 Z" fill="#c9a77a" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`
+      + `<path d="M54 90 Q62 84 70 88 Q78 84 86 90 Q80 97 70 94 Q60 97 54 90 Z" fill="#e2cfa8" stroke="${INK}" stroke-width="2"/>` + line("M60 104 q3 -3 6 0 M74 108 q3 -3 6 0 M64 114 q3 -3 6 0","#7e6040",2),   // 毛領＋毛邊下擺
+    "鏈甲衫": body(T,"#9aa3b2") + rings(grid(58,84,96,120,8,7),2.8,"#6f7888") + `<path d="M58 88 Q70 94 82 88 L80 92 Q70 97 60 92 Z" fill="#6b4a35" stroke="${INK}" stroke-width="1.5"/>`,   // 鏈環＋皮領
+    "鱗甲": body(T,"#a99a72") + grid(57,85,95,124,7,6).map(([x,y])=>`<path d="M${x-3.5} ${y} Q${x} ${y+5} ${x+3.5} ${y}" stroke="#6e6244" stroke-width="1.6" fill="none"/>`).join("") + belt("#5e3a20"),   // 一片一片的鱗
+    "胸甲": body(T,"#7a5a3c") + `<path d="M55 90 Q70 84 85 90 Q90 104 84 114 Q70 120 56 114 Q50 104 55 90 Z" fill="#c9d0dc" stroke="${INK}" stroke-width="2.5"/>`
+      + line("M70 88 L70 116","#8c97ab",2) + `<ellipse cx="62" cy="97" rx="4" ry="6" fill="#f2f4f8" opacity=".8"/>` + belt("#4a2c18"),   // 亮面胸板＋皮裙
+    "半身板甲": body(T,"#7a5a3c") + `<path d="M55 90 Q70 84 85 90 Q90 104 84 114 Q70 120 56 114 Q50 104 55 90 Z" fill="#b7bfcc" stroke="${INK}" stroke-width="2.5"/>`
+      + `<path d="M46 92 Q52 84 60 89 Q56 96 48 98 Z M94 92 Q88 84 80 89 Q84 96 92 98 Z" fill="#c9d0dc" stroke="${INK}" stroke-width="2"/>`
+      + `<path d="M54 116 L86 116 L88 124 L52 124 Z" fill="#9aa3b2" stroke="${INK}" stroke-width="2"/>` + line("M70 88 L70 114","#7b8494",2),   // 胸板＋護肩＋腰甲片
+    // 重甲
+    "環甲": body(LONG,"#6b4a35") + rings(grid(58,84,96,126,10,9,false),3.6,"#b7bfcc") + line("M50 120 Q70 126 90 120","#4a2c18",3.5),   // 皮衣縫上大鐵環
+    "鏈甲": body(LONG,"#8c95a4") + rings(grid(56,86,94,128,6,5.5),2.4,"#5f6878") + `<path d="M56 87 Q70 92 84 87 L83 91 Q70 96 57 91 Z" fill="#5f6878" stroke="${INK}" stroke-width="1.5"/>` + belt("#4a2c18"),   // 長到大腿的細密鏈甲
+    "板條甲": body(LONG,"#6b4a35") + [57,63,69,75,81].map(x=>`<rect x="${x}" y="92" width="5" height="34" rx="1.5" fill="#b7bfcc" stroke="${INK}" stroke-width="1.5"/>`).join("")
+      + dots([[59.5,96],[65.5,96],[71.5,96],[77.5,96],[83.5,96],[59.5,121],[65.5,121],[71.5,121],[77.5,121],[83.5,121]],1,"#2a2630"),   // 直條鐵片＋鉚釘
+    "全身板甲": body(LONG,"#c9d0dc") + line("M50 104 Q70 110 90 104 M49 116 Q70 122 91 116","#8c97ab",3)
+      + `<path d="M44 92 Q52 82 62 88 Q58 97 47 100 Z M96 92 Q88 82 78 88 Q82 97 93 100 Z" fill="#dfe6ee" stroke="${INK}" stroke-width="2"/>`
+      + line("M56 91 Q70 85 84 91","#e0ab45",4) + `<ellipse cx="62" cy="97" rx="5" ry="3" fill="#f2f4f8" opacity=".9"/>`,   // 整身亮面＋金邊＋護肩
+  };
+})();
+const ARMOR_BY_TIER = {"衣服":"法袍", "輕甲":"皮甲", "中甲":"鏈甲衫", "重甲":"鏈甲"};
 function armorSVG(kind){
   if(!kind) return "";
-  const INK="#2a2630", d="M54 90 Q70 83 86 90 Q93 110 88 125 Q70 133 52 125 Q47 110 54 90 Z";
-  // 布甲：法袍，長到腳邊，深紫配金邊、V 領和腰帶
-  if(kind==="布甲") return `<path d="M48 86 Q70 78 92 86 Q99 108 101 132 Q70 141 39 132 Q41 108 48 86 Z" fill="#5b4f8f" stroke="${INK}" stroke-width="3"/>
-    <path d="M70 101 L70 136" stroke="#473d73" stroke-width="2.5"/>
-    <path d="M42 128 Q70 137 98 128" stroke="#e0ab45" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M47 110 Q70 117 93 110" stroke="#e0ab45" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M57 84 L70 101 L83 84" stroke="#e0ab45" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if(kind==="輕甲") return `<path d="${d}" fill="#8a5a34" stroke="${INK}" stroke-width="3"/>
-    <path d="M70 88 L70 128" stroke="#5e3a20" stroke-width="2.5" stroke-dasharray="3 3"/><path d="M53 114 Q70 120 87 114" stroke="#5e3a20" stroke-width="4" fill="none"/>`;
-  if(kind==="中甲") return `<path d="${d}" fill="#9aa3b2" stroke="${INK}" stroke-width="3"/>
-    ${[[60,98],[70,96],[80,98],[58,108],[68,106],[78,106],[86,108],[60,118],[70,118],[80,118]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="none" stroke="#6f7888" stroke-width="1.6"/>`).join("")}`;
-  return `<path d="${d}" fill="#b7bfcc" stroke="${INK}" stroke-width="3"/>
-    <path d="M52 104 Q70 110 88 104 M51 116 Q70 122 89 116" stroke="#7b8494" stroke-width="3" fill="none"/>
-    <path d="M56 91 Q70 85 84 91" stroke="#e0ab45" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <ellipse cx="62" cy="96" rx="5" ry="3" fill="#eef1f6" opacity=".8"/>`;
+  if(ARMOR_ART[kind]) return ARMOR_ART[kind];
+  const it = ITEMS.find(i=>i.type==="armor" && i.n===kind);
+  return ARMOR_ART[ARMOR_BY_TIER[it && it.tier] || "皮甲"];
 }
 
 // 拿在手上的裝備：放在 (hx,hy)，握把對準手

@@ -44,12 +44,22 @@ const ITEMS = [
   W("手弩","Hand Crossbow","軍用遠程",75*GP,3,"1d6 穿刺",["彈藥 30/120","輕型","裝填"],"困擾 Vex"),
   W("重弩","Heavy Crossbow","軍用遠程",50*GP,18,"1d10 穿刺",["彈藥 100/400","重型","裝填","雙手"],"推擊 Push"),
   W("長弓","Longbow","軍用遠程",50*GP,2,"1d8 穿刺",["彈藥 150/600","重型","雙手"],"緩速 Slow"),
-  // 護甲：只分四階（大爺決定，不照 SRD 分那麼細），數值取 SRD 同類裡有代表性的那件
-  //       ac 基礎值、dex: full / max2 / none、str 力量需求；cloth＝布甲不算穿護甲（法師護甲照開）；stealth＝潛行劣勢
-  {type:"armor",n:"布甲",en:"Robe",cat:"護甲",cost:5*GP,wt:4,ac:11,dex:"full",cloth:true},
-  {type:"armor",n:"輕甲",en:"Light Armor",cat:"護甲",cost:45*GP,wt:13,ac:12,dex:"full"},
-  {type:"armor",n:"中甲",en:"Medium Armor",cat:"護甲",cost:50*GP,wt:45,ac:14,dex:"max2"},
-  {type:"armor",n:"重甲",en:"Heavy Armor",cat:"護甲",cost:75*GP,wt:55,ac:16,dex:"none",str:13,stealth:true},
+  // 護甲（2026-10-01 大爺：改回 SRD 5.2 的名稱和屬性，以後規則分類、特殊裝備比較好歸類）
+  //   tier：輕甲／中甲／重甲／衣服（衣服＝法袍，不算穿護甲，法師護甲照開）；紙娃娃照名稱畫，沒畫到的照 tier 畫
+  //   ac 基礎值、dex: full（加全部敏捷）/ max2（最多 +2）/ none、str 力量需求、stealth＝潛行劣勢；數值照 SRD 5.2 核對過
+  {type:"armor",n:"法袍",en:"Robe",cat:"護甲",tier:"衣服",cost:5*GP,wt:4,ac:11,dex:"full",cloth:true},
+  {type:"armor",n:"軟甲",en:"Padded Armor",cat:"護甲",tier:"輕甲",cost:5*GP,wt:8,ac:11,dex:"full",stealth:true},
+  {type:"armor",n:"皮甲",en:"Leather Armor",cat:"護甲",tier:"輕甲",cost:10*GP,wt:10,ac:11,dex:"full"},
+  {type:"armor",n:"鑲釘皮甲",en:"Studded Leather Armor",cat:"護甲",tier:"輕甲",cost:45*GP,wt:13,ac:12,dex:"full"},
+  {type:"armor",n:"獸皮甲",en:"Hide Armor",cat:"護甲",tier:"中甲",cost:10*GP,wt:12,ac:12,dex:"max2"},
+  {type:"armor",n:"鏈甲衫",en:"Chain Shirt",cat:"護甲",tier:"中甲",cost:50*GP,wt:20,ac:13,dex:"max2"},
+  {type:"armor",n:"鱗甲",en:"Scale Mail",cat:"護甲",tier:"中甲",cost:50*GP,wt:45,ac:14,dex:"max2",stealth:true},
+  {type:"armor",n:"胸甲",en:"Breastplate",cat:"護甲",tier:"中甲",cost:400*GP,wt:20,ac:14,dex:"max2"},
+  {type:"armor",n:"半身板甲",en:"Half Plate Armor",cat:"護甲",tier:"中甲",cost:750*GP,wt:40,ac:15,dex:"max2",stealth:true},
+  {type:"armor",n:"環甲",en:"Ring Mail",cat:"護甲",tier:"重甲",cost:30*GP,wt:40,ac:14,dex:"none",stealth:true},
+  {type:"armor",n:"鏈甲",en:"Chain Mail",cat:"護甲",tier:"重甲",cost:75*GP,wt:55,ac:16,dex:"none",str:13,stealth:true},
+  {type:"armor",n:"板條甲",en:"Splint Armor",cat:"護甲",tier:"重甲",cost:200*GP,wt:60,ac:17,dex:"none",str:15,stealth:true},
+  {type:"armor",n:"全身板甲",en:"Plate Armor",cat:"護甲",tier:"重甲",cost:1500*GP,wt:65,ac:18,dex:"none",str:15,stealth:true},
   {type:"shield",n:"盾牌",en:"Shield",cat:"盾牌",cost:10*GP,wt:6,ac:2},
   // 法器：每件綁定一組 3 個法術（見 data/skills.js）；價格重量參考 SRD 的法杖、法球與法術書
   {type:"focus",n:"奧術法杖",en:"Arcane Staff",cat:"法器",cost:5*GP,wt:4,stat:"INT",spells:"魔法飛彈、護盾術、法師護甲"},
