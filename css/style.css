@@ -725,7 +725,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .bt-dock.dk-root .mn-b small{font-size:10.5px;white-space:nowrap}
 .bt-dock.dk-root [data-cmd="act"]{min-height:54px;border-color:var(--c)}
 .bt-dock.dk-root [data-cmd="wait"]{min-height:38px}
-.board-wrap .bt-bottom .bt-dock.dk-pick{width:min(220px,100%)}
+.board-wrap .bt-bottom .bt-dock.dk-pick{width:min(150px,100%)}
 .board-wrap .bt-bottom .bt-dock.dk-slim{width:120px}
 .bt-dock.dk-slim .aim-note{font-size:12.5px;line-height:1.4}
 .bt-dock.dk-act .mn-list{grid-template-columns:1fr 1fr}
