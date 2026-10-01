@@ -815,7 +815,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .gear-info.status-view .status-eqitem svg{width:33px;height:33px}
 .gear-info.status-view .status-eqslot.acc1{left:8px;top:29px}
 .gear-info.status-view .status-eqslot.acc2{left:8px;top:94px}
-.gear-info.status-view .status-eqslot.armor{right:8px;top:61px}
+.gear-info.status-view .status-eqslot.armor{right:8px;top:94px}
 .gear-info.status-view .status-eqslot.main{left:calc(50% - 57px);bottom:0}
 .gear-info.status-view .status-eqslot.off{left:calc(50% + 8px);bottom:0}
 .gear-info.status-view .status-bagbtn{right:7px;top:4px;width:50px;height:50px}
@@ -853,7 +853,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 狀態欄縮放：狀態＋右側背包視為同一組；以左側中線為縮放基準。 */
 .gear-info.status-view{zoom:var(--info-scale,1)}
 /* 背包現在是角色裝備槽：右上格；開啟內容時只向右展開。 */
-.gear-info.status-view .status-eqslot.backpack{right:7px;top:4px;width:48px;height:51px}
+.gear-info.status-view .status-eqslot.backpack{right:8px;top:29px;width:48px;height:51px}
 .gear-info.status-view .status-eqslot.backpack.on{border-color:var(--honey);background:rgba(255,255,255,.09)}
 .gear-info.status-view .status-eqslot.backpack .status-bagbtn{position:static;width:37px;height:37px;border:0;border-radius:0;background:transparent;padding:0}
 .gear-info.status-view .status-eqslot.backpack .status-bagbtn svg{width:33px;height:33px}
