@@ -9,11 +9,8 @@ const iconSVG = (k, size=16) => `<svg viewBox="-14 -14 148 148" width="${size}" 
 function iso(x, y){ const d=B().def; return {x:(x-y)*TW/2 + d.h*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
 const diamond = (x,y) => { const p=iso(x,y); return `${p.x},${p.y} ${p.x+TW/2},${p.y+TH/2} ${p.x},${p.y+TH} ${p.x-TW/2},${p.y+TH/2}`; };
 
-function boardSVG(){
-  const b = B(), d = b.def, u = cur();
-  const W = (d.w+d.h)*TW/2, H = (d.w+d.h)*TH/2 + 150;
-  const out = [];
-  const isRoad = (x,y) => d.road.some(r=>r[0]===x&&r[1]===y);
+function boardMarkState(){
+  const b=B(), d=b.def, u=cur();
   // 可移動／可選目標
   let moveSet = new Map(), tgtSet = new Set(), areaSet = new Set(), range = -1;
   const myTurn = u && u.side==="pc" && !b.busy && !b.result;
@@ -25,45 +22,110 @@ function boardSVG(){
   else if(myTurn && b.mode && GEN_ACT[b.mode.key]){ range = 1; GEN_ACT[b.mode.key].targets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
   else if(myTurn && b.mode){
     const sk = unitSkills(u).find(s=>s.key===b.mode.key);
-    if(!sk || !sk.impl){ b.mode=null; return boardSVG(); }
+    if(!sk || !sk.impl){ b.mode=null; return boardMarkState(); }
     range = sk.impl.range ? sk.impl.range(u) : 1;
     // 點地板的招（範圍、錐形）：整個射程淡紅，點哪都行；點人的招：只有打得到的敵人亮紅
     const pickFloor = ["area","cone"].includes(sk.impl.target);
     for(let x=0;x<d.w;x++) for(let y=0;y<d.h;y++) if(validTarget(u,sk,x,y)) (pickFloor ? areaSet : tgtSet).add(`${x},${y}`);
   }
-  // 地板
-  const tileCls = k => tgtSet.has(k) ? "tg" : areaSet.has(k) ? "ar" : moveSet.has(k) ? "mv" : "";
+  return {b,d,u,moveSet,tgtSet,areaSet,range};
+}
+
+function boardFloorHTML(){
+  const d=B().def, out=[];
+  const isRoad=(x,y)=>d.road.some(r=>r[0]===x&&r[1]===y);
   const tileFill = (x,y) => { const road=isRoad(x,y), alt=(x+y)%2; return road ? (alt?"#d9c08e":"#d2b683") : (alt?"#8fb462":"#86ab5a"); };
-  const nowOn = u && !b.result && !u.dead && !u.down && !foeHid(u) ? u : null;
   const raised = [];
   for(let s=0;s<d.w+d.h-1;s++) for(let x=0;x<d.w;x++){ const y=s-x; if(y<0||y>=d.h) continue;
     if(hAt(x,y) > 0){ raised.push({x,y}); continue; }
     const k=`${x},${y}`;
-    out.push(`<polygon class="tile ${tileCls(k)}" data-tile="${k}" points="${diamond(x,y)}" fill="${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>`);
+    out.push(`<polygon class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>`);
   }
+  const flat = out.join(""); out.length=0;
   // 凸起的格子：頂面（高亮、點擊都在這裡）＋朝畫面前方的兩面山壁（往下畫到前面那格的高度）
   const columnSVG = (x,y) => {
     const k=`${x},${y}`, p=iso(x,y), h=hAt(x,y), L=p.x-TW/2, R=p.x+TW/2, M=p.y+TH/2, Bt=p.y+TH;
     const dl = (h - hAt(x,y+1))*HZ, dr = (h - hAt(x+1,y))*HZ;   // 左前、右前那格比這格低多少
     const strata = (x1,y1,x2,y2,dd) => [1,2].filter(i=>i*HZ/2 < dd).map(i=>`<path d="M${x1} ${y1+i*HZ/2} L${x2} ${y2+i*HZ/2}" stroke="#5e4630" stroke-width="2" opacity=".55"/>`).join("");
-    return `<g class="cliff">
+    return `<g id="floor-wall-${x}-${y}" class="cliff">
       ${dl>0 ? `<polygon points="${L},${M} ${p.x},${Bt} ${p.x},${Bt+dl} ${L},${M+dl}" fill="#9a7650" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>${strata(L,M,p.x,Bt,dl)}` : ""}
       ${dr>0 ? `<polygon points="${p.x},${Bt} ${R},${M} ${R},${M+dr} ${p.x},${Bt+dr}" fill="#7a5a3c" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>${strata(p.x,Bt,R,M,dr)}` : ""}
-      <polygon class="tile ${tileCls(k)}" data-tile="${k}" points="${diamond(x,y)}" fill="${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>
+      </g><polygon id="floor-top-${x}-${y}" class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>`;
+  };
+  const columnDetailSVG = (x,y) => {
+    const p=iso(x,y), h=hAt(x,y), L=p.x-TW/2, R=p.x+TW/2, M=p.y+TH/2, Bt=p.y+TH;
+    return `<g>
       <polygon points="${diamond(x,y)}" fill="#fffbe8" opacity="${Math.min(.24, h*.08)}" pointer-events="none"/>
       ${[[hAt(x-1,y),L,M,p.x,p.y],[hAt(x,y-1),p.x,p.y,R,M],[hAt(x+1,y),R,M,p.x,Bt],[hAt(x,y+1),p.x,Bt,L,M]]
         .filter(e=>e[0]<h).map(e=>`<path d="M${e[1]} ${e[2]} L${e[3]} ${e[4]}" stroke="#2a2630" stroke-width="2" stroke-linecap="round" pointer-events="none"/>`).join("")}
-      ${nowOn && nowOn.x===x && nowOn.y===y ? `<polygon class="tile-now" points="${diamond(x,y)}"/>` : ""}</g>`;
+      </g>`;
   };
-  // 射程邊框：沿著射程邊緣描一圈（射程超出地圖的那幾邊不畫）
-  if(range>=0) out.push(rangeOutline(u, range));
-  // 輪到的單位：腳下那格整格發光（畫在地板上、物件和棋子底下）
-  if(nowOn && hAt(nowOn.x,nowOn.y)===0) out.push(`<polygon class="tile-now" points="${diamond(nowOn.x,nowOn.y)}"/>`);
+  return `<g id="floor-flat">${flat}</g><defs>` + raised.map(({x,y})=>`<g id="floor-${x}-${y}">${columnSVG(x,y)}</g><g id="floor-detail-${x}-${y}">${columnDetailSVG(x,y)}</g>`).join("")+`</defs>`;
+}
+
+function raisedTiles(){
+  const d=B().def, out=[];
+  for(let s=0;s<d.w+d.h-1;s++) for(let x=0;x<d.w;x++){ const y=s-x; if(y>=0 && y<d.h && hAt(x,y)>0) out.push({x,y}); }
+  return out;
+}
+function boardMarksHTML(ctx=boardMarkState()){
+  const {b,d,u,moveSet,tgtSet,areaSet,range}=ctx;
+  const tileCls=k=>tgtSet.has(k)?"tg":areaSet.has(k)?"ar":moveSet.has(k)?"mv":"";
+  const nowOn=u && !b.result && !u.dead && !u.down && !foeHid(u)?u:null;
+  // 標示層的 paint server 替原有格子填色，不疊第二片半透明地板。
+  // 保留單一 polygon 的幾何與描邊；瀏覽器填色捨入差異見驗收紀錄。
+  const polygons=[], paints=[];
+  const keys=new Set([...moveSet.keys(),...tgtSet,...areaSet]);
+  keys.forEach(k=>{ const cls=tileCls(k), [x,y]=k.split(",").map(Number);
+    paints.push(`<linearGradient id="mark-fill-${x}-${y}"><stop stop-color="${cls==="mv"?"#7fb4e8":"#e0766e"}" stop-opacity="${cls==="mv"?.85:cls==="tg"?.9:.35}"/></linearGradient>`);
+  });
+  const raisedGlow=nowOn && hAt(nowOn.x,nowOn.y)>0 ? `<g id="mark-now-${nowOn.x}-${nowOn.y}"><polygon class="tile-now" style="animation:tile-now 1.2s ease-in-out infinite" fill="#f2b441" fill-opacity=".6" stroke="#fff4b0" stroke-width="4" pointer-events="none" points="${diamond(nowOn.x,nowOn.y)}"/></g>` : "";
+  if(range>=0) polygons.push(rangeOutline(u,range));
+  if(nowOn && hAt(nowOn.x,nowOn.y)===0) polygons.push(`<polygon class="tile-now" points="${diamond(nowOn.x,nowOn.y)}"/>`);
+  const out=[];
+  // 瞄準時：可以打的敵人旁邊標出夾擊／掩護／草叢（夾擊只算武器近戰：拿彈藥武器、用法器施法都不算）
+  const skNow = b.mode && b.mode.key!=="item" && unitSkills(u).find(s=>s.key===b.mode.key);
+  const meleeSk = skNow && !isRanged(u) && !skNow.group.weapons.some(n=>(ITEMS.find(i=>i.n===n)||{}).type==="focus");
+  if(range>=0 && skNow) tgtSet.forEach(k=>{
+    const [x,y] = k.split(",").map(Number), t = unitAt(x,y); if(!t || t.side===u.side) return;
+    const cov = coverOf(u, t), far = dist(u,t) > reachOf(u);
+    const tags = [meleeSk && flankMate(u, t) ? "夾擊 優勢" : "", coverAC(cov) ? `掩護 +${coverAC(cov)}` : "", far && hidden(t) ? "草叢 劣勢" : ""].filter(Boolean);
+    if(!tags.length) return;
+    const p = iso(x,y), cx = p.x, cy = p.y + TH/2 + 22, w = tags.join("・").length*19 + 20;
+    out.push(`<g class="cov-tag"><rect x="${cx-w/2}" y="${cy-16}" width="${w}" height="32" rx="16" fill="#1f1a24" stroke="#ff8a7a" stroke-width="2.5"/>
+      <text x="${cx}" y="${cy+6}" text-anchor="middle">${tags.join("・")}</text></g>`);
+  });
+  return `<defs>${paints.join("")}${raisedGlow}<g id="mark-tags">${out.join("")}</g></defs><g id="mark-flat">${polygons.join("")}</g>`;
+}
+// 地板、標示各有獨立 DOM。標示的 paint server 只換格子的填色；
+// 場景以原生 SVG use 引用台地，保留山壁與角色的斜角前後遮擋。
+function boardTerrainKey(){ const d=B().def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])]]); }
+function updateBoardFloor(){
+  const layer=document.getElementById("board-floor"); if(!layer) return;
+  layer.innerHTML=boardFloorHTML();
+  layer.terrainKey=boardTerrainKey();
+}
+function updateBoardMarks(){
+  const layer=document.getElementById("board-marks"); if(layer) layer.innerHTML=boardMarksHTML();
+}
+// Stage 1: objects and interface still refresh on each render; stage 2/3 narrow this.
+function updateBoardScene(){
+  const layer=document.getElementById("board-scene"); if(layer) layer.innerHTML=boardSceneHTML();
+}
+function syncBoardCamera(){
+  const svg=document.querySelector(".board"), b=B(); if(!svg) return;
+  const raw=boardRaw(); svg.setAttribute("viewBox",`0 0 ${raw.w} ${raw.h}`);
+  svg.classList.toggle("crit-zoom",!!b.critOn);
+  if(b.critOn){ const p=iso(b.critOn.x,b.critOn.y), z=camZoom(); svg.style.setProperty("--cx",`${(b.cam||{x:0}).x}px`); svg.style.setProperty("--cy",`${(b.cam||{y:0}).y}px`); svg.style.transformOrigin=`${p.x*z}px ${(p.y+TH/2-50)*z}px`; }
+  else { svg.style.transformOrigin=""; svg.style.removeProperty("--cx"); svg.style.removeProperty("--cy"); }
+}
+function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
+  const {b,d,u}=ctx, out=[], raised=raisedTiles();
   // 物件與棋子，依前後順序畫
   const things = [];
   // 地形柱排在同一格的物件、角色前面（s 比較小），比牠後面的角色晚畫，所以會擋住後面的人
   raised.forEach(({x,y})=>{ const p=iso(x,y), low=Math.min(hAt(x,y+1), hAt(x+1,y));
-    things.push({s:x+y-.1, svg:columnSVG(x,y), box:[p.x-TW/2, p.y, p.x+TW/2, p.y+TH+(hAt(x,y)-low)*HZ]}); });
+    things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/><use href="#mark-now-${x}-${y}" pointer-events="none"/></g>`, box:[p.x-TW/2, p.y, p.x+TW/2, p.y+TH+(hAt(x,y)-low)*HZ]}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
   d.blocks.forEach(o=> things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:blockSVG(o), box:blockBox(o)}));
   const now = Date.now();
@@ -81,18 +143,7 @@ function boardSVG(){
     out.push(`<defs>${cols.map(olFilter).join("")}</defs>`);
     hiddenOnes.forEach(t=>out.push(`<g class="hid-ol" data-tile="${t.unit.x},${t.unit.y}" filter="url(#ol-${olColor(t.unit).slice(1)})">${unitDoll(t.unit, t.unit===u)}</g>`));
   }
-  // 瞄準時：可以打的敵人旁邊標出夾擊／掩護／草叢（夾擊只算武器近戰：拿彈藥武器、用法器施法都不算）
-  const skNow = b.mode && b.mode.key!=="item" && unitSkills(u).find(s=>s.key===b.mode.key);
-  const meleeSk = skNow && !isRanged(u) && !skNow.group.weapons.some(n=>(ITEMS.find(i=>i.n===n)||{}).type==="focus");
-  if(range>=0 && skNow) tgtSet.forEach(k=>{
-    const [x,y] = k.split(",").map(Number), t = unitAt(x,y); if(!t || t.side===u.side) return;
-    const cov = coverOf(u, t), far = dist(u,t) > reachOf(u);
-    const tags = [meleeSk && flankMate(u, t) ? "夾擊 優勢" : "", coverAC(cov) ? `掩護 +${coverAC(cov)}` : "", far && hidden(t) ? "草叢 劣勢" : ""].filter(Boolean);
-    if(!tags.length) return;
-    const p = iso(x,y), cx = p.x, cy = p.y + TH/2 + 22, w = tags.join("・").length*19 + 20;
-    out.push(`<g class="cov-tag"><rect x="${cx-w/2}" y="${cy-16}" width="${w}" height="32" rx="16" fill="#1f1a24" stroke="#ff8a7a" stroke-width="2.5"/>
-      <text x="${cx}" y="${cy+6}" text-anchor="middle">${tags.join("・")}</text></g>`);
-  });
+  out.push(`<use href="#mark-tags"/>`);
   // 飛行物（出手時才出現，飛到目標消失）
   b.proj = (b.proj||[]).filter(pj=>now < pj.t + pj.dur + 80);
   b.proj.forEach(pj=>out.push(`<g data-exp="${pj.t+pj.dur+80}">${projSVG(pj, now)}</g>`));
@@ -109,9 +160,15 @@ function boardSVG(){
   // 戰鬥台詞：頭上的氣泡框
   b.bubbles = (b.bubbles||[]).filter(x=>now < x.t + x.dur);
   b.bubbles.forEach(x=>{ const v = b.units.find(u=>u.id===x.id); if(v && !foeHid(v)) out.push(bubbleSVG(v, x, now)); });
+  return out.join("");
+}
+
+function boardSVG(){
+  const b=B(), d=b.def, W=(d.w+d.h)*TW/2, H=(d.w+d.h)*TH/2+150;
+  const ctx=boardMarkState();
+  const out=[`<g id="board-floor">${boardFloorHTML()}</g><g id="board-marks">${boardMarksHTML(ctx)}</g><g id="board-scene">${boardSceneHTML(ctx)}</g>`];
+
   const z = camZoom(), c = b.cam || {x:0, y:0};
-  // 鏡像只作用在戰場內容（地形、物件、棋子、戰場特效），HUD／選單／狀態視窗都在 SVG 外，不受影響。
-  // 文字再反轉一次保持可讀；格子 data-tile 與戰鬥座標完全不改，所以純屬顯示層。
   if(b.critOn){   // 爆擊：以目標為中心拉近
     const p = iso(b.critOn.x, b.critOn.y);
     return `<svg class="board crit-zoom" viewBox="0 0 ${W} ${H}" width="${Math.round(W*z)}" height="${Math.round(H*z)}" style="--cx:${c.x}px;--cy:${c.y}px;transform:translate(${c.x}px,${c.y}px);transform-origin:${p.x*z}px ${(p.y+TH/2-50)*z}px" xmlns="http://www.w3.org/2000/svg">${out.join("")}</svg>`;
@@ -1049,7 +1106,7 @@ function restChoiceHTML(b){
   return `<div class="rest-box"><h4>休息與抄筆記</h4>${rows}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?"disabled":""}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
 }
 
-function renderBattle(){
+function battleInterfaceHTML(){
   const b = B();
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const u = cur();
@@ -1096,20 +1153,35 @@ function renderBattle(){
   const logEl = b.result || deep || ov ? "" : b.logLv===2 ? logPanelHTML(b) : logStripHTML(b);
   const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine?resHTML(u,b):""}</div>${logEl}</div>`;
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><b>教學</b> ${TUTORIAL[b.tut]} <button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div>` : "";
-  return `<section class="page battle">
-    <div class="head"><div><h2>戰鬥：${b.def.name}</h2><p class="rule">第 ${b.round} 回合</p></div>
+  return {
+    head: `<div class="head"><div><h2>戰鬥：${b.def.name}</h2><p class="rule">第 ${b.round} 回合</p></div>
       <div class="sys-tools">
         <button class="snd ${SFX.isMuted()?"off":""}" id="sndToggle" aria-label="主音量" title="主音量">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${SFX.isMuted()?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg></button>
         <button class="gear-btn" id="gearToggle" aria-label="主選單" title="主選單"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.7.6 1 .3.3.7.4 1.1.4h.1v4h-.1c-.4 0-.8.1-1.1.4-.3.3-.5.6-.6 1.2Z"/></svg></button>
         ${b.sysPop==="volume"?`<div class="vol-pop" id="volPop"><button class="snd ${SFX.isMuted()?"off":""}" id="volMute" aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input id="masterVolume" type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" id="volNum">${SFX.isMuted()?0:Math.round(SFX.getVolume()*100)}%</span></div>`:""}
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="title">回到標題</button></div>`:""}
-      </div></div>
-    <div class="order">${order}</div>
-    ${hud}
-    <div class="dp-anchor">${dicePanelHTML(b)}</div>
-    <div class="board-wrap">${boardSVG()}${tut}${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}</div>
-  </section>`;
+      </div></div>`,
+    order: `<div class="order">${order}</div>`,
+    hud,
+    dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
+    overlays: `${tut}${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`
+  };
+}
+function battleUISlot(k,html){ return `<div data-battle-ui="${k}" style="display:contents">${html}</div>`; }
+function renderBattle(){
+  if(!B()) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
+  const ui=battleInterfaceHTML();
+  return `<section class="page battle">${["head","order","hud","dice"].map(k=>battleUISlot(k,ui[k])).join("")}<div class="board-wrap">${boardSVG()}${battleUISlot("overlays",ui.overlays)}</div></section>`;
+}
+function updateBattleFrame(){
+  const floor=document.getElementById("board-floor");
+  if(floor.terrainKey!==boardTerrainKey()) updateBoardFloor();
+  updateBoardMarks();
+  updateBoardScene();
+  const ui=battleInterfaceHTML();
+  Object.entries(ui).forEach(([k,html])=>{ document.querySelector(`[data-battle-ui="${k}"]`).innerHTML=html; });
+  syncBoardCamera();
 }
 
 function clampInfoScale(z){ return Math.max(.75,Math.min(1.35,z)); }

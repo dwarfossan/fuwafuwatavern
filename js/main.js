@@ -4,7 +4,14 @@ function render(){
   // 只有換頁（或換劇情場景）時才播淡入動畫，避免每次點擊都閃一下
   const key = state.page + ":" + state.scene;
   const entering = key !== render.last; render.last = key;
+  if(state.page==="battle" && B() && app.querySelector("#board-floor")){
+    updateBattleFrame();
+    app.querySelector(".modal-back")?.remove();
+    app.insertAdjacentHTML("beforeend",renderModal());
+    bind(); bindModal(); return;
+  }
   app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
+  if(state.page==="battle" && B()) document.getElementById("board-floor").terrainKey=boardTerrainKey();
   app.insertAdjacentHTML("beforeend", renderModal());
   if(entering) app.firstElementChild?.classList.add("enter");
   bind();
