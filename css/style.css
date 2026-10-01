@@ -371,8 +371,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes burn-f{0%{transform:scale(1,1) translateY(0);opacity:.95}50%{transform:scale(.88,1.12) translateY(-1px)}100%{transform:scale(1.08,.9) translateY(1px);opacity:.8}}
 .lg-talk{color:#ffd98a}
 .ls-ev.lg-talk .ls-h{color:#ffd98a}
-.board .cov-tag{pointer-events:none}
-.board .cov-tag text{fill:#ffd9d2;font-size:18px;font-weight:700;font-family:var(--font-body)}
+/* 標籤放在標示層的 defs、由場景層 use 引用，引用出來的複本不在 .board 底下，選擇器不能加 .board */
+.cov-tag{pointer-events:none}
+.cov-tag text{fill:#ffd9d2;font-size:18px;font-weight:700;font-family:var(--font-body)}
 .board .tile:hover{filter:brightness(1.15)}
 .board .token{cursor:pointer}
 

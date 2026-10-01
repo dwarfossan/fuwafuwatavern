@@ -116,8 +116,17 @@ function syncBoardCamera(){
   if(b.critOn){ const p=iso(b.critOn.x,b.critOn.y), z=camZoom(); svg.style.setProperty("--cx",`${(b.cam||{x:0}).x}px`); svg.style.setProperty("--cy",`${(b.cam||{y:0}).y}px`); svg.style.transformOrigin=`${p.x*z}px ${(p.y+TH/2-50)*z}px`; }
   else { svg.style.transformOrigin=""; svg.style.removeProperty("--cx"); svg.style.removeProperty("--cy"); }
 }
+// 動作（揮砍、受傷、倒地……）有開始時間：先擲骰、0.65 秒後才揮。畫的時候還沒開始的，
+// 約好在開始那一刻再更新一次場景層，不然要等到下一次有人重畫才看得到（多半已經演完了）
+let sceneWake=null;
+function wakeSceneAt(b){
+  const now=Date.now(), next=Math.min(...b.units.map(v=>v.anim && v.anim.t>now ? v.anim.t : Infinity));
+  clearTimeout(sceneWake); sceneWake=null;
+  if(next<Infinity) sceneWake=setTimeout(()=>{ sceneWake=null; if(B()===b) refreshBattle(); }, next-now+5);
+}
 function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const {b,d,u}=ctx, out=[], raised=raisedTiles();
+  wakeSceneAt(b);
   const nowOn=u && !b.result && !u.dead && !u.down && !foeHid(u)?u:null;
   const glow=nowOn?`<polygon class="tile-now" points="${diamond(nowOn.x,nowOn.y)}"/>`:"";
   if(nowOn && hAt(nowOn.x,nowOn.y)===0) out.push(glow);
@@ -1133,7 +1142,6 @@ function battleInterfaceHTML(){
     ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>${b.result==="win"?"勝利！":"全員倒下……"}</h3>
       <p>${b.result==="win"?"商隊得救了。戰鬥中理解的招式，要到休息時才決定是否抄進小筆記。":"再試一次吧。"}</p>
-      ${b.result==="win" && !b.restDone ? restChoiceHTML(b) : ""}
       <button class="btn" id="retry">${b.result==="win"?"再打一次（測試用）":"重新挑戰"}</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);
@@ -1189,7 +1197,9 @@ function battleDataKey(value, omit=[]){
 function battleLayerKeys(){
   const b=B(), u=cur();
   const units=battleDataKey(b.units,["anim","face","notePages"]);
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles]);
+  // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
+  const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
   const ui=battleDataKey([b,state.inv,state.rolls,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
