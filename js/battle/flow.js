@@ -268,6 +268,7 @@ const canAct = () => { const b = B(); return !b.actionUsed && !(b.dazed && b.mov
 const canFree = () => !B().freeUsed || canAct();
 const freeLeft = () => !B().freeUsed;                                  // 免費那格還在
 function spendFree(u){ if(!B().freeUsed) B().freeUsed = true; else useAction(u); }
+const reqText = r => (Array.isArray(r) ? r : [r]).map(x=>REQ_TEXT[x]||x).join("或");
 const REQ_TEXT = {
   meleeWeapon:"近戰武器", blade:"有刃近戰武器", meleeOrUnarmed:"近戰武器或徒手", twoHandMelee:"雙手近戰武器",
   cutOrPierce:"揮砍或穿刺近戰武器", slashWeapon:"揮砍近戰武器", bluntOrUnarmed:"鈍器或徒手",
@@ -286,8 +287,13 @@ const isMeleeWeapon = w => !!(w&&w.type==="weapon"&&!w.cat.includes("遠程"));
 const isRangedWeaponReq = w => !!(w&&w.type==="weapon"&&(w.cat.includes("遠程")||weaponProps(w).some(p=>p.startsWith("投擲"))));
 const hasDmg = (w,t) => !!(w&&w.dmg&&w.dmg.includes(t));
 const hasProp = (w,p) => weaponProps(w).some(x=>x===p||x.startsWith(p+" "));
+// req 可以是陣列：任一種成立就能用（合併過的招式，例如連擊＝刀劍或徒手）
 function skillReqMet(u, sk){
-  const r=sk.def.req, w=u.weapon; if(!r)return true;
+  const r=sk.def.req; if(!r)return true;
+  return (Array.isArray(r) ? r : [r]).some(x=>reqOne(u, x));
+}
+function reqOne(u, r){
+  const w=u.weapon;
   switch(r){
     case "meleeWeapon": return isMeleeWeapon(w);
     case "blade": return isMeleeWeapon(w) && (hasDmg(w,"揮砍")||hasDmg(w,"穿刺"));
@@ -592,6 +598,19 @@ const nimble = u => (u.innate||[]).includes("nimble") && freeLeft() && u===cur()
 function nimbleDisengage(u){ if(!nimble(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); B().freeUsed = true; addStatus(u, "disengage", {until:"end", of:u.id}); blog(`${u.name}靈巧脫逃：撤離！`, "skill"); return true; }
 function nimbleHide(u){ if(!nimble(u) || u.dead || u.down || hideBlock(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); B().freeUsed = true; blog(`${u.name}靈巧脫逃：躲起來！`, "skill"); tryHide(u); return true; }
 
+// 招式的動作：照「出處」那組的動作；但學來的招用不同類的武器做時（例如拿弓用扎腿），改用手上武器的動作，
+// 這樣遠程才會射出箭、近戰才會揮出去
+const RANGED_GROUPS = ["bow","crossbow","thrown"];
+function skillAnim(u, sk, t){
+  const base = sk.anim || animFor(sk.group.id, sk.idx);
+  if(FOCUS_GROUPS.includes(sk.group.id)) return base;
+  const far = t && t.x!==undefined && dist(u,t) > reachOf(u);
+  const ranged = isRanged(u) || (far && hasProp(u.weapon,"投擲"));
+  const skRanged = RANGED_GROUPS.includes(sk.group.id), cg = u.weapon ? groupOf(u.weapon) : null;
+  if(ranged && !skRanged) return isRanged(u) && cg ? animFor(cg.id, 0) : "throw";
+  if(!ranged && skRanged) return cg ? animFor(cg.id, 0) : "punch";
+  return base;
+}
 function doSkill(u, sk, t){
   const b = B();
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
@@ -602,7 +621,7 @@ function doSkill(u, sk, t){
   blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${paid} 點${up ? `，升 ${up}` : ""}）` : ""}`, "skill");
   const t0 = Array.isArray(t) ? t[0] : t;
   if(t0 && t0!==u && t0.x!==undefined) faceTo(u, t0);
-  const k = sk.anim || animFor(sk.group.id, sk.idx);
+  const k = skillAnim(u, sk, t0);
   // 會擲骰的招（攻擊、豁免）先讓骰子滾完，角色才出招；輔助不擲骰，照舊馬上動
   const lead = sk.def.kind!=="輔助" && !sk.impl.multi ? DICE_LEAD : 0;
   u.anim = {k, t:Date.now() + lead}; animSfx(k, lead);
@@ -637,7 +656,7 @@ const settle = ms => Math.max(ms, (B().impactEnd||0) - Date.now() + 600);
 
 // ---------- 敵人挑招（跟我方同一套技能，照手上的武器、法器） ----------
 // 範圍招（橫掃、震地、回掃）：身邊有兩個以上看得到的敵人才用
-const AOE_SELF = {heavy_1:u=>1, mace_2:u=>1, polearm_2:u=>reachOf(u)};
+const AOE_SELF = {cleave:u=>reachOf(u), quake:u=>1};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
 const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && hasAmmoFor(e) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
 // 對 t 能用的攻擊招：花點數的招式點數夠就用（六成機率），不然普攻；回傳 {sk, t}
 // 升環先不做（一律花基本點數）；之後頭目會省點數，再加判斷
@@ -658,7 +677,7 @@ function foeFreePick(e){
     if(s.group.id==="shield"){ const t = alive(e.side).find(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1)); if(t) return {sk:s, t}; continue; }
     if(s.impl.target==="ally"){ const t = alive(e.side).filter(o=>o.hp<=o.maxHp/2 && validTarget(e,s,o.x,o.y)).sort((a,c)=>a.hp-c.hp)[0]; if(t) return {sk:s, t}; continue; }
     if(s.def.name==="護盾術" && !has(e,"shieldSpell") && pcs.some(p=>dist(p,e)<=2)) return {sk:s, t:e};
-    if(s.key==="polearm_1" && !has(e,"guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};
+    if(s.key==="guard_stance" && !has(e,"guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};
   }
   return null;
 }

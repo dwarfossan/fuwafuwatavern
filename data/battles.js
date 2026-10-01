@@ -30,10 +30,10 @@ const BATTLES = {
     // 東邊北段是直的山壁，南段有一層的台階可以分兩次爬
     elev: [{x0:2, y0:17, x1:8, y1:22, h:2}, {x0:9, y0:20, x1:9, y1:22, h:1}],   // 商人躲在馬車後面（默默：「馬車後面，躲著一個人」）
     foes: [
-      {type:"goblin", x:11, y:11, gear:["短棒"], testSkill:"mace_1"},        // 震暈：既有技能表
-      {type:"goblin", x:10, y:13, testSkill:"sword_2"},                         // 連斬：既有技能表
-      {type:"goblin_archer", x:9, y:14, testSkill:"bow_3"},                    // 壓制射擊：既有技能表
-      {type:"goblin_shaman", x:2, y:8, hidden:true, testSkill:"shaman_totem_2"} // 災禍術：既有技能表
+      {type:"goblin", x:11, y:11, gear:["短棒"], testSkill:"daze"},        // 震暈
+      {type:"goblin", x:10, y:13, testSkill:"double_strike"},                   // 連擊
+      {type:"goblin_archer", x:9, y:14, testSkill:"suppress"},                 // 壓制射擊
+      {type:"goblin_shaman", x:2, y:8, hidden:true, testSkill:"bane"} // 災禍術
     ]
   }
 };

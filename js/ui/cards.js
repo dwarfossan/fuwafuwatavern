@@ -82,7 +82,7 @@ function skillCardHTML(groupId, idx, item, unit){
     ["距離", im && im.passive ? "—" : range],
     ["屬性", skillStatText(g, item)]
   ];
-  if(s.req) rows.push(["施展條件", REQ_TEXT[s.req]||s.req]);
+  if(s.req) rows.push(["施展條件", reqText(s.req)]);
   if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; rows.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
   if(s.pts) rows.push(["升環", s.noUp ? "不能升環" : s.up || "命中時每多花 1 點多 1 顆武器骰。"]);
   if(s.srd) rows.push(["出處", "SRD 5.2"]);
