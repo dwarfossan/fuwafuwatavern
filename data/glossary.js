@@ -38,5 +38,6 @@ const TERM_TEXT = {
 const POP_TEXT = {
   miss:"MISS",          // 沒打中、豁免成功沒被抓住／沒被打掉、躲開道具
   crit:"CRITICAL!",     // 爆擊的大字
+  victory:"VICTORY",    // 勝利標題（大爺 10-02）
   disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!"
 };

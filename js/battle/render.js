@@ -1151,7 +1151,7 @@ function battleInterfaceHTML(){
   let ov = "";
   if(b.result){
     // 勝利：只放一條常見的勝利標題，不擋操作（大爺 10-02：拿掉整個勝利視窗）
-    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">勝利！</div></div>`;
+    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">${POP_TEXT.victory}</div></div>`;
     else ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>${b.result==="win"?"勝利！":"全員倒下……"}</h3>
       <p>再試一次吧。</p>
