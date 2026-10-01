@@ -1064,7 +1064,7 @@ function infoHTML(v, b){
     <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
     <div class="bt-me">${v.side==="pc"?"":doll}<div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?"倒下了":`生命 ${v.hp}/${v.maxHp}`} · AC ${acOfUnit(v)} · 移動 ${v.speed}</div></div></div>
     <div class="inf-hp"><i style="width:${pct*100}%;background:${pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)"}"></i></div>
-    ${econHTML(v,b)?`<div class="econ">${econHTML(v,b)}</div>`:""}
+    ${v.side==="pc" && econHTML(v,b)?`<div class="econ">${econHTML(v,b)}</div>`:""}
     ${v.oaUsed&&!v.down&&!v.dead?`<div class="inf-g dim">這輪已經藉機攻擊過了</div>`:""}
     ${tabs}${pageBody}
   </div>`;
