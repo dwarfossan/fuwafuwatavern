@@ -12,6 +12,8 @@ function nextTurn(){
   beginTurn(u);
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ render(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
+  // 麻痺：跳過這回合（回合結束的東西照樣算）
+  if(B().skipTurn){ B().busy = true; render(); setTimeout(()=>{ B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
   render();
   if(u.side==="foe") setTimeout(()=>aiTurn(u), 650);
@@ -28,16 +30,26 @@ function beginTurn(u){
   b.dazed = !!has(u,"dazed");
   let mv = u.speed;
   if(has(u,"prone")){ mv = Math.floor(mv/2); u.statuses = u.statuses.filter(s=>s.k!=="prone"); u.anim = {k:"getup", t:Date.now()}; sfx("swing"); blog(`${u.name}從地上爬起來（移動減半）`); }
-  if(has(u,"slowed")) mv = Math.max(0, mv - 2 - (has(u,"slowed").n||0));   // 扎腿升階：多扣
-  if(has(u,"grappled") || has(u,"pinned") || has(u,"restrained")) mv = 0;
+  // 緩速（含釘住）：同名不疊加，取扣最多的（扎腿升階多扣）；釘住那種＝移動歸零
+  { const sl = u.statuses.filter(s=>s.k==="slowed");
+    if(sl.length) mv = sl.some(s=>s.stop) ? 0 : Math.max(0, mv - Math.max(...sl.map(s=>2 + (s.n||0)))); }
+  if(has(u,"restrained") || has(u,"frozen")) mv = 0;   // 束縛（網子、擒抱）、凍結：不能移動
   // 燃燒：回合開始受 1d4 火焰，直到花動作撲滅
   if(has(u,"burning")){ blog(`${u.name}身上著火了！`, "dmg"); hurt(u, rollDice("1d4").total, "火焰", null); }
   // 流血：回合開始受 1d4，次數用完就止血
   const bl = has(u,"bleed");
   if(bl){ blog(`${u.name}流血中……`, "dmg"); hurt(u, rollDice("1d4").total, "流血", null);
     bl.n--; if(bl.n<=0) u.statuses = u.statuses.filter(s=>s!==bl); }
+  // 中毒：回合開始受毒素傷害，次數用完就解毒（攻擊劣勢在 attackRoll）
+  const po = has(u,"poisoned");
+  if(po){ blog(`${u.name}中毒了……`, "dmg"); hurt(u, rollDice(po.dice||"1d4").total, "毒素", null);
+    po.n--; if(po.n<=0) u.statuses = u.statuses.filter(s=>s!==po); }
+  // 麻痺：這一回合整個跳過（只有一回合）
+  b.skipTurn = !u.down && !u.dead && !!has(u,"paralyzed");
+  if(b.skipTurn){ u.statuses = u.statuses.filter(s=>s.k!=="paralyzed"); }
   b.moveLeft = mv; b.baseMove = mv;
   blog(`— ${nameFor(u)}的回合 —`, "turn");
+  if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
   perceive(u);
 }
 
@@ -145,7 +157,7 @@ function opportunityAttack(h, u){
 }
 function checkGuards(e, prev){
   alive("pc").forEach(p=>{
-    const g = has(p,"guard");
+    const g = hasVia(p,"stance","guard");   // 架式（阻截）
     if(g && dist(prev,p) > reachOf(p) && dist(e,p) <= reachOf(p)){
       blog(`${p.name}阻截走進範圍的${e.name}！`, "skill");
       p.statuses = p.statuses.filter(s=>s!==g);
@@ -439,10 +451,10 @@ function battleCmd(c){
       if(!canAct() || !GEN_ACT[c].targets(u).length || (c==="grapple" && !freeHand(u))) return;
       b.menu = null; b.mode = {key:c}; break;
     case "shove": b.menu = "shove"; break;
-    case "escape": if(!canAct() || !has(u,"grappled")) return; doEscape(u); return;
+    case "escape": if(!canAct() || !grappled(u)) return; doEscape(u); return;
     case "items": if(!canFree()) return; b.menu = "items"; break;
     case "douse": if(!canAct() || !has(u,"burning")) return; doDouse(u); return;
-    case "unnet": if(!canAct() || !has(u,"restrained")) return; doUnnet(u); return;
+    case "unnet": if(!canAct() || !hasVia(u,"restrained","net")) return; doUnnet(u); return;
   }
   render();
 }
@@ -450,7 +462,7 @@ function battleCmd(c){
 // 目標做力量或敏捷豁免（挑高的），DC = 8 + 力量 + 熟練 2
 const adjFoes = u => enemiesOf(u).filter(e=>dist(e,u)<=1);
 const GEN_ACT = {
-  grapple:     {name:"擒抱", targets:u=>adjFoes(u).filter(e=>!has(e,"grappled"))},
+  grapple:     {name:"擒抱", targets:u=>adjFoes(u).filter(e=>!grappled(e))},
   shove_push:  {name:"推開", targets:u=>adjFoes(u)},
   shove_prone: {name:"推倒", targets:u=>adjFoes(u).filter(e=>!has(e,"prone"))},
   disarm:      {name:"繳械", targets:u=>twoHandLocked(u) ? [] : enemiesOf(u).filter(e=>dist(e,u)<=meleeReach(u) && disarmable(e))}
@@ -468,7 +480,7 @@ function doGenAct(u, key, t){
   if(key==="disarm"){ tryDisarm(u, t); b.impact = 0; panelEnd(); if(checkResult()) return; if(u.side==="pc") afterShow(u, 1300 + DICE_LEAD); else render(); return; }
   const s = t.mods.STR>=t.mods.DEX ? "STR" : "DEX";
   if(saveRoll(t, s, dc)){ blog(`　${t.name}沒被${g.name==="擒抱"?"抓住":g.name}。`); fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact); }
-  else if(key==="grapple"){ addStatus(t, "grappled", {src:u.id, dc}); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被抓住了！不能移動，直到掙脫。`, "skill"); }
+  else if(key==="grapple"){ addStatus(t, "restrained", {via:"grapple", src:u.id, dc}); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被抓住了！不能移動，直到掙脫。`, "skill"); }
   else if(key==="shove_push"){ const x0=t.x, y0=t.y; push(u, t, 1); fxHit(t, "burst"); sfx("hit_blunt", b.impact);
     blog(t.x===x0&&t.y===y0 ? `　${t.name}後面被擋住，推不動。` : `　${t.name}被推開 1 格！`, "skill"); }
   else { knockProne(t); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被推倒在地！`, "skill"); }
@@ -478,7 +490,7 @@ function doGenAct(u, key, t){
 }
 // 掙脫：力量或敏捷檢定（挑高的）對抗擒抱的 DC
 function doEscape(u){
-  const b = B(), gs = has(u,"grappled"), s = u.mods.STR>=u.mods.DEX ? "STR" : "DEX";
+  const b = B(), gs = grappled(u), s = u.mods.STR>=u.mods.DEX ? "STR" : "DEX";
   useAction(u);
   const r = d20(), total = r + u.mods[s], ok = total >= gs.dc;
   blog(`${u.name}想掙脫：d20=${r}${fmtN(u.mods[s])} = ${total} ${ok?"≥":"<"} DC ${gs.dc} → ${ok?"成功":"失敗"}`, ok?"skill":"miss");
@@ -559,7 +571,7 @@ function useItem(u, it, t){
     } else {
       const ok = saveRoll(t, it.use.save, 8 + 2 + u.mods.DEX);
       if(!ok && it.use.dmg) hurt(t, rollDice(it.use.dmg).total, it.use.type, u);
-      if(!ok && it.use.status==="restrained"){ addStatus(t, "restrained", {dc:it.use.escape}); fxFloat(t, POP_TEXT.bound, "dmg"); blog(`　${t.name}被網子纏住了！`, "skill"); }
+      if(!ok && it.use.status==="restrained"){ addStatus(t, "restrained", {via:"net", dc:it.use.escape}); fxFloat(t, POP_TEXT.bound, "dmg"); blog(`　${t.name}被網子纏住了！`, "skill"); }
       if(ok){ fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact||0); }
     }
     reveal(u, "出手，現身了！");
@@ -589,7 +601,7 @@ function doDouse(u){
 }
 // 掙脫網子（動作）：力量檢定對網子的難度
 function doUnnet(u){
-  const rs = has(u,"restrained"), r = d20(), total = r + u.mods.STR, ok = total >= rs.dc;
+  const rs = hasVia(u,"restrained","net"), r = d20(), total = r + u.mods.STR, ok = total >= rs.dc;
   useAction(u);
   blog(`${u.name}想掙脫網子：力量 d20=${r}${fmtN(u.mods.STR)} = ${total} ${ok?"≥":"<"} ${rs.dc} → ${ok?"掙脫了！":"還纏著"}`, ok?"skill":"miss");
   if(ok){ u.statuses = u.statuses.filter(s=>s!==rs); u.anim = {k:"hop", t:Date.now()}; sfx("swing"); }
@@ -680,7 +692,7 @@ function foeFreePick(e){
     if(s.group.id==="shield"){ const t = alive(e.side).find(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1)); if(t) return {sk:s, t}; continue; }
     if(s.impl.target==="ally"){ const t = alive(e.side).filter(o=>o.hp<=o.maxHp/2 && validTarget(e,s,o.x,o.y)).sort((a,c)=>a.hp-c.hp)[0]; if(t) return {sk:s, t}; continue; }
     if(s.def.name==="護盾術" && !has(e,"shieldSpell") && pcs.some(p=>dist(p,e)<=2)) return {sk:s, t:e};
-    if(s.key==="guard_stance" && !has(e,"guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};
+    if(s.key==="guard_stance" && !hasVia(e,"stance","guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};
   }
   return null;
 }
@@ -718,7 +730,7 @@ function foeRange(e){
 function foeManeuver(e, adj){
   if(isRanged(e) || e.dead) return null;
   const pick = (key, list) => { const t = list.filter(p=>GEN_ACT[key].targets(e).includes(p))[0]; return t ? {key, t} : null; };
-  const shooters = adj.filter(p=>isRanged(p) && holdsTwoHanded(p) && !has(p,"grappled"));
+  const shooters = adj.filter(p=>isRanged(p) && holdsTwoHanded(p) && !grappled(p));
   if(freeHand(e) && !victimsOf(e).length){ const m = pick("grapple", shooters); if(m) return m; }
   const casters = adj.filter(p=>!p.weapon && p.focus);
   { const m = pick("disarm", casters); if(m) return m; }
@@ -740,7 +752,7 @@ function aiTurn(e){
   if(b.result || e.dead) return;
   if(!alive("pc").length) return;
   // 被網住：先掙脫；身上著火快燒死：先撲滅
-  if(has(e,"restrained")){ doUnnet(e); setTimeout(endTurn, settle(800)); return; }
+  if(hasVia(e,"restrained","net")){ doUnnet(e); setTimeout(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); setTimeout(endTurn, 800); return; }
   // 免費動作：有用得上的免費招式就先用，再回來做這回合的主動作
   // 免費那格用過了、同伴快倒（剩四分之一）→ 用主動作再補一次

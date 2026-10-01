@@ -118,7 +118,7 @@ function hitThen(u, t, o, fx){ const r = weaponAttack(u, t, o||{}); if(r.hit && 
 const bestOfSave = (t, a, b) => (t.mods[a]||0) >= (t.mods[b]||0) ? a : b;
 const fxProne  = (u, t, stat, save, up=0) => { if(!saveRoll(t, save, dcOf(u, stat) + up)){ knockProne(t); blog(`　${t.name}倒地！`, "skill"); } };
 const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, n:up}); blog(`　${t.name}下回合移動 −${2+up} 格`, "skill"); };
-const fxHamper = t => { addStatus(t, "hampered", {}); blog(`　${t.name}下次攻擊有劣勢`, "skill"); };
+const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　${t.name}下次攻擊有劣勢`, "skill"); };
 const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat) + up)){ addStatus(t, "dazed", {until:"end", of:t.id}); blog(`　${t.name}被震暈了！下回合只能移動或行動二選一`, "skill"); } };
 const standStill = {can:u=>!B().movedThisTurn, why:"這回合已經移動過了"};
 // 近身類的「靠過去」：2 格內、目標身旁的空位（花費照地形算），找最近的
@@ -133,7 +133,7 @@ function dashSpot(u, t, max){
 const SKILL_IMPL = {
   sword: [
     basicAttack,
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"parry",{until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"stance",{via:"parry", until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},
     // 連擊（連斬＋連打合併）：攻擊兩次，第二下不加屬性
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); if(!t.dead && !t.down) weaponAttack(u,t,{noMod:true}); }}
   ],
@@ -150,7 +150,7 @@ const SKILL_IMPL = {
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"acDown",{until:"end", of:u.id, n:upNow()}); blog(`　破甲：${t.name} AC −${2+upNow()}`,"skill"); })},
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"bleed",{n:2+upNow(), src:u.id}); blog(`　${t.name}開始流血（接下來 ${2+upNow()} 次回合開始各 1d4）`,"skill"); })},
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
-      if(t.shield){ addStatus(t,"shieldBroken",{until:"start", of:u.id}); blog(`　${t.name}的盾被劈開，AC −2`,"skill"); } else blog(`　${t.name}沒有拿盾。`); })}
+      if(t.shield){ addStatus(t,"acDown",{via:"cleave", shield:true, until:"start", of:u.id}); blog(`　${t.name}的盾被劈開，AC −2`,"skill"); } else blog(`　${t.name}沒有拿盾。`); })}
   ],
   mace: [
     basicAttack,
@@ -161,12 +161,12 @@ const SKILL_IMPL = {
       const ox = t.x, oy = t.y; push(u, t, 1 + upNow());
       if(t.x===ox && t.y===oy){ blog(`　${t.name}後面被擋住，推不動。`); return; }
       blog(`　${t.name}被擊退！`, "skill");
-      if(!victimsOf(u).length && !has(u,"grappled") && dist(u,{x:ox,y:oy})===1 && !unitAt(ox,oy)){ u.x = ox; u.y = oy; faceTo(u, t); }
+      if(!victimsOf(u).length && !grappled(u) && dist(u,{x:ox,y:oy})===1 && !unitAt(ox,oy)){ u.x = ox; u.y = oy; faceTo(u, t); }
     })}
   ],
   polearm: [
     basicAttack,
-    {target:"self", run:u=>{ addStatus(u,"guard",{until:"start", of:u.id, up:upNow()}); blog(`　${u.name}架起武器，阻截走進攻擊範圍的敵人`,"skill"); }}
+    {target:"self", run:u=>{ addStatus(u,"stance",{via:"guard", until:"start", of:u.id, up:upNow()}); blog(`　${u.name}架起武器，阻截走進攻擊範圍的敵人`,"skill"); }}
   ],
   dagger: [
     // 有「投擲」屬性的武器可以丟出去（超出觸及就算遠程）
@@ -194,7 +194,7 @@ const SKILL_IMPL = {
   crossbow: [
     basicAttack,
     {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ lineUnits(u,t,rangeOf(u)).filter(e=>hostile(e,u) && !isHid(e)).forEach(e=>weaponAttack(u,e,{})); }},
-    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"pinned",{until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
+    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"slowed",{via:"pin", stop:true, until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>weaponAttack(u,t,{pointBlank:true})}
   ],
   // 投擲類：射程用武器的投擲／彈藥射程；超出觸及就算遠程攻擊（貼身投有劣勢）
@@ -207,13 +207,13 @@ const SKILL_IMPL = {
   ],
   unarmed: [
     {target:"enemy", range:()=>1, run:(u,t)=>weaponAttack(u,t,{})},
-    {target:"enemy", range:()=>1, can:(u)=>enemiesOf(u).some(e=>e.statuses.some(s=>s.k==="grappled"&&s.src===u.id)), why:"要先擒抱住敵人",
-     run:(u,t)=>{ if(!t.statuses.some(s=>s.k==="grappled"&&s.src===u.id)){ blog("　沒有抓住這個目標。"); return; }
-       push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>s.k!=="grappled"); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }}
+    {target:"enemy", range:()=>1, can:(u)=>enemiesOf(u).some(e=>e.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)), why:"要先擒抱住敵人",
+     run:(u,t)=>{ if(!t.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)){ blog("　沒有抓住這個目標。"); return; }
+       push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>!(s.k==="restrained"&&s.via==="grapple")); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }}
   ],
   shield: [
     // 舉盾護友（免費動作）：指定貼身隊友，到你下回合開始前，打他的第一次攻擊劣勢（見 attackRoll）
-    {target:"ally", notSelf:true, range:()=>1, run:(u,t)=>{ addStatus(t,"guarded",{by:u.id, until:"start", of:u.id}); blog(`　${u.name}舉盾護著${t.name}`,"skill"); }}
+    {target:"ally", notSelf:true, range:()=>1, run:(u,t)=>{ addStatus(t,"dodge",{via:"guard", once:true, by:u.id, until:"start", of:u.id}); blog(`　${u.name}舉盾護著${t.name}`,"skill"); }}
   ],
   arcane_staff: [
     // 敲：法杖當長棍用，近戰 1d6 + 力量

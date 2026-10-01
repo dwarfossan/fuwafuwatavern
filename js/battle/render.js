@@ -329,7 +329,7 @@ function obsBubbleBody(kind, d){
 }
 // 戰場用：錨在角色頭上
 function obsMarkSVG(v, m, now){
-  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (v.statuses.some(s=>STATUS_BADGE[s.k]) ? 38*overlayK() : 0);
+  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*overlayK() : 0);
   return `<g class="obs obs-${m.kind}" transform="translate(${ax} ${ay}) scale(${overlayK().toFixed(3)})" data-exp="${m.t + m.dur}">${obsBubbleBody(m.kind, m.t - now)}</g>`;
 }
 // 畫面上一般的 HTML 用（劇情的卡片）：一個獨立的小 svg
@@ -338,7 +338,7 @@ const obsBubbleHTML = (kind, delay=0) => `<svg class="obs obs-${kind}" viewBox="
 
 // 台詞氣泡框：錨在角色頭上（血條上方）；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 function bubbleSVG(v, x, now){
-  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (v.statuses.some(s=>STATUS_BADGE[s.k]) ? 38*overlayK() : 0);
+  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*overlayK() : 0);
   const k = overlayK(), text = String(x.text).replace(/[<>&]/g, ""), sub = String(x.sub||"").replace(/[<>&]/g, "");
   const w = Math.max(64, [...text].length*16 + 24, [...sub].length*11 + 20), h = sub ? 50 : 34;
   const L = -w/2, T = -h - 10;
@@ -478,15 +478,17 @@ function unitDoll(v, active){
 // 頭上的狀態小圖示：壞的紅底、好的綠底，最多五個；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 // 有倒數的狀態，圖示上方標剩幾回合（流血＝剩幾次、到某人回合開始／結束＝1）；燒到撲滅、整場的不標
 // 圖示不用字，出其他語言版本也不用改
+// 15 個狀態（2026-10-01 大爺定上限）：12 個掛圖示＋凍結、麻痺、中毒。icon 是 null 的不掛頭上（身上已經看得出來、或不用提醒），狀態卡照樣列出
 const STATUS_BADGE = {
-  burning:["flame",0], restrained:["net",0], bleed:["drop",0], dazed:["daze",0], slowed:["slow",0], hampered:["weak",0], sapped:["weak",0],
-  bane:["skull",0], grappled:["grab",0], pinned:["pin",0], acDown:["crack",0], shieldBroken:["crack",0],
-  blessed:["sun",1], dodge:["dodge",1], parry:["parry",1], guard:["spear",1], shieldSpell:["shieldStar",1], guarded:["shield",1],
-  mageArmor:["shieldStar",1], fireShield:["flameRing",1], helped:["hand",1], disengage:["run",1]
+  dazed:["daze",0], slowed:["slow",0], restrained:["net",0], sapped:["weak",0], bane:["skull",0], acDown:["crack",0], bleed:["drop",0],
+  frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0],
+  blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
+  prone:[null,0], burning:[null,0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
 };
+const badgeOf = s => (STATUS_BADGE[s.k]||[])[0];
+const hasBadge = v => v.statuses.some(badgeOf);
 // 圖示畫在 20×20 的格子裡（白色）
 const ST_ICON = {
-  flame:`<path d="M10 2.5c1 3 4.5 4.5 4.5 8.6a4.5 4.5 0 0 1-9 0c0-2.2 1.2-3.3 2.1-4.6.3 1.5 1 2.3 1.9 2.6C9 7 9.2 4.8 10 2.5z" fill="#fff"/>`,
   net:`<path d="M4 4l12 12M4 10l6 6M10 4l6 6M16 4L4 16M10 4L4 10M16 10l-6 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" fill="none"/>`,
   drop:`<path d="M10 3c2.5 3.8 4.6 6.2 4.6 8.8a4.6 4.6 0 0 1-9.2 0C5.4 9.2 7.5 6.8 10 3z" fill="#fff"/>`,
   daze:`<path d="M10 10m-1.6 0a1.6 1.6 0 1 1 3.2 0a3.6 3.6 0 1 1-7.2 0a5.6 5.6 0 1 1 11.2 0" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
@@ -494,23 +496,21 @@ const ST_ICON = {
   weak:`<path d="M13.5 3.5l3 3-8 8-3-3zM6 12l2 2M4 16l2.5-2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l14 14" stroke="#1f1a24" stroke-width="4"/><path d="M3.5 3.5l13 13" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`,
   skull:`<path d="M10 3a6 6 0 0 0-6 6c0 2 1 3.4 2.3 4.2V16h7.4v-2.8C15 12.4 16 11 16 9a6 6 0 0 0-6-6z" fill="#fff"/><circle cx="7.6" cy="9.4" r="1.6" fill="#a33c32"/><circle cx="12.4" cy="9.4" r="1.6" fill="#a33c32"/><path d="M8.5 16v-2M11.5 16v-2" stroke="#a33c32" stroke-width="1.2"/>`,
   grab:`<path d="M6 17v-6.5a1.4 1.4 0 0 1 2.8 0V9V4.5a1.4 1.4 0 0 1 2.8 0V9V5.5a1.4 1.4 0 0 1 2.8 0v5.5l.3-1.5a1.3 1.3 0 0 1 2.5.6L15.6 17z" fill="#fff"/>`,
-  pin:`<path d="M10 17V9" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M6.5 3h7l-1.5 3 1.5 3h-7z" fill="#fff"/><path d="M5 17h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`,
   crack:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/><path d="M11 3l-2.2 4.5 2.6 2-2.4 4.3 1.2 3.4" stroke="#a33c32" stroke-width="1.6" fill="none" stroke-linejoin="round"/>`,
   sun:`<circle cx="10" cy="10" r="3.4" fill="#fff"/><path d="M10 2.5v2.4M10 15.1v2.4M2.5 10h2.4M15.1 10h2.4M4.7 4.7l1.7 1.7M13.6 13.6l1.7 1.7M4.7 15.3l1.7-1.7M13.6 6.4l1.7-1.7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`,
   dodge:`<path d="M3 6h8M5 10h10M3 14h8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4l3 2-3 2" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
   parry:`<path d="M4 4l12 12M16 4L4 16" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M3 13l4 4M17 13l-4 4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`,
-  spear:`<path d="M10 17V7" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M10 2.5l3 4.5h-6z" fill="#fff"/><path d="M6.5 9.5h7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`,
-  shield:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/>`,
   shieldStar:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/><path d="M10 6.2l1.1 2.4 2.5.3-1.9 1.7.5 2.5L10 11.9l-2.2 1.2.5-2.5-1.9-1.7 2.5-.3z" fill="#3f7a3a"/>`,
-  flameRing:`<circle cx="10" cy="10" r="7" stroke="#fff" stroke-width="1.8" fill="none"/><path d="M10 5.5c.7 2 3 3 3 5.7a3 3 0 0 1-6 0c0-1.5.8-2.2 1.4-3 .2 1 .7 1.5 1.3 1.7-.3-1.6-.2-3 .3-4.4z" fill="#fff"/>`,
+  snow:`<path d="M10 2.5v15M3.5 6.2l13 7.6M3.5 13.8l13-7.6" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/><path d="M8 3.8l2 1.8 2-1.8M8 16.2l2-1.8 2 1.8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+  bolt:`<path d="M11.5 2.5L5 11h4.2L8 17.5 15 8.6h-4.3z" fill="#fff"/>`,
+  bubble:`<circle cx="8" cy="12.5" r="4.2" fill="#fff"/><circle cx="13.6" cy="7.4" r="2.6" fill="#fff"/><circle cx="8.6" cy="4.4" r="1.6" fill="#fff"/><circle cx="6.8" cy="11.4" r="1.2" fill="#a33c32"/>`,
   hand:`<path d="M10 3.5v13M3.5 10h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
-  run:`<path d="M9 4h8M9 4l3-2.5M9 4l3 2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="8" r="1.8" fill="#fff"/><path d="M7 10.5l-1 3.5 3 3M6 14l-3 2.5M7 11l3 1.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
 };
-// 剩幾回合：流血照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
-const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end") ? 1 : null;
+// 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
+const stTurns = s => (s.k==="bleed" || s.k==="poisoned") ? s.n : (s.until==="start" || s.until==="end") ? 1 : null;
 function statusBadges(v, cx, y){
   const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
-  v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b) return;
+  v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;
     const o = by.get(b[0]) || {icon:b[0], good:b[1], n:null}, t = stTurns(s);
     if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
@@ -540,7 +540,7 @@ function dieFace(sides, v, start, land, flick, drop, tint, still){
     ${flick.map((f,j)=>`<text class="dp-f" y="4.5" text-anchor="middle" style="animation-delay:${start + j*DICE_TUMBLE/3}ms">${(f % sides) + 1}</text>`).join("")}
     <text class="dp-n" y="4.5" text-anchor="middle" style="animation-delay:${land}ms">${v}</text></g></svg><small>d${sides}</small></span>`;
 }
-const DMG_TINT = {"物理":"#f6e9d8", "法術":"#c9b5ff", "特殊":"#ffd36a", "火焰":"#f2903a", "強酸":"#a8e07a"};
+const DMG_TINT = {"毒素":"#7fd0a0", "物理":"#f6e9d8", "法術":"#c9b5ff", "特殊":"#ffd36a", "火焰":"#f2903a", "強酸":"#a8e07a"};
 function dicePanelHTML(b){
   const p = b.panel, now = Date.now();
   if(!p || !p.rows.length || b.panelHidden) return "";
@@ -578,20 +578,27 @@ function burnFX(v, cx, cy){
     <path d="M0 -10c1.6 3.5 5.5 5 5.5 9a5.5 5.5 0 0 1-11 0c0-2.4 1.4-3.8 2.6-5.3.3 1.6 1 2.5 2 2.8-.3-2.2-.2-4.3.9-6.5z" fill="#ffd36a"/></g></g>`;
   return `<g class="fx-burn">${flame(xs[0],ys[0],.9,0)}${flame(xs[1],ys[1],.75,180)}${flame(xs[2],ys[2],1,90)}</g>`;
 }
+// 火焰護盾：腳下一圈火光、身體外圍一層淡淡的火焰光暈（不掛圖示）
+function fireShieldFX(v, cx, cy){
+  if(v.dead || v.down || !has(v,"fireShield")) return "";
+  const low = has(v,"prone"), ry = low ? 30 : 62, oy = low ? -20 : -56;
+  return `<g class="fx-fshield"><ellipse cx="${cx}" cy="${cy-4}" rx="40" ry="13" fill="none" stroke="#f2903a" stroke-width="3" opacity=".75"/>
+    <ellipse class="fs-glow" cx="${cx}" cy="${cy+oy}" rx="${low?58:42}" ry="${ry}" fill="#f2903a" opacity=".16" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="6 7"/></g>`;
+}
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
   const now = Date.now(), pct = v.hp/v.maxHp;
   const doll = unitDoll(v, active);
   const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
   const top = (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
-  const badgeUp = v.statuses.some(s=>STATUS_BADGE[s.k]) ? 40*overlayK() : 0;
+  const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
   const hid = isHid(v) ? `<g class="hid-eye" transform="translate(${cx} ${top-24-badgeUp})"><path d="M-17 0 Q0 -14 17 0 Q0 14 -17 0 Z" fill="#1f1a24" stroke="#f6e9d8" stroke-width="2.5"/>
     <circle r="5.5" fill="#f6e9d8"/><path d="M-19 9 L19 -9" stroke="#1f1a24" stroke-width="7" stroke-linecap="round"/><path d="M-17 8 L17 -8" stroke="#f6e9d8" stroke-width="2.5" stroke-linecap="round"/></g>` : "";
   return `<g class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${v.x},${v.y}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}
-    ${burnFX(v, cx, cy)}
+    ${burnFX(v, cx, cy)}${fireShieldFX(v, cx, cy)}
     ${v.dead?"":`<rect x="${cx-28}" y="${top-8}" width="56" height="7" rx="3" fill="#1f1a24"/>
     <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>`}
     ${v.dead ? "" : statusBadges(v, cx, top - 12)}
@@ -608,13 +615,34 @@ function equipKeys(v){
   return out;
 }
 
-const STATUS_NAME = {prone:"倒地", dazed:"震暈", slowed:"緩速", sapped:"削弱", vex:"困擾", acDown:"破甲", parry:"架式", guard:"阻截",
-  hidden:"潛行中", bane:"災禍（攻擊、豁免 −1d4）", bleed:"流血", shieldBroken:"盾被劈開", pinned:"被釘住",
-  burning:"燃燒", restrained:"束縛", guarded:"被盾護著",
-  grappled:"被抓住", dodge:"閃避", disengage:"撤離", helped:"受協助", hampered:"下次攻擊劣勢", blessed:"祝福", mageArmor:"法師護甲", fireShield:"火焰護盾", shieldSpell:"護盾術"};
-const STATUS_DESC = {prone:"倒在地上；移動前需要先起身。",dazed:"暫時失去行動能力，依效果期限解除。",slowed:"移動能力受到限制。",sapped:"攻擊能力受到削弱。",vex:"受到干擾，依招式效果承受不利。",acDown:"防禦被破壞，AC 暫時降低。",parry:"準備招架來襲的近戰攻擊。",guard:"準備阻截靠近或經過的敵人。",hidden:"目前處於潛行狀態。",bane:"攻擊與豁免會額外減去 1d4。",bleed:"持續流血；依剩餘次數受到效果。",shieldBroken:"盾牌防禦已被破壞。",pinned:"被固定在原地，依效果條件解除。",burning:"身上正在燃燒，直到撲滅或效果解除。",restrained:"被束縛，不能正常移動，攻防也會受到影響。",guarded:"正受到隊友的盾牌保護。",grappled:"被敵人抓住，移動受到限制。",dodge:"專心閃避；來襲攻擊較難命中。",disengage:"本回合撤離時不會引發藉機攻擊。",helped:"受到隊友協助。",hampered:"下一次攻擊處於劣勢。",blessed:"受到祝福效果。",mageArmor:"魔法形成防護，依法師護甲規則計算 AC。",fireShield:"火焰形成護盾保護自身。",shieldSpell:"護盾術暫時提高防禦。"};
-function statusLabel(v,s){return s.k==="grappled"?`被${(grapplerOf(v)||{}).name||"敵人"}抓住`:STATUS_NAME[s.k]||s.k;}
-function statusExplain(v,s){let t=STATUS_DESC[s.k]||"目前作用中的戰鬥狀態。";const n=stTurns(s);if(n!=null)t+=` 剩餘 ${n} 回合。`;if(s.k==="restrained"&&s.dc)t+=` 掙脫難度 ${s.dc}。`;return t;}
+// 狀態名稱、說明（2026-10-01 大爺：名字不能混淆；同一個狀態可能由不同招式造成，說明照 via 分）
+const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained:"束縛", sapped:"削弱", bane:"災禍", acDown:"破甲", bleed:"流血", burning:"燃燒",
+  frozen:"凍結", paralyzed:"麻痺", poisoned:"中毒",
+  blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離"};
+const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
+  dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下。",
+  bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花動作撲滅。",
+  frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害。",
+  blessed:"攻擊和豁免各多擲 1d4 加上去，整場戰鬥。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
+  mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。"};
+function statusLabel(v,s){return STATUS_NAME[s.k]||s.k;}
+function statusExplain(v,s){
+  const who = id => (B().units.find(x=>x.id===id)||{}).name || "";
+  let t;
+  switch(s.k){
+    case "slowed": t = s.stop ? "被釘住，不能移動。" : `移動 −${2+(s.n||0)} 格。`; break;
+    case "restrained": t = (s.via==="grapple" ? `被${who(s.src)||"敵人"}抓住。` : "被網子纏住。") + `不能移動；打他有優勢，他攻擊有劣勢。${s.dc ? `掙脫難度 ${s.dc}。` : ""}`; break;
+    case "acDown": t = s.shield ? "盾牌被劈開，這段時間盾不算（AC −2）。" : `AC −${2+(s.n||0)}。`; break;
+    case "helped": t = s.target ? `下一次攻擊${who(s.target)}有優勢。` : "下一次攻擊有優勢。"; break;
+    case "dodge": t = s.once ? `${who(s.by)}守護著他：打他的第一次攻擊有劣勢（${who(s.by)}要在旁邊）。` : "打他的攻擊有劣勢。"; break;
+    case "stance": t = s.via==="guard" ? "第一個走進攻擊範圍的敵人會立刻被攻擊一次。" : "AC +2；被近戰打空會立刻反擊。"; break;
+    case "fireShield": t = `近戰打中他的敵人受 ${1+(s.n||0)}d6 火焰傷害，整場戰鬥。`; break;
+    default: t = STATUS_DESC[s.k] || "目前作用中的戰鬥狀態。";
+  }
+  const n = stTurns(s);
+  if(n!=null) t += (s.k==="bleed"||s.k==="poisoned") ? ` 剩 ${n} 次。` : ` 剩餘 ${n} 回合。`;
+  return t;
+}
 const TUTORIAL = [
   "輪到我方時，右下角的指令列就是這隻的指令。拖曳可以移動畫面，滾輪或兩指可以縮放。",
   "「走位」裡有移動、衝刺、撤離、潛行，選移動之後藍色格子是能走到的地方；「動作」裡有攻擊、技能、閃避、協助。點任何角色可以看他的狀態。",
@@ -651,7 +679,7 @@ function skillBtn(u, sk, label){
   const off = passive || !skillReady(u, sk) || !skillCanUse(u, sk) || locked;
   const src = sk.group.id==="shield" ? ITEMS.find(i=>i.type==="shield") : (u.weapon && groupOf(u.weapon)===sk.group) ? u.weapon : (u.focus && groupOf(u.focus)===sk.group) ? u.focus : null;
   return `<div class="skill-row"><button class="skill ${b.mode&&b.mode.key===sk.key?"on":""}" data-skill="${sk.key}" ${off?"disabled":""}>
-    ${skillIcon(sk.group.id, sk.def, sk.impl, 24)}<span class="sk-n">${label||sk.def.name}</span><span class="sk-t">${locked ? (has(u,"grappled") ? "被抓住" : "抓著人") : skillTag(u,sk)}</span></button>
+    ${skillIcon(sk.group.id, sk.def, sk.impl, 24)}<span class="sk-n">${label||sk.def.name}</span><span class="sk-t">${locked ? (grappled(u) ? "被抓住" : "抓著人") : skillTag(u,sk)}</span></button>
     ${sk.synthetic?"":`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}:${src?src.id:""}:${u.id}" aria-label="${sk.def.name}的說明">ⓘ</button>`}</div>`;
 }
 // 指令列（大爺 2026-09-29 定案）：輪到我方時一直貼在戰場右下角，五顆由上到下：待機、狀態、道具、走位、動作（動作離大拇指最近）
@@ -680,8 +708,8 @@ function menuHTML(u, b){
     title = "動作";
     const atks = attackSkills(u);
     const foesNear = adjFoes(u).length;
-    body = (has(u,"grappled") ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
-           (has(u,"restrained") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${has(u,"restrained").dc}`) : "") +
+    body = (grappled(u) ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
+           (hasVia(u,"restrained","net") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${hasVia(u,"restrained","net").dc}`) : "") +
            (has(u,"burning") ? mbtn("douse","撲滅火焰", !act, "身上著火了") : "") +
            (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "被打有劣勢") +
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "鄰格隊友攻擊優勢") +
@@ -875,8 +903,8 @@ function bindGearDrag(){
 function infoHTML(v, b){
   const pct=v.hp/v.maxHp, held=victimsOf(v);
   const statusItems=[...v.statuses.map((x,i)=>{const sb=STATUS_BADGE[x.k];return {s:x,key:`s${i}`,icon:sb?.[0]||null,good:sb?.[1]||0,n:stTurns(x),label:statusLabel(v,x),desc:statusExplain(v,x)}}),...held.map((x,i)=>({s:null,key:`h${i}`,icon:"grab",good:1,n:null,label:`抓住${x.name}`,desc:`目前正抓住${x.name}；依擒抱規則限制對方移動。`}))];
-  const shownStatus=[]; statusItems.forEach(x=>{if(!x.icon)return;const prev=shownStatus.find(y=>y.icon===x.icon);if(prev){if(x.n!=null)prev.n=Math.max(prev.n||0,x.n);return;}shownStatus.push({...x});});
-  const statusBadgeHTML=shownStatus.length?`<div class="status-unit-badges">${shownStatus.slice(0,5).map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}</div>`:"";
+  const shownStatus=[], plainStatus=[]; statusItems.forEach(x=>{if(!x.icon){if(!plainStatus.some(y=>y.label===x.label))plainStatus.push(x);return;}const prev=shownStatus.find(y=>y.icon===x.icon);if(prev){if(x.n!=null)prev.n=Math.max(prev.n||0,x.n);return;}shownStatus.push({...x});});
+  const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges">${shownStatus.map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}${plainStatus.map(x=>`<button class="status-unit-badge plain ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}">${x.label}</button>`).join("")}</div>`:"";
   const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${x.desc}</div>`:""})():"";
   const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:`<svg viewBox="0 0 60 60" width="44" height="44">${faceSVG(v,4,4,52)}</svg>`;
   const item=(slot,it,label)=>`<div class="gear-slot" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="gear-item" data-uid="${v.id}" data-gearitem="${slot}">${it.n}</button>`:`<span class="gear-empty">拖到這裡</span>`}</div>`;

@@ -186,7 +186,7 @@ function reveal(u, why){
   u.statuses = u.statuses.filter(s=>s.k!=="hidden");
   if(why) blog(`　${u.name}${why}`, "skill");
 }
-const senseRange = u => Math.max(0, u.speed - (has(u,"slowed") ? 2 : 0));   // 察覺範圍＝移動速度
+const senseRange = u => Math.max(0, u.speed - (u.statuses.some(s=>s.k==="slowed" && !s.stop) ? 2 : 0));   // 察覺範圍＝移動速度
 function perceive(u){
   B().units.filter(v=>hostile(v,u) && !v.dead && !v.down && isHid(v) && dist(u,v)<=senseRange(u)).forEach(v=>{
     const r = d20(), total = r + u.mods.WIS, need = has(v,"hidden").val, ok = total >= need;
@@ -224,16 +224,18 @@ function launch(a, t, k, delay=0, thing=null){
   return release + delay + flight;
 }
 function fxHit(t, kind){ (B().fx = B().fx || []).push({x:t.x, y:t.y, kind, t:impactAt()}); }
-const FX_OF_TYPE = {"揮砍":"slash", "穿刺":"pierce", "鈍擊":"burst", "火焰":"fire", "力場":"spark", "光耀":"spark", "流血":"pierce", "強酸":"spark"};
+const FX_OF_TYPE = {"毒素":"spark", "揮砍":"slash", "穿刺":"pierce", "鈍擊":"burst", "火焰":"fire", "力場":"spark", "光耀":"spark", "流血":"pierce", "強酸":"spark"};
 // 戰鬥紀錄：t 全文（開頭全形空白＝細節），cls 顏色，s 給縮小條用的短結果（例如「命中」「8 點穿刺」）
 // at：這行在畫面上成立的時間（打中那一刻）。縮小條、紀錄面板到了這個時間才顯示，骰子還在滾時不會先劇透結果
 function blog(t, cls="", s=""){ B().log.push({t, cls, s, at: Date.now() + (B().impact||0)}); if(B().log.length>400) B().log.shift(); }
 const logDue = l => !l.at || l.at <= Date.now() + 30;
 
 // ---------- 狀態效果 ----------
-// {k, src, until:"start"|"end"|"battle", of:unitId, val}
-function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src)); u.statuses.push({k, ...o}); }
+// {k, src, via, until:"start"|"end"|"battle", of:unitId, val}
+// via＝哪一種來源（同一個狀態可能由不同招式造成，例如束縛有網子、擒抱）；同狀態＋同來源＋同 via 才互相取代
+function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src && s.via===o.via)); u.statuses.push({k, ...o}); }
 const has = (u,k) => u.statuses.find(s=>s.k===k);
+const hasVia = (u,k,via) => u.statuses.find(s=>s.k===k && s.via===via);
 function expire(when, unitId){
   B().units.forEach(u=> u.statuses = u.statuses.filter(s=>!(s.until===when && s.of===unitId)));
 }
@@ -244,10 +246,10 @@ function acOfUnit(u){
   if(u.side!=="pc") ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
   else if(has(u,"mageArmor") && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
   else ac = acOf(u.id);
-  if(has(u,"acDown")) ac -= 2 + (has(u,"acDown").n||0);          // 破甲升階：每高一階再 −1
-  if(has(u,"shieldBroken") && u.shield) ac -= 2;   // 盾被劈開：這段時間盾不算
+  // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
+  ac -= u.statuses.filter(s=>s.k==="acDown" && (!s.shield || u.shield)).reduce((m,s)=>Math.max(m, 2 + (s.n||0)), 0);
   if(has(u,"shieldSpell")) ac += 5;
-  if(has(u,"parry")) ac += 2;
+  if(hasVia(u,"stance","parry")) ac += 2;           // 架式（架開反擊）
   return ac;
 }
 // 武器用哪個屬性：彈藥武器用敏捷；靈巧取高；其餘用力量
@@ -275,15 +277,17 @@ const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 
 // ---------- 攻擊與傷害 ----------
 function saveRoll(t, stat, dc){
-  let r = d20(), bonus = t.mods[stat]||0, extra = 0;
+  const frz = stat==="DEX" && !!has(t,"frozen");      // 凍結：敏捷豁免有劣勢
+  const r1 = d20(), r2 = frz ? d20() : null;
+  let r = frz ? Math.min(r1, r2) : r1, bonus = t.mods[stat]||0, extra = 0;
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   if(has(t,"blessed")) extra = rollDice("1d4").total;
   const bane = baned(t) ? rollDice("1d4").total : 0;
   B()._noCap = false;
   const total = r + bonus + extra - bane;
   const ok = total >= dc;
-  panelRow("save", t, [r], r, total, ok ? "save" : "fail");   // 骰子面板：豁免一列
-  blog(`　${t.name} ${ABILITIES.find(a=>a.k===stat).n}豁免：d20=${r}${fmtN(bonus)}${extra?` +祝福${extra}`:""}${bane?` −災禍${bane}`:""} = ${total} ${ok?"≥":"<"} DC ${dc} → ${ok?"成功":"失敗"}`, ok?"":"hit", `${t.name}${ok?"擋住了":"豁免失敗"}`);
+  panelRow("save", t, frz ? [r1, r2] : [r], r, total, ok ? "save" : "fail");   // 骰子面板：豁免一列
+  blog(`　${t.name} ${ABILITIES.find(a=>a.k===stat).n}豁免：d20=${r}${frz?`（凍結劣勢 ${r1}/${r2}）`:""}${fmtN(bonus)}${extra?` +祝福${extra}`:""}${bane?` −災禍${bane}`:""} = ${total} ${ok?"≥":"<"} DC ${dc} → ${ok?"成功":"失敗"}`, ok?"":"hit", `${t.name}${ok?"擋住了":"豁免失敗"}`);
   return ok;
 }
 const fmtN = n => n>=0 ? ` +${n}` : ` −${-n}`;
@@ -323,14 +327,18 @@ function attackRoll(a, t, o={}){
   if(o.dis) adv--;
   if(has(t,"prone")) adv += melee ? 1 : -1;
   if(has(a,"prone")) adv--;
-  if(has(a,"sapped")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="sapped"); }
-  if(has(a,"hampered")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="hampered"); }
-  const vex = a.statuses.find(s=>s.k==="vex" && s.target===t.id);
-  if(vex){ adv++; a.statuses = a.statuses.filter(s=>s!==vex); }
-  if(has(t,"dodge")) adv--;                                           // 閃避：打他有劣勢
-  { const gs = has(a,"grappled"); if(gs && gs.src!==t.id) adv--; }    // 被抓住：打抓他以外的人有劣勢
-  const help = a.statuses.find(s=>s.k==="helped");
-  if(help){ adv++; a.statuses = a.statuses.filter(s=>s!==help); }    // 協助：下次攻擊優勢
+  if(has(a,"sapped")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="sapped"); }   // 削弱：下次攻擊劣勢（用掉就沒）
+  if(has(a,"poisoned")) adv--;                                         // 中毒：攻擊有劣勢
+  // 閃避：打他有劣勢。守護給的閃避只擋第一次（用掉就沒），守護的人要還站在他旁邊
+  { const dg = t.statuses.filter(s=>s.k==="dodge"), once = dg.filter(s=>s.once);
+    let dis = dg.some(s=>!s.once);
+    if(once.length){ t.statuses = t.statuses.filter(s=>!once.includes(s));
+      const by = once.map(s=>B().units.find(v=>v.id===s.by)).find(v=>v && !v.down && !v.dead && dist(v,t)<=1);
+      if(by){ dis = true; blog(`　${by.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
+    if(dis) adv--; }
+  // 協助：下次攻擊優勢（困擾給的協助只對那個目標）
+  const help = a.statuses.find(s=>s.k==="helped" && (!s.target || s.target===t.id));
+  if(help){ adv++; a.statuses = a.statuses.filter(s=>s!==help); }
   if(o.ranged && !o.pointBlank && B().units.some(u=>hostile(u,a) && !u.down && !u.dead && !isHid(u) && dist(u,a)===1)) adv--;   // 貼身射擊劣勢（近射不算）
   const hideTxt = o.ranged && hidden(t) ? `${t.name}躲在草叢裡` : "";
   if(hideTxt) adv--;
@@ -339,13 +347,9 @@ function attackRoll(a, t, o={}){
   const mate = melee ? flankMate(a, t) : null;
   const flankTxt = mate ? `和${mate.name}夾擊${t.name}` : "";
   if(flankTxt) adv++;
-  // 束縛：打他有優勢、他攻擊有劣勢
+  // 束縛（網子、擒抱）：打他有優勢、他攻擊有劣勢
   if(has(t,"restrained")) adv++;
   if(has(a,"restrained")) adv--;
-  // 舉盾護友：有人舉盾護著他（花免費動作開的），第一次攻擊有劣勢
-  { const gd = has(t,"guarded"), by = gd && B().units.find(v=>v.id===gd.by);
-    if(gd){ t.statuses = t.statuses.filter(s=>s!==gd);
-      if(by && !by.down && !by.dead && dist(by,t)<=1){ adv--; blog(`　${by.name}舉盾擋在${t.name}前面！（攻擊劣勢）`, "skill"); } } }
   const r1 = d20(), r2 = d20();
   const r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1;
   const bonus = o.bonus||0;
@@ -384,6 +388,7 @@ function hurt(t, n, type, src){
   if(n<=0 || t.down || t.dead) return;
   t.hp = Math.max(0, t.hp - n);
   reveal(t);
+  if(type==="火焰" && has(t,"frozen")){ t.statuses = t.statuses.filter(s=>s.k!=="frozen"); blog(`　${t.name}被火一烤，解凍了！`, "skill"); }
   blog(`　${t.name}受到 ${n} 點${dmgShown(type)}傷害（${t.hp}/${t.maxHp}）`, "dmg", `${n} 點${dmgShown(type)}`);   // 揮砍、穿刺、鈍擊都顯示成物理（音效、特效照舊分）
   fxFloat(t, `-${n}`, "dmg");
   t.anim = {k:"hurt", t:impactAt()};
@@ -414,25 +419,26 @@ function heal(t, n){
 }
 
 // ---------- 擒抱（SRD 5.2） ----------
-// 被抓住：移動 0、攻擊抓他的以外的人有劣勢；一直持續到掙脫、抓的人倒下或兩人不相鄰。抓的人移動時拖著走，移動花費加倍。
-const grapplerOf = t => { const s = has(t,"grappled"); return s && B().units.find(v=>v.id===s.src); };
-const victimsOf = u => B().units.filter(v=>!v.dead && (has(v,"grappled")||{}).src===u.id);
+// 被抓住＝束縛（via:"grapple"，src＝抓他的人）：不能移動、打他有優勢、他攻擊有劣勢；一直持續到掙脫、抓的人倒下或兩人不相鄰。抓的人移動時拖著走，移動花費加倍。
+const grappled = t => hasVia(t,"restrained","grapple");
+const grapplerOf = t => { const s = grappled(t); return s && B().units.find(v=>v.id===s.src); };
+const victimsOf = u => B().units.filter(v=>!v.dead && (grappled(v)||{}).src===u.id);
 // 能不能擒抱：拿雙手武器不行（敵我都一樣）；其餘要有一隻手空著（主手武器、盾、法器各佔一隻手）
 const holdsTwoHanded = u => !!(u.weapon && u.weapon.props && u.weapon.props.includes("雙手"));
 const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (u.focus?1:0)) < 2;
 // 擒抱期間（抓人的、被抓的都算）不能用雙手武器
-const inGrapple = u => !!has(u,"grappled") || victimsOf(u).length > 0;
+const inGrapple = u => !!grappled(u) || victimsOf(u).length > 0;
 const twoHandLocked = u => holdsTwoHanded(u) && inGrapple(u);
 // 這招是不是雙手武器給的
 const fromTwoHanded = (u, sk) => !!(u.weapon && holdsTwoHanded(u) && groupOf(u.weapon)===sk.group);
 function releaseGrapple(t, why){
   const g = grapplerOf(t);
-  t.statuses = t.statuses.filter(s=>s.k!=="grappled");
+  t.statuses = t.statuses.filter(s=>!(s.k==="restrained" && s.via==="grapple"));
   if(why) blog(`　${t.name}${why}`, "skill");
 }
 // 抓的人倒下、兩人不相鄰 → 自動鬆開
 function checkGrapples(){
-  B().units.forEach(t=>{ const g = grapplerOf(t); if(has(t,"grappled") && (!g || g.dead || g.down || t.dead || dist(g,t)>1)) releaseGrapple(t, "掙脫了擒抱"); });
+  B().units.forEach(t=>{ const g = grapplerOf(t); if(grappled(t) && (!g || g.dead || g.down || t.dead || dist(g,t)>1)) releaseGrapple(t, "掙脫了擒抱"); });
 }
 
 // ---------- 繳械（本作規則，參考 DMG 選用規則） ----------
@@ -612,7 +618,7 @@ function weaponAttack(a, t, o={}){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(a), a);
   }
   // 架開反擊：擺好架式的人被近戰打空，立刻反擊一次（反擊本身不會再觸發反擊）
-  if(!res.hit && !ranged && !o.counter && has(t,"parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){
+  if(!res.hit && !ranged && !o.counter && hasVia(t,"stance","parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){
     blog(`　${t.name}架開攻擊，反擊！`, "skill");
     weaponAttack(t, a, {counter:true});
   }
@@ -624,7 +630,7 @@ function applyMastery(a, t, m, mod){
     case "緩速": addStatus(t,"slowed",{until:"start", of:a.id}); blog(`　緩速：${t.name}移動 −2 格`,"skill"); break;
     case "推擊": push(a,t,2); blog(`　推擊：${t.name}被推開`,"skill"); break;
     case "擊倒": if(!saveRoll(t,"CON",dcOf(a,weaponStat(a)))){ knockProne(t); blog(`　擊倒：${t.name}倒地！`,"skill"); } break;
-    case "困擾": addStatus(a,"vex",{target:t.id, until:"end", of:a.id}); blog(`　困擾：${a.name}下次攻擊${t.name}有優勢`,"skill"); break;
+    case "困擾": addStatus(a,"helped",{via:"vex", target:t.id, until:"end", of:a.id}); blog(`　困擾：${a.name}下次攻擊${t.name}有優勢`,"skill"); break;
     case "橫掃": {
       const other = enemiesOf(a).find(e=>e!==t && dist(e,a)<=reachOf(a));
       if(other && !a._cleaved){ a._cleaved = true; blog(`　橫掃：順勢砍向${other.name}`,"skill"); weaponAttack(a, other, {noMod:true}); }
