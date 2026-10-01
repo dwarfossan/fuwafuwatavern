@@ -17,7 +17,7 @@ for(const [repo,dir] of Object.entries({baseline:path.resolve(process.argv[2]),f
  });
  const pg=await ctx.newPage();const errs=[];pg.on('pageerror',e=>errs.push(e.message));
  await pg.goto('file://'+path.resolve(dir,'index.html')+'#battle');
- if(process.argv[4]){const css=path.resolve(process.argv[4]);const fonts=fs.readFileSync(css,'utf8').replaceAll('./files/','file://'+path.join(path.dirname(css),'files')+'/');await pg.addStyleTag({content:fonts+'body,button{font-family:"Noto Sans TC",sans-serif!important}'});await pg.evaluate(()=>document.fonts.ready);}
+ if(process.argv[4]){const css=path.resolve(process.argv[4]);const fonts=fs.readFileSync(css,'utf8').replaceAll('./files/','file://'+path.join(path.dirname(css),'files')+'/');await pg.addStyleTag({content:fonts+'*{font-family:"Noto Sans TC",sans-serif!important}'});await pg.evaluate(()=>document.fonts.ready);}
  await pg.addStyleTag({content:'*,*::before,*::after{animation-play-state:paused!important;transition:none!important}'});
  await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(v=>v.id==='fox');b.busy=false;b.tut=-1;b.focusReq=false;b.moveLeft=6;b.actionUsed=false;b.freeUsed=false;b.moveMode=false;b.mode=null;b.menu='root';render();centerCam(cur().x,cur().y-1);});
  await pg.evaluate(()=>document.querySelector(".enter")?.classList.remove("enter"));
@@ -28,11 +28,13 @@ for(const [repo,dir] of Object.entries({baseline:path.resolve(process.argv[2]),f
  if(name==='status'){b.info=cur().id;b.infoPage='status';}
  if(name==='dice') b.panel={label:'攻擊',rows:[{t:Date.now()-5000,rolls:[17],used:17,total:22,flick:[3,8,12,17],faces:[{sides:6,v:4}],dmg:6,kind:'atk',res:'hit',tname:'哥布林A',type:'物理'}]};
  render();},name);
+ await pg.evaluate(()=>document.fonts.ready);
  if(capture) await pg.screenshot({path:path.join(output,`${repo}-${name}.png`)});
  };
  for(const n of ['battle','move','attack','status','dice'])await setup(n);
  // Include elevated floor highlights and occlusion, absent from the initial camera.
  await pg.evaluate(()=>{const b=B(),v=cur();v.x=2;v.y=21;b.mode=null;b.info=null;b.panel=null;b.moveMode=true;render();centerCam(3,21);});
+ await pg.evaluate(()=>document.fonts.ready);
  await pg.screenshot({path:path.join(output,`${repo}-cliff.png`)});
  await setup('move',false);
  const cdp=await ctx.newCDPSession(pg);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
