@@ -1,3 +1,19 @@
+/* 眉毛（大爺 2026-10-01）：玲玲、默默是往上拱的弧形眉（好奇、隨和），香香是平一點、壓低的眉（冷靜，配半閉眼），嬌嬌是豆眉
+   front＝正面頭像、side＝戰場的 3/4 側臉（近側在左、遠側在右而且小一點）。座標跟各自的臉同一個 100×100 畫布
+   目前只有一般表情；之後做表情演出時，在這裡加生氣、驚訝等版本 */
+const BROWS = {
+  fox:     {kind:"line", color:"#9a4f2a", front:["M29 44 Q36 39 43 44","M57 44 Q64 39 71 44"], side:["M33 37 Q40 32 47 36","M62 35 Q67 31 72 34"]},
+  wolf:    {kind:"line", color:"#3f4558", front:["M29 40.5 Q37 37.5 45 39.5","M55 39.5 Q63 37.5 71 40.5"], side:["M33 37.5 Q40 35 48 37","M64 36 Q70 34 76 35.5"]},
+  raccoon: {kind:"line", color:"#4a3226", front:["M26 40 Q33 35 41 39","M59 39 Q67 35 74 40"], side:["M24 40 Q31 35 39 39","M64 37.5 Q70 33.5 76 37"]},
+  // 嬌嬌：豆眉 [cx, cy, rx, ry]
+  tiger:   {kind:"dot", color:"#c9c6d0", edge:"#6f6c7a", front:[[33,41,4.2,2.7],[67,41,4.2,2.7]], side:[[40,41,3.8,2.5],[68,40.5,3.2,2.2]]}
+};
+function browSVG(id, view){
+  const b = BROWS[id]; if(!b) return "";
+  if(b.kind==="dot") return b[view].map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${b.color}" stroke="${b.edge}" stroke-width="1.3"/>`).join("");
+  return b[view].map(d=>`<path d="${d}" stroke="${b.color}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`).join("");
+}
+
 /* 小動物頭像（手繪 SVG） */
 function critterSVG(id){
   const c = CRITTERS.find(x=>x.id===id).color;
@@ -33,7 +49,7 @@ function critterSVG(id){
       <ellipse cx="50" cy="70" rx="16" ry="12" fill="#f3e2c8"/>`;
     extra=`${eye(35,53)}${eye(65,53)}<ellipse cx="50" cy="65" rx="4.5" ry="3.5" fill="#1f1a24"/><path d="M47 73 L53 73" stroke="#1f1a24" stroke-width="1.8" stroke-linecap="round"/>`;
   }
-  return `<svg viewBox="0 0 100 100" aria-hidden="true">${ears}${face}${blush}${extra}</svg>`;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${ears}${face}${blush}${extra}${browSVG(id,"front")}</svg>`;
 }
 
 /* 3/4 側臉（朝右），戰棋上的紙娃娃用；朝左時整隻鏡像。
@@ -57,7 +73,7 @@ function critterSide(id, hurt, happy){
         <path d="M12 42 Q12 24 32 22 L72 21 Q88 23 90 40 L91 50 Q97 56 92 63 Q78 80 56 92 Q38 94 26 80 Q10 64 12 42 Z" fill="${c}" ${st}/>
         <path d="M30 60 Q46 58 58 55 Q76 50 91 51 Q97 57 92 63 Q78 80 56 92 Q40 92 32 78 Q27 68 30 60 Z" fill="#fbead6"/>
         ${eye(40,46,4.4)}${eye(67,44,3.9)}<ellipse cx="89" cy="55" rx="5.2" ry="4" fill="${INK}"/>
-        ${blush(18,57,85,46)}
+        ${blush(18,57,85,46)}${browSVG(id,"side")}
       </g>`;
   } else if(id==="tiger"){
     // 圓臉比其他三隻窄，整顆以臉中心放大 1.15 倍對齊大家的臉寬
@@ -70,7 +86,7 @@ function critterSide(id, hurt, happy){
       ${eye(44,50,4.2)}${eye(69,49,3.8)}
       <path d="M56 61 L64 61 L60 65 Z" fill="#e0766e"/>
       <path d="M60 65 Q56.5 70.5 52 68.5 M60 65 Q63 69.5 66.5 68" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/>
-      ${blush(21,66,79,64)}</g>`;
+      ${blush(21,66,79,64)}${browSVG(id,"side")}</g>`;
   } else if(id==="wolf"){
     s = `<path d="M14 42 L20 2 L44 30 Z" fill="${c}" ${st}/><path d="M20 36 L22 12 L36 30 Z" fill="#6e7690"/>
       <path d="M58 28 L78 1 L85 35 Z" fill="${c}" ${st}/><path d="M65 28 L77 11 L81 31 Z" fill="#6e7690"/>
@@ -82,7 +98,7 @@ function critterSide(id, hurt, happy){
         ${hurt || happy ? "" : `<path d="M34 46.5 L47 47 L47 41.5 L34 41.5 Z M64.5 45.3 L76 44.8 L76 40 L64.5 40 Z" fill="${c}"/>
         <path d="M34 46.5 L47 47 M64.5 45.3 L76 44.8" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>`}
         <ellipse cx="89" cy="55" rx="5.2" ry="4" fill="${INK}"/>
-        ${blush(18,57,85,46)}
+        ${blush(18,57,85,46)}${browSVG(id,"side")}
       </g>`;
   } else {
     s = `<circle cx="22" cy="30" r="12" fill="${c}" ${st}/><circle cx="22" cy="30" r="6" fill="#4a3226"/>
@@ -93,7 +109,7 @@ function critterSide(id, hurt, happy){
       <ellipse cx="74" cy="67" rx="15" ry="11" fill="#f3e2c8"/>
       ${eye(33,52.5,4.2)}${eye(70,49,3.8)}
       <ellipse cx="86" cy="60" rx="4.6" ry="3.6" fill="${INK}"/>
-      ${blush(15,65,84,51)}`;
+      ${blush(15,65,84,51)}${browSVG(id,"side")}`;
   }
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${s}</svg>`;
 }
