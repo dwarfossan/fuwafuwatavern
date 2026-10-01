@@ -627,16 +627,17 @@ function econHTML(u, b){
   if(!(b && u===cur())) return "";
   return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${b.freeUsed?"used":""}" title="免費動作（每回合一次）">免費</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${ptsHTML(u)}`;
 }
-// 熟練點數：實心＝還剩的點，空心＝用掉的
+// 熟練格：每一階一組，實心＝還剩的格子，空心＝用掉的（例：一階 ●○ 二階 ●●）
 function ptsHTML(u){
-  const max = poolMax(u), n = u.pts ?? max;
-  return `<span class="eco mv pts" title="熟練點數 ${n}/${max}">熟練 <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, max-n))}</i></b></span>`;
+  const max = slotMax(u), s = slotsOf(u);
+  return max.map((m,i)=>{ const n = Math.min(m, s[i]||0);
+    return `<span class="eco mv pts" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}">${TIER_NAME[i+1]} <b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; }).join("");
 }
 const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
-// 按鈕上只放圖示、名稱（花費在圖示角落）；這裡只標會影響決定的：免費動作、點數不夠
+// 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
 function skillTag(u, sk){
   if(sk.impl && sk.impl.passive) return "自動";
-  if(!skillReady(u, sk)) return "點數不夠";
+  if(!skillReady(u, sk)) return "格子用完";
   return sk.def.free ? (B() && u===cur() && !freeLeft() ? "用動作" : "免費動作") : "";
 }
 function skillBtn(u, sk, label){
@@ -706,7 +707,7 @@ function moveBarHTML(u, b){
 function confirmHTML(u, b){
   return dockWrap(u, b, "dk-pick bt-confirm", "", `<p class="aim-note">移動到這裡？</p><button class="mn-b ok" data-move="ok"><span>確認</span></button><button class="mn-b" data-move="undo"><span>取消</span><small>回到原位</small></button>`);
 }
-// 瞄準列：選了招式之後，決定多花幾點（升環）、魔法飛彈還要點幾發、對自己放的按「施放」
+// 瞄準列：選了招式之後，決定用哪一階的格子（升階）、魔法飛彈還要點幾發、對自己放的按「施放」
 // 沒什麼好調的（普攻、道具、擒抱……）就只寫要點哪裡＋取消
 function aimHTML(u, b){
   const k = b.mode.key;
@@ -715,12 +716,13 @@ function aimHTML(u, b){
   if(k==="item"){ const it = u.items.find(i=>i.id===b.mode.item); return plain(it ? it.n : "道具", "點紅色格子：敵人＝丟，貼身隊友＝交給他"); }
   if(GEN_ACT[k]) return plain(GEN_ACT[k].name, "點紅色格子裡的敵人");
   const sk = unitSkills(u).find(s=>s.key===k); if(!sk) return "";
-  const up = Math.min(b.up||0, maxUp(u, sk)), mx = maxUp(u, sk), self = sk.impl.target==="self";
+  const ts = canUp(sk) ? tiersFor(u, sk) : [], tier = ts.includes(b.tier) ? b.tier : ts[0], i = ts.indexOf(tier);
+  const up = upOf(u, sk, tier), self = sk.impl.target==="self";
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
-  if(!mx && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
+  if(ts.length < 2 && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
-  if(mx || up) rows.push(`<div class="aim-up"><button class="mn-b" data-aim="down" ${up?"":"disabled"} aria-label="少花 1 點">−</button>
-      <span>花 <b>${finalSkillCost(u,sk,baseCostOf(sk)+up)}</b> 點${up?`<small>升環 ${up}</small>`:""}</span><button class="mn-b" data-aim="up" ${up<mx?"":"disabled"} aria-label="多花 1 點">＋</button></div>`);
+  if(ts.length > 1 || up) rows.push(`<div class="aim-up"><button class="mn-b" data-aim="down" ${i>0?"":"disabled"} aria-label="用低一階的格子">−</button>
+      <span>用 <b>${TIER_NAME[tier]}</b> 格${up?`<small>升 ${up} 階</small>`:""}</span><button class="mn-b" data-aim="up" ${i<ts.length-1?"":"disabled"} aria-label="用高一階的格子">＋</button></div>`);
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
   if(self) rows.push(`<button class="mn-b ok" data-aim="cast"><span>施放</span></button>`);
@@ -978,7 +980,7 @@ function logPanelHTML(b){
 function restChoiceHTML(b){
   const pcs=b.units.filter(u=>u.side==="pc"), ling=pcs.find(u=>u.id==="fox"), teach=(ling&&ling.learned)||[];
   const rows=pcs.map(u=>{ const pend=u.pendingLearned||[], cap=noteCap(u.id), teachable=u.id!=="fox"?teach.filter(x=>!(u.learned||[]).some(y=>y.key===x.key)&&!pend.some(y=>y.key===x.key)):[]; return `<div class="rest-unit"><b>${u.name}　小筆記 ${u.learned.length}/${cap}</b>${pend.length?pend.map(x=>`<label class="rest-skill"><input type="checkbox" data-restpick="${u.id}:${x.key}" checked> ${x.name}</label>`).join(""):`<small>這次沒有待抄的招式</small>`}${teachable.length?`<small>向玲玲學（使用同一套學習檢定）：</small>${teachable.map(x=>`<button class="btn small ghost" data-teach="${u.id}:${x.key}">${x.name}</button>`).join("")}`:""}${u.learned.length>=cap?`<small>筆記已滿；先用橡皮擦空出位置。</small>${u.learned.map(x=>`<button class="btn small ghost" data-erase="${u.id}:${x.key}">橡皮擦：${x.name}</button>`).join("")}`:""}</div>`; }).join("");
-  return `<div class="rest-box"><h4>休息與抄筆記</h4>${rows}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?"disabled":""}>短休：熟練回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練回滿</button></div></div>`;
+  return `<div class="rest-box"><h4>休息與抄筆記</h4>${rows}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?"disabled":""}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
 }
 
 function renderBattle(){

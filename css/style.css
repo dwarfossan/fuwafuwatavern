@@ -598,7 +598,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .bt-menu .sk-info{width:30px;border-radius:9px;font-size:14px}
 .mn-back{background:none;border:none;color:var(--dim);text-align:left;padding:4px 2px;font-size:14px}
 .mn-back:hover{color:var(--honey)}
-/* 熟練點數燈號、瞄準列（升環 ±、魔法飛彈還要點幾發） */
+/* 熟練格燈號、瞄準列（升階 ±、魔法飛彈還要點幾發） */
 .eco.pts b{letter-spacing:1px;color:var(--honey)}.eco.pts i{font-style:normal;color:var(--dim)}
 .aim-body{display:grid;gap:6px}
 .aim-up{display:grid;grid-template-columns:44px 1fr 44px;gap:6px;align-items:center;text-align:center}
@@ -740,7 +740,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   /* 狀態卡改到戰場上方，底下留給指令列和紀錄 */
   .board-wrap .bt-info{top:8px!important;bottom:auto}
 }
-/* 瞄準列、移動確認、移動中：一欄排（手機的 .mn-list 預設兩欄，會把「− 花 N 點 ＋」擠成一字一行） */
+/* 瞄準列、移動確認、移動中：一欄排（手機的 .mn-list 預設兩欄，會把「− 用一階格 ＋」擠成一字一行） */
 .bt-dock.dk-pick .mn-list{grid-template-columns:1fr;gap:8px}
 .bt-dock.bt-confirm .mn-list{grid-template-columns:1fr 1fr}
 .bt-dock .aim-up{grid-template-columns:48px 1fr 48px}

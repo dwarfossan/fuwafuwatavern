@@ -1,10 +1,10 @@
 /* ======================== 詳情卡：裝備卡、技能卡（裝備店與戰鬥共用） ======================== */
 
-// 技能圖示：類別圖示 + 角標（數字＝花幾點熟練點數、自＝自動觸發；普攻沒有角標）
+// 技能圖示：類別圖示 + 角標（數字＝要用幾階的熟練格、自＝自動觸發；普攻沒有角標）
 function tierOf(def, impl){
   if(impl && impl.passive) return {tag:"自", label:"自動觸發", cls:"t-auto"};
-  if(def.pts) return {tag:String(def.pts), label:`花 ${def.pts} 點熟練點數${def.free?"・免費動作":""}`, cls:"t-sig"};
-  return {tag:"", label:`不花點數・隨時可用${def.free?"・免費動作":""}`, cls:"t-basic"};
+  if(def.tier) return {tag:String(def.tier), label:`用一格${TIER_NAME[def.tier]}以上的熟練格${def.free?"・免費動作":""}`, cls:"t-sig"};
+  return {tag:"", label:`不用熟練格・隨時可用${def.free?"・免費動作":""}`, cls:"t-basic"};
 }
 function skillIcon(groupId, def, impl, size=22){
   const t = tierOf(def, impl);
@@ -84,11 +84,11 @@ function skillCardHTML(groupId, idx, item, unit){
   ];
   if(s.req) rows.push(["施展條件", reqText(s.req)]);
   if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; rows.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
-  if(s.pts) rows.push(["升環", s.noUp ? "不能升環" : s.up || "命中時每多花 1 點多 1 顆武器骰。"]);
+  if(s.tier) rows.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);
   if(s.srd) rows.push(["出處", "SRD 5.2"]);
   return `<div class="md-head">${skillIcon(groupId,s,im,44)}<div><h3>${s.name}</h3></div></div>
     <p class="md-effect">${s.text}</p>
-    ${unit && unit.pts!==undefined && s.pts ? `<p class="md-cd">${unit.name}還有 ${unit.pts} 點熟練點數</p>` : ""}
+    ${unit && unit.slots && s.tier ? `<p class="md-cd">${unit.name}還有熟練格：${slotsText(unit)}</p>` : ""}
     <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
     ${item && state.modal && state.modal.back ? `<button class="btn small ghost" data-iteminfo="${item.id}">← 回到${item.n}</button>` : ""}`;
 }

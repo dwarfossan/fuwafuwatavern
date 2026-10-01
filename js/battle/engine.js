@@ -61,13 +61,15 @@ function startBattle(id){
       id:"npc"+i, side:"npc", type:n.type, name:d.name, look:d.look,
       x:n.x, y:n.y, hp:d.hp, maxHp:d.hp, mods:{...d.mods}, baseAc:d.ac, innate:[],
       weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpack:[], backpackEquip:null,
-      speed:d.speed, statuses:[], level:1, down:false, face:n.face||1, oaUsed:false, pts:0
+      speed:d.speed, statuses:[], level:1, down:false, face:n.face||1, oaUsed:false, slots:[0]
     });
   });
   units.filter(u=>u.side==="pc").forEach(u=>{ u.born = u.weapon ? u.weapon.n : null; syncBattleBag(u); });
   units.forEach(u=>{
-    if(u.side==="pc") u.pts = Math.min(poolMax(u), state.proficiency[u.id] ?? poolMax(u));
-    else if(u.side==="foe") u.pts = poolMax(u);
+    // 熟練格：我方接著上一場剩下的（舊存檔存的是點數、不是格子，就當全滿），敵人每場滿格
+    const max = slotMax(u), saved = state.proficiency[u.id];
+    if(u.side==="pc") u.slots = max.map((m,i)=>Array.isArray(saved) ? Math.min(m, saved[i] ?? m) : m);
+    else if(u.side==="foe") u.slots = max;
   });
   // 開場就躲好的敵人（例如草叢裡的哥布林薩滿）：找到牠的難度 = d20 + 敏捷，至少是躲藏的 DC
   //   劇情裡先做過被動察覺（state.scout）：沿用同一個躲藏數字；有人察覺到就直接現形
@@ -242,7 +244,7 @@ function acOfUnit(u){
   if(u.side!=="pc") ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
   else if(has(u,"mageArmor") && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
   else ac = acOf(u.id);
-  if(has(u,"acDown")) ac -= 2 + (has(u,"acDown").n||0);          // 破甲升環：每多 1 點再 −1
+  if(has(u,"acDown")) ac -= 2 + (has(u,"acDown").n||0);          // 破甲升階：每高一階再 −1
   if(has(u,"shieldBroken") && u.shield) ac -= 2;   // 盾被劈開：這段時間盾不算
   if(has(u,"shieldSpell")) ac += 5;
   if(has(u,"parry")) ac += 2;
@@ -390,7 +392,7 @@ function hurt(t, n, type, src){
   sfx(HIT_SFX[type] || "hit_blunt", at); sfx(t.side==="pc" ? "ouch_pc" : "ouch_foe", at);
   // 火焰護盾：近戰打中你的人受 1d6
   if(src && hostile(src,t) && has(t,"fireShield") && dist(src,t)<=1){
-    const f = rollDice(`${1 + (has(t,"fireShield").n||0)}d6`).total;   // 升環：每多 1 點多 1d6（反燒的骰給攻擊者，沒有他的列就丟掉）
+    const f = rollDice(`${1 + (has(t,"fireShield").n||0)}d6`).total;   // 升階：每高一階多 1d6（反燒的骰給攻擊者，沒有他的列就丟掉）
     blog(`　火焰護盾反燒 ${src.name}！`, "skill"); hurt(src, f, "火焰", null);
   }
   if(t.hp===0){
@@ -599,7 +601,7 @@ function weaponAttack(a, t, o={}){
   const m = a.weapon ? a.weapon.mastery.split(" ")[0] : null;
   if(res.hit){
     const crit = res.crit || o.autoCrit || o.double;
-    // 通用升環：施放中的人（不含反擊）每多花 1 點多 1 顆武器骰
+    // 通用升階：施放中的人（不含反擊）每高一階多 1 顆武器骰
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
     let n = a.weapon ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;

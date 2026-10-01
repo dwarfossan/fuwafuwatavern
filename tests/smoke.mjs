@@ -116,9 +116,16 @@ console.log('規則');
     // 小筆記
     o.cap = [noteCap('fox'), noteCap('tiger'), notePages('fox'), notePages('raccoon')];
     o.starterLv = STARTER_NOTES.fox.every(n=>n.lv===1);
-    // 嬌嬌減半（物理）
-    const ax = unitSkills(tig).find(s=>s.def.pts===1 && isPhysicalSkill(s));
-    o.half = ax ? [finalSkillCost(tig,ax,1), finalSkillCost(tig,ax,2), finalSkillCost(tig,ax,3), finalSkillCost(wolf,ax,2)] : null;
+    // 熟練格（全施法者表）、嬌嬌物理招免費升一階、一階用完拿高階的放、短休每階回一半
+    o.table = [1,3,5,20].map(l=>slotMax({level:l}).join('/'));
+    const ax = unitSkills(tig).find(s=>s.def.tier===1 && isPhysicalSkill(s) && canUp(s));
+    const sp = unitSkills(fox).find(s=>s.def.tier===1 && !isPhysicalSkill(s) && canUp(s));
+    o.tiger = ax ? [upOf(tig,ax,1), upOf(tig,ax,2), upOf(wolf,ax,1), upOf(wolf,ax,2)] : null;
+    o.spell = sp ? upOf(fox,sp,1) : null;
+    const t3 = {id:'wolf', side:'foe', level:3, slots:[0,1]};
+    o.fallback = ax ? [tiersFor(t3,ax).join(), skillReady(t3,ax), (t3.slots=[0,0], skillReady(t3,ax))] : null;
+    const t5 = {id:'wolf', side:'foe', level:5, slots:[0,1,0]};
+    o.short = slotMax(t5).map((m,i)=>Math.min(m,(t5.slots[i]||0)+Math.ceil(m/2))).join('/');
     // 投擲物圖樣
     o.proj = ['鍊金火','酸液瓶','網子','匕首'].map(n=>projArtKey(ITEMS.find(i=>i.n===n)));
     // 大地圖：方向、回程路線
@@ -138,7 +145,11 @@ console.log('規則');
   ok('NPC 不是任何人的敵人', r.npcHostile===false && r.foeHostile===true);
   ok('小筆記一頁 5 招：玲玲 3 頁 15 招、其他 2 頁 10 招', r.cap.join()==='15,10,3,2', r.cap);
   ok('起始技能記成 1 級', r.starterLv);
-  ok('嬌嬌物理招減半進位（1→1、2→1、3→2），別人不減', r.half && r.half.join()==='1,1,2,2', r.half);
+  ok('熟練格照全施法者表（1 級 2、3 級 4/2、5 級 4/3/2、20 級）', r.table.join(' ')==='2 4/2 4/3/2 4/3/3/3/3/2/2/1/1', r.table);
+  ok('嬌嬌物理招免費升一階，別人不會', r.tiger && r.tiger.join()==='1,2,0,1', r.tiger);
+  ok('嬌嬌的特性不管法術招', r.spell===0, r.spell);
+  ok('一階用完拿二階的放；全用完就不能用', r.fallback && r.fallback.join()==='2,true,false', r.fallback);
+  ok('短休每階回一半（無條件進位）', r.short==='2/3/1', r.short);
   ok('投擲物照物品換圖', r.proj.join()==='flask_fire,flask_acid,net,dagger', r.proj);
   ok('大地圖酒館在右、洞窟在左', r.map);
   ok('回程路線跟去程同一條路', r.road);

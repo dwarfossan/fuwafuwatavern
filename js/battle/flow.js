@@ -21,14 +21,14 @@ function beginTurn(u){
   const b = B();
   expire("start", u.id);
   u._cleaved = false;
-  b.mode = null; b.up = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = false;
+  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = false;
   u.oaUsed = false;                         // 藉機攻擊每輪一次，輪到自己時恢復
   b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
   b.dazed = !!has(u,"dazed");
   let mv = u.speed;
   if(has(u,"prone")){ mv = Math.floor(mv/2); u.statuses = u.statuses.filter(s=>s.k!=="prone"); u.anim = {k:"getup", t:Date.now()}; sfx("swing"); blog(`${u.name}從地上爬起來（移動減半）`); }
-  if(has(u,"slowed")) mv = Math.max(0, mv - 2 - (has(u,"slowed").n||0));   // 扎腿、瞄腿升環：多扣
+  if(has(u,"slowed")) mv = Math.max(0, mv - 2 - (has(u,"slowed").n||0));   // 扎腿升階：多扣
   if(has(u,"grappled") || has(u,"pinned") || has(u,"restrained")) mv = 0;
   // 燃燒：回合開始受 1d4 火焰，直到花動作撲滅
   if(has(u,"burning")){ blog(`${u.name}身上著火了！`, "dmg"); hurt(u, rollDice("1d4").total, "火焰", null); }
@@ -149,7 +149,7 @@ function checkGuards(e, prev){
     if(g && dist(prev,p) > reachOf(p) && dist(e,p) <= reachOf(p)){
       blog(`${p.name}阻截走進範圍的${e.name}！`, "skill");
       p.statuses = p.statuses.filter(s=>s!==g);
-      weaponAttack(p, e, {extraDice:g.up||0});            // 阻截升環：多的武器骰
+      weaponAttack(p, e, {extraDice:g.up||0});            // 阻截升階：多的武器骰
     }
   });
 }
@@ -195,22 +195,23 @@ function pickSkill(key){
   if(sk && fromTwoHanded(u, sk) && inGrapple(u)){ blog(`${sk.def.name}：擒抱中不能用雙手武器`); render(); return; }
   if(!sk || sk.impl.passive || !skillReady(u,sk)) return;
   if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); render(); return; }
-  // 對自己放、又不能多花點數：直接施放；能升環的先進瞄準列，讓玩家決定花多少再按「施放」
-  if(sk.impl.target==="self" && !maxUp(u, sk)){ b.up = 0; doSkill(u, sk, u); return; }
-  b.up = 0;
+  // 用最低階的格子；對自己放、又沒得選（不能升階或只剩一種格子）：直接施放；能選的先進瞄準列，選好用哪一階再按「施放」
+  b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier);
+  if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1)){ doSkill(u, sk, u); return; }
   b.mode = (b.mode && b.mode.key===key) ? null : {key, darts:[]};
   b.menu = b.mode ? null : "act";
   render();
 }
-// 瞄準列：升環 ±1（不超過點數和單招上限）；已經點了幾發魔法飛彈就不能降到比那個少
+// 瞄準列：換用低一階／高一階的格子（只在還有格子的階之間換）；已經點了幾發魔法飛彈就不能降到比那個少
 function aimUp(d){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
-  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk) return;
-  const n = Math.max(0, Math.min(maxUp(u, sk), (b.up||0) + d));
+  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk)) return;
+  const ts = tiersFor(u, sk), i = ts.indexOf(b.tier), t = ts[Math.max(0, Math.min(ts.length-1, (i<0?0:i) + d))];
+  const n = upOf(u, sk, t);
   if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 2 + n) return;
-  b.up = n; sfx("pop"); render();
+  b.tier = t; b.up = n; sfx("pop"); render();
 }
-function aimCast(){                                   // 對自己放的招，決定好點數後按「施放」
+function aimCast(){                                   // 對自己放的招，選好用哪一階後按「施放」
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key);
   if(sk && sk.impl.target==="self") doSkill(u, sk, u);
@@ -218,7 +219,7 @@ function aimCast(){                                   // 對自己放的招，�
 // 取消瞄準：回到選這招的那一層（道具 → 道具、推開／推倒 → 推撞、其他 → 動作）
 function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
   b.menu = k==="item" ? "items" : (k==="shove_push" || k==="shove_prone") ? "shove" : "act";
-  b.mode = null; b.up = 0; sfx("back"); render(); }
+  b.mode = null; b.up = 0; b.tier = 0; sfx("back"); render(); }
 
 // 瞄準模式下，這格能不能當目標
 function validTarget(u, sk, x, y){
@@ -253,7 +254,7 @@ function clickTile(x, y){
     }
     if(tg) doSkill(u, sk, tg);
     else if(sk && sk.impl.target==="self") return;   // 對自己放的招在等「施放」，點地圖不取消
-    else { b.mode = null; b.up = 0; b.menu = "act"; render(); }
+    else { b.mode = null; b.up = 0; b.tier = 0; b.menu = "act"; render(); }
     return;
   }
   // 指令列一直在右下角，點角色（包括自己）就是看狀態卡
@@ -396,13 +397,13 @@ function takeRest(kind, selections={}){
   if(kind==="short" && state.shortRestsUsed>=2)return false;
   b.units.filter(u=>u.side==="pc").forEach(u=>{
     transcribePending(u,selections[u.id]||[]);
-    const max=poolMax(u);
-    if(kind==="short") u.pts=Math.min(max,u.pts+Math.ceil(max/2));
-    else u.pts=max;
-    state.proficiency[u.id]=u.pts;
+    // 短休：每一階各回一半（無條件進位）；長休全回
+    const max=slotMax(u), s=slotsOf(u);
+    u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
+    state.proficiency[u.id]=u.slots.slice();
   });
   if(kind==="short") state.shortRestsUsed++; else state.shortRestsUsed=0;
-  syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練點全部恢復。`,"skill"); render(); return true;
+  syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`,"skill"); render(); return true;
 }
 
 function battleCmd(c){
@@ -615,10 +616,11 @@ function doSkill(u, sk, t){
   const b = B();
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
   if(u.side==="foe" && !sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))) observedSkill(u,sk.key,sk.def.name,false);
-  const up = Math.min(b.up||0, maxUp(u, sk));          // 升環：多花的點數（超過就砍到上限）
+  // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
+  const tier = tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
   const names = Array.isArray(t) ? [...new Set(t.map(x=>x.name))].join("、") : (t && t.name && t!==u ? t.name : "");
-  const paid = spendPts(u, sk, up);
-  blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${paid} 點${up ? `，升 ${up}` : ""}）` : ""}`, "skill");
+  const paid = spendSlot(u, sk, tier);
+  blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${TIER_NAME[paid]}格${up ? `，升 ${up} 階` : ""}）` : ""}`, "skill");
   const t0 = Array.isArray(t) ? t[0] : t;
   if(t0 && t0!==u && t0.x!==undefined) faceTo(u, t0);
   const k = skillAnim(u, sk, t0);
@@ -628,9 +630,9 @@ function doSkill(u, sk, t){
   const hitAt = b.impact = launch(u, t, k, lead);
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
   panelStart(`${u.name}【${sk.def.name}】`);      // 骰子面板
-  b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升環效果的攻擊招：命中多武器骰
+  b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
   sk.impl.run(u, t);
-  b.up = 0; b.upBy = null; b.upDice = 0; panelEnd();
+  b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身
   b.impact = 0;
   if(sk.def.free) spendFree(u); else useAction(u);
@@ -658,15 +660,15 @@ const settle = ms => Math.max(ms, (B().impactEnd||0) - Date.now() + 600);
 // 範圍招（橫掃、震地、回掃）：身邊有兩個以上看得到的敵人才用
 const AOE_SELF = {cleave:u=>reachOf(u), quake:u=>1};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
 const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && hasAmmoFor(e) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
-// 對 t 能用的攻擊招：花點數的招式點數夠就用（六成機率），不然普攻；回傳 {sk, t}
-// 升環先不做（一律花基本點數）；之後頭目會省點數，再加判斷
+// 對 t 能用的攻擊招：要用格子的招式還有格子就用（六成機率），不然普攻；回傳 {sk, t}
+// 不升階（一律用最低階的格子）；之後頭目會省格子，再加判斷
 function foePick(e, t){
   const sks = foeUsable(e);
   const aoe = sks.find(s=>AOE_SELF[s.key] && seenPcs().filter(p=>dist(p,e)<=AOE_SELF[s.key](e)).length >= 2);
   if(aoe) return {sk:aoe, t:e};
   const onT = t ? sks.filter(s=>["enemy","line"].includes(s.impl.target) && validTarget(e, s, t.x, t.y)) : [];
   if(!onT.length) return null;
-  const special = onT.filter(s=>costOf(e,s) > 0);
+  const special = onT.filter(s=>baseTierOf(s) > 0);
   const sk = special.length && Math.random() < .6 ? special[Math.floor(Math.random()*special.length)] : (onT.find(s=>s.idx===0) || onT[0]);
   return {sk, t};
 }
@@ -685,7 +687,7 @@ function foeFreePick(e){
 function foeHit(e, t){
   const p = foePick(e, t);
   if(!p) return 0;
-  B().up = 0;
+  B().up = 0; B().tier = 0;
   doSkill(e, p.sk, p.sk.impl.multi ? foeDarts(e, p.sk, t) : p.t);
   return settle(Math.max(DOLL_DUR[animFor(p.sk.group.id, p.sk.idx)] || 700, 700));
 }
@@ -748,7 +750,7 @@ function aiTurn(e){
   // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
   if(!e.testSkillUsed && e.testSkill){
     const sk=learnedSkillByKey(e.testSkill);
-    if(sk && sk.impl && skillReqMet(e,sk) && e.pts>=costOf(e,sk)){
+    if(sk && sk.impl && skillReqMet(e,sk) && skillReady(e,sk)){
       let t=null;
       if(sk.impl.target==="self") t=e;
       else if(sk.impl.target==="enemy"){

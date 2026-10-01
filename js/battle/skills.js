@@ -5,7 +5,7 @@
 const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.n));
 
 // 角色身上可用的技能（敵我一樣）：武器（沒武器也沒法器就徒手）＋法器＋盾牌
-// 只拿法器、法器又沒有不花點數的攻擊（例如治癒法書）：補一個徒手普攻，沒點數時還有東西能打
+// 只拿法器、法器又沒有不用格子的攻擊（例如治癒法書）：補一個徒手普攻，格子用完時還有東西能打
 // 招式代號（data/skills.js 的 id）→ 出處的組和第幾招。小筆記、敵人的 testSkill 都存代號
 const SKILL_BY_ID = {};
 SKILL_GROUPS.forEach(g=>g.skills.forEach((s,idx)=>{ if(s.id) SKILL_BY_ID[s.id] = {g, idx}; }));
@@ -39,7 +39,7 @@ function unitSkills(u){
 function focusStrikeSkill(g){
   const die=g.id==="arcane_staff"?"1d6":"1d4";
   return {key:`${g.id}_strike`,group:g,idx:0,synthetic:true,anim:"smash",
-    def:{name:"打擊",kind:"近戰",dmg:"物理",pts:0,req:"focus",basicAttack:true,
+    def:{name:"打擊",kind:"近戰",dmg:"物理",tier:0,req:"focus",basicAttack:true,
       text:`用${g.name}近身敲擊：近戰攻擊，${die} + 力量調整值的物理傷害。`},
     impl:{target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods.STR+2});if(r.hit)hurt(t,dmgRoll(die,u.mods.STR,r.crit),"鈍擊",u);}}};
 }
@@ -47,8 +47,8 @@ function focusStrikeSkill(g){
 function focusCantripSkill(g){
   const sacred=g.id==="healing_book", stat=sacred?"WIS":"INT";
   const def=sacred
-    ? {name:"聖火術",kind:"豁免",dmg:"光耀",pts:0,req:"focus",srd:true,basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不花熟練點數。"}
-    : {name:"火焰箭",kind:"遠程",dmg:"火焰",pts:0,req:"focus",srd:true,basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不花熟練點數。"};
+    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,req:"focus",srd:true,basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
+    : {name:"火焰箭",kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,stat)))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : {target:"enemy",range:()=>24,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[stat]+2,ranged:true});if(r.hit)hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);}};
@@ -62,31 +62,45 @@ function basicDef(g, s, u){
   return {...s, name: basicName(g, item)};
 }
 const attackSkills = u => unitSkills(u).filter(s=>s.group.id!=="shield" && !(s.impl&&s.impl.passive) &&
-  (s.synthetic ? !!s.def.basicAttack : s.idx===0 && s.def.kind!=="輔助" && (s.def.pts||0)===0));
+  (s.synthetic ? !!s.def.basicAttack : s.idx===0 && s.def.kind!=="輔助" && (s.def.tier||0)===0));
 const attackSkill = u => attackSkills(u)[0] || null;
 
-// ---------- 熟練點數池（取代冷卻） ----------
-// 每個角色一個池：一級 2 點（之後照等級長，數字先暫訂 等級 + 1）；招式花 pts 點，普攻、戲法 0 點
-// 升環：多花點數，每多 1 點多一份效果；單招最多花「等級 + 1」點
+// ---------- 熟練格（2026-10-01 大爺：點數池改成一階、二階的格子） ----------
+// 每個角色照等級有一階、二階……的格子，全部用全施法者的表（SRD 5.2 法師表；我方、敵人都一樣，不分職業）
+// 每招用一格；def.tier＝這招要求的階（0＝普攻、戲法，不用格子）。一階用完可以拿高階的格子放
+// 升階：用比要求高的格子放，每高一階多一份升階效果（up 寫的；沒寫的攻擊招＝命中時多 1 顆武器骰）
+const SLOT_TABLE = [            // 等級 1～20：[一階, 二階, …九階]
+  [2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],
+  [4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],
+  [4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+const TIER_NAME = ["","一階","二階","三階","四階","五階","六階","七階","八階","九階"];
 const levelOf = u => u.level || 1;
-const poolMax = u => levelOf(u) + 1;
-const spendCap = u => levelOf(u) + 1;
-const baseCostOf = sk => sk.def.pts || 0;
+const slotMax = u => SLOT_TABLE[Math.min(20, Math.max(1, levelOf(u))) - 1].slice();
+const slotsOf = u => u.slots || (u.slots = slotMax(u));
+const slotsText = u => slotsOf(u).map((n,i)=>`${TIER_NAME[i+1]} ${n} 格`).join("、");
+const baseTierOf = sk => sk.def.tier || 0;
 const isPhysicalSkill = sk => skillDmg(sk.group, sk.def)==="物理";
-// 嬌嬌特性：造成物理傷害的技能，熟練點總消耗減半（向上取整）。
-const finalSkillCost = (u, sk, raw) => u && u.id==="tiger" && isPhysicalSkill(sk) ? Math.ceil(raw/2) : raw;
-const costOf = (u, sk) => finalSkillCost(u, sk, baseCostOf(sk));
-const canUp = sk => baseCostOf(sk) > 0 && !sk.def.noUp;
-// 升環仍受「單招最多等級+1點」的原始投入限制；嬌嬌結算時再折半。
-const maxUp = (u, sk) => {
-  if(!canUp(sk)) return 0;
-  let best=0, rawCap=spendCap(u);
-  for(let up=0;baseCostOf(sk)+up<=rawCap;up++) if(finalSkillCost(u,sk,baseCostOf(sk)+up)<=u.pts) best=up;
-  return best;
-};
-function skillReady(u, sk){ return (u.pts ?? poolMax(u)) >= costOf(u,sk); }
+const canUp = sk => baseTierOf(sk) > 0 && !sk.def.noUp;
+// 嬌嬌特性：造成物理傷害的招式免費升一階（用一階格子，效果算二階）
+const freeUp = (u, sk) => u && u.id==="tiger" && canUp(sk) && isPhysicalSkill(sk) ? 1 : 0;
+// 這招現在拿得出哪幾階的格子（由低到高）；不用格子的招回傳 [0]
+function tiersFor(u, sk){
+  const base = baseTierOf(sk); if(!base) return [0];
+  const s = slotsOf(u), r = [];
+  for(let t=base; t<=s.length; t++) if(s[t-1] > 0) r.push(t);
+  return r;
+}
+const lowestTier = (u, sk) => tiersFor(u, sk)[0];
+// 用第 tier 階的格子放，效果升了幾階
+const upOf = (u, sk, tier) => canUp(sk) && tier ? Math.max(0, tier - baseTierOf(sk)) + freeUp(u, sk) : 0;
+function skillReady(u, sk){ return tiersFor(u, sk).length > 0; }
 const upNow = () => (B() && B().up) || 0;
-function spendPts(u, sk, up){ const raw=baseCostOf(sk)+(canUp(sk)?up:0), n=finalSkillCost(u,sk,raw); if(n) u.pts=Math.max(0,u.pts-n); if(u.side==="pc") state.proficiency[u.id]=u.pts; return n; }
+function spendSlot(u, sk, tier){
+  if(!tier) return 0;
+  const s = slotsOf(u); if(s[tier-1] > 0) s[tier-1]--;
+  if(u.side==="pc") state.proficiency[u.id] = s.slice();
+  return tier;
+}
 
 const meleeOrRange = u => isRanged(u) ? rangeOf(u) : reachOf(u);
 const thrownRange = u => Math.max(reachOf(u), rangeOf(u));
