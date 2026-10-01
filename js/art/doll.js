@@ -56,8 +56,9 @@ function tailSVG(id, c){
 /* 身體裝備（2026-10-01：改回 SRD 的 12 件＋法袍，每件畫出差異，大爺之後修）
    kind＝裝備名稱；沒有專屬畫法的照分類（輕甲／中甲／重甲）畫。畫在紙娃娃的身體上（身體約 x 48~92、y 83~133） */
 const ARMOR_ART = (()=>{
-  const INK="#2a2630", T="M54 90 Q70 83 86 90 Q93 110 88 125 Q70 133 52 125 Q47 110 54 90 Z";        // 一般上衣
-  const LONG="M52 88 Q70 81 88 88 Q96 110 93 131 Q70 139 47 131 Q44 110 52 88 Z";                    // 長到大腿
+  // 外框比身體大一圈，蓋住肩膀（2026-10-01 大爺：原本比身體窄，肩膀會露出來）
+  const INK="#2a2630", T="M47 84 Q70 72 93 84 Q100 110 94 127 Q70 138 46 127 Q40 110 47 84 Z";      // 一般上衣
+  const LONG="M47 84 Q70 72 93 84 Q101 110 96 132 Q70 142 44 132 Q39 110 47 84 Z";                  // 長到大腿
   const body = (d, fill, w=3) => `<path d="${d}" fill="${fill}" stroke="${INK}" stroke-width="${w}"/>`;
   const line = (d, c, w=2.5, extra="") => `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" ${extra}/>`;
   const dots = (pts, r, fill, stroke) => pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${stroke?`stroke="${stroke}" stroke-width="1.3"`:""}/>`).join("");
