@@ -214,7 +214,7 @@ function initBoardDrag(){
   setInterval(()=>{ sweepFx(); refreshLogStrip(); }, 100);
   window.addEventListener("pointerdown", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
-    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip") || (e.pointerType==="mouse" && e.button!==0)) return;
+    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut") || (e.pointerType==="mouse" && e.button!==0)) return;
     // 第一根手指放下＝前面的手指一定都離開了。畫面重畫時手指按著的元素會被換掉，
     // 手機（尤其 iPhone）之後的放開事件送不到 window，留下「幽靈手指」讓下一次單指拖曳變成縮放
     if(e.isPrimary && (touches.size || pinch || drag)){ touches.clear(); pinch = null; drag = null; document.body.classList.remove("board-dragging"); }
@@ -274,7 +274,7 @@ function initBoardDrag(){
   // 滾輪縮放（以游標為中心）；在戰場上滾輪不捲頁面
   window.addEventListener("wheel", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
-    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip")) return;
+    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut")) return;
     e.preventDefault();
     const dy = e.deltaMode===1 ? e.deltaY*16 : e.deltaY;
     const p = wrapXY(e);
@@ -1076,7 +1076,7 @@ function renderBattle(){
   const deep = mine && !b.busy && (b.pendingMove || b.mode || b.moveMode || (b.menu && b.menu!=="root"));
   const logEl = b.result || deep || ov ? "" : b.logLv===2 ? logPanelHTML(b) : logStripHTML(b);
   const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine?resHTML(u,b):""}</div>${logEl}</div>`;
-  const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><b>教學</b> ${TUTORIAL[b.tut]} <button class="tut-x" id="tutNext">知道了</button></div>` : "";
+  const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><b>教學</b> ${TUTORIAL[b.tut]} <button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div>` : "";
   return `<section class="page battle">
     <div class="head"><div><h2>戰鬥：${b.def.name}</h2><p class="rule">第 ${b.round} 回合</p></div>
       <div class="sys-tools">
@@ -1087,10 +1087,9 @@ function renderBattle(){
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>
     <div class="order">${order}</div>
-    ${tut}
     ${hud}
     <div class="dp-anchor">${dicePanelHTML(b)}</div>
-    <div class="board-wrap">${boardSVG()}${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}</div>
+    <div class="board-wrap">${boardSVG()}${tut}${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}</div>
   </section>`;
 }
 
@@ -1172,4 +1171,6 @@ function bindBattle(){
     lb.addEventListener("scroll", ()=>{ b.logScroll = lb.scrollTop; b.logStick = lb.scrollTop + lb.clientHeight >= lb.scrollHeight - 8; });
   }
   document.getElementById("tutNext")?.addEventListener("click", ()=>{ B().tut++; render(); });
+  // 教學的 ✕：整個教學關掉，這場不再跳（新手戰役做完後再放進主選單齒輪，大爺 2026-10-01）
+  document.getElementById("tutClose")?.addEventListener("click", ()=>{ B().tut = TUTORIAL.length; render(); });
 }

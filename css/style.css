@@ -279,9 +279,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .ord{border-radius:50%;border:2px solid var(--c);background:var(--night);line-height:0}.ord>svg{width:28px;height:28px;transition:width .2s,height .2s}.ord.now>svg{width:44px;height:44px}
 .ord.now{border-width:3px;box-shadow:0 0 0 3px var(--honey)}
 .ord.out{opacity:.3;filter:grayscale(1)}
-.tut{background:#2f3a26;border:1px solid var(--moss);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tut{position:absolute;z-index:1;left:8px;right:8px;top:8px;background:rgba(47,58,38,.9);border:1px solid var(--moss);border-radius:10px;padding:6px 8px 6px 12px;font-size:13px;line-height:1.5;display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:default}
 .tut b{color:var(--moss)}
-.tut-x{margin-left:auto;background:none;border:1px solid var(--moss);color:var(--moss);border-radius:999px;padding:1px 10px;font-size:13px}
+.tut-x{margin-left:auto;background:none;border:1px solid var(--moss);color:var(--moss);border-radius:999px;padding:1px 10px;font-size:13px}.tut-close{background:none;border:none;color:var(--moss);font-size:16px;line-height:1;padding:2px 4px;cursor:pointer}
 .board-wrap{position:relative;height:min(600px,70vh);background:radial-gradient(ellipse at 50% 40%,#3a4a2c,#1f1a24 75%);border-radius:14px;overflow:hidden;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
 @media (max-width:560px){.board-wrap{height:min(520px,62vh)}}
 .board{position:absolute;left:0;top:0;display:block;max-width:none;user-select:none;-webkit-user-drag:none;will-change:transform}
