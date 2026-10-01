@@ -949,7 +949,7 @@ function infoHTML(v, b){
   }
   let statusPage="";
   if(v.side==="pc"){
-    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=finalScore(v.id,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><b>${n}</b><span>${m>=0?"+":""}${m}</span></div>`}).join("")}</div>`;
+    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=finalScore(v.id,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
     const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:null;
     const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.n)}</svg>`;
     const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(it.type==="gear"&&it.n==="背包")return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(g.id,38):`<span class="eq-text">${it.n}</span>`};
