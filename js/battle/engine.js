@@ -556,6 +556,7 @@ function critMoment(t){
   sfx("crit", wait);
   setTimeout(()=>{
     if(B()!==b) return;
+    if(!touches.size) centerCam(t.x, t.y - 1);    // 爆擊：先把被攻擊的那隻擺到畫面正中間，再以牠為中心拉近（大爺 10-02）
     b.critOn = {x:t.x, y:t.y};
     refreshBattle();
     document.getAnimations().forEach(a=>{ if(!/crit/.test(a.animationName||"")) a.playbackRate = .3; });

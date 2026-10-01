@@ -246,6 +246,14 @@ function centerCam(x, y, glide){
   B().cam = clampCam({x: wrap.clientWidth/2 - p.x*z, y: wrap.clientHeight/2 - (p.y+TH/2-40)*z});
   applyCam(glide);
 }
+// 攻擊時鏡頭（大爺 10-02）：攻擊者或目標不在畫面裡，就滑到兩隻的中間點；兩隻都看得到就不動，免得每次攻擊都晃
+// 手指按著地圖時不搶鏡頭；目標躲著（我方看不到）也不跟。爆擊另外由 critMoment 以目標為中心拉近
+function camOnAttack(a, t){
+  if(!a || !t || t===a || t.x===undefined || touches.size) return;
+  if(t.side && foeHid(t)) return;
+  if(onScreen(a) && onScreen(t)) return;
+  centerCam((a.x+t.x)/2, (a.y+t.y)/2 - 1, true);
+}
 // 角色整隻（含頭頂血條）有沒有在畫面裡，邊緣留一點空間
 function onScreen(v){
   const wrap = document.querySelector(".board-wrap"); if(!wrap) return true;
@@ -1139,10 +1147,12 @@ function battleInterfaceHTML(){
 
   let ov = "";
   if(b.result){
-    ov = `<div class="bt-ov bt-result ${b.result}">
+    // 勝利：只放一條常見的勝利標題，不擋操作（大爺 10-02：拿掉整個勝利視窗）
+    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">勝利！</div></div>`;
+    else ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>${b.result==="win"?"勝利！":"全員倒下……"}</h3>
-      <p>${b.result==="win"?"商隊得救了。戰鬥中理解的招式，要到休息時才決定是否抄進小筆記。":"再試一次吧。"}</p>
-      <button class="btn" id="retry">${b.result==="win"?"再打一次（測試用）":"重新挑戰"}</button></div>`;
+      <p>再試一次吧。</p>
+      <button class="btn" id="retry">重新挑戰</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);
     if(iv) ov += infoHTML(iv, b);

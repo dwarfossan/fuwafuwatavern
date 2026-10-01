@@ -470,7 +470,7 @@ const GEN_ACT = {
 const meleeReach = u => isRanged(u) ? 1 : reachOf(u);
 function doGenAct(u, key, t){
   const b = B(), g = GEN_ACT[key], dc = dcOf(u,"STR");
-  b.mode = null; faceTo(u, t); useAction(u);
+  b.mode = null; faceTo(u, t); camOnAttack(u, t); useAction(u);
   // 戰技是豁免判定：先擲骰、再出手
   u.anim = {k:"punch", t:Date.now() + DICE_LEAD}; animSfx("punch", DICE_LEAD);
   b.impact = DOLL_IMPACT.punch + DICE_LEAD; panelStart(`${u.name}【${g.name}】`);
@@ -561,7 +561,7 @@ function useItem(u, it, t){
     b.impact = DOLL_IMPACT.cast || 0; heal(t, Math.max(1, rollDice(it.use.heal).total)); b.impact = 0;
   } else {
     // 丟道具也要擲骰（攻擊或豁免）：跟招式一樣先擲骰、再丟
-    u.anim = {k:"throw", t:Date.now() + DICE_LEAD}; animSfx("throw", DICE_LEAD);
+    u.anim = {k:"throw", t:Date.now() + DICE_LEAD}; animSfx("throw", DICE_LEAD); camOnAttack(u, t);
     blog(`${u.name}丟出${it.n} → ${t.name}`, "skill");
     b.impact = launch(u, t, "throw", DICE_LEAD, it); panelStart(`${u.name}【${it.n}】`);
     if(it.use.kind==="attack"){
@@ -635,7 +635,7 @@ function doSkill(u, sk, t){
   const paid = spendSlot(u, sk, tier);
   blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${TIER_NAME[paid]}格${up ? `，升 ${up} 階` : ""}）` : ""}`, "skill");
   const t0 = Array.isArray(t) ? t[0] : t;
-  if(t0 && t0!==u && t0.x!==undefined) faceTo(u, t0);
+  if(t0 && t0!==u && t0.x!==undefined){ faceTo(u, t0); if(sk.def.kind!=="輔助") camOnAttack(u, t0); }
   const k = skillAnim(u, sk, t0);
   // 會擲骰的招（攻擊、豁免）先讓骰子滾完，角色才出招；輔助不擲骰，照舊馬上動
   const lead = sk.def.kind!=="輔助" && !sk.impl.multi ? DICE_LEAD : 0;
