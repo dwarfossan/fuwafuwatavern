@@ -628,13 +628,15 @@ function econHTML(u, b){
   return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${b.freeUsed?"used":""}" title="免費動作（每回合一次）">免費</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${ptsHTML(u)}`;
 }
 // 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
-// I 那一排留在燈號列裡，II 以上疊在它上面（絕對定位往上長，不會把燈號列撐高）
+// I 那一排留在燈號列裡；II 以上平常收成 I 上面一條隱藏條，點了才往上展開（絕對定位往上長，不會把燈號列撐高）
+let slotLightsOpen = false;
 function ptsHTML(u){
   const max = slotMax(u), s = slotsOf(u);
   const row = i => { const m = max[i], n = Math.min(m, s[i]||0);
     return `<span class="sl-r" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}"><em>${ROMAN[i+1]}</em><b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; };
-  const up = max.map((_,i)=>i).slice(1).reverse().map(row).join("");
-  return `<span class="eco mv pts">${up?`<span class="sl-up">${up}</span>`:""}${row(0)}</span>`;
+  const up = max.length > 1 ? `<span class="sl-up">${slotLightsOpen ? max.map((_,i)=>i).slice(1).reverse().map(row).join("") : ""}
+      <button class="sl-bar ${slotLightsOpen?"on":""}" data-sltoggle aria-label="${slotLightsOpen?"收起":"展開"} II 以上的熟練格"></button></span>` : "";
+  return `<span class="eco mv pts">${up}${row(0)}</span>`;
 }
 const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
 // 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
@@ -731,12 +733,14 @@ function aimHTML(u, b){
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
   if(ts.length < 2 && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
-  // 每一階一顆（從招式要求的階到這個等級有的最高階），寫剩幾格；沒格子的變灰。直的一排，高階在上、I 在最下（跟燈號同方向）
+  // 選階（大爺 2026-10-01）：平常只顯示選中的那一階＋「＋」；點「＋」往上展開其他階（高階在上），「＋」變「×」；選好就收起來
   if(ts.length > 1 || up){
-    const max = slotMax(u), s = slotsOf(u), chips = [];
-    for(let t=baseTierOf(sk); t<=max.length; t++){ const n = s[t-1]||0;
-      chips.push(`<button class="mn-b aim-tier ${t===tier?"on":""}" data-aim="t${t}" ${n?"":"disabled"}><span>${ROMAN[t]}</span><small>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,max[t-1]-n))}</i></small></button>`); }
-    rows.push(`<div class="aim-tiers">${chips.join("")}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
+    const max = slotMax(u), s = slotsOf(u);
+    const chip = t => { const n = s[t-1]||0;
+      return `<button class="mn-b aim-tier ${t===tier?"on":""}" data-aim="t${t}" ${n?"":"disabled"}><span>${ROMAN[t]}</span><small>${"●".repeat(n)}<i>${"○".repeat(Math.max(0,max[t-1]-n))}</i></small></button>`; };
+    const others = []; for(let t=max.length; t>=baseTierOf(sk); t--) if(t!==tier) others.push(chip(t));
+    const toggle = ts.length > 1 ? `<button class="mn-b aim-tgl" data-aim="toggle" aria-label="${b.tierOpen?"收起":"展開"}其他階">${b.tierOpen?"×":"＋"}</button>` : "";
+    rows.push(`${b.tierOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(tier)}${toggle}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
   }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
@@ -1098,8 +1102,9 @@ function bindBattle(){
   document.querySelectorAll("[data-item]").forEach(el=>el.addEventListener("click", ()=>{ sfx("pop"); const b = B(); b.menu = null; b.mode = {key:"item", item:el.dataset.item}; render(); }));
   document.querySelectorAll("[data-swap]").forEach(el=>el.addEventListener("click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>el.addEventListener("click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
+  document.querySelectorAll("[data-sltoggle]").forEach(el=>el.addEventListener("click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); render(); }));
   document.querySelectorAll("[data-aim]").forEach(el=>el.addEventListener("click", ()=>{ const a = el.dataset.aim;
-    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="cast") aimCast(); else aimCancel(); }));
+    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>el.addEventListener("click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
   document.querySelectorAll("[data-cmd]").forEach(el=>el.addEventListener("click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
   document.getElementById("sndToggle")?.addEventListener("click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="volume"?null:"volume"; render(); });

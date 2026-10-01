@@ -603,15 +603,22 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 熟練格燈號：I 留在燈號列，II 以上疊在上面往上長 */
 .eco.pts{position:relative}
 .eco.pts em{font-style:normal;font-family:var(--font-disp);color:var(--fur);margin-right:5px;display:inline-block;min-width:1.6em}
-.eco.pts .sl-up{position:absolute;left:0;bottom:calc(100% + 3px);display:flex;flex-direction:column;gap:1px;padding:3px 9px;border-radius:10px;background:rgba(31,26,36,.88);white-space:nowrap}
+.eco.pts .sl-up{position:absolute;left:0;right:0;bottom:calc(100% + 3px);display:flex;flex-direction:column;gap:1px;padding:0;border-radius:10px;background:rgba(31,26,36,.88);white-space:nowrap;pointer-events:auto}
+.eco.pts .sl-up .sl-r{padding:0 9px}.eco.pts .sl-up .sl-r:first-child{padding-top:3px}
+/* 隱藏條：收起時是 I 上面一條細條，點了展開 II 以上；展開時在最下面，點了收回去 */
+.eco.pts .sl-bar{display:block;width:100%;height:14px;border:none;border-radius:10px;background:transparent;padding:0;cursor:pointer;position:relative}
+.eco.pts .sl-bar::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:4px;margin:-2px 0 0 -13px;border-radius:2px;background:var(--honey);opacity:.75}
+.eco.pts .sl-bar.on::after{background:var(--dim)}
 .eco.pts .sl-r{display:block;line-height:1.35}
 .aim-body{display:grid;gap:6px}
-/* 瞄準列的階數按鈕：直的一排，高階在上、I 在最下；左邊羅馬數字、右邊那一階剩的格子；選中的亮起來 */
-.aim-tiers{display:flex;flex-direction:column-reverse;gap:3px}
-.aim-tiers .aim-tier,.bt-dock .aim-tiers .aim-tier{flex-direction:row;justify-content:space-between;align-items:center;padding:0 12px;min-height:30px}
-.aim-tiers .aim-tier span{font-family:var(--font-disp);font-size:16px}
-.aim-tiers .aim-tier small{letter-spacing:1px;color:var(--honey);font-size:13px}.aim-tiers .aim-tier small i{font-style:normal;color:var(--dim)}
-.aim-tiers .aim-tier.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}
+/* 瞄準列的階數按鈕：平常只有選中的那一階＋「＋」；展開時其他階往上疊（高階在上）；左邊羅馬數字、右邊那一階剩的格子 */
+.aim-tiers{display:flex;flex-direction:column;gap:3px}
+.aim-cur{display:flex;gap:4px}.aim-cur .aim-tier{flex:1}
+.bt-dock .aim-cur .aim-tgl,.aim-cur .aim-tgl{flex:none;width:36px;min-height:30px;padding:0;align-items:center;justify-content:center;font-size:18px;line-height:1}
+.aim-tier,.bt-dock .mn-b.aim-tier{flex-direction:row;justify-content:space-between;align-items:center;padding:0 12px;min-height:30px}
+.aim-tier span{font-family:var(--font-disp);font-size:16px}
+.aim-tier small{letter-spacing:1px;color:var(--honey);font-size:13px}.aim-tier small i{font-style:normal;color:var(--dim)}
+.aim-tier.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}
 /* 技能頁的分組標題：階數＋那一階剩的格子 */
 .sk-tier{grid-column:1/-1;font-size:13px;color:var(--fur);margin-top:4px}.sk-tier b{letter-spacing:1px;color:var(--honey)}.sk-tier i{font-style:normal;color:var(--dim)}
 .aim-note{margin:0;font-size:13px;color:var(--fur)}.aim-note b{color:var(--honey)}

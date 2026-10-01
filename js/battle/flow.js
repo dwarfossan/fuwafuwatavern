@@ -196,7 +196,7 @@ function pickSkill(key){
   if(!sk || sk.impl.passive || !skillReady(u,sk)) return;
   if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); render(); return; }
   // 用最低階的格子；對自己放、又沒得選（不能升階或只剩一種格子）：直接施放；能選的先進瞄準列，選好用哪一階再按「施放」
-  b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier);
+  b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier); b.tierOpen = false;
   if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1)){ doSkill(u, sk, u); return; }
   b.mode = (b.mode && b.mode.key===key) ? null : {key, darts:[]};
   b.menu = b.mode ? null : "act";
@@ -208,8 +208,10 @@ function aimTier(t){
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;
   const n = upOf(u, sk, t);
   if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 2 + n) return;
-  b.tier = t; b.up = n; sfx("pop"); render();
+  b.tier = t; b.up = n; b.tierOpen = false; sfx("pop"); render();   // 選好就收起來
 }
+// 瞄準列的「＋／×」：展開、收起其他階（大爺 2026-10-01：升階平常收起來，點＋才展開）
+function aimTierToggle(){ const b = B(); if(!b.mode || b.busy) return; b.tierOpen = !b.tierOpen; sfx("pop"); render(); }
 function aimCast(){                                   // 對自己放的招，選好用哪一階後按「施放」
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key);
@@ -218,7 +220,7 @@ function aimCast(){                                   // 對自己放的招，�
 // 取消瞄準：回到選這招的那一層（道具 → 道具、推開／推倒 → 推撞、其他 → 動作）
 function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
   b.menu = k==="item" ? "items" : (k==="shove_push" || k==="shove_prone") ? "shove" : "act";
-  b.mode = null; b.up = 0; b.tier = 0; sfx("back"); render(); }
+  b.mode = null; b.up = 0; b.tier = 0; b.tierOpen = false; sfx("back"); render(); }
 
 // 瞄準模式下，這格能不能當目標
 function validTarget(u, sk, x, y){
