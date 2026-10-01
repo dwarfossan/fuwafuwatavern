@@ -861,3 +861,6 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 火焰護盾：光暈慢慢呼吸 */
 .fx-fshield .fs-glow{animation:fsPulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes fsPulse{0%,100%{opacity:.12;transform:scale(.97)}50%{opacity:.26;transform:scale(1.03)}}
+
+/* 敵人（和 NPC）的狀態卡：只有名字、血量、裝備，照內容縮，最寬 320px（大爺 10-02：原本跟四小隻一樣寬，右邊大半是空的） */
+.board-wrap .gear-info.foe-info{width:max-content;min-width:220px;max-width:min(320px,calc(100vw - 32px))}

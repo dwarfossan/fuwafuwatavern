@@ -1060,7 +1060,7 @@ function infoHTML(v, b){
     statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
   }
   const pageBody=v.side==="pc"?(page==="notes"?notes:statusPage):gear;
-  return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):""}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
+  return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"foe-info"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
     <div class="bt-me">${v.side==="pc"?"":doll}<div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?"倒下了":`生命 ${v.hp}/${v.maxHp}`} · AC ${acOfUnit(v)} · 移動 ${v.speed}</div></div></div>
     <div class="inf-hp"><i style="width:${pct*100}%;background:${pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)"}"></i></div>
