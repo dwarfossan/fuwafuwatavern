@@ -196,6 +196,9 @@ const camZoom = () => (B() && B().zoom) || zoomDefault();
    跟著地圖一起縮放，在預設縮放時跟以前一樣大；地圖縮小時跟著縮，但畫面上最小保留原本的 60%，才看得清楚 */
 const OVERLAY_MIN = .6;
 const overlayK = () => Math.max(1 / zoomDefault(), OVERLAY_MIN / camZoom());
+/* 狀態圖示另外算（大爺 10-02：太大）：預設縮放時是原本的 70%；拉遠跟著地圖變小，拉近時停在預設那麼大、不再放大 */
+const BADGE_SCALE = .7;
+const badgeK = () => BADGE_SCALE * Math.min(1 / zoomDefault(), 1 / camZoom());
 const clampZoom = z => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
 const boardRaw = () => { const d=B().def; return {w:(d.w+d.h)*TW/2, h:(d.w+d.h)*TH/2+150}; };
 function boardSize(){ const r=boardRaw(), z=camZoom(); return {w:r.w*z, h:r.h*z}; }
@@ -403,7 +406,7 @@ function obsBubbleBody(kind, d){
 }
 // 戰場用：錨在角色頭上
 function obsMarkSVG(v, m, now){
-  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*overlayK() : 0);
+  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*badgeK() : 0);
   return `<g class="obs obs-${m.kind}" transform="translate(${ax} ${ay}) scale(${overlayK().toFixed(3)})" data-exp="${m.t + m.dur}">${obsBubbleBody(m.kind, m.t - now)}</g>`;
 }
 // 畫面上一般的 HTML 用（劇情的卡片）：一個獨立的小 svg
@@ -412,7 +415,7 @@ const obsBubbleHTML = (kind, delay=0) => `<svg class="obs obs-${kind}" viewBox="
 
 // 台詞氣泡框：錨在角色頭上（血條上方）；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 function bubbleSVG(v, x, now){
-  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*overlayK() : 0);
+  const p = iso(v.x, v.y), ax = p.x, ay = p.y + TH/2 - ((v.down || has(v,"prone")) ? 66 : 134) - (hasBadge(v) ? 38*badgeK() : 0);
   const k = overlayK(), text = String(x.text).replace(/[<>&]/g, ""), sub = String(x.sub||"").replace(/[<>&]/g, "");
   const w = Math.max(64, [...text].length*16 + 24, [...sub].length*11 + 20), h = sub ? 50 : 34;
   const L = -w/2, T = -h - 10;
@@ -589,7 +592,7 @@ function statusBadges(v, cx, y){
     if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
-  const k = overlayK(), W = 20, gap = 4, x0 = -(list.length*W + (list.length-1)*gap)/2;
+  const k = badgeK(), W = 20, gap = 4, x0 = -(list.length*W + (list.length-1)*gap)/2;
   return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${list.map((o,i)=>`
     <g data-st="${o.icon}" transform="translate(${x0 + i*(W+gap)} ${-W})"><rect width="${W}" height="${W}" rx="5" fill="${o.good?"#3f7a3a":"#a33c32"}" stroke="#1f1a24" stroke-width="2"/>
     ${ST_ICON[o.icon]||""}${o.n!=null ? `<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>` : ""}</g>`).join("")}</g>`;
