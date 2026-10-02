@@ -36,7 +36,7 @@ const FAREWELL = [
   {who:"dwarf", text:"玲玲，路上別什麼東西都撿起來研究，有些會咬人。"},
   {who:"dwarf", text:"嬌嬌，看到怪別第一個衝上去，等大家一起！"},
   {who:"dwarf", text:"香香，妳啊，有時會想太多。記得要跟大家討論，別悶著。"},
-  {who:"wolf",  text:"……嗯。卡住了就找她們，知道了。"},
+  {who:"wolf",  text:"……嗯。知道了。"},
   {who:"dwarf", text:"默默……出門前，先把大爺的酒從妳包包裡拿出來。"},
   {who:"raccoon", text:"……那是預備慶功的。"},
   {who:"narr",  text:"默默把一瓶酒放回吧檯，又瞄了一眼。"},
