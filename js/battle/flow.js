@@ -391,7 +391,7 @@ const notePages = id => id==="fox" ? 3 : 2;
 const noteCap = id => notePages(id) * NOTE_PAGE_SIZE;
 function syncLearnedState(){
   const b=B(); if(!b)return;
-  b.units.filter(u=>u.side==="pc").forEach(u=>{ state.learned[u.id]=(u.learned||[]).map(x=>({...x})); state.activeSkills[u.id]=(u.activeSkills||[]).filter(k=>(u.learned||[]).some(x=>x.key===k)).slice(0,3); state.proficiency[u.id]=u.pts; });
+  b.units.filter(u=>u.side==="pc").forEach(u=>{ state.learned[u.id]=(u.learned||[]).map(x=>({...x})); state.activeSkills[u.id]=(u.activeSkills||[]).filter(k=>(u.learned||[]).some(x=>x.key===k)).slice(0,3); state.proficiency[u.id]=slotsOf(u).slice(); });   // 10-03 修：以前存 u.pts（舊點數制，已不存在）＝ undefined，休息或擦筆記後熟練格被蓋掉
 }
 function eraseNote(u,key){
   const i=(u.learned||[]).findIndex(x=>x.key===key); if(i<0)return false;

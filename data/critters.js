@@ -7,7 +7,7 @@ const CRITTERS = [
   {id:"tiger",   name:"嬌嬌", kind:"小白虎", color:"#ecebe8", bg:{STR:2, CON:1},
    tags:["活潑","直率","有行動力"],
    intro:"活潑、直率、有行動力，遇到事情比較敢衝。重感情，也很有保護同伴的意識。"},
-  {id:"wolf",    name:"香香", kind:"小灰狼", color:"#a7b0c4", bg:{DEX:2, WIS:1},
+  {id:"wolf",    name:"香香", kind:"小灰狼", color:"#a7b0c4", bg:{WIS:2, DEX:1},   // 10-03 大爺：感知 +2、敏捷 +1（原本敏捷 +2、感知 +1）
    tags:["冷靜","細心","可靠"],
    intro:"冷靜、細心、可靠，習慣先觀察再行動。比較成熟穩重，但其實也有溫柔的一面。"},
   {id:"raccoon", name:"默默", kind:"小狸貓", color:"#9c7655", bg:{DEX:2, WIS:1},

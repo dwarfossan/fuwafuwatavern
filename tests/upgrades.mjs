@@ -62,5 +62,9 @@ try{
  assert.equal(r.push,1);ok('擊退升 2 階：還是推 1 格');
  assert(r.guard.both);assert.equal(r.guard.left,1);assert(r.guard.afterHit);assert(r.guard.round2);assert(r.guard.gone);
  assert.deepEqual(r.guardDef,{name:'守護',tier:1,free:true});ok('守護：一階、免費動作、所有貼身隊友；升 1 階撐 2 輪、每輪擋一次');
+ const rest=await pg.evaluate(()=>{const b=B();const u=b.units.find(v=>v.id==='fox');u.level=5;u.slots=slotMax(u).map(()=>0);u.slots[1]=1;
+   const was=b.result;b.result='win';takeRest('short');const a=JSON.stringify(state.proficiency.fox);
+   u.learned=[{key:'x',name:'測試'}];eraseNote(u,'x');syncLearnedState();const e=JSON.stringify(state.proficiency.fox);b.result=was;return {a,e};});
+ assert.equal(rest.a,'[2,3,1]');assert.equal(rest.e,'[2,3,1]');ok('休息、擦筆記後熟練格照實保存（10-03 修：以前會變 undefined）');
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}
