@@ -80,4 +80,5 @@ function renderRoll(){
 const WHO = id => id==="narr" ? {name:"", color:"var(--dim)"} :
                   id==="dwarf" ? {name:"矮人大爺", color:"var(--ale)"} :
                   id==="merchant" ? {name:"？？？", color:"#c9b7a6"} :
+                  id==="all" ? {name:"四小隻", color:"#f0c987"} :   // 四隻一起說（10-02，顏色暫定）
                   (c => ({name:c.name, color:c.color}))(CRITTERS.find(c=>c.id===id));

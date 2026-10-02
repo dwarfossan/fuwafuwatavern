@@ -1,4 +1,4 @@
-/* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ 小動物 id */
+/* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ 小動物 id / all（四小隻一起說，四張卡一起亮） */
 const SCRIPT = [
   {who:"narr",  text:"晴朗的午後，山腳下的小鎮懶洋洋的。軟呼呼酒館裡，午飯的盤子還沒收。"},
   {who:"narr",  text:"四個毛球圍在飯桌邊，攤開一張皺巴巴的地圖，嘰嘰咕咕地討論著。"},
@@ -55,7 +55,8 @@ const FAREWELL = [
   {who:"fox",   text:"我們四個裡面，只有一個在說謊。大爺自己推吧。", hug:true},
   {who:"dwarf", text:"嗯……不是嬌嬌、不是玲玲、不是默默、不是香香……那就是……", hug:true},
   {who:"narr",  text:"四個毛球同時抬起頭，盯著大爺。", hug:true},
-  {who:"dwarf", text:"咳！好、好了好了，去吧！記得，天黑前回來喝熱湯！", hug:true}
+  {who:"dwarf", text:"咳！好、好了好了，去吧！記得，天黑前回來喝熱湯！", hug:true},
+  {who:"all",   text:"知道啦——！", hug:true}
 ];
 
 /* 伏擊前的被動察覺（大爺 2026-10-01）：四小隻不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值

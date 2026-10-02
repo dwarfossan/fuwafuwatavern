@@ -50,7 +50,7 @@ function updateStoryLine(){
   }
   const party = document.querySelector(".fp-page .party");
   party?.classList.toggle("cheer", !!line.hug);
-  party?.querySelectorAll("[data-info]").forEach(el=>el.classList.toggle("speaking", el.dataset.info===line.who));
+  party?.querySelectorAll("[data-info]").forEach(el=>el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all"));
   const glow = stage.querySelector(".hug-glow");
   if(line.hug && !glow) stage.querySelector(".counter")?.insertAdjacentHTML("beforebegin", '<div class="hug-glow" aria-hidden="true"></div>');
   else if(!line.hug && glow) glow.remove();
@@ -73,7 +73,7 @@ function renderStory(){
       const m = modOf(finalScore(c.id,a.k));
       return `<span class="${m>=2?"hi":m<0?"lo":""}">${a.n[0]}${fmt(m)}</span>`;
     }).join("");
-    return `<button class="pf ${line.who===c.id?"speaking":""} ${state.info===c.id?"open":""}" data-info="${c.id}" style="--c:${c.color}" aria-label="查看${c.name}">
+    return `<button class="pf ${line.who===c.id||line.who==="all"?"speaking":""} ${state.info===c.id?"open":""}" data-info="${c.id}" style="--c:${c.color}" aria-label="查看${c.name}">
       ${critterSVG(c.id)}
       <span class="pf-name">${c.name}</span>
       <span class="pf-mods">${minis}</span>
