@@ -55,14 +55,15 @@ node tests/mobile-ui.mjs      # 手機介面：封面、說明／角色泡泡、
 
 ### 3. 分支規則
 
-- **從 dev 開一條工作分支**，不要直接推 dev 或 main；同時只開一條工作分支，分支開著時小修正也推在同一條上（與 `AGENTS.md` 一致）
-- 每做完一項就 commit＋push 到工作分支，訊息寫清楚改了什麼
-- 做完、測試全過，交給大爺用手機確認；他說好，才由他或指定的人併進 dev
-- main 是正式網站的穩定版；合併 main 需要大爺明確指示，工作分支驗收不代表授權併 main
+- **只有 main 和 dev 兩條，不開工作分支**（大爺 10-02：dev 就是測試版，不要「測試版的測試版」）。所有 AI 直接推 dev（與 `AGENTS.md` 一致）
+- 每做完一項就 commit＋push 到 dev，訊息寫清楚改了什麼
+- 推之前測試要全過：dev 是大爺手機上測的版本，不能推壞掉的東西
+- main 是正式網站的穩定版；合併 main 需要大爺明確指示，大爺測過 dev 不代表授權併 main
 
 ### 4. 給大爺測試
 
-- **給大爺測試，一律給「指定版本」的網址**：`https://raw.githack.com/dwarfossan/fuwafuwatavern/<完整 40 碼 commit>/index.html#battle`。每次推完就附上那一版的網址（`git rev-parse HEAD`）
+- **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。打開時即時問 GitHub dev 最新是哪一筆，按「快速戰鬥」或「從頭玩」跳到那一筆的指定版本網址（`raw.githack.com/.../<40 碼 commit>/index.html`）。推完跟大爺說「推好了」和 commit 前 7 碼就好，不用再貼網址
+  - 入口頁是 main 上的 `test.html`，遊戲不讀它；改它要動 main，先問大爺
   - **不要給 `/dev/` 的網址**：githack 會記住「dev 指向哪一筆」，不知道多久才更新，大爺會看到舊版（10-02 發生兩次，以為程式被改回去）
 - **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）
 - **不要再傳下載用的單一檔案給大爺**，GitHub 才是唯一的版本
@@ -105,7 +106,7 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 
 | 檔案 | 內容 |
 |---|---|
-| `AGENTS.md` | 給 GPT 等接手的 AI：先讀什麼、怎麼開分支、怎麼跟大爺溝通、做完要更新什麼（Codex 會自動讀） |
+| `AGENTS.md` | 給 GPT 等接手的 AI：先讀什麼、推到哪、怎麼跟大爺溝通、做完要更新什麼（Codex 會自動讀） |
 | `docs/現況.md` | **先看這份**：做到哪、各系統、大爺的偏好、排隊中的、已知問題、環境 |
 | `docs/熟練格規格.md` | 技能資源（熟練格、升階、休息） |
 | `docs/小筆記規格.md` | 觀察學習、小筆記、四小隻特性 |

@@ -20,9 +20,8 @@
 
 ## 二、怎麼做
 
-- **從 dev 開新分支**做（例如 `explore`），**不要直接推 dev 或 main**。做完、測試全過，交給大爺用手機確認；他說好，才由他（或他指定的人）併進 dev
-- 一次只開一條分支；分支開著時，小修正也推在分支上
-- **每做完一項就 commit＋push 到你的分支**，訊息寫清楚改了什麼
+- **直接推 dev，不開工作分支**（大爺 10-02：dev 就是測試版）。repo 只有 main 和 dev 兩條；**不要推 main**，併 main 要大爺明說
+- **每做完一項就 commit＋push 到 dev**，訊息寫清楚改了什麼；推之前測試要全過
 - 改完跑 README 第 2 節列的全部測試，看 exit code。新功能要在瀏覽器實際操作、用**手機尺寸（390×844）截圖**確認，能自動檢查的補進 `tests/`
 - 改了 `data/skills.js` 要跑 `node tools/skills_doc.mjs` 重新產生技能表
 - 戰鬥畫面讀了新的資料，要加進 `battleLayerKeys`（`js/battle/render.js`），不然那層不會重畫（README 實作紀律第 11 條）
@@ -36,7 +35,7 @@
   - 寫好**在回覆裡直接列給大爺看**（不用寫進文件）
   - 寫進 `data/barks.js` 的每一組加 `draft:"GPT"`（寫你是誰），大爺看過、改過才拿掉
 - 自己決定的外觀、數值，標明「暫定」，並在回覆裡講
-- **給大爺測試的網址，一律用指定版本**：`https://raw.githack.com/dwarfossan/fuwafuwatavern/<完整 40 碼 commit>/index.html#battle`。**不要給分支名稱的網址**（`/dev/`、`/explore/`），githack 會給舊的快取，大爺會以為程式被改回去
+- **大爺測試開測試入口** https://dwarfossan.github.io/fuwafuwatavern/test.html（他的書籤，自動跳 dev 最新那一筆）。推完說「推好了」＋commit 前 7 碼就好。**不要給分支名稱的網址**（`/dev/`），githack 會給舊的快取，大爺會以為程式被改回去
 - 測試結果照實說：沒在瀏覽器跑過、沒截圖看過，就說沒測
 
 ## 四、做完之後
