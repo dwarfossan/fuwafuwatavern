@@ -8,8 +8,11 @@ function render(){
     updateBattleFrame(); return;
   }
   rememberShopView(app);
+  const oldMap=app.querySelector('.map-frame');
+  if(oldMap) state.mapScrollLeft=oldMap.scrollLeft;
   app.classList.toggle('shop-screen',state.page==='shop');
   app.classList.toggle('battle-screen',state.page==='battle');
+  app.classList.toggle('map-screen',state.page==='map');
   app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", renderModal());
@@ -167,12 +170,14 @@ function bind(){
   $("backShop")?.addEventListener("click", ()=>{state.page="shop";render()});
   $("toMap")?.addEventListener("click", ()=>{
     state.page="map"; state.location="tavern"; state.mapSel=null;
+    state.mapScrollLeft=null;
     state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
     render(); window.scrollTo(0,0); startTravel();
   });
   $("toBattle")?.addEventListener("click", ()=>{state.page="battle"; startBattle("ambush"); window.scrollTo(0,0)});
   if(state.page==="battle") bindBattle();
   if(state.page==="doll") bindDollDemo();
+  if(state.page==="map") bindMap();
   document.querySelectorAll("[data-loc]").forEach(g=>{
     const go = ()=>{ state.mapSel = g.dataset.loc; render(); };
     g.addEventListener("click", go);

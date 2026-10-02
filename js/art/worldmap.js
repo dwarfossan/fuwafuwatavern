@@ -111,17 +111,17 @@ function worldMapSVG(sel, here, pos, alert){
 
   // 名牌與點擊範圍
   L.forEach(l=>{
-    const w = l.name.length*18+24, isSel = sel===l.id;
+    const w = l.name.length*23+28, isSel = sel===l.id;
     out.push(`<g class="loc ${isSel?"sel":""}" data-loc="${l.id}" tabindex="0" role="button" aria-label="${l.name}">
       <circle cx="${l.x}" cy="${l.y-10}" r="62" fill="transparent"/>
       ${isSel?`<ellipse cx="${l.x}" cy="${l.y+8}" rx="70" ry="26" fill="none" stroke="#f2b441" stroke-width="4" stroke-dasharray="10 8"/>`:""}
-      <rect x="${l.x-w/2}" y="${l.y+18}" width="${w}" height="30" rx="15" fill="#1f1a24" stroke="${isSel?"#f2b441":"#f6e9d8"}" stroke-width="2.5"/>
-      <text x="${l.x}" y="${l.y+39}" text-anchor="middle" font-size="18" font-weight="700" fill="#f6e9d8" font-family="LXGW WenKai TC, PingFang TC, Microsoft JhengHei, serif">${l.name}</text>
+      <rect x="${l.x-w/2}" y="${l.y+18}" width="${w}" height="38" rx="19" fill="#1f1a24" stroke="${isSel?"#f2b441":"#f6e9d8"}" stroke-width="2.5"/>
+      <text x="${l.x}" y="${l.y+45}" text-anchor="middle" font-size="24" font-weight="700" fill="#f6e9d8" font-family="LXGW WenKai TC, PingFang TC, Microsoft JhengHei, serif">${l.name}</text>
     </g>`);
   });
 
   // 隊伍棋子：在地點上，或旅行中在路上（pos）
   const at = pos || loc(here);
   if(at) out.push(`<g id="party-marker" pointer-events="none" transform="translate(${at.x} ${at.y})">${partyMarkerSVG(alert)}</g>`);
-  return `<svg class="worldmap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${out.join("")}</svg>`;
+  return `<svg class="worldmap" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${out.join("")}</svg>`;
 }

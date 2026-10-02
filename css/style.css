@@ -297,13 +297,18 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .scene-bg > svg{width:100%;height:100%;display:block}
 
 /* 大地圖 */
-.map-frame{border-radius:16px;overflow:hidden;border:6px solid #4a2f1f;box-shadow:inset 0 0 0 2px #7a5236, 0 10px 30px rgba(0,0,0,.4);background:#5f8744}
-.worldmap{display:block;width:100%;height:auto}
+.wrap.map-screen{height:100vh;height:100dvh;padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 12px);overflow:hidden}
+.map-page{height:100%;display:flex;flex-direction:column;gap:10px;min-height:0}
+.map-page>.head{margin:0;flex:none;align-items:center}
+.map-frame{flex:1;min-height:220px;border-radius:16px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;border:6px solid #4a2f1f;box-shadow:inset 0 0 0 2px #7a5236, 0 10px 30px rgba(0,0,0,.4);background:#5f8744;scrollbar-width:thin}
+.worldmap{display:block;width:auto;height:100%;max-width:none;user-select:none}
 .worldmap .loc{cursor:pointer;outline:none}
 .worldmap .loc:hover rect,.worldmap .loc:focus-visible rect{stroke:#f2b441}
-.map-info{margin-top:12px;background:var(--plank);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.map-info{flex:none;background:var(--plank);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .map-info h3{margin:0;font-family:var(--font-disp);font-size:22px}
 .map-info p{margin:4px 0 0;color:var(--dim)}
+.map-pan-hint{color:var(--honey);font-size:12px}
+.map-info .btn{font-size:14px;padding:6px 14px}
 .worldmap .alert{animation:alertpop .45s cubic-bezier(.3,1.8,.5,1) both;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes alertpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
 
@@ -889,9 +894,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .gear-info.status-view .status-loadout{width:236px;margin:0 auto;min-height:225px}
 .gear-info.status-view .status-paper{min-height:205px}
 .gear-info.status-view .status-paper .inf-doll>svg{width:150px;height:150px}
-.gear-info.status-view .status-eqslot{width:48px;height:51px}
-.gear-info.status-view .status-eqitem{width:37px;height:37px}
-.gear-info.status-view .status-eqitem svg{width:33px;height:33px}
+.gear-info.status-view .status-eqslot{width:48px;height:51px;padding:16px 3px 3px}
+.gear-info.status-view .status-eqslot>small{line-height:12px;opacity:.8}
+.gear-info.status-view .status-eqitem{width:30px;height:30px}
+.gear-info.status-view .status-eqitem svg{width:28px;height:28px}
 .gear-info.status-view .status-eqslot.acc1{left:8px;top:29px}
 .gear-info.status-view .status-eqslot.acc2{left:8px;top:94px}
 .gear-info.status-view .status-eqslot.armor{right:8px;top:94px}
@@ -934,8 +940,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 背包現在是角色裝備槽：右上格；開啟內容時只向右展開。 */
 .gear-info.status-view .status-eqslot.backpack{right:8px;top:29px;width:48px;height:51px}
 .gear-info.status-view .status-eqslot.backpack.on{border-color:var(--honey);background:rgba(255,255,255,.09)}
-.gear-info.status-view .status-eqslot.backpack .status-bagbtn{position:static;width:37px;height:37px;border:0;border-radius:0;background:transparent;padding:0}
-.gear-info.status-view .status-eqslot.backpack .status-bagbtn svg{width:33px;height:33px}
+.gear-info.status-view .status-eqslot.backpack .status-bagbtn{position:static;width:30px;height:30px;border:0;border-radius:0;background:transparent;padding:0}
+.gear-info.status-view .status-eqslot.backpack .status-bagbtn svg{width:28px;height:28px}
 
 /* 火焰護盾：光暈慢慢呼吸 */
 .fx-fshield .fs-glow{animation:fsPulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}

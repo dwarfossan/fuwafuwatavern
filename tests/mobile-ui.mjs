@@ -43,6 +43,28 @@ try{
   await pg.evaluate(()=>{state.page='map';state.travel=null;render();});
   await pg.locator('[data-pagehelp="map"]').click();assert((await pg.locator('[role="dialog"]').innerText()).includes('現在的位置'));
   await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
+  await pg.waitForTimeout(500);
+  const map=await pg.locator('.map-frame').boundingBox();
+  assert(map.height>500);
+  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollWidth>e.clientWidth));
+  assert(await pg.locator('.worldmap .loc text').evaluateAll(es=>es.every(e=>e.getBoundingClientRect().height>15)));
+  assert(await pg.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
+  if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/map.png'});
+  const mapLeft=await pg.locator('.map-frame').evaluate(e=>e.scrollLeft);
+  const cdp=await pg.context().newCDPSession(pg);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:map.x+60,y:map.y+120}]});
+  for(let i=1;i<=6;i++) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:map.x+60+i*25,y:map.y+120}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await pg.waitForTimeout(250);
+  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollLeft)<mapLeft);
+  await pg.locator('[data-pagehelp="map"]').click();
+  const kept=await pg.locator('.map-frame').evaluate(e=>e.scrollLeft);
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();
+  assert.equal(await pg.locator('.map-frame').evaluate(e=>e.scrollLeft),kept);
+  for(const id of ['cave','forest','town','tavern']){
+    await pg.locator(`[data-loc="${id}"]`).click();assert.equal(await pg.evaluate(()=>state.mapSel),id);
+  }
+  ok('大地圖填滿剩餘高度，地名放大，觸控滑動、四地點與說明位置保留正常');
   await pg.evaluate(()=>{window.setTimeout=()=>0;quickBattle();});await pg.waitForTimeout(500);
   await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=0;refreshBattle();});
   const boardWithTutorial=await pg.locator('.board-wrap').boundingBox();
@@ -60,5 +82,16 @@ try{
   assert(await pg.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
   ok('教學位於戰場外，知道了／關閉可用；關閉後戰場擴大，地板圖層保留');
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/battle.png'});
+  const ids=await pg.evaluate(()=>B().units.filter(u=>u.side!=='npc').map(u=>u.id));
+  for(const id of ids){
+    await pg.evaluate(id=>{B().info=id;B().infoPage='status';refreshBattle();},id);
+    const separated=await pg.locator('.status-eqslot').evaluateAll(es=>es.every(e=>{
+      const label=e.querySelector('small'),icon=e.querySelector('.status-eqitem');
+      return !icon || label.getBoundingClientRect().bottom<=icon.getBoundingClientRect().top;
+    }));assert(separated,id+' 裝備圖示蓋字');
+  }
+  await pg.evaluate(()=>{B().info='tiger';refreshBattle();});await pg.waitForTimeout(250);
+  if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/status.png'});
+  ok('四小隻與敵人的裝備格標籤、圖示各占獨立位置');
   assert.deepEqual(errors,[]);ok('沒有瀏覽器錯誤');
 }finally{await br.close();}
