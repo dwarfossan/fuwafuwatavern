@@ -88,6 +88,7 @@ function startBattle(id){
   };
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
   blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc").map(u=>nameFor(u)).join("、")}`);
+  passivePocket();                                 // 開場看得到的敵人：先比一次被動感知
   nextTurn();
 }
 
@@ -185,6 +186,7 @@ function reveal(u, why){
   if(!isHid(u)) return;
   u.statuses = u.statuses.filter(s=>s.k!=="hidden");
   if(why) blog(`　${u.name}${why}`, "skill");
+  if(u.side==="foe") passivePocket();             // 躲著的敵人現身：這時才第一次被看到
 }
 const senseRange = u => Math.max(0, u.speed - (u.statuses.some(s=>s.k==="slowed" && !s.stop) ? 2 : 0));   // 察覺範圍＝移動速度
 function perceive(u){
@@ -193,6 +195,26 @@ function perceive(u){
     // 我方沒找到躲著的敵人時不寫紀錄，不然等於告訴玩家附近有東西
     if(ok || v.side==="pc") blog(`${u.name}察覺：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} ${need} → ${ok?`發現了${v.name}！`:`沒發現${v.name}`}`, ok?"skill":"miss", ok?"發現了！":"沒發現");
     if(ok){ reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); }
+  });
+}
+// ---------- 感知：看穿敵人身上帶的東西（大爺 10-02，照 D&D）----------
+// 被動感知＝10＋感知調整值，不擲骰：敵人第一次被看到時，四小隻各自跟 DC 比，夠高的就看穿
+// 主動搜索＝d20＋感知：免費動作，6 格內看得到的敵人（js/battle/flow.js 的 doSearch）
+// 敵人藏東西的 DC＝10＋敏捷調整值＋2（低階怪的熟練加值）
+// 看穿了、或打倒之後，那隻的背包就能打開；整場戰鬥四小隻共用
+const passivePer = u => 10 + u.mods.WIS;
+const pocketDC = v => 10 + v.mods.DEX + 2;
+const SEARCH_RANGE = 6;
+const pocketKnown = v => v.side==="foe" && (v.dead || !!(B().pocketSeen||{})[v.id]);
+function markPocket(v){ (B().pocketSeen = B().pocketSeen || {})[v.id] = true; }
+function passivePocket(){
+  const b = B(), pcs = b.units.filter(u=>u.side==="pc" && !u.dead && !u.down);
+  b.units.filter(v=>v.side==="foe" && !v.dead && !foeHid(v) && !pocketKnown(v)).forEach(v=>{
+    const who = pcs.filter(u=>passivePer(u) >= pocketDC(v));
+    if(!who.length) return;
+    markPocket(v);
+    blog(`${who.map(u=>u.name).join("、")}看穿了${v.name}身上帶的東西`, "skill");
+    blog(`　被動感知 ${who.map(u=>`${u.name} ${passivePer(u)}`).join("、")} ≥ DC ${pocketDC(v)}`);
   });
 }
 // 有人走動之後：躲著的人如果被看到了（走出草叢或掩護、敵人繞到旁邊）就現身

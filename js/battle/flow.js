@@ -253,6 +253,8 @@ function clickTile(x, y){
   const myTurn = u.side==="pc" && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
   if(myTurn && b.mode){
+    if(b.mode.key==="search"){ const a = unitAt(x,y);
+      if(a && searchTargets(u).includes(a)) doSearch(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="help"){ const a = helpTarget(u, x, y); if(a) doHelp(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item), a = t0 && !foeHid(t0) ? t0 : null;
       if(it && a && itemTargets(u, it).includes(a)) useItem(u, it, a); else { b.mode = null; b.menu = "items"; refreshBattle(); } return; }
@@ -440,6 +442,8 @@ function battleCmd(c){
       if(!canAct()) return; useAction(u); addStatus(u, "dodge", {until:"start", of:u.id});
       u.anim = {k:"guard", t:Date.now()}; animSfx("guard");
       blog(`${u.name}專心閃避：到下回合前，打他都有劣勢`, "skill"); afterShow(u, 700); return;
+    case "search":
+      if(!canFree() || !searchTargets(u).length) return; b.menu = null; b.mode = {key:"search"}; break;
     case "help":
       if(!canAct() || !helpList(u).length) return; b.menu = null; b.mode = {key:"help"}; break;
     case "wait": b.menu = null; endTurn(); return;
@@ -501,6 +505,19 @@ function doEscape(u){
 // 協助：相鄰的隊友（倒下的也行，改成扶起來）
 const helpList = u => alliesOf(u).filter(p=>p!==u && dist(p,u)===1);
 function helpTarget(u, x, y){ const t = unitAt(x,y); return t && helpList(u).includes(t) ? t : null; }
+// 搜索（主動感知，大爺 10-02）：免費動作；6 格內看得到、還沒看穿的敵人；d20＋感知 對 DC（見 engine.js 的感知）
+const searchTargets = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v) && !pocketKnown(v) && dist(u,v)<=SEARCH_RANGE);
+function doSearch(u, t){
+  const b = B(); b.mode = null; faceTo(u, t); spendFree(u);
+  panelStart(`${u.name}【搜索】`);
+  const r = d20(), total = r + u.mods.WIS, dc = pocketDC(t), ok = total >= dc;
+  panelRow("chk", t, [r], r, total, ok ? "found" : "fail");
+  blog(`${u.name}搜索${t.name}身上帶的東西`, "skill");
+  blog(`　感知：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} DC ${dc} → ${ok?"看穿了":"沒看出來"}`, ok?"skill":"miss", ok?"看穿了":"沒看出來");
+  if(ok) markPocket(t);
+  panelEnd(); sfx("pop");
+  afterShow(u, DICE_TUMBLE + 500);
+}
 function doHelp(u, t){
   const b = B();
   b.mode = null; faceTo(u, t); useAction(u);

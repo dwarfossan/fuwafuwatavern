@@ -352,7 +352,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .dp-total{display:inline-flex;flex-direction:column;align-items:center;min-width:3.2em;margin-left:4px;opacity:0;animation:dp-pop .22s ease-out both;animation-delay:var(--land)}
 .dp-total b{font:900 26px/1 var(--font-num,var(--font-body));-webkit-text-stroke:3px #1f1a24;paint-order:stroke}
 .dp-total small{font-size:10px;font-weight:800;letter-spacing:.06em;margin-top:2px}
-.res-hit{color:#9be08a}.res-miss{color:#b9a9b5}.res-crit{color:#ffd36a}.res-fumble{color:#ff8a7a}.res-save{color:#8fd0f0}.res-fail{color:#ff8a7a}
+.res-hit{color:#9be08a}.res-miss{color:#b9a9b5}.res-crit{color:#ffd36a}.res-fumble{color:#ff8a7a}.res-save{color:#8fd0f0}.res-found{color:#9be08a}.res-fail{color:#ff8a7a}
 .res-crit b{text-shadow:0 0 12px rgba(255,211,106,.8)}
 .dp-more{font-size:11px;color:var(--dim);text-align:right;margin-top:2px}
 @media (max-width:560px){ .dice-panel{left:0;right:0;transform:none;max-width:none;min-width:0;padding:5px 8px 6px}
@@ -862,5 +862,12 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .fx-fshield .fs-glow{animation:fsPulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes fsPulse{0%,100%{opacity:.12;transform:scale(.97)}50%{opacity:.26;transform:scale(1.03)}}
 
-/* 敵人（和 NPC）的狀態卡：只有名字、血量、裝備，照內容縮，最寬 320px（大爺 10-02：原本跟四小隻一樣寬，右邊大半是空的） */
-.board-wrap .gear-info.foe-info{width:max-content;min-width:220px;max-width:min(320px,calc(100vw - 32px))}
+/* 敵人、NPC 的狀態卡：跟四小隻同版面（.status-view），裝備格只能看不能拖；背包還沒看穿時鎖著 */
+.status-eqslot.ro{border-style:solid;border-color:rgba(255,255,255,.12)}
+.status-eqslot.ro .status-eqitem{cursor:pointer;touch-action:auto}
+.status-eqslot.backpack.locked .status-eqempty{font-family:var(--font-disp);font-size:18px;opacity:.5}
+/* 狀態卡的熟練格：兩欄，左欄排滿再排右欄（I 在左上） */
+.inf-slots{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows),auto);grid-template-columns:1fr 1fr;column-gap:10px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.04);font-size:12.5px}
+.inf-slots .sl-r{line-height:1.45;white-space:nowrap}
+.inf-slots em{font-style:normal;font-family:var(--font-disp);color:var(--fur);display:inline-block;min-width:2.2em}
+.inf-slots b{letter-spacing:1px;color:var(--honey)}.inf-slots i{font-style:normal;color:var(--dim)}
