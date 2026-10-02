@@ -48,6 +48,8 @@ const ITEMS = [
   //   tier：輕甲／中甲／重甲／衣服（衣服＝法袍，不算穿護甲，法師護甲照開）；紙娃娃照名稱畫，沒畫到的照 tier 畫
   //   ac 基礎值、dex: full（加全部敏捷）/ max2（最多 +2）/ none、str 力量需求、stealth＝潛行劣勢；數值照 SRD 5.2 核對過
   {type:"armor",n:"法袍",en:"Robe",cat:"護甲",tier:"衣服",cost:5*GP,wt:4,ac:11,dex:"full",cloth:true},
+  // 破布衣：哥布林穿的（大爺 10-02 取名），商店不賣；AC 跟沒穿一樣（10＋敏捷），重量是暫定值
+  {type:"armor",n:"破布衣",en:"Rags",cat:"護甲",tier:"衣服",cost:0,wt:2,ac:10,dex:"full",cloth:true,noShop:true},
   {type:"armor",n:"軟甲",en:"Padded Armor",cat:"護甲",tier:"輕甲",cost:5*GP,wt:8,ac:11,dex:"full",stealth:true},
   {type:"armor",n:"皮甲",en:"Leather Armor",cat:"護甲",tier:"輕甲",cost:10*GP,wt:10,ac:11,dex:"full"},
   {type:"armor",n:"鑲釘皮甲",en:"Studded Leather Armor",cat:"護甲",tier:"輕甲",cost:45*GP,wt:13,ac:12,dex:"full"},

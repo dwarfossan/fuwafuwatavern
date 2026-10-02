@@ -70,6 +70,9 @@ const ARMOR_ART = (()=>{
     "法袍": `<path d="M48 86 Q70 78 92 86 Q99 108 101 132 Q70 141 39 132 Q41 108 48 86 Z" fill="#5b4f8f" stroke="${INK}" stroke-width="3"/>
       ${line("M70 101 L70 136","#473d73")}${line("M42 128 Q70 137 98 128","#e0ab45",3)}${line("M47 110 Q70 117 93 110","#e0ab45",4)}
       ${line("M57 84 L70 101 L83 84","#e0ab45",3,'stroke-linejoin="round"')}`,
+    // 衣服：破布衣（哥布林穿的），形狀跟紙娃娃身體一樣；麻繩腰帶、下襬破成鋸齒
+    "破布衣": `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="#7a5a3c" stroke="${INK}" stroke-width="3.5"/>
+      ${line("M49 112 Q70 119 91 112","#c9a86a",3.5)}<path d="M50 124 L55 131 L60 126 L66 133 L72 127 L78 133 L84 126 L90 130" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linejoin="round"/>`,
     // 輕甲
     "軟甲": body(T,"#d8c7a0") + line("M54 98 L86 120 M54 112 L76 126 M60 90 L88 108 M86 98 L54 120 M86 112 L64 126 M80 90 L52 108","#b59f72",1.8) + line("M58 89 Q70 94 82 89","#b59f72",3),   // 菱格縫線的棉甲
     "皮甲": body(T,"#9a6a3e") + line("M70 88 L70 128","#6e4a32",2.2,'stroke-dasharray="3 3"') + belt(),                                   // 素面皮衣

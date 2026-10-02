@@ -49,7 +49,7 @@ function startBattle(id){
     units.push({
       id:"foe"+i, side:"foe", type:f.type, name:e.name+"ABCD"[i], look:e.look,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, mods:{...e.mods}, baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
-      weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:null, spare:[], items:[], backpackEquip:inv.find(it=>it.type==="gear" && it.n==="背包")||null, backpack:inv.filter(it=>(it.type==="gear" && it.n!=="背包") || it.type==="consumable"),
+      weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:inv.find(it=>it.type==="gear" && it.n==="背包")||null, backpack:inv.filter(it=>(it.type==="gear" && it.n!=="背包") || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
     });

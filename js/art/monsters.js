@@ -51,15 +51,17 @@ const MONSTER_LOOK = (()=>{
   const goblinSideHurt = goblinSide
     .replace(`${eye(43,54)}`, xEye(43,54,6.5))
     .replace(/<circle cx="67" cy="53"[^>]*\/><circle cx="67\.5"[^>]*\/><circle cx="69"[^>]*\/>/, xEye(67,53,5.5));
-  // 哥布林薩滿：羽毛頭飾（紅、金、青三根羽毛＋額頭的布帶和一顆牙）
-  const feathers = (xs, band) => `
-    ${xs.map(([x,y,r,c])=>`<ellipse cx="${x}" cy="${y}" rx="4.2" ry="12" fill="${c}" stroke="${INK}" stroke-width="2.2" transform="rotate(${r} ${x} ${y+10})"/>
-      <path d="M${x} ${y-8} L${x} ${y+9}" stroke="${INK}" stroke-width="1.2" opacity=".5" transform="rotate(${r} ${x} ${y+10})"/>`).join("")}
+  // 哥布林薩滿：骷髏頭飾（大爺 10-02：原本是三根羽毛）＋額頭的布帶和一顆牙
+  const skull = ([x,y]) => `<g transform="translate(${x} ${y})">
+    <path d="M-11 2 Q-12 -13 0 -14 Q12 -13 11 2 Q11 7 6 8 L6 12 L-6 12 L-6 8 Q-11 7 -11 2 Z" fill="#f3ead2" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>
+    <ellipse cx="-4.5" cy="-1.5" rx="3.3" ry="3.8" fill="${INK}"/><ellipse cx="4.5" cy="-1.5" rx="3.3" ry="3.8" fill="${INK}"/>
+    <path d="M0 2.5 L-1.8 6 L1.8 6 Z" fill="${INK}"/><path d="M-3 12 L-3 8.5 M0 12 L0 8.5 M3 12 L3 8.5" stroke="${INK}" stroke-width="1.3"/></g>`;
+  const feathers = (at, band) => `${skull(at)}
     <path d="${band}" stroke="${INK}" stroke-width="8.5" fill="none" stroke-linecap="round"/><path d="${band}" stroke="#a33c32" stroke-width="5.5" fill="none" stroke-linecap="round"/>`;
   const hat = (svg, xs, band, tooth) => svg.replace(/<\/svg>\s*$/, `${feathers(xs, band)}${tooth}</svg>`);
   const TOOTH = (x,y) => `<path d="M${x-3} ${y-2} L${x+3} ${y-2} L${x} ${y+6} Z" fill="#fffbe8" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
-  const SIDE_F = [[40,13,-22,"#e0766e"],[52,8,-4,"#f2b441"],[64,11,16,"#5fa8a0"]], SIDE_B = "M29 33 Q52 23 75 33";
-  const FACE_F = [[38,11,-20,"#e0766e"],[50,6,0,"#f2b441"],[62,11,20,"#5fa8a0"]],  FACE_B = "M28 34 Q50 24 72 34";
+  const SIDE_F = [54,15], SIDE_B = "M29 33 Q52 23 75 33";     // 骷髏頭的位置（坐在布帶上）
+  const FACE_F = [50,15], FACE_B = "M28 34 Q50 24 72 34";
   const necklace = [[58,93],[64,96.5],[70,98],[76,96.5],[82,93]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="#fffbe8" stroke="${INK}" stroke-width="1.5"/>`).join("");
   // 人類大叔（商人，暫定外觀，大爺 2026-10-01：之後再確定）：平頂帽、八字鬍、圓鼻子
   const SK="#f1c9a0", SKD="#d9a77c", HAIR="#6b4a35", CAP="#8a6a44", CAPD="#6e5032";
@@ -105,9 +107,8 @@ const MONSTER_LOOK = (()=>{
     },
     goblin: {
       // face：頭像框、先攻列用的正面；head：棋盤上紙娃娃用的側臉
-      face: goblinHead, head: goblinSide, headHurt: goblinSideHurt, body:"#7a5a3c", skin:G, feet:"#5a3f28", belly:false, tail:"",
-      extra: `<path d="M49 112 Q70 119 91 112" stroke="#c9a86a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-              <path d="M50 124 L55 131 L60 126 L66 133 L72 127 L78 133 L84 126 L90 130" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linejoin="round"/>`
+      // 衣服是裝備「破布衣」（js/art/doll.js 的 ARMOR_ART），這裡只畫皮膚
+      face: goblinHead, head: goblinSide, headHurt: goblinSideHurt, body:G, skin:G, feet:"#5a3f28", belly:false, tail:""
     }
   };
 })();

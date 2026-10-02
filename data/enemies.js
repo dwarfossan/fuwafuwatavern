@@ -1,7 +1,7 @@
 /* 敵人資料（本作原創數值，量級參考 SRD 5.2 的哥布林）
    跟我方同一套規則：攻擊、招式全部照手上的裝備算（命中 = 屬性 + 2，靈巧武器取力量敏捷高的）
    look：紙娃娃外觀（js/art/monsters.js 的 MONSTER_LOOK）
-   gear：拿什麼（物品名稱，武器／法器／盾牌）；戰場資料的 foes 可以用 gear 換掉
+   gear：拿什麼、穿什麼（物品名稱，武器／法器／盾牌／身體裝備；身體裝備只是穿著，AC 還是照 ac）；戰場資料的 foes 可以用 gear 換掉
    hp、ac、speed：屬性表數字（AC 直接寫，不照護甲算）
    mods：六項屬性調整值
    innate：天生能力（跟裝備無關）
@@ -14,13 +14,13 @@ const NPCS = {
 
 const ENEMIES = {
   goblin: {
-    name:"哥布林", look:"goblin", gear:["彎刀"],
+    name:"哥布林", look:"goblin", gear:["彎刀","破布衣"],
     hp:7, ac:12, speed:6,
     innate:["nimble"],
     mods:{STR:-1, DEX:2, CON:0, INT:0, WIS:-1, CHA:-1}
   },
   goblin_archer: {
-    name:"哥布林弓手", look:"goblin", gear:["短弓","箭袋"],
+    name:"哥布林弓手", look:"goblin", gear:["短弓","箭袋","破布衣"],
     hp:7, ac:12, speed:6,
     innate:["nimble"],
     mods:{STR:-1, DEX:2, CON:0, INT:0, WIS:-1, CHA:-1}
