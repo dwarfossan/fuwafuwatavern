@@ -240,28 +240,28 @@ function perceive(u){
     const total = passivePer(u), need = has(v,"hidden").val, ok = total >= need;
     // 我方沒找到躲著的敵人時不寫紀錄，不然等於告訴玩家附近有東西
     if(ok || v.side==="pc") blog(`${u.name}察覺：被動感知 10${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} ${need} → ${ok?`發現了${v.name}！`:`沒發現${v.name}`}`, ok?"skill":"miss", ok?"發現了！":"沒發現");
-    if(ok){ panelStart(`${u.name}【察覺】`); stealthRows(v, [u], true); panelEnd(); obsMark(u, "ok");
+    if(ok){ panelStart(`${u.name}【察覺】`); stealthRow(v, u, true); panelEnd(); obsMark(u, "ok");
             reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); }
   });
 }
 // ---------- 潛行對決的演出（大爺 10-02：DM 明著骰給你看）----------
-// 骰子面板一列是躲的人擲的潛行骰，下面是找的人的被動感知（骰子停在 10，不滾）
+// 骰子面板一列攤完：左邊躲的人擲的潛行骰，右邊找的人的被動感知（骰子停在 10，不滾）
+// 一次比大小只佔一列（大爺 10-02：以前拆兩列，偷襲變三列把標題擠出畫面）
 // 被找到：當場演（perceive）。沒被找到：什麼都不演，等躲的人自己出手時才補演（sneakShow），讓玩家看到「牠就是擲得比你高」
-function stealthRows(h, seekers, ok){
+function stealthRow(h, p, ok){
   const s = has(h,"hidden"), roll = s.roll ?? s.val;
-  // 列名用短的（手機上名字欄只放得下 3 個字）：誰躲、誰找看面板標題和紀錄
-  panelRow("chk", {id:h.id+"~hide", name:"潛行"}, [roll], roll, s.val, "hide");
-  seekers.forEach(p=>{ panelRow("chk", {id:p.id+"~per", name:"被動"}, [10], 10, passivePer(p), ok ? "found" : "fail").still = true; });
+  // 列名用短的（手機上名字欄只放得下 3 個字）：誰躲看面板標題和紀錄，誰找寫在右邊的被動感知底下
+  panelRow("chk", {id:h.id+"~hide", name:"潛行"}, [roll], roll, s.val, "hide").vs = {name:p.name, n:passivePer(p), res: ok ? "found" : "fail"};
 }
-// 從藏身處出手：在這個動作的骰子面板最前面補兩列（潛行骰、對面最高的被動感知），對面每隻頭上跳 ?
-// 補的兩列往前挪，後面攻擊那列的時間跟平常一樣，不會比出手晚
+// 從藏身處出手：在這個動作的骰子面板最前面補一列（潛行骰對對面最高的被動感知），對面每隻頭上跳 ?
+// 補的那列往前挪，後面攻擊那列的時間跟平常一樣，不會比出手晚
 function sneakShow(u){
   const s = has(u,"hidden");
   if(!s) return;
   const opp = B().units.filter(v=>hostile(v,u) && !v.dead && !v.down).sort((a,c)=>passivePer(c)-passivePer(a));
   if(!opp.length) return;
-  stealthRows(u, [opp[0]], false);                 // 第一次 panelRow 才會開出這個動作的面板
-  const p = B().panel, n = 2;
+  stealthRow(u, opp[0], false);                    // 第一次 panelRow 才會開出這個動作的面板
+  const p = B().panel, n = 1;
   p.rows.forEach(r=>r.t -= n*ROW_GAP); p.t0 -= n*ROW_GAP;
   // ? 馬上跳、很快收掉：出手後還可能有觀察學習的 ! ?，不要疊在一起
   opp.forEach(v=>(B().marks = B().marks || []).push({id:v.id, kind:"sneak", t:Date.now(), dur:OBS_DUR.sneak}));

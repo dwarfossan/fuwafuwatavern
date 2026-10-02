@@ -410,6 +410,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .dp-total small{font-size:10px;font-weight:800;letter-spacing:.06em;margin-top:2px}
 .res-hit{color:#9be08a}.res-miss{color:#b9a9b5}.res-crit{color:#ffd36a}.res-fumble{color:#ff8a7a}.res-save{color:#8fd0f0}.res-found{color:#9be08a}.res-fail{color:#ff8a7a}
 .res-crit b{text-shadow:0 0 12px rgba(255,211,106,.8)}
+/* 潛行對被動感知同一列：右邊是找的人（名字、停在 10 的骰子、被動感知） */
+.dp-vs-n{font-size:11px;color:var(--dim);margin-right:3px;white-space:nowrap}
 .dp-more{font-size:11px;color:var(--dim);text-align:right;margin-top:2px}
 @media (max-width:560px){ .dice-panel{left:0;right:0;transform:none;max-width:none;min-width:0;padding:5px 8px 6px}
   .dp-row{gap:5px;min-height:42px}

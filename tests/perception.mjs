@@ -95,17 +95,17 @@ try{
    const t=b.units.find(v=>v.side==='pc'&&!v.down&&!v.dead); sh.x=t.x+3; sh.y=t.y;
    out.pcs=b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).length;   // 出手前算：火焰箭可能把目標打倒
    const bolt=foeUsable(sh).find(s=>s.def.name==='火焰箭'); b.marks=[]; doSkill(sh,bolt,t);
-   out.rows=b.panel.rows.slice(0,2).map(r=>`${r.tname}:${r.rolls[0]}→${r.total}:${r.res}${r.still?':still':''}`);
+   out.rows=b.panel.rows.slice(0,2).map(r=>`${r.tname}:${r.rolls[0]}→${r.total}:${r.res}${r.vs?`|${r.vs.n}:${r.vs.res}`:''}`); out.best=Math.max(...b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).map(passivePer));
    out.marks=b.marks.filter(m=>m.kind==='sneak').length;
    out.revealed=!foeHid(sh);
    // 察覺成功：面板「X【察覺】」、頭上 !
    sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:5,roll:3}); sh.x=u.x+1; sh.y=u.y; b.marks=[];
-   perceive(u); out.spotLabel=b.panel.label; out.spotRows=b.panel.rows.map(r=>`${r.tname}:${r.res}`).join(','); out.spotMark=b.marks.some(m=>m.id===u.id&&m.kind==='ok');
+   perceive(u); out.spotLabel=b.panel.label; out.spotRows=b.panel.rows.map(r=>`${r.tname}:${r.res}${r.vs?`|${r.vs.name}:${r.vs.res}`:''}`).join(','); out.uname=u.name; out.spotMark=b.marks.some(m=>m.id===u.id&&m.kind==='ok');
    return out; });
  assert.equal(v2.ord,v2.need);ok('先攻列沒有躲著的敵人（拿掉 ???）');
- assert.deepEqual(v2.rows,['潛行:17→19:hide','被動:10→'+v2.rows[1].split('→')[1].split(':')[0]+':fail:still']);assert.equal(v2.marks,v2.pcs);assert(v2.revealed);
- ok(`從藏身處出手：面板先攤潛行 17→19、被動感知（骰子停 10），四小隻頭上都跳 ?（${v2.rows.join(' / ')}）`);
- assert.match(v2.spotLabel,/【察覺】/);assert.equal(v2.spotRows,'潛行:hide,被動:found');assert(v2.spotMark);ok('察覺成功：面板「察覺」、潛行骰對被動感知，發現的那隻頭上 !');
+ assert.equal(v2.rows[0],`潛行:17→19:hide|${v2.best}:fail`);assert.doesNotMatch(v2.rows[1]||'',/^潛行|^被動/);assert.equal(v2.marks,v2.pcs);assert(v2.revealed);
+ ok(`從藏身處出手：面板第一列攤潛行 17→19 對被動感知（同一列），下一列就是出手，四小隻頭上都跳 ?（${v2.rows.join(' / ')}）`);
+ assert.match(v2.spotLabel,/【察覺】/);assert.equal(v2.spotRows,`潛行:hide|${v2.uname}:found`);assert(v2.spotMark);ok('察覺成功：面板「察覺」、潛行骰對被動感知，發現的那隻頭上 !');
 
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}
