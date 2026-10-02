@@ -177,6 +177,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   border:3px solid #120e14;background:#2a1f1a;
 }
 .stage:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
+.fp-page .stage{-webkit-tap-highlight-color:transparent}   /* 手機點劇情時不要閃一塊點擊底色 */
 .wall{position:absolute;inset:0;
   background:
     radial-gradient(ellipse 45% 55% at 50% 30%, rgba(242,180,65,.28), transparent 70%),
@@ -249,6 +250,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .info p{margin:8px 0 0;font-size:15px;color:var(--dim);max-width:40em}
 /* 送別：抱抱（第一人稱：鏡頭貼近大爺、四周暖光，下方頭像一起跳一下） */
 .stage.hugging .dwarf{transform:translateX(-50%) translateY(24%) scale(1.4);transition:transform .7s cubic-bezier(.3,1.2,.5,1)}
+/* 抱抱中大爺說話：抖動要疊在抱抱的姿勢上，不然 grumble 會把大爺縮回原本大小（10-02 手機上看起來會閃） */
+.stage.hugging .dwarf.talk{animation:grumbleHug .5s ease}
+@keyframes grumbleHug{30%{transform:translateX(-50%) translateY(24%) scale(1.44,1.36)}60%{transform:translateX(-50%) translateY(24%) scale(1.39,1.43)}}
 .hug-glow{position:absolute;inset:0;pointer-events:none;z-index:1;
   background:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 45%,rgba(242,180,65,.35) 100%);animation:glow .8s ease both}
 @keyframes glow{from{opacity:0}to{opacity:1}}
