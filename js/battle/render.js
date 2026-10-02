@@ -744,11 +744,16 @@ function ptsHTML(u){
       <button class="sl-bar ${slotLightsOpen?"on":""}" data-sltoggle aria-label="${slotLightsOpen?"收起":"展開"} II 以上的熟練格"></button></span>` : "";
   return `<span class="eco mv pts">${up}${row(0)}</span>`;
 }
-// 狀態卡裡的熟練格（大爺 10-02）：卡片是打開來看清楚的地方，不收起來；分兩欄，左欄先排滿再排右欄
+// 狀態卡裡的熟練格（大爺 10-02）：跟戰場上一樣收合，平常只看 I；點下面的細條展開 II 以上
+// 戰場上往上長（上面是地圖），卡片裡往上長會撞到標題，所以改成往下展開、把底下的內容推下去
+// 開關存在 B().cardSlotsOpen（在戰鬥資料裡，分層更新才看得到它變了）
 function slotGridHTML(u){
-  const max = slotMax(u), s = slotsOf(u);
-  return `<div class="inf-slots" style="--rows:${Math.ceil(max.length/2)}" aria-label="熟練格">${max.map((m,i)=>{ const n = Math.min(m, s[i]||0);
-    return `<span class="sl-r" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}"><em>${ROMAN[i+1]}</em><b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; }).join("")}</div>`;
+  const max = slotMax(u), s = slotsOf(u), open = !!B().cardSlotsOpen && max.length > 1;
+  const row = i => { const m = max[i], n = Math.min(m, s[i]||0);
+    return `<span class="sl-r" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}"><em>${ROMAN[i+1]}</em><b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; };
+  const rows = open ? max.map((_,i)=>row(i)).join("") : row(0);
+  const bar = max.length > 1 ? `<button class="sl-bar ${open?"on":""}" data-cardslt aria-label="${open?"收起":"展開"} II 以上的熟練格"></button>` : "";
+  return `<div class="inf-slots ${open?"open":""}" style="--rows:${open ? Math.ceil(max.length/2) : 1}" aria-label="熟練格"><div class="inf-slots-g">${rows}</div>${bar}</div>`;
 }
 const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
 // 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
@@ -1292,6 +1297,7 @@ function bindBattle(){
   document.querySelectorAll("[data-swap]").forEach(el=>battleListen(el,"click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-sltoggle]").forEach(el=>battleListen(el,"click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); refreshBattle(); }));
+  document.querySelectorAll("[data-cardslt]").forEach(el=>battleListen(el,"click", e=>{ e.stopPropagation(); const b=B(); b.cardSlotsOpen=!b.cardSlotsOpen; sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
     if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));

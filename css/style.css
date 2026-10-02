@@ -866,8 +866,12 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .status-eqslot.ro{border-style:solid;border-color:rgba(255,255,255,.12)}
 .status-eqslot.ro .status-eqitem{cursor:pointer;touch-action:auto}
 .status-eqslot.backpack.locked .status-eqempty{font-family:var(--font-disp);font-size:18px;opacity:.5}
-/* 狀態卡的熟練格：兩欄，左欄排滿再排右欄（I 在左上） */
-.inf-slots{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows),auto);grid-template-columns:1fr 1fr;column-gap:10px;padding:4px 8px;border-radius:10px;background:rgba(255,255,255,.04);font-size:12.5px}
+/* 狀態卡的熟練格：收起只有 I；展開往下長，兩欄、左欄排滿再排右欄（I 在左上） */
+.inf-slots{padding:4px 8px 0;border-radius:10px;background:rgba(255,255,255,.04);font-size:12.5px}
+.inf-slots-g{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--rows),auto);grid-template-columns:1fr 1fr;column-gap:10px;padding-bottom:4px}
+.inf-slots .sl-bar{display:block;width:100%;height:14px;border:none;background:transparent;padding:0;cursor:pointer;position:relative}
+.inf-slots .sl-bar::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:4px;margin:-2px 0 0 -13px;border-radius:2px;background:var(--honey);opacity:.75}
+.inf-slots .sl-bar.on::after{background:var(--dim)}
 .inf-slots .sl-r{line-height:1.45;white-space:nowrap}
 .inf-slots em{font-style:normal;font-family:var(--font-disp);color:var(--fur);display:inline-block;min-width:2.2em}
 .inf-slots b{letter-spacing:1px;color:var(--honey)}.inf-slots i{font-style:normal;color:var(--dim)}
