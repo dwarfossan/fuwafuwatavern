@@ -28,7 +28,7 @@ function renderShop(){
     <div class="head"><div>
       <h2>大爺的裝備牆</h2>
     </div>${pageHelpHTML("shop")}</div>
-    <div class="quip"><div class="quip-face">${DWARF_SVG.replace('viewBox="100 40 490 560"','viewBox="200 130 290 290"')}</div><p>${state.quip}</p></div>
+    <div class="quip"><div class="quip-face">${DWARF_SVG.replace('viewBox="0 0 600 680"',`viewBox="${DWARF_FACE_VIEWBOX}"`)}</div><p>${state.quip}</p></div>
     <div class="tabs" role="tablist" aria-label="${SHOP_UI.characters}">${tabs}</div>
     <details class="shop-side" ${state.shopBagOpen?"open":""}>
       <summary>
