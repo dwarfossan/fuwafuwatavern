@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>毛絨絨小隊 測試入口</title>
+<!-- 測試入口（大爺 10-02）：存成書籤，打開永遠是 dev 最新的那一筆。
+     每次打開都即時問 GitHub dev 現在指到哪一筆，再跳到那一筆的指定版本網址（raw.githack + 40 碼 commit），不會吃到舊快取。
+     這個檔案只放 main（GitHub Pages 才有固定網址），遊戲本身不讀它。 -->
+<style>
+:root{--night:#2a1f18;--card:#3e2c21;--fur:#f4e7d3;--honey:#e8b04b;--ink:#2a1f18;--dim:#bfa98c}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--night);color:var(--fur);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;line-height:1.6;
+  display:flex;align-items:flex-start;justify-content:center;padding:32px 16px}
+main{width:100%;max-width:390px}
+h1{font-size:20px;margin:0 0 16px}
+.card{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:20px}
+.msg{font-size:15px;word-break:break-word}
+.meta{font-size:13px;color:var(--dim);margin-top:6px}
+a.btn{display:block;text-align:center;text-decoration:none;font-size:18px;font-weight:700;
+  padding:14px;border-radius:12px;margin-bottom:12px;border:2px solid var(--honey)}
+a.btn.main{background:var(--honey);color:var(--ink)}
+a.btn.ghost{color:var(--honey)}
+.err{color:#ff9b8a}
+</style>
+</head>
+<body>
+<main>
+  <h1>毛絨絨小隊・測試版</h1>
+  <div class="card" id="info"><div class="msg">正在問 GitHub 最新的是哪一版……</div></div>
+  <div id="links"></div>
+</main>
+<script>
+const REPO = "dwarfossan/fuwafuwatavern", BRANCH = "dev";
+const info = document.getElementById("info"), links = document.getElementById("links");
+fetch(`https://api.github.com/repos/${REPO}/commits/${BRANCH}?t=${Date.now()}`, {cache:"no-store"})
+  .then(r => { if(!r.ok) throw new Error("GitHub 回 " + r.status); return r.json(); })
+  .then(c => {
+    const sha = c.sha, base = `https://raw.githack.com/${REPO}/${sha}/index.html`;
+    const when = new Date(c.commit.committer.date).toLocaleString("zh-TW", {hour12:false});
+    const msg = c.commit.message.split("\n")[0];
+    info.innerHTML = `<div class="msg"></div><div class="meta">${when}・${sha.slice(0,7)}</div>`;
+    info.querySelector(".msg").textContent = msg;
+    links.innerHTML = `<a class="btn main" href="${base}#battle">快速戰鬥</a>
+                       <a class="btn ghost" href="${base}">從頭玩</a>`;
+  })
+  .catch(e => {
+    info.innerHTML = `<div class="msg err">查不到最新版（${e.message}）。等一下重新整理再試。</div>`;
+  });
+</script>
+</body>
+</html>
