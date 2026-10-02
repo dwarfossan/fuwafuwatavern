@@ -13,6 +13,9 @@ try{
   await page.waitForFunction(()=>B()?.units.length);
   await page.evaluate(()=>{
     CRITTERS.forEach(c=>{state.inv[c.id]=[];state.gold[c.id]=100*GP;});
+    // 用 #battle 進來只是為了快速有一份初始狀態；背景那場戰鬥的敵人回合計時器會隨機呼叫 render() 把商店整頁重畫，
+    // 打斷滑動手勢、捲動位置（10-03 查到的偶發失敗原因）。清掉戰鬥，計時器全部變成不做事（later 會檢查 B()）
+    state.battle=null;
     state.page='shop';state.shopCat=CATS[0];render();
   });
   await page.waitForTimeout(500); // 換頁動畫結束後量測
