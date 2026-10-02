@@ -1,6 +1,7 @@
 /* 戰鬥台詞：在角色頭上跳氣泡框（一兩秒），紀錄裡也留一行
    on：什麼時候說
      down＝有人倒下（我方生命歸零或敵人被打倒），about 是倒下的那個
+     hunch＝看得到的敵人全倒了，但還有躲著的（提示玩家去搜索，不能講位置、不能講是誰），about 是最後倒下的那隻
    speaker：誰說（條件全部符合的活著、沒躲起來的角色；有好幾個符合就隨機挑一個）
    about：跟誰有關（條件全部符合才說）
      條件欄位：side 陣營（pc／foe）、id 角色（fox、tiger、wolf、raccoon）、type 敵人種類（goblin…）、
@@ -19,5 +20,10 @@ const BARKS = [
    lines:["就跟你說拿棍子沒用！", "棍子？你拿棍子打架？活該。"]},
   // 反過來：拿彎刀的先倒下，拿短棒的回嘴
   {on:"down", speaker:{type:"goblin", holds:"短棒"}, about:{type:"goblin", born:"彎刀"}, lang:"哥布林語",
-   lines:["……彎刀也沒比較好嘛。"]}
+   lines:["……彎刀也沒比較好嘛。"]},
+  // 還有躲著的：每隻用自己的方式覺得不對勁（草稿，大爺 10-02 要的提示）
+  {on:"hunch", speaker:{id:"wolf"},    draft:"香香", lines:["鼻子癢癢的……附近還有哥布林的味道。"]},
+  {on:"hunch", speaker:{id:"fox"},     draft:"香香", lines:["太安靜了吧？這種時候通常還有一隻。"]},
+  {on:"hunch", speaker:{id:"tiger"},   draft:"香香", lines:["打完了？不對，我背後毛毛的。"]},
+  {on:"hunch", speaker:{id:"raccoon"}, draft:"香香", lines:["……有人在偷看。"]}
 ];

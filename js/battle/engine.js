@@ -505,6 +505,10 @@ function hurt(t, n, type, src){
     else { t.down = true; t.dsFail = 0; t.statuses = []; blog(`${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
+    // 看得到的敵人全倒、還有躲著的（大爺 10-02）：四小隻覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
+    const b = B();
+    if(t.side==="foe" && !b.units.some(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v))
+       && b.units.some(v=>foeHid(v) && !v.dead && !v.down)) barkOn("hunch", t, at + 700 + BARK_MS);
   }
 }
 function heal(t, n){
@@ -619,13 +623,13 @@ function barkMatch(u, sel){
 }
 function barkOn(ev, about, delay=0){
   const b = B(); b.barked = b.barked || [];
-  for(const r of BARKS.filter(r=>r.on===ev && barkMatch(about, r.about))){
-    const lines = r.lines.filter(l=>!b.barked.includes(l));
-    const who = b.units.filter(v=>v!==about && !v.dead && !v.down && !foeHid(v) && barkMatch(v, r.speaker));
-    if(!lines.length || !who.length) continue;
-    say(who[Math.floor(Math.random()*who.length)], lines[Math.floor(Math.random()*lines.length)], delay, r.lang);
-    return;
-  }
+  // 符合的好幾組（例如每隻各一組）隨機挑一組講，不會永遠是排在前面的那隻
+  const ok = BARKS.filter(r=>r.on===ev && barkMatch(about, r.about)).map(r=>({r,
+    lines: r.lines.filter(l=>!b.barked.includes(l)),
+    who: b.units.filter(v=>v!==about && !v.dead && !v.down && !foeHid(v) && barkMatch(v, r.speaker))})).filter(c=>c.lines.length && c.who.length);
+  if(!ok.length) return;
+  const c = ok[Math.floor(Math.random()*ok.length)];
+  say(c.who[Math.floor(Math.random()*c.who.length)], c.lines[Math.floor(Math.random()*c.lines.length)], delay, c.r.lang);
 }
 // 聽不聽得懂：通用語大家都懂；其他語言由我方活著的角色做被動智力檢定（10 + 智力調整值 ≥ 語言難度，不擲骰），挑分數最高的
 function understoodBy(lang){

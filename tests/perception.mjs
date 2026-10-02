@@ -107,5 +107,13 @@ try{
  ok(`從藏身處出手：面板第一列攤潛行 17→19 對被動感知（同一列），下一列就是出手，四小隻頭上都跳 ?（${v2.rows.join(' / ')}）`);
  assert.match(v2.spotLabel,/【察覺】/);assert.equal(v2.spotRows,`潛行:hide|${v2.uname}:found`);assert(v2.spotMark);ok('察覺成功：面板「察覺」、潛行骰對被動感知，發現的那隻頭上 !');
 
+ // 看得到的敵人全倒、還有躲著的：四小隻講一句覺得不對勁（大爺 10-02），不講位置；沒有躲著的就不講
+ const hn=await pg.evaluate(()=>{ const b=B(), out={}; const foes=b.units.filter(v=>v.side==='foe');
+   const run=(hide)=>{ b.barked=[]; b.units.forEach(v=>{ v.dead=false; v.down=false; v.hp=v.maxHp; v.statuses=[]; });
+     const [last,...rest]=foes; rest.forEach((v,i)=>{ if(hide&&i===0) addStatus(v,'hidden',{val:30,roll:20}); else v.dead=true; });
+     const n0=b.log.length; hurt(last, 999, '物理', null); return b.log.slice(n0).filter(l=>l.k==='talk'||/：「/.test(l.t)).map(l=>l.t); };
+   out.yes=run(true); out.no=run(false); return out; });
+ assert(hn.yes.some(t=>/味道|安靜|毛毛|偷看/.test(t)),'沒講：'+hn.yes.join(' / '));assert(!hn.no.some(t=>/味道|安靜|毛毛|偷看/.test(t)));
+ ok(`看得到的全倒、還有躲著的：${hn.yes.find(t=>/味道|安靜|毛毛|偷看/.test(t))}；全倒光就不講`);
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}
