@@ -12,7 +12,7 @@ let fails = 0, passes = 0;
 const ok = (name, cond, info='') => { if(cond){ passes++; console.log('  ✓ ' + name); } else { fails++; console.log('  ✗ ' + name + (info ? '  → ' + info : '')); } };
 
 const br = await chromium.launch();
-async function open(hash='', viewport={width:1000, height:900}){
+async function open(hash='', viewport={width:390, height:844}){   // 只做手機版（10-02）：寬螢幕會轉到 phone.html
   const pg = await br.newPage({viewport});
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
@@ -35,11 +35,11 @@ console.log('封面 → 擲屬性 → 序章');
   await pg.click('#next'); await pg.waitForTimeout(200);
   ok('進入序章', await pg.evaluate(()=>state.page==='story' && state.scene==='prologue'));
   const stage = await pg.evaluate(()=>{ window.__st=document.getElementById('stage'); return true; });
-  await pg.mouse.click(400, 60); await pg.waitForTimeout(150);
+  await pg.mouse.click(200, 60); await pg.waitForTimeout(150);
   ok('點對話框以外的地方也會推進', await pg.evaluate(()=>state.line) === 1);
   ok('換台詞不整頁重畫', await pg.evaluate(()=>window.__st===document.getElementById('stage')));
   const total = await pg.evaluate(()=>SCENES.prologue.script.length);
-  for(let i=0;i<total;i++){ await pg.mouse.click(400, 60); await pg.waitForTimeout(40); }
+  for(let i=0;i<total;i++){ await pg.mouse.click(200, 60); await pg.waitForTimeout(40); }
   ok('序章最後一句「去看裝備」按鈕亮起', await pg.evaluate(()=>{ const b=document.getElementById('toShop'); return b && !b.disabled && b.textContent==='去看裝備'; }));
   await pg.click('#toShop'); await pg.waitForTimeout(200);
   ok('進入商店', await pg.evaluate(()=>state.page) === 'shop');
@@ -169,7 +169,7 @@ console.log('規則');
   ok('觀察成功跳 ❗ 泡泡', r2.mark);
 
   // 頭上提示的縮放
-  const r3 = await pg.evaluate(()=>{ const b=B(), zd=zoomDefault(); b.zoom=zd; const a=overlayK()*zd; b.zoom=.3; const c=overlayK()*.3; b.zoom=1.2; const d=overlayK()/(1/zd); return [a,c,d]; });
+  const r3 = await pg.evaluate(()=>{ const b=B(), zd=zoomDefault(); b.zoom=zd; const a=overlayK()*zd; b.zoom=.2; const c=overlayK()*.2; b.zoom=1.2; const d=overlayK()/(1/zd); return [a,c,d]; });   // 10-02 縮小改 .2：手機預設 .45，.3 還沒小到最少 60% 的門檻
   // 合併重複招式（2026-10-01）：用代號找得到、舊名稱不在、能不能用照新條件
   const r4 = await pg.evaluate(()=>{ const b=B(), tig=b.units.find(u=>u.id==='tiger'), W=n=>ITEMS.find(i=>i.n===n);
     const can=(w,id)=>{ tig.weapon=w?W(w):null; return skillReqMet(tig, learnedSkillByKey(id)); };

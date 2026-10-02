@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>毛絨絨小隊</title>
+<script>
+/* 只做手機版（大爺 10-02）：電腦等寬螢幕開，改用 phone.html 把遊戲裝在手機寬的框裡
+   框裡的視窗寬度就是手機寬，版面、@media、vw、fixed 都跟手機一模一樣 */
+if(window.top===window.self && window.innerWidth>600) location.replace("phone.html"+location.hash);
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@700;900&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap">
 <link rel="stylesheet" href="css/style.css">

@@ -16,6 +16,7 @@
 
 ```
 index.html          只放外框和載入順序
+phone.html          電腦等寬螢幕開 index.html 會自動轉來這裡，把遊戲裝在 390 寬的框裡（只做手機版，10-02）
 css/style.css       全部樣式
 data/               遊戲資料：六圍、角色、裝備、技能、名詞、敵人與 NPC、戰場、台詞、劇情、大地圖
 js/state.js         遊戲狀態
