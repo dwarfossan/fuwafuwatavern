@@ -11,9 +11,9 @@ try{
   const errors=[];pg.on('pageerror',e=>errors.push(e.message));
   await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
   await pg.waitForTimeout(500);
-  const faces=await pg.locator('.row-critters>svg').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,right:r.right}}));
-  assert.equal(faces.length,4);assert.equal(new Set(faces.map(e=>e.y)).size,1);assert(faces.every(e=>e.right<=390));
-  assert(!(await pg.locator('.sub').innerText()).includes('今晚'));ok('封面四隻同排，文案符合午後');
+  const party=await pg.locator('.cover-party').evaluate(e=>{const r=e.getBoundingClientRect();return {ok:e.complete&&e.naturalWidth>0,left:r.left,right:r.right,w:r.width}});
+  assert(party.ok);assert(party.left>=0&&party.right<=390&&party.w>200);
+  assert(!(await pg.locator('.sub').innerText()).includes('今晚'));ok('封面四小隻合照圖有載入、不超出手機寬，文案符合午後');
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/cover.png'});
   await pg.locator('#start').click();
   assert.equal(await pg.locator('.rule').count(),0);
