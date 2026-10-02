@@ -322,7 +322,8 @@ function launch(a, t, k, delay=0, thing=null){
   const glow = GLOW[(a.focus && groupOf(a.focus) || {}).id] || "#b9a0ff";
   const throwArt = kind==="thrown" ? projArtKey(thing || a.weapon) : null;
   (b.proj = b.proj || []).push({kind, fx:a.x, fy:a.y, tx:t.x, ty:t.y, face:a.face||1, t:Date.now()+release+delay, dur:kind==="bullet" ? 160 : flight, glow, art:throwArt});
-  if(kind==="bullet"){   // 開槍：槍口火光＋白煙（10-03）；子彈飛很快
+  if(kind==="bullet"){   // 開槍：先瞄準（目標身上出現瞄準圈），槍口火光＋白煙（10-03）；子彈飛很快
+    (b.fx = b.fx || []).push({x:t.x, y:t.y, kind:"aim", t:Date.now()+delay, dur:release+120});
     (b.fx = b.fx || []).push({x:a.x, y:a.y, kind:"smoke", face:a.face||1, t:Date.now()+release+delay, dur:1300});
     b.impactEnd = Math.max(b.impactEnd||0, Date.now() + release + delay + 160);
     return release + delay + 160;

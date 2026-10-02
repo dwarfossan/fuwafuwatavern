@@ -14,7 +14,7 @@ const HELD = {
   dagger:       {gy:99,  ang:40},
   bow:          {gx:95,  gy:60, ang:-6, s:.56, hx:130, hy:100},   // 弓要拿在身體外側，弦才不會壓在身上
   crossbow:     {gy:112, ang:75},
-  firearm:      {gy:100, ang:78, two:46},    // 火槍：往前平舉；主手握扳機後面、副手托住前面的槍管（10-03，大爺：兩隻手）
+  firearm:      {gy:100, ang:78, two:24, twoX:70},   // 火槍：主手握槍托、副手托住槍管下面的護木（twoX：副手偏到槍管下面）（10-03 大爺）
   pistol:       {gy:100, ang:80, s:.34},     // 手槍：單手（item.art；SRD 手槍不是雙手武器）
   thrown:       {gy:72,  ang:25},
   arcane_staff: {gy:100, ang:12},
@@ -26,8 +26,8 @@ const HELD = {
 const GLOW = {arcane_staff:"#8fd0f0", healing_book:"#9be08a", flame_orb:"#f2b441", shaman_totem:"#c58af0"};
 
 // 每個動作的長度（毫秒）與「打中」的時間點
-const DOLL_DUR    = {slash:550, smash:720, combo:850, spin:760, thrust:520, guard:600, shoot:680, fire:680, throw:620, punch:420, cast:820, slam:760, hurt:600, getup:520, fall:450, hop:160, lunge:460};
-const DOLL_IMPACT = {slash:230, smash:400, combo:180, spin:260, thrust:280, guard:0,   shoot:450, fire:450, throw:380, punch:230, cast:320, slam:420, lunge:200};
+const DOLL_DUR    = {slash:550, smash:720, combo:850, spin:760, thrust:520, guard:600, shoot:680, fire:1150, throw:620, punch:420, cast:820, slam:760, hurt:600, getup:520, fall:450, hop:160, lunge:460};
+const DOLL_IMPACT = {slash:230, smash:400, combo:180, spin:260, thrust:280, guard:0,   shoot:450, fire:820, throw:380, punch:230, cast:320, slam:420, lunge:200};
 
 // 技能 → 動作（武器：普攻＋三招；法器：法術，法杖第一招是打擊）
 const SKILL_ANIM = {
@@ -165,7 +165,7 @@ function dollSVG(o){
     const s = h.s ?? .4;
     arm = `<g transform="translate(${h.hx??100} ${h.hy??104}) rotate(${h.ang})">
       <g transform="scale(${s}) translate(${-(h.gx??60)} ${-h.gy})">${ITEM_RAW[main]}</g>
-      ${handSVG(0,0,c)}${two?handSVG(0,(h.two-h.gy)*s,c):""}</g>`;
+      ${handSVG(0,0,c)}${two?handSVG(((h.twoX??(h.gx??60))-(h.gx??60))*s,(h.two-h.gy)*s,c):""}</g>`;
   } else arm = handSVG(100,104,c, main==="unarmed"?10:8.5);
   // 副手
   let offHand = "";

@@ -161,6 +161,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   b.fx.forEach(f=>{ const p=iso(f.x,f.y), d=f.dur||700;
     // 槍口白煙：畫在槍口（跟飛行物出手的位置一樣），往面向的方向飄
     if(f.kind==="smoke") out.push(`<g data-exp="${f.t+d}">${smokeSVG(p.x + f.face*30, p.y+TH/2-66, f.face, now-f.t)}</g>`);
+    else if(f.kind==="aim") out.push(`<g data-exp="${f.t+d}">${aimSVG(p.x, p.y+TH/2-54, now-f.t, d)}</g>`);
     else out.push(`<g data-exp="${f.t+d}">${fxSVG(f.kind, p.x, p.y+TH/2-54, now-f.t)}</g>`); });
   // 飄字
   b.floats = (b.floats||[]).filter(f=>now-f.t<1100);
@@ -535,6 +536,10 @@ function faceSVG(v, x, y, size){
   return (L.face || L.head).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
 }
 // 打中特效：斬擊弧線、穿刺、衝擊、火焰、魔法、治療
+// 瞄準圈（10-03）：紅色準星縮到目標身上
+const aimSVG = (x, y, el, dur) => `<g class="fx-aim" transform="translate(${x} ${y})"><g class="aim-ring" style="--dur:${dur}ms;animation-delay:${-el}ms">
+  <circle r="22" fill="none" stroke="#2a2630" stroke-width="6" opacity=".5"/><circle r="22" fill="none" stroke="#ff5a4a" stroke-width="3"/>
+  <path d="M0 -32 V-14 M0 14 V32 M-32 0 H-14 M14 0 H32" stroke="#ff5a4a" stroke-width="3" stroke-linecap="round"/><circle r="3" fill="#ff5a4a"/></g></g>`;
 // 開槍的白煙（10-03）：一閃火光，接著幾團煙往前冒、慢慢變大散掉
 function smokeSVG(x, y, face, el){
   const puffs = [[10,0,13,0],[24,-6,16,50],[40,-12,18,110],[18,-16,12,170],[54,-20,16,230],[32,-26,13,300]];
