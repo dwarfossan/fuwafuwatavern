@@ -38,7 +38,7 @@ function roadAmbushSVG(){
     <!-- 路邊的草叢（哥布林薩滿躲在裡面；被動察覺有人過的話，劇情裡會晃）
          10-02 照大爺的參考圖：縮小、放到右邊（原本在 x 80～320，手機只看得到中間 x 360～1240，會被切掉）
          外層 g 負責位置，內層 .story-bush 給 CSS 晃動用（CSS 的 transform 會蓋掉 SVG 的 transform 屬性） -->
-    <g transform="translate(985 211) scale(.71)"><g class="story-bush">
+    <g transform="translate(910 17)"><g class="story-bush">
       <ellipse cx="200" cy="668" rx="120" ry="16" fill="#000" opacity=".18"/>
       <circle cx="140" cy="630" r="46" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
       <circle cx="262" cy="634" r="44" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
