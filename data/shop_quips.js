@@ -1,4 +1,5 @@
 /* 大爺在裝備店的吐槽台詞 */
+const SHOP_UI = {gear:"裝備",categories:"商品分類",products:"商品",characters:"購物角色"};
 const DWARF_QUIPS = {
   str:["那件甲比你還重，換一件！","揮不起來的傢伙別硬拿，會砸到自己腳！"],
   gold:["錢不夠啦，大爺這裡不賒帳！"],

@@ -509,8 +509,24 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .quip-face{width:56px;height:56px;flex:none;border-radius:50%;overflow:hidden;background:#3b2a20;border:2px solid var(--ale)}
 .quip-face svg{width:100%;height:100%;display:block}
 .quip p{margin:0;font-size:16px}
-.shop{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px;align-items:start}
-@media (max-width:720px){.shop{grid-template-columns:1fr}.shop-side{order:-1}}
+/* 商店只讓商品／展開的裝備清單捲動，分類和出發留在同一屏。 */
+.wrap.shop-screen{height:100vh;height:100dvh;padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 12px);overflow:hidden}
+.shop-page{height:100%;display:flex;flex-direction:column;gap:8px;min-height:0}
+.shop-page>.head,.shop-page>.quip,.shop-page>.tabs,.shop-page>.chips,.shop-page>.nav{flex:none;margin:0}
+.shop-page .head h2{font-size:24px}
+.shop-page .rule{font-size:12px;line-height:1.5}
+.shop-page .quip{padding:6px 10px;gap:8px}
+.shop-page .quip-face{width:36px;height:36px}
+.shop-page .quip p{font-size:14px;line-height:1.4}
+.shop-page .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.shop-page .tab{display:grid;grid-template-columns:22px auto;justify-content:center;gap:0 4px;padding:4px;border-radius:12px;font-size:14px;white-space:nowrap}
+.shop-page .tab svg{width:22px;height:22px}
+.shop-page .tab .done{grid-column:1/-1;text-align:center;font-size:11px}
+.shop-page .chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.shop-page .chip{min-height:36px;padding:4px;font-size:13px}
+.shop-list{flex:1;min-height:100px;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-width:thin;border-radius:10px}
+.shop-page>.nav{padding-top:4px}
+.shop-page>.nav .btn{font-size:15px;padding:8px 18px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .chip{background:var(--plank);color:var(--dim);border:1px solid var(--plank-2);border-radius:999px;padding:3px 12px;font-size:14px}
 .chip.on{background:var(--honey);color:var(--ink);border-color:var(--honey);font-weight:700}
@@ -524,7 +540,18 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .it-wt{font-size:12px;color:var(--dim)}
 .item.blocked{opacity:.6;cursor:help}
 .it-why{grid-column:1/-1;font-size:12px;color:var(--bad)}
-.shop-side{background:var(--plank);border-radius:12px;padding:14px;display:grid;gap:8px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.shop-side{flex:none;background:var(--plank);border-radius:12px;padding:8px 10px}
+.shop-side summary{display:grid;grid-template-columns:1fr .5fr 1.3fr auto;gap:6px;align-items:center;cursor:pointer;list-style:none;min-height:40px}
+.shop-side summary::-webkit-details-marker{display:none}
+.shop-stat{display:grid;font-size:11px;color:var(--dim);line-height:1.5}
+.shop-stat b{color:var(--fur);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.shop-bag-label{display:grid;justify-items:center;color:var(--honey);font-size:12px;line-height:1.4}
+.shop-side[open] .shop-bag-arrow{transform:rotate(180deg)}
+.shop-gear{max-height:22vh;max-height:22dvh;overflow-y:auto;overscroll-behavior-y:contain;border-top:1px solid var(--plank-2);padding-top:6px;margin-top:6px}
+.shop-gear .bag{display:flex;flex-wrap:wrap;gap:4px}
+.shop-gear .bag li{gap:4px;font-size:12px}
+.shop-gear .bag .it-name{font-size:12px}
+.shop-gear .bag .btn{font-size:12px;padding:2px 8px}
 .side-top{display:flex;gap:10px;align-items:center}
 .side-top svg{width:52px;height:52px}
 .side-top h3{margin:0;font-family:var(--font-disp);font-size:20px}

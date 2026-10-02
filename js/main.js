@@ -7,6 +7,8 @@ function render(){
   if(state.page==="battle" && B() && app.querySelector("#board-floor") && refreshBattle.battle===B()){
     updateBattleFrame(); return;
   }
+  rememberShopView(app);
+  app.classList.toggle('shop-screen',state.page==='shop');
   app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", renderModal());
@@ -176,7 +178,7 @@ function bind(){
     g.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
   });
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
-  document.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click", ()=>{state.shopCat=b.dataset.cat;render()}));
+  if(state.page==="shop") bindShop();
   document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id, it = ITEMS.find(i=>i.id===b.dataset.buy);
     if(blockReason(id,it)) return;
