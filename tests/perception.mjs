@@ -61,5 +61,31 @@ try{
    const card=document.querySelector('.bt-info'); return {head:card.querySelector('.dim').textContent, slots:!!card.querySelector('.inf-slots'), econ:!!card.querySelector('.econ')}; });
  assert.match(pc.head,/被動感知 \d+/);assert(pc.slots);assert.equal(pc.econ,false);ok('四小隻卡片：被動感知、熟練格一律顯示；不是牠的回合不顯示燈號');
 
+ // 潛行統一（大爺 10-02）：沒過 13＝沒躲好；察覺用被動感知不擲骰；搜索一起找 6 格內躲著的
+ const h=await pg.evaluate(()=>{ const b=B(), u=cur(), rnd=Math.random, out={};
+   const e=b.units.find(v=>v.side==='foe'&&!v.dead&&!v.down&&v.type!=='goblin_shaman'); e.statuses=e.statuses.filter(s=>s.k!=='hidden');
+   e.x=u.x+2; e.y=u.y; b.units.filter(v=>v.side==='pc').forEach(v=>v.statuses=v.statuses.filter(s=>s.k!=='hidden'));
+   // 劇情伏擊：擲 1 沒過 13，四隻都看到
+   Math.random=()=>0; scoutBattle('ambush'); out.scoutAll=Object.values(state.scout.foes)[0].spotted.length; out.scoutHide=Object.values(state.scout.foes)[0].hide;
+   Math.random=()=>0.999; scoutBattle('ambush'); out.scoutHigh=Object.values(state.scout.foes)[0].hide; state.scout=null;
+   // 潛行擲 1：沒躲好
+   Math.random=()=>0; out.failHide=tryHide(e); out.failHidden=foeHid(e); Math.random=rnd;
+   // 被動察覺：剛好等於就發現、差 1 就沒發現，跟亂數無關
+   e.statuses.push({k:'hidden', val:15}); u.mods.WIS=4; Math.random=()=>0; perceive(u); out.passiveLow=foeHid(e);
+   u.mods.WIS=5; perceive(u); out.passiveEq=foeHid(e); Math.random=rnd;
+   // 搜索四周：擲 20 找到、擲 1 找不到也不寫紀錄
+   u.mods.WIS=0; e.statuses.push({k:'hidden', val:15}); b.freeUsed=false; b.actionUsed=false;
+   const n0=b.log.length; Math.random=()=>0; doSearch(u,null); out.searchLowHidden=foeHid(e); out.leak=b.log.slice(n0).some(l=>/躲著|發現/.test(l.t));
+   b.freeUsed=false; Math.random=()=>0.999; doSearch(u,null); out.searchHighHidden=foeHid(e); Math.random=rnd;
+   // 附近沒有能看穿的，搜索按鈕照樣能按（不然等於告訴玩家附近有東西）
+   b.units.filter(v=>v.side==='foe').forEach(v=>b.pocketSeen[v.id]=true); b.freeUsed=false; b.actionUsed=false; b.busy=false; b.mode=null; b.menu='act'; refreshBattle();
+   const btn=document.querySelector('[data-cmd="search"]'); out.btn=!!btn&&!btn.disabled;
+   return out; });
+ assert.equal(h.scoutAll,4);assert(h.scoutHide<13);assert(h.scoutHigh>=13);ok(`伏擊：薩滿擲不到 13（${h.scoutHide}）四隻都看到；擲高（${h.scoutHigh}）照數字比`);
+ assert.equal(h.failHide,false);assert.equal(h.failHidden,false);ok('潛行沒過 13：沒躲好');
+ assert.equal(h.passiveLow,true);assert.equal(h.passiveEq,false);ok('察覺用被動感知：14 找不到 15、15 找到 15，亂數不影響');
+ assert.equal(h.searchLowHidden,true);assert.equal(h.leak,false);assert.equal(h.searchHighHidden,false);ok('搜索四周：擲 20 找到躲著的；擲 1 找不到也不洩漏');
+ assert(h.btn);ok('附近沒東西可看穿，搜索照樣能按');
+
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}

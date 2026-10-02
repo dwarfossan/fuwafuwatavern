@@ -71,13 +71,14 @@ function startBattle(id){
     if(u.side==="pc") u.slots = max.map((m,i)=>Array.isArray(saved) ? Math.min(m, saved[i] ?? m) : m);
     else if(u.side==="foe") u.slots = max;
   });
-  // 開場就躲好的敵人（例如草叢裡的哥布林薩滿）：找到牠的難度 = d20 + 敏捷，至少是躲藏的 DC
-  //   劇情裡先做過被動察覺（state.scout）：沿用同一個躲藏數字；有人察覺到就直接現形
+  // 開場就躲好的敵人（例如草叢裡的哥布林薩滿）：擲 d20 + 敏捷，沒過 HIDE_DC 就沒躲好、開場就看得到
+  //   劇情裡先做過被動察覺（state.scout）：沿用同一個躲藏數字；沒躲好或有人察覺到就直接現形
   const scout = state.scout && state.scout.battle===id ? state.scout.foes : null;
   def.foes.forEach((f,i)=>{ if(!f.hidden) return;
     const u = units.find(v=>v.id==="foe"+i), sc = scout && scout[i];
     if(sc && sc.spotted.length){ u.revealedBy = sc.spotted; return; }
-    u.statuses.push({k:"hidden", val: sc ? sc.hide : Math.max(HIDE_DC, d20() + u.mods.DEX)}); });
+    const hide = sc ? sc.hide : d20() + u.mods.DEX;
+    if(hide >= HIDE_DC) u.statuses.push({k:"hidden", val: hide}); });
   // 先攻：d20 + 敏捷調整值，高的先
   // NPC 不擲先攻，排在最後，輪到時直接跳過
   units.forEach(u=> u.init = u.side==="npc" ? -Infinity : d20() + u.mods.DEX + Math.random()*.1);
@@ -158,8 +159,10 @@ const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead);
 // ---------- 潛行與察覺（SRD 5.2 的躲藏；檢定直接用六圍，沒有技能熟練） ----------
 // 能躲：站在草叢裡，或每隻看得到你的敵人跟你之間都有四分之三掩護（樹、篷車），而且旁邊沒有敵人
 // 潛行：d20 + 敏捷 ≥ 13（SRD 是 15 含熟練 +2，這裡沒有熟練所以降 2）；穿重甲有劣勢。擲出來的數字＝別人要找到你的難度
+// 沒過 13＝沒躲好（敵人開場躲著、劇情伏擊也一樣，不會被拉到 13）
 // 躲好：敵人不能選你當目標；你攻擊有優勢，出手就現身；走出藏身處被看到、被察覺到也會現身
-// 察覺：回合開始時，自己移動格數內躲著的敵人，自動擲 d20 + 感知，大於等於他潛行擲的數字就發現
+// 察覺（大爺 10-02 統一成 D&D）：回合開始時，自己移動格數內躲著的敵人，用被動感知（10＋感知，不擲骰）比他潛行擲的數字
+//   想主動找就用「搜索」（免費動作，d20＋感知，6 格內躲著的一起找，js/battle/flow.js 的 doSearch）
 const HIDE_DC = 13;
 const isHid = u => !!has(u,"hidden");
 // 敵對：雙方陣營不同、而且都不是 NPC。NPC（商人等）站在戰場上但不屬於任何一方，不能被當成目標、也不會攻擊人
@@ -191,9 +194,9 @@ function reveal(u, why){
 const senseRange = u => Math.max(0, u.speed - (u.statuses.some(s=>s.k==="slowed" && !s.stop) ? 2 : 0));   // 察覺範圍＝移動速度
 function perceive(u){
   B().units.filter(v=>hostile(v,u) && !v.dead && !v.down && isHid(v) && dist(u,v)<=senseRange(u)).forEach(v=>{
-    const r = d20(), total = r + u.mods.WIS, need = has(v,"hidden").val, ok = total >= need;
+    const total = passivePer(u), need = has(v,"hidden").val, ok = total >= need;
     // 我方沒找到躲著的敵人時不寫紀錄，不然等於告訴玩家附近有東西
-    if(ok || v.side==="pc") blog(`${u.name}察覺：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} ${need} → ${ok?`發現了${v.name}！`:`沒發現${v.name}`}`, ok?"skill":"miss", ok?"發現了！":"沒發現");
+    if(ok || v.side==="pc") blog(`${u.name}察覺：被動感知 10${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} ${need} → ${ok?`發現了${v.name}！`:`沒發現${v.name}`}`, ok?"skill":"miss", ok?"發現了！":"沒發現");
     if(ok){ reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); }
   });
 }

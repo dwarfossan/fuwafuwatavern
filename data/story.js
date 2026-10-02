@@ -60,7 +60,8 @@ const FAREWELL = [
 ];
 
 /* 伏擊前的被動察覺（大爺 2026-10-01）：四小隻不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
-   難度＝躲著的敵人這次的躲藏數字（d20 + 敏捷，至少 HIDE_DC），進戰鬥沿用同一個數字
+   難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、四小隻不擲），進戰鬥沿用同一個數字
+   沒過 HIDE_DC＝沒躲好，草叢在抖，四隻都看到（大爺 10-02：以前會被拉到 13，等於把失敗改成及格）
    有人過：劇情裡草叢會晃、過的那幾隻吐槽，進戰鬥時那隻直接現形 */
 const SPOT_QUIP = {   // 台詞草稿，大爺改完才算數
   fox:     "躲草叢？草都在抖了，藏得也太差了吧。",
@@ -72,8 +73,8 @@ function scoutBattle(id){
   const def = BATTLES[id], foes = {};
   def.foes.forEach((f,i)=>{
     if(!f.hidden) return;
-    const hide = Math.max(HIDE_DC, d20() + ENEMIES[f.type].mods.DEX);
-    const spotted = CRITTERS.filter(c=>10 + modOf(finalScore(c.id,"WIS")) >= hide).map(c=>c.id);
+    const hide = d20() + ENEMIES[f.type].mods.DEX;
+    const spotted = CRITTERS.filter(c=>hide < HIDE_DC || 10 + modOf(finalScore(c.id,"WIS")) >= hide).map(c=>c.id);
     foes[i] = {hide, spotted};
   });
   state.scout = {battle:id, foes};

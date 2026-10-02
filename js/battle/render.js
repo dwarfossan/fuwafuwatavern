@@ -780,7 +780,7 @@ function menuHTML(u, b){
   const lv = b.menu || "root";
   let body = "", title = "";
   if(lv==="root"){
-    const freeSk = canFree() && (unitSkills(u).some(s=>s.def.free && skillReady(u,s)) || searchTargets(u).length);
+    const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
     const hasItems = u.items.length || u.spare.length;
     body = mbtn("act","動作", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
            mbtn("move","走位", !canWalk() && !act) +
@@ -801,7 +801,7 @@ function menuHTML(u, b){
            (hasVia(u,"restrained","net") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${hasVia(u,"restrained","net").dc}`) : "") +
            (has(u,"burning") ? mbtn("douse","撲滅火焰", !act, "身上著火了") : "") +
            (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "被打有劣勢") +
-           mbtn("search","搜索", !canFree() || !searchTargets(u).length, !searchTargets(u).length ? `${SEARCH_RANGE} 格內沒有能搜的` : freeLeft() ? "免費動作" : "用掉動作") +
+           mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉動作") +
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "鄰格隊友攻擊優勢") +
            mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : "抓住就不能移動") +
            mbtn("shove","推撞", !act || !foesNear, "推開或推倒") +

@@ -57,7 +57,7 @@ for(const spot of [true, false]){
   await pg.waitForTimeout(4300);
   ok(`旅行途中進入伏擊劇情（${spot?'有人察覺':'沒人察覺'}）`, await pg.evaluate(()=>state.page==='story' && state.scene==='ambush' && !!state.scout));
   const r = await pg.evaluate((spot)=>{
-    const k = Object.keys(state.scout.foes)[0]; state.scout.foes[k].spotted = spot ? ["wolf"] : [];
+    const k = Object.keys(state.scout.foes)[0]; state.scout.foes[k].spotted = spot ? ["wolf"] : []; if(!spot) state.scout.foes[k].hide = 20;   // 沒人察覺＝躲好了（沒過 13 會直接現形）
     const s = SCENES.ambush.script; return {n:s.length, base:AMBUSH.length, shake:s.some(l=>l.shake), wolf:s.some(l=>l.who==='wolf' && l.text===SPOT_QUIP.wolf)};
   }, spot);
   ok('察覺的台詞與草叢晃動', spot ? (r.shake && r.wolf) : (!r.shake && r.n===r.base), JSON.stringify(r));

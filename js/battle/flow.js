@@ -443,7 +443,9 @@ function battleCmd(c){
       u.anim = {k:"guard", t:Date.now()}; animSfx("guard");
       blog(`${u.name}專心閃避：到下回合前，打他都有劣勢`, "skill"); afterShow(u, 700); return;
     case "search":
-      if(!canFree() || !searchTargets(u).length) return; b.menu = null; b.mode = {key:"search"}; break;
+      if(!canFree()) return;
+      if(!searchTargets(u).length){ b.menu = null; doSearch(u, null); return; }   // 沒有能看穿的：直接搜四周
+      b.menu = null; b.mode = {key:"search"}; break;
     case "help":
       if(!canAct() || !helpList(u).length) return; b.menu = null; b.mode = {key:"help"}; break;
     case "wait": b.menu = null; endTurn(); return;
@@ -507,14 +509,23 @@ const helpList = u => alliesOf(u).filter(p=>p!==u && dist(p,u)===1);
 function helpTarget(u, x, y){ const t = unitAt(x,y); return t && helpList(u).includes(t) ? t : null; }
 // 搜索（主動感知，大爺 10-02）：免費動作；6 格內看得到、還沒看穿的敵人；d20＋感知 對 DC（見 engine.js 的感知）
 const searchTargets = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v) && !pocketKnown(v) && dist(u,v)<=SEARCH_RANGE);
+// 搜索（大爺 10-02）：一次 d20＋感知，同時①看穿點的那隻身上的東西（有點的話）②找 6 格內躲著的敵人（比牠潛行擲的數字）
+//   按鈕只要有免費動作就能按：如果「附近有躲著的才能按」，等於告訴玩家附近有東西
+const hiddenNear = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && foeHid(v) && dist(u,v)<=SEARCH_RANGE);
 function doSearch(u, t){
-  const b = B(); b.mode = null; faceTo(u, t); spendFree(u);
+  const b = B(); b.mode = null; if(t) faceTo(u, t); spendFree(u);
   panelStart(`${u.name}【搜索】`);
-  const r = d20(), total = r + u.mods.WIS, dc = pocketDC(t), ok = total >= dc;
-  panelRow("chk", t, [r], r, total, ok ? "found" : "fail");
-  blog(`${u.name}搜索${t.name}身上帶的東西`, "skill");
-  blog(`　感知：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} DC ${dc} → ${ok?"看穿了":"沒看出來"}`, ok?"skill":"miss", ok?"看穿了":"沒看出來");
-  if(ok) markPocket(t);
+  const r = d20(), total = r + u.mods.WIS;
+  const found = hiddenNear(u).filter(v=>total >= has(v,"hidden").val);
+  const ok = t ? total >= pocketDC(t) : false;
+  panelRow("chk", t || {id:u.id, name:"四周"}, [r], r, total, ok || found.length ? "found" : "fail");
+  if(t){
+    blog(`${u.name}搜索${t.name}身上帶的東西`, "skill");
+    blog(`　感知：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} DC ${pocketDC(t)} → ${ok?"看穿了":"沒看出來"}`, ok?"skill":"miss", ok?"看穿了":"沒看出來");
+    if(ok) markPocket(t);
+  } else blog(`${u.name}搜索四周：d20=${r}${fmtN(u.mods.WIS)} = ${total}`, "skill");
+  // 沒找到躲著的不寫紀錄（不然等於告訴玩家附近有東西）
+  found.forEach(v=>{ blog(`　${u.name}發現了躲著的${v.name}！`, "skill"); reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); });
   panelEnd(); sfx("pop");
   afterShow(u, DICE_TUMBLE + 500);
 }
