@@ -14,8 +14,8 @@ const HELD = {
   dagger:       {gy:99,  ang:40},
   bow:          {gx:95,  gy:60, ang:-6, s:.56, hx:130, hy:100},   // 弓要拿在身體外側，弦才不會壓在身上
   crossbow:     {gy:112, ang:75},
-  firearm:      {gy:112, ang:78, two:84},    // 火槍：跟弩一樣往前平舉，副手托槍管（10-03）
-  pistol:       {gy:108, ang:80, s:.8},      // 手槍：單手（item.art）
+  firearm:      {gy:100, ang:78, two:46},    // 火槍：往前平舉；主手握扳機後面、副手托住前面的槍管（10-03，大爺：兩隻手）
+  pistol:       {gy:100, ang:80, s:.34},     // 手槍：單手（item.art；SRD 手槍不是雙手武器）
   thrown:       {gy:72,  ang:25},
   arcane_staff: {gy:100, ang:12},
   shaman_totem: {gy:100, ang:12},
