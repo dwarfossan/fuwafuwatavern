@@ -60,7 +60,7 @@ function rollAll(){
   syncRolls(c.id);
   resetGear(c);
   // 不演 4d6：玩家只在意最後的數字和怎麼分配（大爺決定），直接跳出 6 個數字籌碼
-  render();
+  state.chipPop = true; render(); state.chipPop = false;   // 只有剛擲出來那一次跳，之後分配重畫不再跳（10-02）
 }
 // 自動分配：最高的給背景 +2、次高給 +1，其餘依 力量→魅力 的順序由高到低填入
 function autoAssign(){

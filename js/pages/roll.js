@@ -25,7 +25,7 @@ function renderRoll(){
   } else {
     const used = new Set(Object.values(slot).filter(v=>v!==null && v!==undefined));
     const free = sets.map((_,i)=>i).filter(i=>!used.has(i)).sort((a,b)=>scoreOf(sets[b])-scoreOf(sets[a]));
-    tray = free.length ? free.map(i=>chipHTML(id,i," pop")).join("") : `<p class="tray-empty">全部分配完成</p>`;
+    tray = free.length ? free.map(i=>chipHTML(id,i,state.chipPop?" pop":"")).join("") : `<p class="tray-empty">全部分配完成</p>`;
   }
 
   // 六個屬性格子
