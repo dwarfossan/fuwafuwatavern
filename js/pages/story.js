@@ -43,6 +43,12 @@ function showSpot(on){
   stage.querySelector(".dialog")?.classList.toggle("with-spot", !!on);
 }
 
+/* 酒館舞台上的人（10-03 改新畫風立繪）：台詞的 on 指定誰站在舞台上（預設大爺）；
+   face 是站在台上那位這句的表情，沒寫就用預設（PORTRAITS[id].def） */
+const STAGE_ACTORS = ["dwarf", "kam"];
+const onStage = line => line.on || "dwarf";
+const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
+
 function updateStoryLine(){
   const scene = SCENES[state.scene], line = scene.script[state.line], who = WHO(line.who);
   const last = state.line === scene.script.length-1, stage = document.getElementById("stage");
@@ -51,7 +57,9 @@ function updateStoryLine(){
   stage.querySelectorAll(".scene-art").forEach(el=>el.classList.toggle("on", el.dataset.art===line.art));
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
   showSpot(!!line.shake);
-  stage.querySelector(".dwarf")?.classList.toggle("talk", line.who==="dwarf");
+  STAGE_ACTORS.forEach(id=>{ const el = stage.querySelector(".actor."+id); if(!el) return;
+    el.classList.toggle("off", onStage(line)!==id); el.classList.toggle("talk", line.who===id);
+    setPortraitFace(el, actorFace(id, line)); });
   const dialog = stage.querySelector(".dialog");
   if(dialog){
     dialog.classList.toggle("narr", line.who==="narr");
@@ -94,7 +102,7 @@ function renderStory(){
       ${scene.bg==="road" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${roadAmbushSVG()}</div>` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
-      <div class="dwarf ${line.who==="dwarf"?"talk":""}">${DWARF_SVG}</div>
+      ${STAGE_ACTORS.map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("")}
       ${line.hug?`<div class="hug-glow" aria-hidden="true"></div>`:""}
       <div class="counter" aria-hidden="true"></div>`}
       ${[...new Set(SCRIPT_.map(l=>l.art).filter(Boolean))].map(k=>`<div class="scene-art ${line.art===k?"on":""}" data-art="${k}" aria-hidden="true"><img src="${STORY_ART[k]}" alt=""></div>`).join("")}

@@ -213,9 +213,14 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .lamp{position:absolute;top:0;left:50%;width:4px;height:9%;background:#1a1210;transform:translateX(-50%)}
 .lamp::after{content:"";position:absolute;left:50%;top:100%;width:34px;height:26px;transform:translateX(-50%);
   border-radius:8px 8px 14px 14px;background:var(--honey);box-shadow:0 0 50px 20px rgba(242,180,65,.4)}
-.dwarf{position:absolute;left:50%;bottom:22%;height:74%;aspect-ratio:490/560;transform:translateX(-50%);transform-origin:50% 100%}
-.dwarf svg{width:100%;height:100%;display:block}
-.dwarf.talk{animation:grumble .5s ease}
+/* 舞台上的人：新畫風立繪（10-03）。.off＝這句不在台上（淡出）；大小、位置暫定 */
+.actor{position:absolute;left:50%;bottom:22%;height:78%;transform:translateX(-50%);transform-origin:50% 100%;transition:opacity .35s ease}
+.actor.off{opacity:0;pointer-events:none}
+.actor.dwarf{aspect-ratio:1100/1000;height:74%}
+.actor.kam{aspect-ratio:880/1100}
+.actor.talk{animation:grumble .5s ease}
+.portrait{position:relative;width:100%;height:100%}
+.portrait img{position:absolute;inset:0;width:100%;height:100%;display:block}
 @keyframes grumble{30%{transform:translateX(-50%) scale(1.03,.97)}60%{transform:translateX(-50%) scale(.99,1.02)}}
 .counter{position:absolute;left:0;right:0;bottom:0;height:30%;
   background:linear-gradient(180deg,#7a5236 0 12%,#5a3a26 12% 16%,#4a2f1f 16%);
@@ -281,9 +286,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .info .tags span{font-size:12px;padding:0 8px;border-radius:999px;border:1px solid var(--c);color:var(--c)}
 .info p{margin:8px 0 0;font-size:15px;color:var(--dim);max-width:40em}
 /* 送別：抱抱（第一人稱：鏡頭貼近大爺、四周暖光，下方頭像一起跳一下） */
-.stage.hugging .dwarf{transform:translateX(-50%) translateY(24%) scale(1.4);transition:transform .7s cubic-bezier(.3,1.2,.5,1)}
+.stage.hugging .actor.dwarf{transform:translateX(-50%) translateY(24%) scale(1.4);transition:transform .7s cubic-bezier(.3,1.2,.5,1)}
 /* 抱抱中大爺說話：抖動要疊在抱抱的姿勢上，不然 grumble 會把大爺縮回原本大小（10-02 手機上看起來會閃） */
-.stage.hugging .dwarf.talk{animation:grumbleHug .5s ease}
+.stage.hugging .actor.dwarf.talk{animation:grumbleHug .5s ease}
 @keyframes grumbleHug{30%{transform:translateX(-50%) translateY(24%) scale(1.44,1.36)}60%{transform:translateX(-50%) translateY(24%) scale(1.39,1.43)}}
 .hug-glow{position:absolute;inset:0;pointer-events:none;z-index:1;
   background:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 45%,rgba(242,180,65,.35) 100%);animation:glow .8s ease both}
@@ -564,7 +569,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* ---------- 裝備店 ---------- */
 .quip{display:flex;align-items:center;gap:12px;background:var(--plank);border-radius:12px;padding:8px 14px;margin-bottom:12px}
 .quip-face{width:56px;height:56px;flex:none;border-radius:50%;overflow:hidden;background:#3b2a20;border:2px solid var(--ale)}
-.quip-face svg{width:100%;height:100%;display:block}
+.quip-face{position:relative}
+.quip-face .portrait{position:absolute;width:262%;height:auto;aspect-ratio:1100/1000;left:-70%;top:-29%}   /* 只露出大爺的臉（取原圖 x295～715、y120～540） */
 .quip p{margin:0;font-size:16px}
 /* 商店只讓商品／展開的裝備清單捲動，分類和出發留在同一屏。 */
 .wrap.shop-screen{height:100vh;height:100dvh;padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 12px);overflow:hidden}

@@ -87,6 +87,11 @@ try{
   if(process.env.SHOP_SCREENSHOT) await page.screenshot({path:process.env.SHOP_SCREENSHOT});
   await page.locator('#depart').click();
   assert.equal(await page.evaluate(()=>state.scene),'farewell');ok('出發接回既有送別流程');
+  const kam=await page.evaluate(()=>{state.line=FAREWELL.findIndex(l=>l.who==='kam');updateStoryLine();
+    const a=document.querySelector('.actor.kam'),d=document.querySelector('.actor.dwarf');
+    return {kamOn:!a.classList.contains('off'),dwarfOff:d.classList.contains('off'),face:a.querySelector('.pt-face').getAttribute('src')};});
+  assert(kam.kamOn&&kam.dwarfOff&&kam.face.startsWith('assets/faces/kam/'),JSON.stringify(kam));ok('卡姆登場：舞台換卡姆、表情圖');
+  await page.evaluate(()=>{state.line=0;updateStoryLine();});
   assert.equal(await page.locator('.scene-art.on').count(),0);
   await page.evaluate(()=>{state.line=FAREWELL.findIndex(l=>l.art);updateStoryLine();});
   await page.waitForTimeout(300);

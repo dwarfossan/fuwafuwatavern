@@ -21,7 +21,7 @@ css/style.css       全部樣式
 data/               遊戲資料：六圍、角色、裝備、技能、名詞、敵人與 NPC、戰場、台詞、劇情、大地圖
 js/state.js         遊戲狀態
 js/rules.js         擲骰、調整值、裝備規則
-js/art/             手寫 SVG 美術：四小隻、大爺、大地圖、裝備圖示、紙娃娃、怪物、劇情背景
+js/art/             手寫 SVG 美術：四小隻、大地圖、裝備圖示、紙娃娃、怪物、劇情背景；portraits.js 是大爺、卡姆的新畫風立繪（無臉底圖＋表情）
 js/sfx.js           音效（Web Audio 當場合成）
 js/pages/           封面、擲屬性、劇情、商店、大地圖、紙娃娃測試頁（網址加 #doll）
 js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flow.js 回合、移動、AI → render.js 戰場畫面
@@ -117,7 +117,7 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 | `docs/裝備與感知規格.md` | 被動感知、搜索、狀態卡、裝備三層與錨點、破布衣、+1 薩滿袍、AC |
 | `docs/授權與安全.md` | 借了 SRD 的什麼、不能碰的（D&D 名稱、商標、SRD 以外的內容）、類似遊戲的案例、出處標示怎麼放 |
 | `docs/技能表.md` | 每類武器的招式（`tools/skills_doc.mjs` 產生，不要手改） |
-| `assets/` | 美術素材，遊戲目前只用到封面的 `portraits/party_heads.webp`（四小隻合照頭像），其他都還沒用。`portraits/` 立繪（四小隻合照、四小隻合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（四小隻的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
+| `assets/` | 美術素材。遊戲用到：封面 `portraits/party_heads.webp`、送別出發段 `portraits/party.webp`、酒館劇情和商店小頭像的大爺／卡姆（無臉底圖＋`faces/dwarf`、`faces/kam`）；四小隻的頭、商人、哥布林還沒用。`portraits/` 立繪（四小隻合照、四小隻合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（四小隻的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
 
 
 ---
