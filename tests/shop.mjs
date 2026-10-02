@@ -87,5 +87,11 @@ try{
   if(process.env.SHOP_SCREENSHOT) await page.screenshot({path:process.env.SHOP_SCREENSHOT});
   await page.locator('#depart').click();
   assert.equal(await page.evaluate(()=>state.scene),'farewell');ok('出發接回既有送別流程');
+  assert.equal(await page.locator('.scene-art.on').count(),0);
+  await page.evaluate(()=>{state.line=FAREWELL.findIndex(l=>l.art);updateStoryLine();});
+  await page.waitForTimeout(300);
+  const art=await page.locator('.scene-art.on img').evaluate(e=>({ok:e.complete&&e.naturalWidth>0}));
+  assert(art.ok);
+  assert.equal(await page.evaluate(()=>FAREWELL[FAREWELL.length-1].art),'party');ok('送別出發段換成四小隻合照插圖，最後一句還在插圖上');
   assert.deepEqual(errors,[]);ok('沒有瀏覽器錯誤');
 }finally{await browser.close();}

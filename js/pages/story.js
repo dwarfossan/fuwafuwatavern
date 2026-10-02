@@ -48,6 +48,7 @@ function updateStoryLine(){
   const last = state.line === scene.script.length-1, stage = document.getElementById("stage");
   if(!stage) return render();
   stage.classList.toggle("hugging", !!line.hug);
+  stage.querySelectorAll(".scene-art").forEach(el=>el.classList.toggle("on", el.dataset.art===line.art));
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
   showSpot(!!line.shake);
   stage.querySelector(".dwarf")?.classList.toggle("talk", line.who==="dwarf");
@@ -96,6 +97,7 @@ function renderStory(){
       <div class="dwarf ${line.who==="dwarf"?"talk":""}">${DWARF_SVG}</div>
       ${line.hug?`<div class="hug-glow" aria-hidden="true"></div>`:""}
       <div class="counter" aria-hidden="true"></div>`}
+      ${[...new Set(SCRIPT_.map(l=>l.art).filter(Boolean))].map(k=>`<div class="scene-art ${line.art===k?"on":""}" data-art="${k}" aria-hidden="true"><img src="${STORY_ART[k]}" alt=""></div>`).join("")}
       <div class="dialog ${line.who==="narr"?"narr":""}">
         ${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}
         <p>${line.text}</p>

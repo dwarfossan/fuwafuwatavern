@@ -56,8 +56,24 @@ const FAREWELL = [
   {who:"dwarf", text:"嗯……不是嬌嬌、不是玲玲、不是默默、不是香香……那就是……", hug:true},
   {who:"narr",  text:"四個毛球同時抬起頭，盯著大爺。", hug:true},
   {who:"dwarf", text:"咳！好、好了好了，去吧！記得，天黑前回來喝熱湯！", hug:true},
-  {who:"all",   text:"知道啦——！", hug:true}
+  {who:"all",   text:"知道啦——！", hug:true},
+  // 出發（大爺 10-03：送別最後放四小隻合照，邊打屁邊出發）。art：這幾句換成 STORY_ART 的插圖
+  // 以下台詞是香香寫的草稿，大爺改完才算數；不提武器，因為玩家買的裝備不一定跟圖一樣
+  {who:"narr",  text:"酒館的大門被推開，四個毛球衝進午後的陽光裡。", art:"party"},
+  {who:"tiger", text:"出發——！今天要打倒十隻怪！", art:"party"},
+  {who:"fox",   text:"地圖上那片森林，要走大半天。嬌嬌，力氣先省著點。", art:"party"},
+  {who:"wolf",  text:"……默默，妳的包包是不是比剛才鼓？", art:"party"},
+  {who:"raccoon", text:"……放回去一瓶。", art:"party"},
+  {who:"wolf",  text:"……所以本來有幾瓶？", art:"party"},
+  {who:"raccoon", text:"……（看天空）", art:"party"},
+  {who:"fox",   text:"話說回來，剛才那個屁，到底是誰放的？", art:"party"},
+  {who:"tiger", text:"大爺自己都推出來了啊！", art:"party"},
+  {who:"wolf",  text:"……推到一半，就把我們趕出來了。", art:"party"},
+  {who:"narr",  text:"身後的門又打開了。遠遠傳來大爺的吼聲：「水袋——！裝滿了沒——！」", art:"party"},
+  {who:"all",   text:"裝滿了——！", art:"party"}
 ];
+/* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
+const STORY_ART = {party:"assets/portraits/party.webp"};
 
 /* 伏擊前的被動察覺（大爺 2026-10-01）：四小隻不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
    難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、四小隻不擲），進戰鬥沿用同一個數字

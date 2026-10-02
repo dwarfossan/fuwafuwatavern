@@ -292,6 +292,11 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .party.cheer .pf:nth-child(2){animation-delay:.08s}.party.cheer .pf:nth-child(3){animation-delay:.16s}.party.cheer .pf:nth-child(4){animation-delay:.24s}
 @keyframes cheer{40%{transform:translateY(-12px)}70%{transform:translateY(2px)}100%{transform:none}}
 
+/* 劇情插圖（10-03）：蓋在背景上、對話框下面；淡入淡出。後面墊的天空漸層暫定 */
+.scene-art{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s ease;
+  background:linear-gradient(180deg,#a9d4ee 0%,#d8ecf2 45%,#f3e4c4 75%)}
+.scene-art.on{opacity:1}
+.scene-art img{position:absolute;left:50%;top:2%;height:76%;width:auto;max-width:96%;object-fit:contain;transform:translateX(-50%)}
 /* 第一人稱場景背景 */
 .scene-bg{position:absolute;inset:0}
 .scene-bg .story-bush{transform-box:fill-box;transform-origin:50% 100%}
