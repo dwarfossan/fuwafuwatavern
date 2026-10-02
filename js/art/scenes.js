@@ -35,15 +35,17 @@ function roadAmbushSVG(){
       <rect x="640" y="800" width="70" height="56" fill="#b0834f" stroke="${INK}" stroke-width="4"/><path d="M640 828 L710 828 M675 800 L675 856" stroke="#6e4a32" stroke-width="4"/>
       <ellipse cx="340" cy="850" rx="48" ry="30" fill="#e8d6b0" stroke="${INK}" stroke-width="4"/><circle cx="374" cy="846" r="6" fill="#d8733a"/><circle cx="386" cy="860" r="6" fill="#e0766e"/><circle cx="364" cy="866" r="6" fill="#d8733a"/>
     </g>
-    <!-- 路邊的草叢（哥布林薩滿躲在裡面；被動察覺有人過的話，劇情裡會晃） -->
-    <g class="story-bush">
+    <!-- 路邊的草叢（哥布林薩滿躲在裡面；被動察覺有人過的話，劇情裡會晃）
+         10-02 移到馬車前面（位置暫定）：原本在 x 80～320，手機的畫面只看得到中間 x 360～1240，草叢整個被切掉
+         外層 g 負責位置，內層 .story-bush 給 CSS 晃動用（CSS 的 transform 會蓋掉 SVG 的 transform 屬性） -->
+    <g transform="translate(310 110) scale(.9)"><g class="story-bush">
       <ellipse cx="200" cy="668" rx="120" ry="16" fill="#000" opacity=".18"/>
       <circle cx="140" cy="630" r="46" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
       <circle cx="262" cy="634" r="44" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
       <circle cx="200" cy="608" r="58" fill="#5a8a48" stroke="${INK}" stroke-width="5"/>
       <path d="M100 664 L300 664" stroke="#4f7d42" stroke-width="10"/>
       <circle cx="180" cy="590" r="14" fill="#7aa864"/><circle cx="252" cy="620" r="9" fill="#7aa864"/><circle cx="128" cy="618" r="8" fill="#7aa864"/>
-    </g>
+    </g></g>
     <!-- 三隻哥布林：弓手（後方）、短棒、彎刀（跟戰鬥裡的裝備一致） -->
     ${gob(1000,470,230,true,"bow")}
     ${gob(530,500,250,false,"club")}
