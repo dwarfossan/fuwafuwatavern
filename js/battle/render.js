@@ -585,7 +585,7 @@ const ST_ICON = {
   hand:`<path d="M10 3.5v13M3.5 10h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
-const stTurns = s => (s.k==="bleed" || s.k==="poisoned") ? s.n : (s.until==="start" || s.until==="end") ? 1 : null;
+const stTurns = s => (s.k==="bleed" || s.k==="poisoned") ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
 function statusBadges(v, cx, y){
   const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
   v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;

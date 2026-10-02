@@ -706,7 +706,7 @@ function foePick(e, t){
 function foeFreePick(e){
   const pcs = seenPcs();
   for(const s of foeUsable(e).filter(s=>s.def.free)){
-    if(s.group.id==="shield"){ const t = alive(e.side).find(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1)); if(t) return {sk:s, t}; continue; }
+    if(s.group.id==="shield"){ if(alive(e.side).some(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1))) return {sk:s, t:e}; continue; }   // 守護：旁邊有被貼著的同伴就開
     if(s.impl.target==="ally"){ const t = alive(e.side).filter(o=>o.hp<=o.maxHp/2 && validTarget(e,s,o.x,o.y)).sort((a,c)=>a.hp-c.hp)[0]; if(t) return {sk:s, t}; continue; }
     if(s.def.name==="護盾術" && !has(e,"shieldSpell") && pcs.some(p=>dist(p,e)<=2)) return {sk:s, t:e};
     if(s.key==="guard_stance" && !hasVia(e,"stance","guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};

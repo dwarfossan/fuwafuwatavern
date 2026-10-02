@@ -5,7 +5,8 @@
    - 2026-10-01 大爺：重複的招合併（震暈＋頭槌、扎腿＋瞄腿、橫掃＋回掃、衝撞＋絆倒→撞倒、重敲＋逼退→擊退、連斬＋連打→連擊）
    - 武器按「類別」：固定普攻（不用熟練格）＋這一類原本的招式（用熟練格）。
      沒有大招這種突然很特別的招式（大爺決定）；說明和實作都不寫死武器名稱，只看武器屬性（投擲、觸及、靈巧……），以後好替換
-   - 盾牌 1 招（自動觸發的防禦）；護甲只給被動數值，不給主動技能
+   - 盾牌 1 招（守護，免費動作）；護甲只給被動數值，不給主動技能
+   - 升階效果只有三種：多傷害、多目標、多持續時間；範圍招的範圍固定，不能靠升階變大（大爺 2026-10-01、10-02 再確認）
    - 法器分法杖／法書／法球，每件綁定一組 3 個法術，以主題命名（施法屬性：法杖智力、法書感知、法球魅力）
    共通數字：命中 = d20 + 屬性調整值 + 2 ≥ 目標 AC；豁免 DC = 8 + 2 + 屬性調整值；
              生命值（1 級）= 8 + 體質調整值；地圖 1 格 = 5 呎
@@ -36,13 +37,13 @@ const SKILL_GROUPS = [
     {name:"重擊", kind:"近戰",     tier:0,   text:"近戰攻擊，造成武器傷害，觸發武器專精。"},
     {id:"cleave", name:"橫掃", kind:"近戰", req:["twoHandMelee","longWeapon"], tier:1,   text:"對攻擊範圍內的每個敵人各攻擊一次（有「觸及」的武器打得到 2 格外），傷害只算武器骰、不加屬性。"},
     {id:"power_strike", name:"蓄力重擊", kind:"近戰", req:"twoHandMelee", tier:1,   text:"這回合不能移動；攻擊一次，命中時多 1 顆武器骰。"},
-    {id:"topple", name:"撞倒", kind:"近戰", req:["twoHandMelee","longWeapon","unarmed"], tier:1,   up:"每高一階，豁免難度 +1。", text:"攻擊一次，命中的話目標自己選力量或敏捷豁免（能反抗就擋、能躲就閃），失敗就倒地。"}]},
+    {id:"topple", name:"撞倒", kind:"近戰", req:["twoHandMelee","longWeapon","unarmed"], tier:1,   text:"攻擊一次，命中的話目標自己選力量或敏捷豁免（能反抗就擋、能躲就閃），失敗就倒地。"}]},
 
   {id:"axe", name:"斧類", stat:"力量",
    weapons:["手斧","戰斧","戰鎬"],
    skills:[
     {name:"劈砍", kind:"近戰",     tier:0,   text:"近戰攻擊，造成武器傷害，觸發武器專精。"},
-    {id:"sunder", name:"破甲", kind:"近戰", req:"meleeWeapon", tier:1,   up:"每高一階，AC 再 −1。", text:"攻擊一次，命中則目標 AC −2，直到你下回合結束。"},
+    {id:"sunder", name:"破甲", kind:"近戰", req:"meleeWeapon", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次，命中則目標 AC −2，直到你下回合結束。"},
     {id:"bleed", name:"放血", kind:"近戰", req:"cutOrPierce", tier:1,   up:"每高一階多流血 1 次。", text:"攻擊一次，命中的話目標流血：接下來 2 次輪到他時，回合開始各受 1d4 傷害。"},
     {id:"shield_split", name:"劈盾", kind:"近戰", req:"slashWeapon", tier:1,   text:"攻擊一次，命中的話目標的盾牌到你下回合開始前不算（AC −2）。"}]},
 
@@ -50,9 +51,9 @@ const SKILL_GROUPS = [
    weapons:["短棒","輕錘","硬頭錘","戰錘","釘頭錘","鏈枷"],
    skills:[
     {name:"敲擊", kind:"近戰",     tier:0,   text:"近戰攻擊，造成武器傷害，觸發武器專精。"},
-    {id:"daze", name:"震暈", kind:"近戰", req:"bluntOrUnarmed", tier:1,   up:"每高一階，豁免難度 +1。", text:"攻擊一次，命中則目標做體質豁免，失敗的話下回合只能移動或行動二選一。"},
-    {id:"quake", name:"震地", kind:"豁免", dmg:"", req:"bluntOrUnarmed", tier:1,   up:"每高一階，範圍往外多 1 圈。", text:"重重砸向地面：身邊一圈的敵人做敏捷豁免，失敗就倒地（不造成傷害）。"},
-    {id:"knockback", name:"擊退", kind:"近戰", req:"meleeOrUnarmed", tier:1,   up:"每高一階多推 1 格。", text:"攻擊一次，命中的話把目標推開 1 格，你跟上一步。"}]},
+    {id:"daze", name:"震暈", kind:"近戰", req:"bluntOrUnarmed", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次，命中則目標做體質豁免，失敗的話下回合只能移動或行動二選一。"},
+    {id:"quake", name:"震地", kind:"豁免", dmg:"", req:"bluntOrUnarmed", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰傷害（範圍不變）。", text:"重重砸向地面：身邊一圈的敵人做敏捷豁免，失敗就倒地（不造成傷害）。"},
+    {id:"knockback", name:"擊退", kind:"近戰", req:"meleeOrUnarmed", tier:1,   text:"攻擊一次，命中的話把目標推開 1 格，你跟上一步。"}]},
 
   {id:"polearm", name:"長柄類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["長柄刀","戟","長矛","矛","三叉戟","長棍","鞭"],
@@ -65,15 +66,15 @@ const SKILL_GROUPS = [
    skills:[
     {name:"快刺", kind:"近戰",     tier:0,   text:"近戰攻擊，造成武器傷害，觸發武器專精。有「投擲」的武器也可以丟出去。"},
     {id:"sneak_attack", name:"偷襲", kind:"近戰", req:"lightMelee", tier:1,   up:"每高一階，偷襲傷害多 1d6。", text:"攻擊一次，如果目標旁邊有你的隊友，命中時多 2d6 傷害。"},
-    {id:"dash_stab", name:"閃身刺", kind:"近戰", req:"lightMelee", tier:1,   up:"每高一階可以多閃 1 格。", text:"先閃到 2 格內、目標身旁的空位（不會被藉機攻擊，不算移動），再攻擊一次。"},
-    {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階，移動多 −1 格。", text:"攻擊一次（近戰或遠程都行），命中的話目標下回合移動 −2 格。"}]},
+    {id:"dash_stab", name:"閃身刺", kind:"近戰", req:"lightMelee", tier:1,   text:"先閃到 2 格內、目標身旁的空位（不會被藉機攻擊，不算移動），再攻擊一次。"},
+    {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次（近戰或遠程都行），命中的話目標下回合移動 −2 格。"}]},
 
   {id:"bow", name:"弓類", stat:"敏捷",
    weapons:["短弓","長弓"],
    skills:[
     {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精。"},
     {id:"aimed_shot", name:"瞄準射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"本回合不能移動；攻擊一次，命中 +2，傷害多 1 顆武器骰。"},
-    {id:"arrow_rain", name:"箭雨", kind:"豁免", req:"bow", tier:1,   up:"每高一階，範圍往外多 1 圈。", text:"指定 3×3 格的區域，區域內的敵人做敏捷豁免，失敗受 1 顆武器骰傷害。"},
+    {id:"arrow_rain", name:"箭雨", kind:"豁免", req:"bow", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰（範圍不變）。", text:"指定 3×3 格的區域，區域內的敵人做敏捷豁免，失敗受 1 顆武器骰傷害。"},
     {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
   {id:"crossbow", name:"弩類", stat:"敏捷",
@@ -101,7 +102,7 @@ const SKILL_GROUPS = [
   {id:"shield", name:"盾牌", stat:"—",
    weapons:["盾牌"],
    skills:[
-    {id:"shield_guard", name:"舉盾護友", kind:"輔助", req:"shield", tier:0,   free:true, text:"免費動作：指定一名貼身的隊友，直到你下回合開始，打他的第一次攻擊有劣勢。"}]},
+    {id:"shield_guard", name:"守護", kind:"輔助", req:"shield", tier:1,   free:true, up:"每高一階多 1 輪。", text:"免費動作：直到你下回合開始，所有貼身的隊友被打的第一次攻擊有劣勢（你要還在他旁邊）。"}]},
 
   // 法器：法杖／法書／法球三種，每件法器綁定一組法術（法杖另外能敲人），以法術主題命名
   //       施法屬性：法杖＝智力、法書＝感知、法球＝魅力

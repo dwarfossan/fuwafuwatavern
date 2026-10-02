@@ -43,6 +43,7 @@ node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
 node tests/perception.mjs     # 被動感知、搜索、敵人狀態卡
 node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變
+node tests/upgrades.mjs       # 升階效果（多傷害／多目標／多持續；範圍固定）、守護
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。

@@ -253,13 +253,18 @@ function blog(t, cls="", s=""){ B().log.push({t, cls, s, at: Date.now() + (B().i
 const logDue = l => !l.at || l.at <= Date.now() + 30;
 
 // ---------- 狀態效果 ----------
-// {k, src, via, until:"start"|"end"|"battle", of:unitId, val}
+// {k, src, via, until:"start"|"end"|"battle", of:unitId, val, left}
 // via＝哪一種來源（同一個狀態可能由不同招式造成，例如束縛有網子、擒抱）；同狀態＋同來源＋同 via 才互相取代
 function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src && s.via===o.via)); u.statuses.push({k, ...o}); }
 const has = (u,k) => u.statuses.find(s=>s.k===k);
 const hasVia = (u,k,via) => u.statuses.find(s=>s.k===k && s.via===via);
+// left＝還要多撐幾輪（升階「多 1 輪」）：時間到了先扣 left，扣完才拿掉；守護那種每輪擋一次的，新的一輪重新能擋
 function expire(when, unitId){
-  B().units.forEach(u=> u.statuses = u.statuses.filter(s=>!(s.until===when && s.of===unitId)));
+  B().units.forEach(u=> u.statuses = u.statuses.filter(s=>{
+    if(!(s.until===when && s.of===unitId)) return true;
+    if(s.left > 0){ s.left--; s.spent = false; return true; }
+    return false;
+  }));
 }
 
 // ---------- 數值 ----------
@@ -352,9 +357,9 @@ function attackRoll(a, t, o={}){
   if(has(a,"sapped")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="sapped"); }   // 削弱：下次攻擊劣勢（用掉就沒）
   if(has(a,"poisoned")) adv--;                                         // 中毒：攻擊有劣勢
   // 閃避：打他有劣勢。守護給的閃避只擋第一次（用掉就沒），守護的人要還站在他旁邊
-  { const dg = t.statuses.filter(s=>s.k==="dodge"), once = dg.filter(s=>s.once);
+  { const dg = t.statuses.filter(s=>s.k==="dodge"), once = dg.filter(s=>s.once && !s.spent);
     let dis = dg.some(s=>!s.once);
-    if(once.length){ t.statuses = t.statuses.filter(s=>!once.includes(s));
+    if(once.length){ once.forEach(s=>{ s.spent = true; }); t.statuses = t.statuses.filter(s=>!(once.includes(s) && !(s.left > 0)));   // 守護升階：這一輪擋過了，下一輪再擋
       const by = once.map(s=>B().units.find(v=>v.id===s.by)).find(v=>v && !v.down && !v.dead && dist(v,t)<=1);
       if(by){ dis = true; blog(`　${by.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
     if(dis) adv--; }
