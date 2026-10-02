@@ -401,7 +401,7 @@ function obsBubbleBody(kind, d){
       fill="#fff" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>`;
   let inner;
   if(kind==="ok") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
-  else if(kind==="fail") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
+  else if(kind==="fail" || kind==="sneak") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
   else inner = [-11,0,11].map((x,i)=>`<circle class="obs-dot" cx="${x}" cy="${T+h/2}" r="3.5" fill="#1f1a24" style="animation-delay:${d + 350 + i*420}ms"/>`).join("");
   return `<g class="obs-life" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms"><g class="obs-anim" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms">${bubble}${inner}</g></g>`;
 }
@@ -607,7 +607,7 @@ const DIE_SHAPE = {
   10:"M0 -16 L14 -3 L0 16 L-14 -3 Z", 12:"M0 -15 L14.3 -4.6 L8.8 12.1 L-8.8 12.1 L-14.3 -4.6 Z",
   20:"M0 -16 L13.9 -8 L13.9 8 L0 16 L-13.9 8 L-13.9 -8 Z"
 };
-const RES_TEXT = {hit:"HIT", miss:"MISS", crit:"CRITICAL!", fumble:"MISS", save:"SAVE", fail:"FAIL", found:"FOUND"};
+const RES_TEXT = {hit:"HIT", miss:"MISS", crit:"CRITICAL!", fumble:"MISS", save:"SAVE", fail:"FAIL", found:"FOUND", hide:"STEALTH"};
 // 一顆骰子：start＝開始滾的時間、land＝停住的時間（相對現在，毫秒）；drop＝優劣勢沒用到的那顆
 // still：不滾動，直接停在 v（被動檢定用）
 function dieFace(sides, v, start, land, flick, drop, tint, still){
@@ -629,7 +629,7 @@ function dicePanelHTML(b){
   const rows = p.rows.slice(0, 3).map(r=>{
     const land = r.t + DICE_TUMBLE - now, two = r.rolls.length===2;
     const usedIdx = two ? (r.rolls[0]===r.used ? 0 : 1) : 0;
-    const d20 = r.rolls.map((v,i)=>dieFace(20, v, r.t - now, land, r.flick, two && i!==usedIdx)).join("");
+    const d20 = r.rolls.map((v,i)=>dieFace(20, v, r.t - now, land, r.flick, two && i!==usedIdx, null, r.still)).join("");   // still：被動感知，骰子停在 10
     let dmg = "";
     if(r.faces.length || r.dmg){                     // 傷害骰：比 d20 晚 DMG_OFF 開始滾
       const ds = r.t + DMG_OFF - now, dl = ds + DICE_TUMBLE, shown = dmgShown(r.type||""), tint = DMG_TINT[shown] || "#f6e9d8";
@@ -1138,7 +1138,7 @@ function battleInterfaceHTML(){
   const b = B();
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const u = cur();
-  const order = b.units.map((v,i)=>v.side==="npc" ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}">
+  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}">
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg></div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
@@ -1151,7 +1151,7 @@ function battleInterfaceHTML(){
     else if(b.mode) hint = b.mode.key==="help" ? "點紅色格子裡的隊友（點其他地方取消）" : "點紅色格子選目標（點其他地方取消）";
     else if(b.moveMode) hint = "點藍色格子移動";
   }
-  const hud = b.result ? "" : `<div class="bt-hud" style="--c:${u.side==="pc"?u.color:"var(--bad)"}">
+  const hud = b.result || foeHid(u) ? "" : `<div class="bt-hud" style="--c:${u.side==="pc"?u.color:"var(--bad)"}">
     <svg viewBox="0 0 60 60" width="34" height="34">${faceSVG(u,4,4,52)}</svg>
     <b>${nameFor(u)}${u.side==="foe"?"行動中……":"的回合"}</b>
     ${hint?`<span class="hud-hint">${hint}</span>`:""}</div>`;

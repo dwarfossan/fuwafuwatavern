@@ -77,8 +77,8 @@ function startBattle(id){
   def.foes.forEach((f,i)=>{ if(!f.hidden) return;
     const u = units.find(v=>v.id==="foe"+i), sc = scout && scout[i];
     if(sc && sc.spotted.length){ u.revealedBy = sc.spotted; return; }
-    const hide = sc ? sc.hide : d20() + u.mods.DEX;
-    if(hide >= HIDE_DC) u.statuses.push({k:"hidden", val: hide}); });
+    const roll = sc ? sc.roll : d20(), hide = sc ? sc.hide : roll + u.mods.DEX;
+    if(hide >= HIDE_DC) u.statuses.push({k:"hidden", val: hide, roll}); });
   // 先攻：d20 + 敏捷調整值，高的先
   // NPC 不擲先攻，排在最後，輪到時直接跳過
   units.forEach(u=> u.init = u.side==="npc" ? -Infinity : d20() + u.mods.DEX + Math.random()*.1);
@@ -88,7 +88,7 @@ function startBattle(id){
     tut: def.tutorial ? 0 : -1, busy:false
   };
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
-  blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc").map(u=>nameFor(u)).join("、")}`);
+  blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u)).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
   passivePocket();                                 // 開場看得到的敵人：先比一次被動感知
   nextTurn();
 }
@@ -182,7 +182,7 @@ function tryHide(u){
   const dis = !!(u.armor && u.armor.stealth), r1 = d20(), r2 = dis ? d20() : r1, r = Math.min(r1, r2);
   const total = r + u.mods.DEX, ok = total >= HIDE_DC;
   blog(`　潛行：d20=${r}${dis?`（重甲鏗鏘作響，劣勢 ${r1}/${r2}）`:""}${fmtN(u.mods.DEX)} = ${total} ${ok?"≥":"<"} ${HIDE_DC} → ${ok?"躲好了":"沒躲好"}`, ok?"skill":"miss", ok?"躲好了":"沒躲好");
-  if(ok) addStatus(u, "hidden", {val:total});
+  if(ok) addStatus(u, "hidden", {val:total, roll:r});
   return ok;
 }
 function reveal(u, why){
@@ -197,8 +197,32 @@ function perceive(u){
     const total = passivePer(u), need = has(v,"hidden").val, ok = total >= need;
     // 我方沒找到躲著的敵人時不寫紀錄，不然等於告訴玩家附近有東西
     if(ok || v.side==="pc") blog(`${u.name}察覺：被動感知 10${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} ${need} → ${ok?`發現了${v.name}！`:`沒發現${v.name}`}`, ok?"skill":"miss", ok?"發現了！":"沒發現");
-    if(ok){ reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); }
+    if(ok){ panelStart(`${u.name}【察覺】`); stealthRows(v, [u], true); panelEnd(); obsMark(u, "ok");
+            reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); }
   });
+}
+// ---------- 潛行對決的演出（大爺 10-02：DM 明著骰給你看）----------
+// 骰子面板一列是躲的人擲的潛行骰，下面是找的人的被動感知（骰子停在 10，不滾）
+// 被找到：當場演（perceive）。沒被找到：什麼都不演，等躲的人自己出手時才補演（sneakShow），讓玩家看到「牠就是擲得比你高」
+function stealthRows(h, seekers, ok){
+  const s = has(h,"hidden"), roll = s.roll ?? s.val;
+  // 列名用短的（手機上名字欄只放得下 3 個字）：誰躲、誰找看面板標題和紀錄
+  panelRow("chk", {id:h.id+"~hide", name:"潛行"}, [roll], roll, s.val, "hide");
+  seekers.forEach(p=>{ panelRow("chk", {id:p.id+"~per", name:"被動"}, [10], 10, passivePer(p), ok ? "found" : "fail").still = true; });
+}
+// 從藏身處出手：在這個動作的骰子面板最前面補兩列（潛行骰、對面最高的被動感知），對面每隻頭上跳 ?
+// 補的兩列往前挪，後面攻擊那列的時間跟平常一樣，不會比出手晚
+function sneakShow(u){
+  const s = has(u,"hidden");
+  if(!s) return;
+  const opp = B().units.filter(v=>hostile(v,u) && !v.dead && !v.down).sort((a,c)=>passivePer(c)-passivePer(a));
+  if(!opp.length) return;
+  stealthRows(u, [opp[0]], false);                 // 第一次 panelRow 才會開出這個動作的面板
+  const p = B().panel, n = 2;
+  p.rows.forEach(r=>r.t -= n*ROW_GAP); p.t0 -= n*ROW_GAP;
+  // ? 馬上跳、很快收掉：出手後還可能有觀察學習的 ! ?，不要疊在一起
+  opp.forEach(v=>(B().marks = B().marks || []).push({id:v.id, kind:"sneak", t:Date.now(), dur:OBS_DUR.sneak}));
+  blog(`　${u.name}潛行 ${s.val}，比${opp.map(v=>`${v.name} ${passivePer(v)}`).join("、")}都高，沒人發現`, "miss");
 }
 // ---------- 感知：看穿敵人身上帶的東西（大爺 10-02，照 D&D）----------
 // 被動感知＝10＋感知調整值，不擲骰：敵人第一次被看到時，四小隻各自跟 DC 比，夠高的就看穿

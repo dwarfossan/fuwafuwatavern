@@ -237,7 +237,11 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
    骰子停在 10（被動不擲骰）＋感知＝總和，成功綠、失敗灰；卡片上跳跟戰鬥一樣的 ❗／❓ 泡泡，成功的卡片抖一下 */
 .spot-row{position:absolute;left:3%;right:3%;bottom:calc(4% + 6px);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;pointer-events:none;z-index:2}
 .spot-row .spot-title{position:absolute;left:50%;top:-20px;transform:translateX(-50%);font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--honey);
-  background:rgba(24,19,28,.94);border:1px solid var(--plank-2);border-radius:999px;padding:0 10px}
+  background:rgba(24,19,28,.94);border:1px solid var(--plank-2);border-radius:999px;padding:0 10px;
+  display:flex;align-items:center;gap:3px;white-space:nowrap}
+.spot-title .dp-die svg{width:20px;height:20px}
+.spot-title .dp-die small{display:none}
+.spot-title b{font-size:14px;color:var(--fur)}
 .spot-cell{display:flex;align-items:center;justify-content:center;gap:2px;--land:0ms}
 .spot-cell .dp-total{min-width:2.2em}
 .spot-cell .dp-total b{font-size:20px;-webkit-text-stroke:2.5px #1f1a24}
@@ -360,7 +364,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .obs-anim{transform-origin:0 0}
 .obs-ok .obs-anim{animation:obs-pop 520ms cubic-bezier(.2,1.6,.4,1) both}
 @keyframes obs-pop{0%{transform:scale(0)}45%{transform:scale(1.32)}70%{transform:scale(.92)}100%{transform:scale(1)}}
-.obs-fail .obs-anim{animation:obs-sway var(--dur) ease-in-out both}
+.obs-fail .obs-anim,.obs-sneak .obs-anim{animation:obs-sway var(--dur) ease-in-out both}
 @keyframes obs-sway{0%{transform:scale(.6) rotate(0);opacity:0}12%{transform:scale(1) rotate(0);opacity:1}26%{transform:rotate(-10deg)}42%{transform:rotate(9deg)}58%{transform:rotate(-7deg)}74%{transform:rotate(5deg)}88%{transform:rotate(-2deg)}100%{transform:rotate(0)}}
 .obs-known .obs-anim{animation:obs-fade 500ms ease-out both}
 @keyframes obs-fade{from{opacity:0}to{opacity:1}}

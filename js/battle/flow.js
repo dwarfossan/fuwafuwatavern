@@ -16,7 +16,7 @@ function nextTurn(){
   if(B().skipTurn){ B().busy = true; refreshBattle(); setTimeout(()=>{ B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
   refreshBattle();
-  if(u.side==="foe") setTimeout(()=>aiTurn(u), 650);
+  if(u.side==="foe") setTimeout(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
 }
 
 function beginTurn(u){
@@ -48,7 +48,7 @@ function beginTurn(u){
   b.skipTurn = !u.down && !u.dead && !!has(u,"paralyzed");
   if(b.skipTurn){ u.statuses = u.statuses.filter(s=>s.k!=="paralyzed"); }
   b.moveLeft = mv; b.baseMove = mv;
-  blog(`— ${nameFor(u)}的回合 —`, "turn");
+  if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
   perceive(u);
 }
@@ -479,7 +479,7 @@ function doGenAct(u, key, t){
   b.mode = null; faceTo(u, t); camOnAttack(u, t); useAction(u);
   // 戰技是豁免判定：先擲骰、再出手
   u.anim = {k:"punch", t:Date.now() + DICE_LEAD}; animSfx("punch", DICE_LEAD);
-  b.impact = DOLL_IMPACT.punch + DICE_LEAD; panelStart(`${u.name}【${g.name}】`);
+  b.impact = DOLL_IMPACT.punch + DICE_LEAD; panelStart(`${u.name}【${g.name}】`); sneakShow(u);
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + b.impact);
   blog(`${u.name}${g.name}${t.name}！`, "skill");
   reveal(u, "出手，現身了！");
@@ -591,7 +591,7 @@ function useItem(u, it, t){
     // 丟道具也要擲骰（攻擊或豁免）：跟招式一樣先擲骰、再丟
     u.anim = {k:"throw", t:Date.now() + DICE_LEAD}; animSfx("throw", DICE_LEAD); camOnAttack(u, t);
     blog(`${u.name}丟出${it.n} → ${t.name}`, "skill");
-    b.impact = launch(u, t, "throw", DICE_LEAD, it); panelStart(`${u.name}【${it.n}】`);
+    b.impact = launch(u, t, "throw", DICE_LEAD, it); panelStart(`${u.name}【${it.n}】`); sneakShow(u);
     if(it.use.kind==="attack"){
       const r = attackRoll(u, t, {bonus:u.mods.DEX + 2, ranged:true});
       if(r.hit){ hurt(t, dmgRoll(it.use.dmg, 0, r.crit), it.use.type, u);
@@ -670,7 +670,7 @@ function doSkill(u, sk, t){
   u.anim = {k, t:Date.now() + lead}; animSfx(k, lead);
   const hitAt = b.impact = launch(u, t, k, lead);
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
-  panelStart(`${u.name}【${sk.def.name}】`);      // 骰子面板
+  panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
   sk.impl.run(u, t);
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
@@ -803,7 +803,7 @@ function aiTurn(e){
   }
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
   const pcs = seenPcs();
-  if(!pcs.length){ blog(`${nameFor(e)}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
+  if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
   const holder = grapplerOf(e);
   if(holder){
     if(!isRanged(e) && !holdsTwoHanded(e) && dist(holder,e)<=reachOf(e)){ setTimeout(endTurn, foeHit(e, holder) || 700); return; }
@@ -910,7 +910,8 @@ function aiShaman(e){
   if(bane && pcs.some(p=>dist(p,e)<=6 && !baned(p))) return shamanCast(e, bane, e);
   const R = bolt ? bolt.impl.range(e) : 0;
   if(R && pcs.some(p=>dist(p,e)<=R)){ e.castLast = true; return aiRanged(e, pcs, R); }
-  if(isHid(e) || !pcs.length){ if(!isHid(e)) blog(`${e.name}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
+  if(isHid(e)){ endTurn(); return; }                       // 躲著靜靜等：不停頓、不寫紀錄
+  if(!pcs.length){ blog(`${e.name}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
   aiRanged(e, pcs, R || 1);
 }
 function shamanCast(e, sk, t){
@@ -922,6 +923,6 @@ function shamanCast(e, sk, t){
 
 // ---------- 飄字 ----------
 // 被動觀察的頭上符號：kind＝ok（!）、fail（?）、known（...）；停留時間依演出長短
-const OBS_DUR = {ok:1400, fail:1700, known:2000};
+const OBS_DUR = {ok:1400, fail:1700, known:2000, sneak:900};   // sneak：從藏身處出手時對面沒發現的 ?（js/battle/engine.js 的 sneakShow）
 function obsMark(u, kind){ (B().marks = B().marks || []).push({id:u.id, kind, t:impactAt(), dur:OBS_DUR[kind]}); }
 function fxFloat(u, text, cls){ (B().floats = B().floats || []).push({x:u.x, y:u.y, text, cls, t:impactAt()}); }

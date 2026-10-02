@@ -11,7 +11,15 @@ const SCENES = {
 const SPOT_SYMBOL_DELAY = 1000;
 function spotRowHTML(){
   const who = scoutSpotters();
-  return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">被動感知</span>${CRITTERS.map(c=>{
+  // 躲的敵人擲的潛行骰也攤開（大爺 10-02：DM 明著骰給你看），放在標題列，下面四格照舊對齊四張卡片
+  const sc = state.scout, hit = sc && Object.entries(sc.foes).find(([,x])=>x.spotted.length);
+  let title = "被動感知";
+  if(hit){
+    const [i, x] = hit, foe = ENEMIES[BATTLES[sc.battle].foes[i].type], m = foe.mods.DEX;
+    const flick = [0,1,2].map(()=>1 + Math.floor(Math.random()*20));
+    title = `${foe.name}潛行 ${dieFace(20, x.roll, 0, DICE_TUMBLE, flick, false)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span><b>${x.hide}</b>${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
+  }
+  return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">${title}</span>${CRITTERS.map(c=>{
     const m = modOf(finalScore(c.id,"WIS")), ok = who.includes(c.id);
     return `<div class="spot-cell">${dieFace(20, 10, 0, 0, [], false, null, true)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span>
       <span class="dp-total ${ok?"res-hit":"res-miss"}"><b>${10+m}</b></span></div>`;

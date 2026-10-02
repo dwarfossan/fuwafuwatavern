@@ -87,5 +87,24 @@ try{
  assert.equal(h.searchLowHidden,true);assert.equal(h.leak,false);assert.equal(h.searchHighHidden,false);ok('搜索四周：擲 20 找到躲著的；擲 1 找不到也不洩漏');
  assert(h.btn);ok('附近沒東西可看穿，搜索照樣能按');
 
+ // 拿掉 ???（大爺 10-02）：躲著的敵人不在先攻列；被察覺時面板攤開潛行骰和被動感知；從藏身處出手補演出
+ const v2=await pg.evaluate(()=>{ const b=B(), u=cur(), rnd=Math.random, out={};
+   const sh=b.units.find(v=>v.type==='goblin_shaman'); sh.dead=false; sh.down=false; sh.hp=sh.maxHp;
+   sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:19,roll:17}); refreshBattle();
+   out.ord=document.querySelectorAll('.ord').length; out.need=b.units.filter(v=>v.side!=='npc'&&!foeHid(v)).length;
+   const t=b.units.find(v=>v.side==='pc'&&!v.down&&!v.dead); sh.x=t.x+3; sh.y=t.y;
+   const bolt=foeUsable(sh).find(s=>s.def.name==='火焰箭'); b.marks=[]; doSkill(sh,bolt,t);
+   out.rows=b.panel.rows.slice(0,2).map(r=>`${r.tname}:${r.rolls[0]}→${r.total}:${r.res}${r.still?':still':''}`);
+   out.marks=b.marks.filter(m=>m.kind==='sneak').length; out.pcs=b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).length;
+   out.revealed=!foeHid(sh);
+   // 察覺成功：面板「X【察覺】」、頭上 !
+   sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:5,roll:3}); sh.x=u.x+1; sh.y=u.y; b.marks=[];
+   perceive(u); out.spotLabel=b.panel.label; out.spotRows=b.panel.rows.map(r=>`${r.tname}:${r.res}`).join(','); out.spotMark=b.marks.some(m=>m.id===u.id&&m.kind==='ok');
+   return out; });
+ assert.equal(v2.ord,v2.need);ok('先攻列沒有躲著的敵人（拿掉 ???）');
+ assert.deepEqual(v2.rows,['潛行:17→19:hide','被動:10→'+v2.rows[1].split('→')[1].split(':')[0]+':fail:still']);assert.equal(v2.marks,v2.pcs);assert(v2.revealed);
+ ok(`從藏身處出手：面板先攤潛行 17→19、被動感知（骰子停 10），四小隻頭上都跳 ?（${v2.rows.join(' / ')}）`);
+ assert.match(v2.spotLabel,/【察覺】/);assert.equal(v2.spotRows,'潛行:hide,被動:found');assert(v2.spotMark);ok('察覺成功：面板「察覺」、潛行骰對被動感知，發現的那隻頭上 !');
+
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}
