@@ -15,6 +15,8 @@ try{
   assert(party.ok);assert(party.left>=0&&party.right<=390&&party.w>200);
   assert(!(await pg.locator('.sub').innerText()).includes('今晚'));ok('封面四小隻合照圖有載入、不超出手機寬，文案符合午後');
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/cover.png'});
+  const sym=await pg.evaluate(()=>['sweat','shake','anger','note'].map(k=>{const d=document.createElement('div');d.innerHTML=obsBubbleHTML(k);const n=d.querySelectorAll('.obs-anim path,.obs-anim ellipse').length;return {k,n,dur:OBS_DUR[k]};}));
+  assert(sym.every(x=>x.n>=2&&x.dur>0),JSON.stringify(sym));ok('泡泡框漫畫符號：滴汗、發抖線、生氣青筋、音符');
   await pg.locator('#start').click();
   assert.equal(await pg.locator('.rule').count(),0);
   await pg.locator('[data-pagehelp="roll"]').click();

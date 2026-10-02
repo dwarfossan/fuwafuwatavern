@@ -395,12 +395,19 @@ function rangeOutline(u, r){
 // 被動觀察符號：白色泡泡框，錨點跟台詞氣泡框一樣在頭上；大小見 overlayK
 // 泡泡框＋符號本體（原點＝尾巴尖端），戰場和劇情共用；d＝動畫延遲（負數＝已經播了多久）
 function obsBubbleBody(kind, d){
-  const w = 42, h = 38, L = -w/2, T = -h - 9;   // 三種符號同一個泡泡框大小
+  const w = 42, h = 38, L = -w/2, T = -h - 9;   // 所有符號同一個泡泡框大小
   const bubble = `<path d="M${L+10} ${T} H${-L-10} Q${-L} ${T} ${-L} ${T+10} V${T+h-10} Q${-L} ${T+h} ${-L-10} ${T+h} H7 L0 ${T+h+9} L-7 ${T+h} H${L+10} Q${L} ${T+h} ${L} ${T+h-10} V${T+10} Q${L} ${T} ${L+10} ${T} Z"
       fill="#fff" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>`;
   let inner;
   if(kind==="ok") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
   else if(kind==="fail" || kind==="sneak") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
+  // 漫畫符號（大爺 10-03：商人、躲著的薩滿等沒有表情圖的用；外觀、顏色、時間都暫定）
+  else if(kind==="sweat") inner = `<g class="obs-drip"><path d="M2 ${T+6} Q9.5 ${T+16} 8 ${T+21} A6.5 6.5 0 1 1 -4.6 ${T+20.5} Q-4 ${T+15} 2 ${T+6} Z" fill="#7cc4f2" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M-1.5 ${T+18} Q-1.5 ${T+23} 1.5 ${T+24.5}" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/></g>`;
+  else if(kind==="shake") inner = [[-1,5],[-1,11],[1,5],[1,11]].map(([sx,x])=>`<path d="M${sx*x} ${T+10} Q${sx*(x+5)} ${T+19} ${sx*x} ${T+28}" stroke="#1f1a24" stroke-width="2.6" stroke-linecap="round" fill="none"/>`).join("");
+  else if(kind==="anger") inner = `<g class="obs-vein">${[0,90,180,270].map(r=>`<path d="M3 -11 Q3 -3 11 -3" transform="translate(0 ${T+h/2}) rotate(${r})" stroke="#e0453a" stroke-width="3.6" stroke-linecap="round" fill="none"/>`).join("")}</g>`;
+  else if(kind==="note") inner = `<g class="obs-float"><ellipse cx="-4" cy="${T+28}" rx="5.6" ry="4.2" transform="rotate(-20 -4 ${T+28})" fill="#e0862a" stroke="#2a2630" stroke-width="1.6"/>
+      <path d="M1.4 ${T+27} V${T+7} Q10 ${T+10} 9 ${T+18}" stroke="#2a2630" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></g>`;
   else inner = [-11,0,11].map((x,i)=>`<circle class="obs-dot" cx="${x}" cy="${T+h/2}" r="3.5" fill="#1f1a24" style="animation-delay:${d + 350 + i*420}ms"/>`).join("");
   return `<g class="obs-life" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms"><g class="obs-anim" style="animation-delay:${d}ms;--dur:${OBS_DUR[kind]}ms">${bubble}${inner}</g></g>`;
 }

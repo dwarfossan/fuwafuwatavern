@@ -369,6 +369,17 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes obs-fade{from{opacity:0}to{opacity:1}}
 .obs-dot{animation:obs-fade 260ms ease-out both}
 .obs-glyph{font:900 30px/1 var(--font-num,var(--font-body))}
+/* 漫畫符號（大爺 10-03，外觀和動畫暫定）：滴汗＝汗珠往下滑、發抖線＝整個泡泡左右抖、生氣青筋＝一跳一跳、音符＝上下飄 */
+.obs-sweat .obs-anim,.obs-anger .obs-anim,.obs-note .obs-anim{animation:obs-fade 260ms ease-out both}
+.obs-shake .obs-anim{animation:obs-shake 110ms linear infinite}
+@keyframes obs-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-1.6px)}75%{transform:translateX(1.6px)}}
+.obs-drip,.obs-vein,.obs-float{transform-box:fill-box;transform-origin:50% 50%}
+.obs-drip{animation:obs-drip 900ms ease-in infinite}
+@keyframes obs-drip{0%{transform:translateY(-3px);opacity:0}20%{opacity:1}80%{transform:translateY(3px);opacity:1}100%{transform:translateY(4px);opacity:0}}
+.obs-vein{animation:obs-vein 560ms ease-in-out infinite}
+@keyframes obs-vein{0%,100%{transform:scale(.85)}40%{transform:scale(1.2)}}
+.obs-float{animation:obs-float 900ms ease-in-out infinite alternate}
+@keyframes obs-float{from{transform:translateY(2px) rotate(-8deg)}to{transform:translateY(-3px) rotate(8deg)}}
 .board .st-badges{pointer-events:none}
 .board .st-n{font:800 10px var(--font-num,var(--font-body));fill:#1f1a24}
 /* ---------- 骰子面板：貼在戰場上緣外側往上長（蓋住回合順序、狀態列，不擋戰場演出）---------- */

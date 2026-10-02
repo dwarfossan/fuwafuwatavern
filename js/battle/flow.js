@@ -930,6 +930,6 @@ function shamanCast(e, sk, t){
 
 // ---------- 飄字 ----------
 // 被動觀察的頭上符號：kind＝ok（!）、fail（?）、known（...）；停留時間依演出長短
-const OBS_DUR = {ok:1400, fail:1700, known:2000, sneak:900};   // sneak：從藏身處出手時對面沒發現的 ?（js/battle/engine.js 的 sneakShow）
+const OBS_DUR = {ok:1400, fail:1700, known:2000, sneak:900, sweat:1800, shake:1600, anger:1400, note:1800};   // 後四個是漫畫符號（10-03，時間暫定）   // sneak：從藏身處出手時對面沒發現的 ?（js/battle/engine.js 的 sneakShow）
 function obsMark(u, kind){ (B().marks = B().marks || []).push({id:u.id, kind, t:impactAt(), dur:OBS_DUR[kind]}); }
 function fxFloat(u, text, cls){ (B().floats = B().floats || []).push({x:u.x, y:u.y, text, cls, t:impactAt()}); }
