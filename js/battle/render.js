@@ -133,25 +133,19 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 物件與棋子，依前後順序畫
   const things = [];
   // 地形柱排在同一格的物件、角色前面（s 比較小），比牠後面的角色晚畫，所以會擋住後面的人
-  raised.forEach(({x,y})=>{ const p=iso(x,y), low=Math.min(hAt(x,y+1), hAt(x+1,y));
-    things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`, box:[p.x-TW/2, p.y, p.x+TW/2, p.y+TH+(hAt(x,y)-low)*HZ]}); });
+  raised.forEach(({x,y})=>{
+    things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
-  d.blocks.forEach(o=> things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:blockSVG(o), box:blockBox(o)}));
+  d.blocks.forEach(o=> things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:blockSVG(o)}));
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
   const shown = b.units.filter(v=>(!v.dead || now - v.deadAt < 900) && !foeHid(v));
-  shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), box:unitBox(v), unit:v}));
+  shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(t.svg));
-  // 被擋住的角色：被前面的樹／篷車／角色蓋住超過 35%，在最上層畫一圈剪影外框（我方各自的顏色、敵人紅色）
-  // 外框可以點（data-tile），瞄準時直接點它就選到後面那隻
-  const hiddenOnes = things.filter(t=>t.unit && !t.unit.dead &&
-    things.some(f=> f!==t && f.box && f.s > t.s && overlapRatio(t.box, f.box) > .35));
-  if(hiddenOnes.length){
-    const cols = [...new Set(hiddenOnes.map(t=>olColor(t.unit)))];
-    out.push(`<defs>${cols.map(olFilter).join("")}</defs>`);
-    hiddenOnes.forEach(t=>out.push(`<g class="hid-ol" data-tile="${t.unit.x},${t.unit.y}" filter="url(#ol-${olColor(t.unit).slice(1)})">${unitDoll(t.unit, t.unit===u)}</g>`));
-  }
+  // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
+  // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
+  shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
   out.push(`<use href="#mark-tags"/>`);
   // 飛行物（出手時才出現，飛到目標消失）
   b.proj = (b.proj||[]).filter(pj=>now < pj.t + pj.dur + 80);
@@ -470,23 +464,6 @@ function projSVG(pj, now){
   return `<g class="proj proj-${pj.kind}" ${st}><g transform="scale(${pj.kind==="arrow" || pj.kind==="bullet" ? 1 : 1.5})">${shape}</g></g>`;   // 箭不放大（大爺：原本太大）
 }
 
-// 畫面上佔的範圍 [左, 上, 右, 下]（棋盤座標），用來判斷誰擋住誰
-function unitBox(v){
-  const p = iso(v.x,v.y), cx = p.x, cy = p.y + TH/2;
-  return (v.down || has(v,"prone")) ? [cx-70, cy-50, cx+55, cy+6] : [cx-48, cy-118, cx+48, cy];
-}
-function blockBox(o){
-  const p = iso(o.x,o.y), cx = p.x, cy = p.y + TH/2;
-  if(o.kind==="tree")  return [cx-46*TREE_K, cy-126*TREE_K, cx+46*TREE_K, cy];
-  if(o.kind==="wagon") return [cx-TW/2, cy-TH/2-40*WAGON_K-20*WAGON_K, cx+TW/2, cy+TH/2];
-  return null;   // 箱子、草叢矮，不會擋到人
-}
-// 後面那個（a）被前面那個（f）蓋住的比例
-function overlapRatio(a, f){
-  const w = Math.min(a[2],f[2]) - Math.max(a[0],f[0]), h = Math.min(a[3],f[3]) - Math.max(a[1],f[1]);
-  return w>0 && h>0 ? (w*h) / ((a[2]-a[0])*(a[3]-a[1])) : 0;
-}
-
 function blockSVG(o){
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
@@ -558,15 +535,6 @@ function fxSVG(kind, x, y, el){
   return g(`<path d="M0 -28 L7 -9 L27 -12 L12 2 L22 20 L3 11 L-9 26 L-8 6 L-27 0 L-9 -8 Z" fill="#fff4b0" stroke="#f2b441" stroke-width="2.5"/>`);
 }
 
-// 剪影外框：顏色、SVG 濾鏡（把紙娃娃的形狀往外擴一圈、挖掉原本的形狀，只留輪廓）
-const olColor = v => sideColor(v);
-const olFilter = c => `<filter id="ol-${c.slice(1)}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-  <feComponentTransfer in="SourceAlpha" result="a"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer>
-  <feMorphology in="a" operator="dilate" radius="3.5" result="d1"/><feMorphology in="a" operator="dilate" radius="6" result="d2"/>
-  <feComposite in="d1" in2="a" operator="out" result="ring"/><feComposite in="d2" in2="d1" operator="out" result="edge"/>
-  <feFlood flood-color="${c}"/><feComposite in2="ring" operator="in" result="cr"/>
-  <feFlood flood-color="#1f1a24" flood-opacity=".75"/><feComposite in2="edge" operator="in" result="er"/>
-  <feMerge><feMergeNode in="er"/><feMergeNode in="cr"/></feMerge></filter>`;
 function unitDoll(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
@@ -693,24 +661,33 @@ function fireShieldFX(v, cx, cy){
   return `<g class="fx-fshield"><ellipse cx="${cx}" cy="${cy-4}" rx="40" ry="13" fill="none" stroke="#f2903a" stroke-width="3" opacity=".75"/>
     <ellipse class="fs-glow" cx="${cx}" cy="${cy+oy}" rx="${low?58:42}" ry="${ry}" fill="#f2903a" opacity=".16" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="6 7"/></g>`;
 }
+// 頭上的血條＋狀態圖示＋潛行眼睛：角色本身和「被擋住的指示物」共用
+function unitHUD(v, cx, top, badgeUp){
+  const pct = v.hp/v.maxHp;
+  const hid = isHid(v) ? `<g class="hid-eye" transform="translate(${cx} ${top-24-badgeUp})"><path d="M-17 0 Q0 -14 17 0 Q0 14 -17 0 Z" fill="#1f1a24" stroke="#f6e9d8" stroke-width="2.5"/>
+    <circle r="5.5" fill="#f6e9d8"/><path d="M-19 9 L19 -9" stroke="#1f1a24" stroke-width="7" stroke-linecap="round"/><path d="M-17 8 L17 -8" stroke="#f6e9d8" stroke-width="2.5" stroke-linecap="round"/></g>` : "";
+  return `<rect x="${cx-28}" y="${top-8}" width="56" height="7" rx="3" fill="#1f1a24"/>
+    <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>
+    ${statusBadges(v, cx, top - 12)}${hid}`;
+}
+const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
+// 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
+function hudSVG(v){
+  const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
+  return `<g class="hud" data-tile="${v.x},${v.y}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}</g>`;
+}
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
   const now = Date.now(), pct = v.hp/v.maxHp;
   const doll = unitDoll(v, active);
   const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
-  const top = (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
+  const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  const hid = isHid(v) ? `<g class="hid-eye" transform="translate(${cx} ${top-24-badgeUp})"><path d="M-17 0 Q0 -14 17 0 Q0 14 -17 0 Z" fill="#1f1a24" stroke="#f6e9d8" stroke-width="2.5"/>
-    <circle r="5.5" fill="#f6e9d8"/><path d="M-19 9 L19 -9" stroke="#1f1a24" stroke-width="7" stroke-linecap="round"/><path d="M-17 8 L17 -8" stroke="#f6e9d8" stroke-width="2.5" stroke-linecap="round"/></g>` : "";
   return `<g class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${v.x},${v.y}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}
     ${burnFX(v, cx, cy)}${fireShieldFX(v, cx, cy)}
-    ${v.dead?"":`<rect x="${cx-28}" y="${top-8}" width="56" height="7" rx="3" fill="#1f1a24"/>
-    <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>`}
-    ${v.dead ? "" : statusBadges(v, cx, top - 12)}
-    ${hid}
   </g>`;
 }
 // 棋子旁的裝備圖示：武器類別、法器、盾

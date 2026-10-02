@@ -375,7 +375,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .board .tile.tg{fill:#e0766e;fill-opacity:.9}
 .board .tile.ar{fill:#e0766e;fill-opacity:.35}
 .board .range-line{pointer-events:none}
-.board .hid-ol{cursor:pointer}
+.board .hud{cursor:pointer}   /* 血條在最上層、可以點（10-03 取代被擋住時的剪影外框） */
 .board .token.hid-me > svg, .board .token.hid-me > ellipse{opacity:.5}
 .board .hid-eye{pointer-events:none}
 /* 戰鬥台詞氣泡框 */

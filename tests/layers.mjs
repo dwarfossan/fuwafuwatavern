@@ -56,6 +56,11 @@ try{
  await pg.evaluate(()=>{B().critOn=null;render();});assert(await pg.evaluate(()=>!window.__svg.classList.contains('crit-zoom')&&!window.__svg.style.transformOrigin));console.log('✓ critical camera');
  await pg.evaluate(()=>{state.modal={kind:'item',id:ITEMS[0].id};render();render();});assert.equal(await pg.locator('.modal-back').count(),1);
  await pg.evaluate(()=>{state.modal=null;render();});assert.equal(await pg.locator('.modal-back').count(),0);console.log('✓ modal lifecycle');
+ const hud=await pg.evaluate(()=>{ const sc=document.querySelector('#board-scene')||document.querySelector('.board'); const all=[...sc.querySelectorAll('.token, .hud')];
+   const lastToken=all.map(e=>e.classList.contains('token')).lastIndexOf(true), firstHud=all.findIndex(e=>e.classList.contains('hud'));
+   const live=B().units.filter(v=>!v.dead&&!foeHid(v)).length;
+   return {order:firstHud>lastToken, n:sc.querySelectorAll('.hud[data-tile]').length, live, ol:sc.querySelectorAll('.hid-ol').length}; });
+ assert(hud.order);assert.equal(hud.n,hud.live);assert.equal(hud.ol,0);console.log('✓ 血條在最上層、每隻都能點，沒有剪影外框（10-03）');
  await pg.evaluate(()=>startBattle('ambush'));assert(await pg.evaluate(()=>!!document.getElementById('board-floor')));console.log('✓ retry battle');
  await pg.evaluate(()=>{state.page='cover';render();});assert.equal(await pg.locator('.board').count(),0);console.log('✓ leave battle');
  assert.deepEqual(errors,[]);console.log('✓ no browser errors');
