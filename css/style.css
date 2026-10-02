@@ -413,7 +413,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 潛行對被動感知同一列：右邊是找的人（名字、停在 10 的骰子、被動感知） */
 .dp-vs-n{font-size:11px;color:var(--dim);margin-right:3px;white-space:nowrap}
 .dp-more{font-size:11px;color:var(--dim);text-align:right;margin-top:2px}
-@media (max-width:560px){ .dice-panel{left:0;right:0;transform:none;max-width:none;min-width:0;padding:5px 8px 6px}
+/* 手機：面板只跟內容一樣寬、靠左（大爺 10-02：以前撐滿整個寬，中間一大片空白，右邊的字還被喇叭、齒輪蓋住） */
+@media (max-width:560px){ .dice-panel{left:0;right:auto;transform:none;width:max-content;max-width:100%;min-width:0;padding:5px 8px 6px}
   .dp-row{gap:5px;min-height:42px}
   .dp-tg{width:3.4em;font-size:11px}
   .dp-die svg{width:26px;height:26px}
