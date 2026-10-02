@@ -88,6 +88,16 @@ try{
  assert.equal(btn0.left,0);assert.equal(btn0.retry,false);assert(btn0.home);ok('三次用完：重新挑戰不見，只剩傳送回酒館');
  const rest=await pg3.evaluate(()=>{ const b=B(); b.result='win'; takeRest('long'); return state.retriesLeft; });
  assert.equal(rest,3);ok('長休：重新挑戰回滿 3 次');
+ // 上一場排好的換回合計時器，不能跑進新的一場（10-02：輸掉後 1.5 秒內按重新挑戰，新一場第一隻會被跳過）
+ await pg3.evaluate(()=>{ const b=B(); b.result=null; b.units.forEach(v=>{ v.dead=false; v.down=false; v.gone=null; v.statuses=[]; });
+   const e=b.units.find(v=>v.side==='foe'); b.turn=b.units.indexOf(e);
+   b.units.filter(v=>v.side==='pc').forEach(p=>addStatus(p,'hidden',{val:30,roll:20}));   // 敵人找不到人：「東張西望」，0.7 秒後換回合
+   aiTurn(e); });
+ await lose(); await pg3.click('#retry');
+ const t0=await pg3.evaluate(()=>{ aiTurn=()=>{}; return {turn:B().turn, round:B().round}; });   // 新一場的敵人先不動，只看回合有沒有被偷換
+ await pg3.waitForTimeout(1500);
+ const t1=await pg3.evaluate(()=>({turn:B().turn, round:B().round}));
+ assert.deepEqual(t1,t0,'上一場的計時器讓新一場多換了一個回合');ok('馬上按重新挑戰：上一場排好的換回合不會跑進新的一場');
  await pg3.evaluate(()=>{ const b=B(); b.result=null; b.units.filter(v=>v.side==='pc').forEach(p=>{ p.dead=true; }); checkResult(); refreshBattle(); });
  await pg3.click('#toTavern'); await pg3.waitForTimeout(400);
  const home=await pg3.evaluate(()=>({page:state.page, loc:state.location, battle:state.battle}));

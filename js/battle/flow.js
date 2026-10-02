@@ -11,14 +11,14 @@ function nextTurn(){
   const u = cur();
   beginTurn(u);
   // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
-  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 1500); return; }
+  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
-  if(u.dead || u.down){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
+  if(u.dead || u.down){ refreshBattle(); later(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
-  if(B().skipTurn){ B().busy = true; refreshBattle(); setTimeout(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
+  if(B().skipTurn){ B().busy = true; refreshBattle(); later(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
   refreshBattle();
-  if(u.side==="foe") setTimeout(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
+  if(u.side==="foe") later(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
 }
 
 function beginTurn(u){
@@ -120,7 +120,7 @@ function walk(u, path, done){
       if(foes.length){
         foes.forEach(h=>{ if(!u.down && !u.dead) opportunityAttack(h, u); });
         refreshBattle();
-        setTimeout(step, 750);
+        later(step, 750);
         return;
       }
     }
@@ -133,7 +133,7 @@ function walk(u, path, done){
     checkGuards(u, prev);
     checkExposure();
     refreshBattle();
-    setTimeout(step, 140);
+    later(step, 140);
   };
   step();
 }
@@ -693,7 +693,7 @@ function doSkill(u, sk, t){
 function afterShow(u, ms){
   const b = B();
   b.busy = true; b.menu = null; refreshBattle();
-  setTimeout(()=>{
+  later(()=>{
     if(B()!==b) return;
     b.busy = false;
     if(!b.result && cur()===u && !u.down && !u.dead) b.menu = "root";
@@ -787,13 +787,13 @@ function aiTurn(e){
   if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
   if(!alive("pc").length){ endTurn(); return; }   // 四小隻全倒在地上擲死亡豁免：敵人沒事做
   // 被網住：先掙脫；身上著火快燒死：先撲滅
-  if(hasVia(e,"restrained","net")){ doUnnet(e); setTimeout(endTurn, settle(800)); return; }
-  if(has(e,"burning") && e.hp<=4){ doDouse(e); setTimeout(endTurn, 800); return; }
+  if(hasVia(e,"restrained","net")){ doUnnet(e); later(endTurn, settle(800)); return; }
+  if(has(e,"burning") && e.hp<=4){ doDouse(e); later(endTurn, 800); return; }
   // 免費動作：有用得上的免費招式就先用，再回來做這回合的主動作
   // 免費那格用過了、同伴快倒（剩四分之一）→ 用主動作再補一次
   { const f = foeFreePick(e);
-    if(f && (!b.freeUsed || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); setTimeout(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
-  if(!canAct()){ refreshBattle(); setTimeout(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
+    if(f && (!b.freeUsed || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
+  if(!canAct()){ refreshBattle(); later(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
   // 學習系統測試：每隻哥布林先使用一項「既有技能表」裡的招式一次。
   // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
   if(!e.testSkillUsed && e.testSkill){
@@ -805,16 +805,16 @@ function aiTurn(e){
         const r=sk.impl.range?sk.impl.range(e):1;
         t=seenPcs().filter(p=>dist(p,e)<=r).sort((a,c)=>a.hp-c.hp)[0]||null;
       }
-      if(t){ e.testSkillUsed=true; doSkill(e,sk,t); setTimeout(endTurn,settle(1000)); return; }
+      if(t){ e.testSkillUsed=true; doSkill(e,sk,t); later(endTurn,settle(1000)); return; }
     }
   }
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
   const pcs = seenPcs();
-  if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
+  if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
   const holder = grapplerOf(e);
   if(holder){
-    if(!isRanged(e) && !holdsTwoHanded(e) && dist(holder,e)<=reachOf(e)){ setTimeout(endTurn, foeHit(e, holder) || 700); return; }
-    doEscape(e); setTimeout(endTurn, settle(700)); return;
+    if(!isRanged(e) && !holdsTwoHanded(e) && dist(holder,e)<=reachOf(e)){ later(endTurn, foeHit(e, holder) || 700); return; }
+    doEscape(e); later(endTurn, settle(700)); return;
   }
   // 手上空空的：找走得到、撿得起來的東西（自己的、或我方掉的都行），挑最近的
   const reach = !e.weapon && !e.focus && (b.drops||[]).length ? reachable(e, b.moveLeft) : null;
@@ -830,13 +830,13 @@ function aiTurn(e){
         const r = foeRange(e) || reachOf(e), t = seenPcs().filter(p=>dist(p,e)<=r)[0];
         let wait = 700;
         if(t && !e.dead) wait = foeHit(e, t) || 700;
-        refreshBattle(); setTimeout(endTurn, wait); });
+        refreshBattle(); later(endTurn, wait); });
       return;
     }
   }
   if(foeRange(e)) return aiRanged(e, pcs, foeRange(e));
   const adj = pcs.filter(p=>dist(p,e)<=reachOf(e));
-  if(adj.length){ setTimeout(endTurn, foeMelee(e, adj)); return; }
+  if(adj.length){ later(endTurn, foeMelee(e, adj)); return; }
   // 找離自己最近、能貼身的角色
   const all = reachable(e, 99);
   let best = null;
@@ -846,7 +846,7 @@ function aiTurn(e){
       if(path && (!best || path.cost < best.path.cost)) best = {p, path};
     }
   });
-  if(!best || !b.moveLeft){ blog(`${e.name}在原地大叫。`); setTimeout(endTurn, 600); return; }
+  if(!best || !b.moveLeft){ blog(`${e.name}在原地大叫。`); later(endTurn, 600); return; }
   const steps = trimPath(best.path, b.moveLeft, victimsOf(e).length ? 2 : 1, e);
   b.busy = true;
   walk(e, steps, ()=>{
@@ -860,7 +860,7 @@ function aiTurn(e){
       if(m){ doGenAct(e, m.key, m.t); wait = settle(1300); } else wait = foeHit(e, first[0]) || 700;
     }
     refreshBattle();
-    setTimeout(endTurn, wait);
+    later(endTurn, wait);
   });
 }
 // 遠程（弓、法器）：被貼身就找一格離大家都至少 2 格、而且最遠的地方退過去；射程內挑好打的出手
@@ -869,14 +869,14 @@ function aiRanged(e, pcs, R){
   const nearest = p => Math.min(...seenPcs().map(q=>dist(q,p)));
   const shoot = ()=>{
     // 跳開途中被打倒（藉機攻擊）或戰鬥已經結束：不射、不留遺言；戰鬥還沒結束就照常換人
-    if(e.dead || e.down || b.result){ refreshBattle(); if(!b.result) setTimeout(endTurn, settle(700)); return; }
+    if(e.dead || e.down || b.result){ refreshBattle(); if(!b.result) later(endTurn, settle(700)); return; }
     // 挑好打的：沒掩護、沒躲草叢的優先，再挑血少的
     const hard = p => coverAC(coverOf(e,p)) + (hidden(p) ? 5 : 0);
     const inRange = seenPcs().filter(p=>dist(p,e)<=R).sort((a,c)=>hard(a)-hard(c) || a.hp-c.hp);
     let wait = 700;
     if(inRange.length && !e.dead){ wait = foeHit(e, inRange[0]) || 700; nimbleHide(e); }
     else blog(`${e.name}找不到可以射的目標。`);
-    refreshBattle(); setTimeout(endTurn, wait);
+    refreshBattle(); later(endTurn, wait);
   };
   let path = null;
   if(nearest(e) <= 1 && b.moveLeft){
@@ -910,7 +910,7 @@ function aiShaman(e){
   if(!isHid(e) && e.castLast && !hideBlock(e)){
     e.castLast = false;
     blog(`${e.name}縮回藏身處……`, "skill"); e.anim = {k:"guard", t:Date.now()}; animSfx("guard");
-    tryHide(e); refreshBattle(); setTimeout(endTurn, 1000); return;
+    tryHide(e); refreshBattle(); later(endTurn, 1000); return;
   }
   e.castLast = false;
   const bane = spell("災禍術"), bolt = spell("火焰箭");      // 治癒真言是免費動作，回合一開始就用了（foeFreePick）
@@ -918,14 +918,14 @@ function aiShaman(e){
   const R = bolt ? bolt.impl.range(e) : 0;
   if(R && pcs.some(p=>dist(p,e)<=R)){ e.castLast = true; return aiRanged(e, pcs, R); }
   if(isHid(e)){ endTurn(); return; }                       // 躲著靜靜等：不停頓、不寫紀錄
-  if(!pcs.length){ blog(`${e.name}東張西望，找不到人。`); setTimeout(endTurn, 700); return; }
+  if(!pcs.length){ blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
   aiRanged(e, pcs, R || 1);
 }
 function shamanCast(e, sk, t){
   doSkill(e, sk, t);
   e.castLast = true;
   if(nimbleHide(e)) e.castLast = false;                     // 靈巧脫逃：施完法馬上躲回去
-  setTimeout(endTurn, settle(1200));
+  later(endTurn, settle(1200));
 }
 
 // ---------- 飄字 ----------

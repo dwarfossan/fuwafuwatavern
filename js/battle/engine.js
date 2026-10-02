@@ -111,6 +111,9 @@ function startBattle(id, retry=false){
 }
 
 const B = () => state.battle;
+// 戰鬥用計時器：排的時候記下是哪一場。時間到發現已經換了一場（重新挑戰）或戰鬥不在了（傳送回酒館）就不跑
+// （10-02：輸掉後馬上按重新挑戰，上一場排好的換回合跑進新的一場，第一隻被跳過）。js/battle/flow.js 的計時器都用這個
+function later(fn, ms){ const b = B(); return setTimeout(()=>{ if(b && B()===b) fn(); }, ms); }
 const unitAt = (x,y) => B().units.find(u=>!u.dead && u.x===x && u.y===y);
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
