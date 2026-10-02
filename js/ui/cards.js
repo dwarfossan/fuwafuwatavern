@@ -94,15 +94,34 @@ function skillCardHTML(groupId, idx, item, unit){
 }
 
 // ---------- 彈出視窗 ----------
+function pageHelpHTML(key){
+  return `<button class="page-help" data-pagehelp="${key}" aria-label="${PAGE_UI.helpPages[key].title}">ⓘ ${PAGE_UI.help}</button>`;
+}
+function closeDetailModal(){
+  const m=state.modal;
+  state.modal=null;
+  if(m?.kind==="character") state.info=null;
+  refreshGameUI();
+  if(m?.kind==="character") document.querySelector(`[data-info="${m.id}"]`)?.focus({preventScroll:true});
+  if(m?.kind==="help") document.querySelector(`[data-pagehelp="${m.id}"]`)?.focus({preventScroll:true});
+}
 function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
   if(m.kind==="item") body = itemCardHTML(ITEMS.find(i=>i.id===m.id));
+  if(m.kind==="help"){
+    const h=PAGE_UI.helpPages[m.id];
+    body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
+  }
+  if(m.kind==="character"){
+    const c=CRITTERS.find(x=>x.id===m.id);
+    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterSVG(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p></div>`;
+  }
   if(m.kind==="skill"){
     const unit = m.unit && state.battle ? state.battle.units.find(v=>v.id===m.unit) : null;
     body = skillCardHTML(m.group, m.idx, m.item ? ITEMS.find(i=>i.id===m.item) : null, unit);
   }
-  return `<div class="modal-back" data-close="1"><div class="modal" role="dialog" aria-modal="true">
+  return `<div class="modal-back" data-close="1"><div class="modal ${["help","character"].includes(m.kind)?"page-bubble":""}" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;
 }
 const modalEvents=new WeakMap();
@@ -112,7 +131,8 @@ function modalListen(el,type,fn){
 }
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
-  document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el){ state.modal=null; refreshGameUI(); } }));
+  document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
+  document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));
   document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo}; refreshGameUI(); }));
   document.querySelectorAll("[data-skinfo]").forEach(el=>modalListen(el,"click", e=>{
     e.stopPropagation();
@@ -121,7 +141,7 @@ function bindModal(){
     refreshGameUI();
   }));
 }
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal){ state.modal=null; refreshGameUI(); } });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.modal) closeDetailModal(); });
 
 // 全域返回／取消：滑鼠右鍵一律當作遊戲的「返回」鍵，不開瀏覽器選單。
 // 只撤銷尚未確定的 UI／選擇；已經結算的攻擊、移動途中事件等不倒帶。
@@ -130,7 +150,7 @@ function gameBack(){
     // 技能詳情若是從物品詳情進來，先回物品；否則關閉詳情。
     if(state.modal.kind==="skill" && state.modal.back && state.modal.item){
       state.modal={kind:"item",id:state.modal.item};
-    }else state.modal=null;
+    }else {closeDetailModal();sfx("back");return true;}
     sfx("back"); refreshGameUI(); return true;
   }
   if(state.page==="battle"){

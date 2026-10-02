@@ -51,8 +51,7 @@ function renderRoll(){
   return `<section class="page">
     <div class="head"><div>
       <h2>替小動物擲屬性</h2>
-      <p class="rule">擲出 6 組 4d6，每組取最高的三顆相加，變成 6 個數字。把數字拖到屬性格子裡（或先點數字、再點格子），也可以按「自動分配」。格子裡的數字可以拖回籌碼盤或拖到別格互換。綠色標籤是背景加成，創角時屬性上限 20。</p>
-    </div></div>
+    </div>${pageHelpHTML("roll")}</div>
     <div class="tabs" role="tablist">${tabs}</div>
     <div class="sheet">
       <div class="sheet-top">

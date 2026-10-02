@@ -1,0 +1,47 @@
+// 手機畫面回歸：封面、說明／角色泡泡；後續介面驗收也放這裡。
+import {chromium} from 'playwright';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const br=await chromium.launch();
+const ok=n=>console.log('✓ '+n);
+try{
+  const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
+  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
+  await pg.waitForTimeout(500);
+  const faces=await pg.locator('.row-critters>svg').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,right:r.right}}));
+  assert.equal(faces.length,4);assert.equal(new Set(faces.map(e=>e.y)).size,1);assert(faces.every(e=>e.right<=390));
+  assert(!(await pg.locator('.sub').innerText()).includes('今晚'));ok('封面四隻同排，文案符合午後');
+  if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/cover.png'});
+  await pg.locator('#start').click();
+  assert.equal(await pg.locator('.rule').count(),0);
+  await pg.locator('[data-pagehelp="roll"]').click();
+  assert((await pg.locator('[role="dialog"]').innerText()).includes('4d6'));
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();
+  assert.equal(await pg.locator('[role="dialog"]').count(),0);ok('屬性說明可開關，不占頁首');
+  for(let i=0;i<4;i++){
+    await pg.locator(`[data-tab="${i}"]`).click();await pg.locator('#rollAll').click();await pg.locator('#autoAssign').click();
+  }
+  await pg.locator('#next').click();await pg.waitForTimeout(500);
+  const nav=await pg.locator('.fp-page>.nav').boundingBox();
+  const line=await pg.evaluate(()=>state.line);
+  await pg.locator('[data-info="fox"]').click();
+  assert((await pg.locator('[role="dialog"]').innerText()).includes('愛研究'));
+  const navAfter=await pg.locator('.fp-page>.nav').boundingBox();assert.equal(nav.y,navAfter.y);
+  assert(navAfter.y+navAfter.height<=844);
+  if(process.env.MOBILE_SCREENSHOTS){await pg.waitForTimeout(250);await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/character.png'});}
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();assert.equal(await pg.evaluate(()=>state.line),line);
+  assert.equal(await pg.evaluate(()=>state.info),null);ok('角色介紹覆蓋顯示，關閉不推進劇情、不移動底部');
+  await pg.locator('[data-info="tiger"]').click();await pg.keyboard.press('Escape');
+  assert.equal(await pg.locator('[role="dialog"]').count(),0);ok('角色泡泡 Escape 可關閉');
+  await pg.evaluate(()=>{state.line=SCENES.prologue.script.length-1;updateStoryLine();});
+  await pg.locator('#toShop').click();await pg.locator('[data-pagehelp="shop"]').click();
+  assert((await pg.locator('[role="dialog"]').innerText()).includes('負重'));
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();
+  assert((await pg.locator('#depart').boundingBox()).y<844);ok('商店規則泡泡可關閉，出發仍可見');
+  await pg.evaluate(()=>{state.page='map';state.travel=null;render();});
+  await pg.locator('[data-pagehelp="map"]').click();assert((await pg.locator('[role="dialog"]').innerText()).includes('現在的位置'));
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
+  assert.deepEqual(errors,[]);ok('沒有瀏覽器錯誤');
+}finally{await br.close();}

@@ -80,16 +80,6 @@ function renderStory(){
     </button>`;
   }).join("");
 
-  let info = "";
-  if(state.info){
-    const c = CRITTERS.find(x=>x.id===state.info);
-    info = `<div class="info" style="--c:${c.color}">
-      <div class="info-top">${critterSVG(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div>
-      <div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div>
-      <p>${c.intro}</p>
-    </div>`;
-  }
-
   return `<section class="page fp-page">
     <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${scene.bg==="road" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${roadAmbushSVG()}</div>` : `
@@ -105,7 +95,6 @@ function renderStory(){
       </div>
     </div>
     <div class="party ${line.hug?"cheer":""}" aria-label="隊伍">${party}</div>
-    ${info}
     <div class="nav">
       ${scene.back ? `<button class="btn ghost" id="${scene.back[0]}">${scene.back[1]}</button>` : `<span></span>`}
       <span class="progress">${state.line+1} / ${SCRIPT_.length}</span>

@@ -18,8 +18,7 @@ function renderMap(){
   return `<section class="page">
     <div class="head"><div>
       <h2>大地圖</h2>
-      <p class="rule">點地點看介紹。四隻的臉標出你們現在的位置。</p>
-    </div></div>
+    </div>${pageHelpHTML("map")}</div>
     <div class="map-frame">${worldMapSVG(sel.id, state.location)}</div>
     <div class="map-info">
       <div>

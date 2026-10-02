@@ -154,7 +154,7 @@ function bind(){
   });
   stage?.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); adv(); } });
   document.querySelectorAll("[data-info]").forEach(b=>b.addEventListener("click", ()=>{
-    state.info = state.info===b.dataset.info ? null : b.dataset.info; render();
+    state.info=b.dataset.info; state.modal={kind:"character",id:state.info}; render();
   }));
 
   $("toShop")?.addEventListener("click", ()=>{

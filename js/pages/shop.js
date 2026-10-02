@@ -27,8 +27,7 @@ function renderShop(){
   return `<section class="page shop-page" data-shop-category="${state.shopCat}">
     <div class="head"><div>
       <h2>大爺的裝備牆</h2>
-      <p class="rule">每隻 100 gp。重甲有力量需求；「重型」武器近戰要力量 13、遠程要敏捷 13；負重上限是力量值 × 15 磅。</p>
-    </div></div>
+    </div>${pageHelpHTML("shop")}</div>
     <div class="quip"><div class="quip-face">${DWARF_SVG}</div><p>${state.quip}</p></div>
     <div class="tabs" role="tablist" aria-label="${SHOP_UI.characters}">${tabs}</div>
     <details class="shop-side" ${state.shopBagOpen?"open":""}>
