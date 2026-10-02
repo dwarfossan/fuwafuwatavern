@@ -31,7 +31,7 @@ try{
   const line=await pg.evaluate(()=>state.line);
   await pg.locator('[data-info="fox"]').click();
   assert((await pg.locator('[role="dialog"]').innerText()).includes('愛研究'));
-  const navAfter=await pg.locator('.fp-page>.nav').boundingBox();assert.equal(nav.y,navAfter.y);
+  const navAfter=await pg.locator('.fp-page>.nav').boundingBox();assert(Math.abs(nav.y-navAfter.y)<0.5,`${nav.y} → ${navAfter.y}`);   // 10-03：允許小於 0.5px 的次像素誤差（頭像圖片載入時會差 0.006px）
   assert(navAfter.y+navAfter.height<=844);
   if(process.env.MOBILE_SCREENSHOTS){await pg.waitForTimeout(250);await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/character.png'});}
   await pg.getByRole('button',{name:'關閉',exact:true}).click();assert.equal(await pg.evaluate(()=>state.line),line);
