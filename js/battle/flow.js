@@ -130,7 +130,7 @@ function walk(u, path, done){
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(pickUp(u)){ b.pickedUp = true; }
-    if(u.side==="foe") checkGuards(u, prev);
+    checkGuards(u, prev);
     checkExposure();
     refreshBattle();
     setTimeout(step, 140);
@@ -158,12 +158,16 @@ function opportunityAttack(h, u){
   b.impact = 0;
   checkResult();
 }
+// 阻截：走進架式範圍就挨一下。敵我同一套（大爺 10-02；以前只有四小隻的架式有效）
+// 躲著走的看不到，不會被阻截（跟藉機攻擊一樣）；途中挨過打，這次移動就不能取消
 function checkGuards(e, prev){
-  alive("pc").forEach(p=>{
+  if(isHid(e)) return;
+  B().units.filter(p=>hostile(p,e) && !p.down && !p.dead).forEach(p=>{
     const g = hasVia(p,"stance","guard");   // 架式（阻截）
-    if(g && dist(prev,p) > reachOf(p) && dist(e,p) <= reachOf(p)){
+    if(g && !e.down && !e.dead && dist(prev,p) > reachOf(p) && dist(e,p) <= reachOf(p)){
       blog(`${p.name}阻截走進範圍的${e.name}！`, "skill");
       p.statuses = p.statuses.filter(s=>s!==g);
+      if(e===cur()) B().moveRolled = true;
       weaponAttack(p, e, {extraDice:g.up||0});            // 阻截升階：多的武器骰
     }
   });
@@ -184,7 +188,7 @@ function pcMove(x, y){
   walk(u, path, ()=>{
     b.busy = false;
     if(u.down || u.dead || b.result){ refreshBattle(); return; }
-    if(b.moveRolled || b.pickedUp){ if(b.moveRolled) blog(`　途中被藉機攻擊，這次移動不能取消。`); b.menu = "root"; b.pickedUp = false; }
+    if(b.moveRolled || b.pickedUp){ if(b.moveRolled) blog(`　途中挨打了，這次移動不能取消。`); b.menu = "root"; b.pickedUp = false; }
     else b.pendingMove = snap;
     refreshBattle();
   });

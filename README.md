@@ -49,6 +49,7 @@ node tests/shop.mjs           # 手機商店：分類、觸控滑頁、防誤買
 node tests/mobile-ui.mjs      # 手機介面：封面、說明／角色泡泡、戰場與教學、大地圖、裝備標籤
 node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次失敗傳送、四隻都送走才輸；重新挑戰三次、傳送回酒館
 node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）；指定目標的招挑不到躲著的
+node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。

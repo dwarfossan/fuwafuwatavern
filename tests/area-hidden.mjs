@@ -17,7 +17,7 @@ try{
    const foes=b.units.filter(v=>v.side==='foe'); foes.forEach((v,i)=>{ v.x=0; v.y=i; v.dead=false; v.down=false; v.hp=v.maxHp; v.statuses=[]; });
    const e=foes.find(v=>v.type==='goblin'); const free=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({x:u.x+dx,y:u.y+dy})).find(p=>!unitAt(p.x,p.y)&&!blocked(p.x,p.y));
    e.x=free.x; e.y=free.y; addStatus(e,'hidden',{val:30, roll:20});
-   const rnd=Math.random; Math.random=()=>0.999;   // 擲最高：一定命中、豁免一定過，只看有沒有被選進去
+   const n0=b.log.length; const rnd=Math.random; Math.random=()=>0.999;   // 擲最高：一定命中、豁免一定過，只看有沒有被選進去
    let hitList=[]; const wa=weaponAttack; weaponAttack=(a,t,o)=>{ hitList.push(t.id); return {hit:false}; };
    try{
      if(kind==='sweep') SKILL_IMPL.heavy[1].run(u);
@@ -27,7 +27,7 @@ try{
      if(kind==='cone')  SKILL_IMPL.flame_orb[1].run(u, {x:e.x, y:e.y});
      if(kind==='multi'){ const t=foes.find(v=>v!==e); t.x=u.x+2; t.y=u.y; SKILL_IMPL.thrown[1].run(u, t); }
    } finally { Math.random=rnd; weaponAttack=wa; }
-   return {hid:isHid(e), hitE:hitList.includes(e.id), log:b.log.slice(-6).map(l=>l.t).join(' / ')};
+   return {hid:isHid(e), hitE:hitList.includes(e.id), log:b.log.slice(n0).map(l=>l.t).join(' / ')};
  }, kind);
 
  for(const [k,name] of [['sweep','橫掃'],['quake','震地'],['rain','箭雨'],['line','貫穿'],['cone','火焰錐']]){
