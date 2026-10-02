@@ -216,8 +216,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 舞台上的人：新畫風立繪（10-03）。.off＝這句不在台上（淡出）；大小、位置暫定 */
 .actor{position:absolute;left:50%;bottom:22%;height:78%;transform:translateX(-50%);transform-origin:50% 100%;transition:opacity .35s ease}
 .actor.off{opacity:0;pointer-events:none}
-.actor.dwarf{aspect-ratio:1100/1000;height:74%}
-.actor.kam{aspect-ratio:880/1100}
+/* 兩張圖取景不同（大爺半身、卡姆到大腿），照臉的寬度換算成同樣大小、眼睛同高（大爺 10-03：兩個都是 150cm）
+   臉寬占圖高：大爺 303/1000、卡姆 241/1100 → 卡姆高度＝大爺 × 1.383；眼睛在圖高 22% 左右 */
+.actor.dwarf{aspect-ratio:1100/1000;height:64%}
+.actor.kam{aspect-ratio:880/1100;height:88.5%;bottom:3%}
 .actor.talk{animation:grumble .5s ease}
 .portrait{position:relative;width:100%;height:100%}
 .portrait img{position:absolute;inset:0;width:100%;height:100%;display:block}
