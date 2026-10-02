@@ -21,14 +21,15 @@ const scoreK = (id,k) => finalScore(id,k);
 const invItems = id => state.inv[id].map(x=>ITEMS.find(i=>i.id===x));
 const weightOf = id => invItems(id).reduce((s,i)=>s+i.wt,0);
 const capOf = id => scoreK(id,"STR")*15;   // 負重上限 = 力量值 × 15 磅
+// AC 公式：沒穿＝10＋敏捷；有穿＝護甲 AC＋敏捷（中甲最多 +2、重甲不加）；拿盾 +2
+// 商店（acOf，看背包清單）和戰鬥（acOfUnit，看身上現在穿的）共用這一條（大爺 10-02：戰鬥中換裝 AC 原本不會變）
+function armorAC(armor, shield, dex){
+  const ac = armor ? armor.ac + (armor.dex==="full" ? dex : armor.dex==="max2" ? Math.min(dex,2) : 0) : 10 + dex;
+  return ac + (shield ? 2 : 0);
+}
 function acOf(id){
-  const dex = modOf(scoreK(id,"DEX"));
   const inv = invItems(id);
-  const armor = inv.find(i=>i.type==="armor");
-  let ac = 10 + dex;
-  if(armor) ac = armor.ac + (armor.dex==="full" ? dex : armor.dex==="max2" ? Math.min(dex,2) : 0);
-  if(inv.some(i=>i.type==="shield")) ac += 2;
-  return ac;
+  return armorAC(inv.find(i=>i.type==="armor"), inv.some(i=>i.type==="shield"), modOf(scoreK(id,"DEX")));
 }
 /* 能不能買：回傳理由字串，null 代表可以買 */
 function blockReason(id, it){

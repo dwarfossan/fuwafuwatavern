@@ -267,7 +267,7 @@ function acOfUnit(u){
   let ac;
   if(u.side!=="pc") ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
   else if(has(u,"mageArmor") && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
-  else ac = acOf(u.id);
+  else ac = armorAC(u.armor, u.shield, u.mods.DEX);   // 身上現在穿的（戰鬥中可以換裝）
   // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
   ac -= u.statuses.filter(s=>s.k==="acDown" && (!s.shield || u.shield)).reduce((m,s)=>Math.max(m, 2 + (s.n||0)), 0);
   if(has(u,"shieldSpell")) ac += 5;
