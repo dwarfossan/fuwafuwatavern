@@ -47,7 +47,7 @@ node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變
 node tests/upgrades.mjs       # 升階效果（多傷害／多目標／多持續；範圍固定）、守護
 node tests/shop.mjs           # 手機商店：分類、觸控滑頁、防誤買、買賣位置與固定導航
 node tests/mobile-ui.mjs      # 手機介面：封面、說明／角色泡泡、戰場與教學、大地圖、裝備標籤
-node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次失敗傳送、四隻都送走才輸
+node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次失敗傳送、四隻都送走才輸；重新挑戰三次、傳送回酒館
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。

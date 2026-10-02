@@ -19,7 +19,24 @@ const dist = (a,b) => Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y), Math.abs(hA
 const sgn = v => v>0?1:v<0?-1:0;
 
 // ---------- 建立戰鬥 ----------
-function startBattle(id){
+// 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
+//   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
+const RETRY_MAX = 3;
+const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout"];
+function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
+function retryBattle(){
+  const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
+  state.retriesLeft--;
+  Object.entries(JSON.parse(JSON.stringify(s.data))).forEach(([k,v])=>{ state[k] = v; });
+  startBattle(s.id, true);
+}
+// 傳送回酒館：回到大地圖、站在酒館（代價還沒定，先不扣東西）
+function teleportHome(){
+  state.battle = null; state.scout = null; state.travel = null; state.mapSel = null;
+  state.location = "tavern"; state.page = "map"; render(); window.scrollTo(0,0);
+}
+function startBattle(id, retry=false){
+  if(!retry) snapBattle(id);
   const def = BATTLES[id];
   const units = [];
   CRITTERS.forEach((c,i)=>{

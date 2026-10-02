@@ -15,7 +15,7 @@ function nextTurn(){
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
-  if(B().skipTurn){ B().busy = true; refreshBattle(); setTimeout(()=>{ B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
+  if(B().skipTurn){ B().busy = true; refreshBattle(); setTimeout(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
   refreshBattle();
   if(u.side==="foe") setTimeout(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
@@ -56,8 +56,9 @@ function beginTurn(u){
 }
 
 function endTurn(){
-  const u = cur(), b = B();
-  if(b.result) return;
+  const b = B();
+  if(!b || b.result) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
+  const u = cur();
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
   expire("end", u.id);
   b.mode = null;
@@ -67,7 +68,7 @@ function endTurn(){
 
 function checkResult(){
   const b = B();
-  if(b.result) return true;
+  if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
   if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
   return false;
@@ -419,7 +420,7 @@ function takeRest(kind, selections={}){
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
     state.proficiency[u.id]=u.slots.slice();
   });
-  if(kind==="short") state.shortRestsUsed++; else state.shortRestsUsed=0;
+  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; }   // 長休：重新挑戰的次數也回滿
   syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`,"skill"); refreshBattle(); return true;
 }
 
@@ -779,7 +780,7 @@ function foeMelee(e, adj){
 const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得到的角色（躲著的不算）
 function aiTurn(e){
   const b = B();
-  if(b.result || e.dead) return;
+  if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
   if(!alive("pc").length){ endTurn(); return; }   // 四小隻全倒在地上擲死亡豁免：敵人沒事做
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); setTimeout(endTurn, settle(800)); return; }

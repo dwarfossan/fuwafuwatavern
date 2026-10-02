@@ -1163,7 +1163,8 @@ function battleInterfaceHTML(){
     else ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>${b.result==="win"?"勝利！":"傳送回酒館……"}</h3>
       <p>卡姆的傳送魔法把四小隻送回酒館了。</p>
-      <button class="btn" id="retry">重新挑戰</button></div>`;
+      ${state.retriesLeft > 0 ? `<button class="btn" id="retry">重新挑戰（剩 ${state.retriesLeft} 次）</button>` : `<p class="dim">重新挑戰用完了，長休之後才能再用。</p>`}
+      <button class="btn ghost" id="toTavern">傳送回酒館</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);
     if(iv) ov += infoHTML(iv, b);
@@ -1224,7 +1225,7 @@ function battleLayerKeys(){
   const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
-  const ui=battleDataKey([b,state.inv,state.rolls,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
+  const ui=battleDataKey([b,state.inv,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
     ["def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
     +battleDataKey(b.units,["x","y","face","anim"])
     +(b.mode?units:"");
@@ -1329,7 +1330,8 @@ function bindBattle(){
   const restSelections=()=>{const o={};document.querySelectorAll("[data-restpick]:checked").forEach(el=>{const [id,key]=el.dataset.restpick.split(":");(o[id]??=[]).push(key)});return o;};
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
   battleListen(document.getElementById("longRest"),"click",()=>takeRest("long",restSelections()));
-  battleListen(document.getElementById("retry"),"click", ()=>{syncLearnedState();startBattle(B().id)});
+  battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
+  battleListen(document.getElementById("toTavern"),"click", ()=>teleportHome());
   // 點一下往下一段：3 行 → 6 行 → 完整紀錄 → 3 行（完整紀錄裡捲動不算點）
   battleListen(document.getElementById("logOpen"),"click", ()=>{ const b = B(); b.logLv = ((b.logLv||0) + 1) % 3; if(b.logLv===2) b.logStick = true; sfx("pop"); refreshBattle(); });
   battleListen(document.getElementById("logPanel"),"click", ()=>{ B().logLv = 0; sfx("back"); refreshBattle(); });

@@ -60,9 +60,38 @@ try{
    b.units.filter(v=>v.side==='pc').forEach(p=>{ p.hp=0; p.down=true; p.dsFail=0; p.statuses=[]; });
    const seen=new Set(); const start=b.round;
    endTurn();
-   for(let i=0;i<120 && !b.result && b.round<start+2;i++){ await new Promise(r=>setTimeout(r,250)); const u=cur(); if(u) seen.add(u.side+(u.down?':down':'')); }
+   for(let i=0;i<120 && !b.result && b.round<start+2;i++){ await new Promise(r=>setTimeout(r,250)); const u=cur(); if(u) seen.add(u.side+(u.down?':down':''));
+     if(u && u.side==='pc' && !u.down && !u.dead && !b.busy) endTurn(); }   // 擲到 20 醒過來就輪到玩家：測試替她按待機
    return {seen:[...seen], round:b.round-start, logs:b.log.filter(l=>/死亡豁免/.test(l.t)).length, result:b.result}; });
  assert(t.seen.includes('pc:down'));assert(t.logs>0);assert(t.round>=1||t.result);ok(`全倒：倒下的照樣輪到擲死亡豁免、敵人回合不卡住（${t.logs} 次豁免，過了 ${t.round} 輪${t.result?'，結果 '+t.result:''}）`);
+
+ // 重新挑戰（大爺 10-02）：三次、還原開戰前、用完只剩傳送回酒館、長休回滿
+ const pg3=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ pg3.on('pageerror',e=>errors.push(e.message));
+ await pg3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ const lose=()=>pg3.evaluate(()=>{ const b=B(); b.tut=-1; b.units.filter(v=>v.side==='pc').forEach(p=>{ p.dead=true; p.gone='teleport'; }); checkResult(); refreshBattle(); });
+ const rt=await pg3.evaluate(()=>{ const out={};
+   out.inv0=JSON.stringify(state.inv); out.prof0=JSON.stringify(state.proficiency);
+   // 戰鬥中用掉東西、花掉格子
+   const id=Object.keys(state.inv).find(k=>state.inv[k].length); state.inv[id].pop(); state.proficiency.fox=[0];
+   return out; });
+ await lose();
+ const btn1=await pg3.evaluate(()=>({retry:document.getElementById('retry')?.textContent||'', home:!!document.getElementById('toTavern')}));
+ await pg3.click('#retry'); await pg3.waitForTimeout(300);
+ const after=await pg3.evaluate(()=>({inv:JSON.stringify(state.inv), prof:JSON.stringify(state.proficiency), left:state.retriesLeft, result:B().result, page:state.page}));
+ assert.match(btn1.retry,/剩 3 次/);assert(btn1.home);ok('輸掉：「重新挑戰（剩 3 次）」和「傳送回酒館」');
+ assert.equal(after.inv,rt.inv0);assert.equal(after.prof,rt.prof0);assert.equal(after.left,2);assert.equal(after.result,null);ok('重新挑戰：道具、熟練格回到開戰前，剩 2 次');
+ for(let i=0;i<2;i++){ await pg3.waitForFunction(()=>B()&&!B().busy,null,{timeout:60000}); await lose(); await pg3.click('#retry'); await pg3.waitForTimeout(300); }
+ await pg3.waitForFunction(()=>B()&&!B().busy,null,{timeout:60000}); await lose();
+ const btn0=await pg3.evaluate(()=>({retry:!!document.getElementById('retry'), home:!!document.getElementById('toTavern'), left:state.retriesLeft}));
+ assert.equal(btn0.left,0);assert.equal(btn0.retry,false);assert(btn0.home);ok('三次用完：重新挑戰不見，只剩傳送回酒館');
+ const rest=await pg3.evaluate(()=>{ const b=B(); b.result='win'; takeRest('long'); return state.retriesLeft; });
+ assert.equal(rest,3);ok('長休：重新挑戰回滿 3 次');
+ await pg3.evaluate(()=>{ const b=B(); b.result=null; b.units.filter(v=>v.side==='pc').forEach(p=>{ p.dead=true; }); checkResult(); refreshBattle(); });
+ await pg3.click('#toTavern'); await pg3.waitForTimeout(400);
+ const home=await pg3.evaluate(()=>({page:state.page, loc:state.location, battle:state.battle}));
+ assert.equal(home.page,'map');assert.equal(home.loc,'tavern');assert.equal(home.battle,null);ok('傳送回酒館：回到大地圖、站在酒館');
 
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}
