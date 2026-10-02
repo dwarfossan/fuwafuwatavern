@@ -50,9 +50,9 @@ function itemCardHTML(it){
     rows.push(["說明", "拿著法器就能施放它綁定的三個法術。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
-    rows.push(["使用", "戰鬥中從「道具」選單使用，用掉免費動作（每回合一次）。用完就沒了。丟給貼身的隊友＝交給他。"]);
+    rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉免費動作（每回合一次）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
   } else {
-    rows.push(["說明", "冒險用品，目前沒有戰鬥效果。"]);
+    rows.push(["說明", it.desc || "冒險用品，目前沒有戰鬥效果。"]);   // 套組、彈袋、箭袋等有寫 desc 的照寫（10-03）
   }
   rows.push(["價格／重量", `${money(it.cost)}／${it.wt} 磅`]);
   const g = groupOf(it);

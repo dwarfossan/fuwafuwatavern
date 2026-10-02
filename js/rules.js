@@ -20,6 +20,8 @@ function money(cp){
 const scoreK = (id,k) => finalScore(id,k);
 const invItems = id => state.inv[id].map(x=>ITEMS.find(i=>i.id===x));
 const weightOf = id => invItems(id).reduce((s,i)=>s+i.wt,0);
+// 有沒有帶某樣東西：單項本身，或身上任何套組的內容物有它（大爺 10-03：套組視同符合單項物品的條件）
+const hasGear = (list, name) => (list||[]).some(it=>it && (it.n===name || (it.contains||[]).includes(name)));
 // 背包欄：bag＝負重倍數（普通背包 1、次元背包 2，10-03）；身上有好幾個背包時，背包欄放倍數最大的
 const isBag = it => !!(it && it.type==="gear" && it.bag);
 const bestBag = list => list.filter(isBag).sort((a,b)=>b.bag-a.bag)[0] || null;

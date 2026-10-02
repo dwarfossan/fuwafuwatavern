@@ -78,7 +78,7 @@ const SKILL_GROUPS = [
     {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
   {id:"crossbow", name:"弩類", stat:"敏捷",
-   weapons:["輕弩","手弩","重弩"],
+   weapons:["輕弩","手弩","重弩","火槍","手槍"],   // 火槍、手槍先借弩類的招式（10-03 暫定，之後要不要自己一類再定）
    skills:[
     {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精（裝填：每回合只能射一次）。"},
     {id:"pierce_shot", name:"貫穿", kind:"遠程", req:"piercingProjectile", tier:1,   text:"朝一個方向射出，直線上的每個敵人各攻擊一次。"},

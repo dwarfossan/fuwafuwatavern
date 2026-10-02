@@ -52,6 +52,7 @@ node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）
 node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 node tests/concentration.mjs  # 專注（同時一個、受傷豁免、倒下中斷）、狩印、點心、次元背包
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
+node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。
@@ -130,5 +131,5 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 
 本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.1（「SRD 5.1」）的內容，來源：https://dnd.wizards.com/resources/systems-reference-document 。SRD 5.1 以 Creative Commons Attribution 4.0 International License 授權：https://creativecommons.org/licenses/by/4.0/legalcode 。
 
-目前借用的部分：屬性值與調整值算法、4d6 取高三、武器與護甲的數值（傷害、屬性、價格、重量、AC、力量需求）、武器專精名稱、部分道具與怪物數值、攀爬與跌落規則；專注規則、獵人印記（本作叫狩印）、次元背包（10-03）；奇襲個別判定（SRD 5.1，探索模式做好後生效）。
+目前借用的部分：屬性值與調整值算法、4d6 取高三、武器與護甲的數值（傷害、屬性、價格、重量、AC、力量需求）、武器專精名稱、部分道具與怪物數值、攀爬與跌落規則；專注規則、獵人印記（本作叫狩印）、次元背包、套組內容、彈袋、火槍與手槍（10-03）；奇襲個別判定（SRD 5.1，探索模式做好後生效）。
 角色、世界觀、地圖、劇情、美術皆為本專案原創。

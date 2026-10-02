@@ -299,9 +299,11 @@ const REQ_TEXT = {
   piercingProjectile:"穿刺型遠程武器", thrown:"可投擲武器", unarmed:"徒手", shield:"盾牌", focus:"法器", material:"材料包"
 };
 const weaponProps = w => (w&&w.props)||[];
-// 全單位共用彈藥規則（玩家／敵人／NPC）：弓靠箭袋、弩靠矢匣；放在背包即可，普通彈藥不逐發消耗。
+// 全單位共用彈藥規則（玩家／敵人／NPC）：弓靠箭袋、弩靠矢匣、投石索／吹箭筒／火槍／手槍靠彈袋；放在背包即可，普通彈藥不逐發消耗。
 // 特殊彈藥是 consumable + ammoFor；可代替普通彈藥來源，透過「道具」切換，下一次射擊後消耗。
-const ammoKind = w => !w ? null : (["短弓","長弓"].includes(w.base||w.n) ? "bow" : (["輕弩","手弩","重弩"].includes(w.n) ? "crossbow" : null));
+// 彈袋（10-03）：投石索、吹箭筒、火槍、手槍都靠彈袋
+const ammoKind = w => { if(!w) return null; const n = w.base||w.n;
+  return ["短弓","長弓"].includes(n) ? "bow" : ["輕弩","手弩","重弩"].includes(n) ? "crossbow" : ["投石索","吹箭筒","火槍","手槍"].includes(n) ? "pouch" : null; };
 const ammoStock = u => [...(u.backpack||[]), ...(u.items||[])].filter(Boolean);
 const hasNormalAmmo = (u,k) => ammoStock(u).some(it=>it.type==="gear" && it.ammoFor===k);
 const specialAmmo = (u,k) => ammoStock(u).filter(it=>it.type==="consumable" && it.ammoFor===k);
@@ -334,7 +336,7 @@ function reqOne(u, r){
     case "unarmed": return !w;
     case "shield": return !!(u.shield || u.offhand2);
     case "focus": return !!((u.weapon&&u.weapon.type==="focus") || u.focus);
-    case "material": return (u.backpack||[]).some(it=>it&&it.n==="材料包");
+    case "material": return hasGear(u.backpack, "材料包");
     default:return true;
   }
 }
