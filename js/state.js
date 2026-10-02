@@ -37,6 +37,5 @@ const state = {
   shopScroll:{}, shopBagOpen:false, // 商店分類各自保留商品捲動位置
   location:"tavern", // 大地圖：目前所在地
   mapSel:null,       // 大地圖：點選中的地點
-  mapScrollLeft:null, // 放大的大地圖保留瀏覽位置
   travel:null,       // 大地圖旅行中：{from, to, t, stop, alert}
 };

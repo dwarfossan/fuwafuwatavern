@@ -7,6 +7,7 @@ const br=await chromium.launch();
 const ok=n=>console.log('✓ '+n);
 try{
   const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+  await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errors=[];pg.on('pageerror',e=>errors.push(e.message));
   await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
   await pg.waitForTimeout(500);
@@ -44,27 +45,15 @@ try{
   await pg.locator('[data-pagehelp="map"]').click();assert((await pg.locator('[role="dialog"]').innerText()).includes('現在的位置'));
   await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
   await pg.waitForTimeout(500);
-  const map=await pg.locator('.map-frame').boundingBox();
-  assert(map.height>500);
-  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollWidth>e.clientWidth));
-  assert(await pg.locator('.worldmap .loc text').evaluateAll(es=>es.every(e=>e.getBoundingClientRect().height>15)));
+  // 10-02 香香：大地圖改回一次看完整張（不左右滑），地名放大到手機上看得清楚
+  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
+  assert(await pg.locator('.worldmap .loc text').evaluateAll(es=>es.every(e=>{const r=e.getBoundingClientRect();return r.height>=12 && r.left>=0 && r.right<=390;})));
   assert(await pg.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/map.png'});
-  const mapLeft=await pg.locator('.map-frame').evaluate(e=>e.scrollLeft);
-  const cdp=await pg.context().newCDPSession(pg);
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:map.x+60,y:map.y+120}]});
-  for(let i=1;i<=6;i++) await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:map.x+60+i*25,y:map.y+120}]});
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  await pg.waitForTimeout(250);
-  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollLeft)<mapLeft);
-  await pg.locator('[data-pagehelp="map"]').click();
-  const kept=await pg.locator('.map-frame').evaluate(e=>e.scrollLeft);
-  await pg.getByRole('button',{name:'關閉',exact:true}).click();
-  assert.equal(await pg.locator('.map-frame').evaluate(e=>e.scrollLeft),kept);
   for(const id of ['cave','forest','town','tavern']){
     await pg.locator(`[data-loc="${id}"]`).click();assert.equal(await pg.evaluate(()=>state.mapSel),id);
   }
-  ok('大地圖填滿剩餘高度，地名放大，觸控滑動、四地點與說明位置保留正常');
+  ok('大地圖一次看完整張，四個地名都在畫面內、看得清楚，四地點都點得到');
   await pg.evaluate(()=>{window.setTimeout=()=>0;quickBattle();});await pg.waitForTimeout(500);
   await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=0;refreshBattle();});
   const boardWithTutorial=await pg.locator('.board-wrap').boundingBox();
@@ -93,5 +82,19 @@ try{
   await pg.evaluate(()=>{B().info='tiger';refreshBattle();});await pg.waitForTimeout(250);
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/status.png'});
   ok('四小隻與敵人的裝備格標籤、圖示各占獨立位置');
+  // 頁面說明第一次自動打開一次（10-02）：新的瀏覽器、沒看過
+  {
+    const ctx=await br.newContext({viewport:{width:390,height:844},hasTouch:true}); const p2=await ctx.newPage();
+    await p2.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
+    await p2.evaluate(()=>localStorage.removeItem('fuwa-help-seen')); await p2.reload(); await p2.waitForTimeout(300);
+    await p2.locator('#start').click();
+    assert((await p2.locator('[role="dialog"]').innerText()).includes('4d6'));
+    await p2.getByRole('button',{name:'關閉',exact:true}).click();
+    await p2.evaluate(()=>{state.page='cover';render();state.page='roll';render();});
+    assert.equal(await p2.locator('[role="dialog"]').count(),0);
+    await p2.reload(); await p2.waitForTimeout(300); await p2.locator('#start').click();
+    assert.equal(await p2.locator('[role="dialog"]').count(),0);
+    await ctx.close(); ok('頁面說明第一次自動打開，關掉後回來、重新整理都不再自動打開');
+  }
   assert.deepEqual(errors,[]);ok('沒有瀏覽器錯誤');
 }finally{await br.close();}

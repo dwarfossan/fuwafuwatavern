@@ -111,12 +111,12 @@ function worldMapSVG(sel, here, pos, alert){
 
   // 名牌與點擊範圍
   L.forEach(l=>{
-    const w = l.name.length*23+28, isSel = sel===l.id;
+    const w = l.name.length*38+36, isSel = sel===l.id;   // 10-02：整張縮到手機寬，地名要 38 才看得清楚
     out.push(`<g class="loc ${isSel?"sel":""}" data-loc="${l.id}" tabindex="0" role="button" aria-label="${l.name}">
       <circle cx="${l.x}" cy="${l.y-10}" r="62" fill="transparent"/>
       ${isSel?`<ellipse cx="${l.x}" cy="${l.y+8}" rx="70" ry="26" fill="none" stroke="#f2b441" stroke-width="4" stroke-dasharray="10 8"/>`:""}
-      <rect x="${l.x-w/2}" y="${l.y+18}" width="${w}" height="38" rx="19" fill="#1f1a24" stroke="${isSel?"#f2b441":"#f6e9d8"}" stroke-width="2.5"/>
-      <text x="${l.x}" y="${l.y+45}" text-anchor="middle" font-size="24" font-weight="700" fill="#f6e9d8" font-family="LXGW WenKai TC, PingFang TC, Microsoft JhengHei, serif">${l.name}</text>
+      <rect x="${l.x-w/2}" y="${l.y+18}" width="${w}" height="54" rx="27" fill="#1f1a24" stroke="${isSel?"#f2b441":"#f6e9d8"}" stroke-width="2.5"/>
+      <text x="${l.x}" y="${l.y+57}" text-anchor="middle" font-size="38" font-weight="700" fill="#f6e9d8" font-family="LXGW WenKai TC, PingFang TC, Microsoft JhengHei, serif">${l.name}</text>
     </g>`);
   });
 

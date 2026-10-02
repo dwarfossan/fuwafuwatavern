@@ -14,6 +14,7 @@ const ok = (name, cond, info='') => { if(cond){ passes++; console.log('  ✓ ' +
 const br = await chromium.launch();
 async function open(hash='', viewport={width:390, height:844}){   // 只做手機版（10-02）：寬螢幕會轉到 phone.html
   const pg = await br.newPage({viewport});
+  await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(url + hash); await pg.waitForTimeout(800);

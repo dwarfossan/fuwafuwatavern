@@ -1,4 +1,13 @@
 /* ======================== 流程 ======================== */
+// 頁面說明：第一次進那頁自動打開一次，看過就不再自動打開（之後點 ⓘ 叫出來）。記在瀏覽器裡，跟音效設定一樣（10-02）
+function autoHelpOnce(){
+  const page=state.page;
+  if(!PAGE_UI.helpPages[page] || state.modal || state.travel) return;
+  let seen={}; try{ seen=JSON.parse(localStorage.getItem("fuwa-help-seen")||"{}"); }catch(e){}
+  if(seen[page]) return;
+  seen[page]=1; try{ localStorage.setItem("fuwa-help-seen", JSON.stringify(seen)); }catch(e){}
+  state.modal={kind:"help", id:page};
+}
 function render(){
   const app = document.getElementById("app");
   // 只有換頁（或換劇情場景）時才播淡入動畫，避免每次點擊都閃一下
@@ -8,8 +17,7 @@ function render(){
     updateBattleFrame(); return;
   }
   rememberShopView(app);
-  const oldMap=app.querySelector('.map-frame');
-  if(oldMap) state.mapScrollLeft=oldMap.scrollLeft;
+  autoHelpOnce();
   app.classList.toggle('shop-screen',state.page==='shop');
   app.classList.toggle('battle-screen',state.page==='battle');
   app.classList.toggle('map-screen',state.page==='map');
@@ -170,8 +178,7 @@ function bind(){
   $("backShop")?.addEventListener("click", ()=>{state.page="shop";render()});
   $("toMap")?.addEventListener("click", ()=>{
     state.page="map"; state.location="tavern"; state.mapSel=null;
-    state.mapScrollLeft=null;
-    state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
+      state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
     render(); window.scrollTo(0,0); startTravel();
   });
   $("toBattle")?.addEventListener("click", ()=>{state.page="battle"; startBattle("ambush"); window.scrollTo(0,0)});

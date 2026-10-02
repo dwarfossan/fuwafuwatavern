@@ -7,6 +7,7 @@ const browser=await chromium.launch();
 const ok=name=>console.log('✓ '+name);
 try{
   const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true});
+  await page.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errors=[]; page.on('pageerror',e=>errors.push(e.message));
   await page.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
   await page.waitForFunction(()=>B()?.units.length);
