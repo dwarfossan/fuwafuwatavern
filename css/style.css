@@ -687,6 +687,14 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes off-guard{25%{transform:translate(8px,-6px)}80%{transform:translate(8px,-6px)}100%{transform:none}}
 .act-shoot .dl-arm {animation:arm-shoot .68s ease-out both;animation-delay:var(--d)}
 .act-shoot .dl-off {animation:off-shoot .68s ease-out both;animation-delay:var(--d)}
+/* 開槍（10-03）：舉槍、瞄準，開火那一下往後一頓（後座力） */
+.act-fire .dl-arm {animation:arm-fire .68s ease-out both;animation-delay:var(--d)}
+.act-fire .dl-off {animation:arm-fire .68s ease-out both;animation-delay:var(--d)}
+@keyframes arm-fire{30%{transform:translateY(-2px)}64%{transform:translateY(-2px)}68%{transform:translate(-7px,-5px) rotate(-8deg)}84%{transform:translate(-3px,-2px)}100%{transform:none}}
+.board .fx-smoke .sm-flash{animation:sm-flash .18s ease-out both;transform-box:fill-box;transform-origin:0 50%}
+@keyframes sm-flash{0%{opacity:1;transform:scale(.4)}40%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1)}}
+.board .fx-smoke .sm-puff{fill:#f1efe9;stroke:#7d786f;stroke-width:2;opacity:0;animation:sm-puff 1.1s ease-out both;transform-box:fill-box;transform-origin:center}
+@keyframes sm-puff{0%{opacity:0;transform:translate(0,0) scale(.3)}12%{opacity:.95}60%{opacity:.8}100%{opacity:0;transform:translate(18px,-26px) scale(2)}}
 @keyframes arm-shoot{35%{transform:translateX(-4px)}62%{transform:translateX(-4px)}70%{transform:translateX(3px)}100%{transform:none}}
 @keyframes off-shoot{30%{transform:translate(58px,-6px)}62%{transform:translate(50px,-6px)}70%{transform:translate(24px,-2px)}100%{transform:none}}
 .act-throw .dl-arm {animation:arm-throw .62s ease-in both;animation-delay:var(--d)}

@@ -65,6 +65,9 @@ const SFX = (()=>{
     twang:     t=>{ tone(t, {type:"sawtooth", f0:220, f1:200, dur:.28, gain:.22, lp:1600}); tone(t, {type:"triangle", f0:440, f1:430, dur:.12, gain:.1});
                     noise(t+.02, {dur:.14, gain:.35, f0:2500, f1:900, q:1.5}); },
     throw:     t=>noise(t, {dur:.24, gain:.85, f0:400, f1:1600, q:1.6}),
+    // 槍聲（10-03）：短而重的爆音＋低頻悶響＋一點迴音
+    bang:      t=>{ noise(t, {dur:.09, gain:1, f0:2600, f1:500, kind:"lowpass", a:.001}); tone(t, {type:"sine", f0:140, f1:45, dur:.22, gain:.55});
+                    noise(t+.03, {dur:.35, gain:.25, f0:900, f1:200, kind:"lowpass"}); },
     cast:      t=>{ notes(t, [[660,0],[880,.05],[1100,.1],[1320,.15]], {type:"sine", dur:.2, gain:.09}); noise(t, {dur:.3, gain:.05, f0:5000, q:4}); },
     guard:     t=>{ noise(t, {dur:.07, gain:.75, f0:1800, q:3}); tone(t, {type:"square", f0:620, f1:520, dur:.06, gain:.06, lp:2500}); },
     // 打中
@@ -139,6 +142,7 @@ const HIT_SFX = {"毒素":"hit_magic", "揮砍":"hit_slash", "穿刺":"hit_pierc
 function animSfx(k, lead=0){                 // lead：先擲骰，出招往後延幾毫秒
   const imp = (DOLL_IMPACT[k] || 0) + lead;
   if(k==="shoot") return sfx("twang", imp);
+  if(k==="fire")  return sfx("bang", imp);
   if(k==="throw") return sfx("throw", imp - 60);
   if(k==="cast")  return sfx("cast", 60 + lead);
   if(k==="guard") return sfx("guard", 120 + lead);

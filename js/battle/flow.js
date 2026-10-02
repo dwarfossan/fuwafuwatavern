@@ -665,8 +665,13 @@ function nimbleHide(u){ if(!nimble(u) || u.dead || u.down || hideBlock(u)) retur
 
 // 招式的動作：照「出處」那組的動作；但學來的招用不同類的武器做時（例如拿弓用扎腿），改用手上武器的動作，
 // 這樣遠程才會射出箭、近戰才會揮出去
-const RANGED_GROUPS = ["bow","crossbow","thrown"];
+const RANGED_GROUPS = ["bow","crossbow","thrown","firearm"];
+// 拿火槍、手槍時，射擊動作換成開槍（子彈＋槍口白煙＋槍聲，10-03）
 function skillAnim(u, sk, t){
+  const k = skillAnimBase(u, sk, t), cg = u.weapon ? groupOf(u.weapon) : null;
+  return k==="shoot" && cg && cg.id==="firearm" ? "fire" : k;
+}
+function skillAnimBase(u, sk, t){
   const base = sk.anim || animFor(sk.group.id, sk.idx);
   if(FOCUS_GROUPS.includes(sk.group.id)) return base;
   const far = t && t.x!==undefined && dist(u,t) > reachOf(u);

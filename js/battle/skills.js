@@ -208,6 +208,7 @@ const SKILL_IMPL = {
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"slowed",{via:"pin", stop:true, until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>weaponAttack(u,t,{pointBlank:true})}
   ],
+  firearm: [ basicAttack ],   // 火槍類只有普攻（10-03）
   // 投擲類：射程用武器的投擲／彈藥射程；超出觸及就算遠程攻擊（貼身投有劣勢）
   thrown: [
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown:dist(u,t)>reachOf(u)})},

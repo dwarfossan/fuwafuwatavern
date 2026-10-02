@@ -78,12 +78,18 @@ const SKILL_GROUPS = [
     {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
   {id:"crossbow", name:"弩類", stat:"敏捷",
-   weapons:["輕弩","手弩","重弩","火槍","手槍"],   // 火槍、手槍先借弩類的招式（10-03 暫定，之後要不要自己一類再定）
+   weapons:["輕弩","手弩","重弩"],
    skills:[
     {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精（裝填：每回合只能射一次）。"},
     {id:"pierce_shot", name:"貫穿", kind:"遠程", req:"piercingProjectile", tier:1,   text:"朝一個方向射出，直線上的每個敵人各攻擊一次。"},
     {id:"pin", name:"釘住", kind:"遠程", req:"piercingProjectile", tier:1,   text:"攻擊一次，命中的話目標到他自己的回合結束前都不能移動。"},
     {id:"point_blank", name:"近射", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，貼身射擊也沒有劣勢。"}]},
+
+  // 火槍類（大爺 10-03）：只有普攻。大爺：手上拿什麼，能用的招式就照招式的要求出現（貫穿、釘住、近射等要「穿刺型遠程武器」「遠程武器」的照樣能用）
+  {id:"firearm", name:"火槍類", stat:"敏捷",
+   weapons:["火槍","手槍"],
+   skills:[
+    {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精（裝填：每回合只能射一次）。槍口會冒出一陣白煙。"}]},
 
   {id:"thrown", name:"投擲類", stat:"力量（有「靈巧」的取力量、敏捷高的；用彈藥的用敏捷）",
    weapons:["標槍","飛鏢","投石索","吹箭筒"],

@@ -14,6 +14,8 @@ const HELD = {
   dagger:       {gy:99,  ang:40},
   bow:          {gx:95,  gy:60, ang:-6, s:.56, hx:130, hy:100},   // 弓要拿在身體外側，弦才不會壓在身上
   crossbow:     {gy:112, ang:75},
+  firearm:      {gy:112, ang:78, two:84},    // 火槍：跟弩一樣往前平舉，副手托槍管（10-03）
+  pistol:       {gy:108, ang:80, s:.8},      // 手槍：單手（item.art）
   thrown:       {gy:72,  ang:25},
   arcane_staff: {gy:100, ang:12},
   shaman_totem: {gy:100, ang:12},
@@ -24,15 +26,15 @@ const HELD = {
 const GLOW = {arcane_staff:"#8fd0f0", healing_book:"#9be08a", flame_orb:"#f2b441", shaman_totem:"#c58af0"};
 
 // 每個動作的長度（毫秒）與「打中」的時間點
-const DOLL_DUR    = {slash:550, smash:720, combo:850, spin:760, thrust:520, guard:600, shoot:680, throw:620, punch:420, cast:820, slam:760, hurt:600, getup:520, fall:450, hop:160, lunge:460};
-const DOLL_IMPACT = {slash:230, smash:400, combo:180, spin:260, thrust:280, guard:0,   shoot:450, throw:380, punch:230, cast:320, slam:420, lunge:200};
+const DOLL_DUR    = {slash:550, smash:720, combo:850, spin:760, thrust:520, guard:600, shoot:680, fire:680, throw:620, punch:420, cast:820, slam:760, hurt:600, getup:520, fall:450, hop:160, lunge:460};
+const DOLL_IMPACT = {slash:230, smash:400, combo:180, spin:260, thrust:280, guard:0,   shoot:450, fire:450, throw:380, punch:230, cast:320, slam:420, lunge:200};
 
 // 技能 → 動作（武器：普攻＋三招；法器：法術，法杖第一招是打擊）
 const SKILL_ANIM = {
   // 跟 data/skills.js 每組的招式一一對應（2026-10-01 合併重複招式後：劍、長柄、投擲、徒手少了幾招）
   sword:["slash","guard","combo"], heavy:["smash","spin","smash","thrust"], axe:["slash","smash","slash","smash"],
   mace:["smash","smash","slam","smash"], polearm:["thrust","guard"], dagger:["thrust","thrust","thrust","thrust"],
-  bow:["shoot","shoot","shoot","shoot"], crossbow:["shoot","shoot","shoot","shoot"], thrown:["throw","throw","throw"],
+  bow:["shoot","shoot","shoot","shoot"], crossbow:["shoot","shoot","shoot","shoot"], firearm:["fire"], thrown:["throw","throw","throw"],
   unarmed:["punch","slam"], arcane_staff:["smash","cast","cast","cast"], healing_book:["cast","cast","cast"], flame_orb:["cast","cast","cast"],
   shaman_totem:["cast","cast","cast"]
 };
@@ -203,7 +205,7 @@ function dollSVG(o){
 
 // 從戰鬥單位算出紙娃娃要拿什麼
 function dollGear(u){                       // 敵我一樣：照手上的武器、法器、盾算
-  const w = u.weapon ? groupOf(u.weapon).id : null;
+  const w = u.weapon ? (u.weapon.art || groupOf(u.weapon).id) : null;   // art：同一類裡長得不一樣的（手槍，10-03）
   const f = u.focus ? groupOf(u.focus).id : null;
   let main = w, off = null;
   if(!main && (f==="arcane_staff" || f==="shaman_totem")) main = f;   // 杖類法器拿在主手

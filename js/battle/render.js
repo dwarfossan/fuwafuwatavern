@@ -157,8 +157,11 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   b.proj = (b.proj||[]).filter(pj=>now < pj.t + pj.dur + 80);
   b.proj.forEach(pj=>out.push(`<g data-exp="${pj.t+pj.dur+80}">${projSVG(pj, now)}</g>`));
   // 打中特效（在打中的時間點才出現）
-  b.fx = (b.fx||[]).filter(f=>now-f.t<700);
-  b.fx.forEach(f=>{ const p=iso(f.x,f.y); out.push(`<g data-exp="${f.t+700}">${fxSVG(f.kind, p.x, p.y+TH/2-54, now-f.t)}</g>`); });
+  b.fx = (b.fx||[]).filter(f=>now-f.t<(f.dur||700));
+  b.fx.forEach(f=>{ const p=iso(f.x,f.y), d=f.dur||700;
+    // 槍口白煙：畫在槍口（跟飛行物出手的位置一樣），往面向的方向飄
+    if(f.kind==="smoke") out.push(`<g data-exp="${f.t+d}">${smokeSVG(p.x + f.face*30, p.y+TH/2-66, f.face, now-f.t)}</g>`);
+    else out.push(`<g data-exp="${f.t+d}">${fxSVG(f.kind, p.x, p.y+TH/2-54, now-f.t)}</g>`); });
   // 飄字
   b.floats = (b.floats||[]).filter(f=>now-f.t<1100);
   b.floats.forEach(f=>{ const p=iso(f.x,f.y);
@@ -454,7 +457,8 @@ function projSVG(pj, now){
   const ang = Math.atan2(y1-y0, x1-x0)*180/Math.PI;
   const st = `style="--x0:${x0}px;--y0:${y0}px;--x1:${x1}px;--y1:${y1}px;--dur:${pj.dur}ms;--d:${pj.t-now}ms"`;
   let shape;
-  if(pj.kind==="arrow") shape = `<g transform="rotate(${ang})"><path d="M-26 0 H14" stroke="#6e4a32" stroke-width="3" stroke-linecap="round"/>
+  if(pj.kind==="bullet") shape = `<g transform="rotate(${ang})"><path d="M-30 0 H-4" stroke="#fff3c4" stroke-width="3" stroke-linecap="round" opacity=".8"/><circle r="3.6" fill="#5b5f6b" stroke="#2a2630" stroke-width="1.2"/></g>`;   // 子彈：小鉛彈＋一道亮線
+  else if(pj.kind==="arrow") shape = `<g transform="rotate(${ang})"><path d="M-26 0 H14" stroke="#6e4a32" stroke-width="3" stroke-linecap="round"/>
       <path d="M22 0 L12 -5 L14 0 L12 5 Z" fill="#dfe6ee" stroke="#2a2630" stroke-width="1.5"/>
       <path d="M-26 0 L-32 -5 M-26 0 L-32 5 M-20 0 L-26 -5 M-20 0 L-26 5" stroke="#f6e9d8" stroke-width="2" stroke-linecap="round"/></g>`;
   else if(pj.kind==="thrown" && projArtSVG(pj.art)) shape = `<g class="pj-spin">${projArtSVG(pj.art)}</g>`;
@@ -462,7 +466,7 @@ function projSVG(pj, now){
       <path d="M8 -5 L22 0 L8 5 Z" fill="#dfe6ee" stroke="#2a2630" stroke-width="1.5"/></g>`;
   else shape = `<circle r="15" fill="${pj.glow}" opacity=".35"/><circle r="9" fill="${pj.glow}"/><circle r="4" fill="#fff"/>
       <path d="M-22 0 H-9" stroke="${pj.glow}" stroke-width="4" stroke-linecap="round" opacity=".6" transform="rotate(${ang})"/>`;
-  return `<g class="proj proj-${pj.kind}" ${st}><g transform="scale(${pj.kind==="arrow" ? 1 : 1.5})">${shape}</g></g>`;   // 箭不放大（大爺：原本太大）
+  return `<g class="proj proj-${pj.kind}" ${st}><g transform="scale(${pj.kind==="arrow" || pj.kind==="bullet" ? 1 : 1.5})">${shape}</g></g>`;   // 箭不放大（大爺：原本太大）
 }
 
 // 畫面上佔的範圍 [左, 上, 右, 下]（棋盤座標），用來判斷誰擋住誰
@@ -531,6 +535,13 @@ function faceSVG(v, x, y, size){
   return (L.face || L.head).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
 }
 // 打中特效：斬擊弧線、穿刺、衝擊、火焰、魔法、治療
+// 開槍的白煙（10-03）：一閃火光，接著幾團煙往前冒、慢慢變大散掉
+function smokeSVG(x, y, face, el){
+  const puffs = [[10,0,13,0],[24,-6,16,50],[40,-12,18,110],[18,-16,12,170],[54,-20,16,230],[32,-26,13,300]];
+  return `<g class="fx-smoke" transform="translate(${x} ${y}) scale(${face*1.2} 1.2)" style="--el:${-el}ms">
+    <g class="sm-flash" style="animation-delay:${-el}ms"><path d="M0 0 L14 -7 L10 -1 L24 0 L10 2 L14 8 Z" fill="#ffd46a" stroke="#f08a2c" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4" r="5" fill="#fff6c8"/></g>
+    ${puffs.map(([dx,dy,r,dl])=>`<circle class="sm-puff" cx="${dx}" cy="${dy}" r="${r}" style="animation-delay:${dl-el}ms"/>`).join("")}</g>`;
+}
 function fxSVG(kind, x, y, el){
   const st = `style="animation-delay:${-el}ms"`;
   const g = inner => `<g class="fx fx-${kind}" transform="translate(${x} ${y})"><g ${st}>${inner}</g></g>`;
@@ -1056,7 +1067,7 @@ function infoHTML(v, b){
   }
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.n)}</svg>`;
-  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(g.id,38):`<span class="eq-text">${it.n}</span>`};
+  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(it.art||g.id,38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
     const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=finalScore(v.id,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;

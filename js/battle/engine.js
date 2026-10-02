@@ -311,7 +311,7 @@ const impactAt = () => Date.now() + (B().impact||0);
 
 // ---------- 飛行物：弓弩射箭、投擲武器、法術光球 ----------
 // 出手（DOLL_IMPACT）時從攻擊者手上飛出，飛到目標才算打中；回傳「打中時間」給 B().impact
-const PROJ_OF = {shoot:"arrow", throw:"thrown", cast:"magic"};
+const PROJ_OF = {shoot:"arrow", fire:"bullet", throw:"thrown", cast:"magic"};
 // thing：丟出去的物品（道具）；沒給而且是投擲動作，就用手上的武器
 function launch(a, t, k, delay=0, thing=null){
   const b = B(), release = DOLL_IMPACT[k] || 0, kind = PROJ_OF[k];
@@ -321,7 +321,12 @@ function launch(a, t, k, delay=0, thing=null){
   const flight = 450;                                         // 飛行時間固定 0.45 秒（大爺：原本 1 秒太慢）
   const glow = GLOW[(a.focus && groupOf(a.focus) || {}).id] || "#b9a0ff";
   const throwArt = kind==="thrown" ? projArtKey(thing || a.weapon) : null;
-  (b.proj = b.proj || []).push({kind, fx:a.x, fy:a.y, tx:t.x, ty:t.y, face:a.face||1, t:Date.now()+release+delay, dur:flight, glow, art:throwArt});
+  (b.proj = b.proj || []).push({kind, fx:a.x, fy:a.y, tx:t.x, ty:t.y, face:a.face||1, t:Date.now()+release+delay, dur:kind==="bullet" ? 160 : flight, glow, art:throwArt});
+  if(kind==="bullet"){   // 開槍：槍口火光＋白煙（10-03）；子彈飛很快
+    (b.fx = b.fx || []).push({x:a.x, y:a.y, kind:"smoke", face:a.face||1, t:Date.now()+release+delay, dur:1300});
+    b.impactEnd = Math.max(b.impactEnd||0, Date.now() + release + delay + 160);
+    return release + delay + 160;
+  }
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + release + delay + flight);
   return release + delay + flight;
 }
