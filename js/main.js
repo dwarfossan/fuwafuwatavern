@@ -41,6 +41,7 @@ function startTravel(){
     const p = roadPoint(tr.from, tr.to, tr.t);
     document.getElementById("party-marker")?.setAttribute("transform", `translate(${p.x} ${p.y})`);
     if(tr.t < tr.stop){ requestAnimationFrame(step); return; }
+    if(tr.arrive){ state.travel = null; state.location = tr.arrive; render(); return; }   // 一般到站（商隊戰後走到城鎮）
     tr.alert = true; render();
     setTimeout(()=>{
       if(state.travel!==tr) return;
@@ -159,8 +160,11 @@ function bind(){
   $("next")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)});
   const stage = $("stage");
   if(state.page==="story" && stage) showSpot(!!SCENES[state.scene].script[state.line].shake);   // 整頁重畫時補上被動感知
-  const adv = ()=>{ if(state.line < SCENES[state.scene].script.length-1){ state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true}); } };
+  const adv = ()=>{ const sc = SCENES[state.scene].script, ln = sc[state.line];
+    if(ln && ln.choice && !(state.caravan||{}).pick) return;                 // 停在選項：要先選
+    if(state.line < sc.length-1){ state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true}); } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
+    const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
     if(e.target.closest("button, .info, .nav")) return;
     adv();
   });
@@ -182,6 +186,12 @@ function bind(){
     render(); window.scrollTo(0,0); startTravel();
   });
   $("toBattle")?.addEventListener("click", ()=>{state.page="battle"; startBattle("ambush"); window.scrollTo(0,0)});
+  // 商隊戰後：跟馬車一起從半路走到城鎮（10-03）
+  $("toRoad")?.addEventListener("click", ()=>{
+    state.page="map"; state.location="tavern"; state.mapSel=null;
+    state.travel = {from:"tavern", to:"town", t:.5, stop:1, alert:false, arrive:"town"};
+    render(); window.scrollTo(0,0); startTravel();
+  });
   if(state.page==="battle") bindBattle();
   if(state.page==="doll") bindDollDemo();
   if(state.page==="map") bindMap();

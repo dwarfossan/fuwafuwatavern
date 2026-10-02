@@ -221,6 +221,20 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
    換算：卡姆 88.5%、底 3% → 大爺高 63%、底 12%（眼睛在原圖：卡姆 301/1100、大爺 305/1000） */
 .actor.dwarf{aspect-ratio:1100/1000;height:63%;bottom:12%}
 .actor.kam{aspect-ratio:880/1100;height:88.5%;bottom:3%}
+.actor.merchant{aspect-ratio:1024/880;height:66%;bottom:20%}   /* 商人（10-03，大小暫定） */
+/* 劇情頭上的泡泡框符號（商人沒有表情，10-03）：固定在舞台上的人頭頂附近，位置暫定 */
+.story-mark{position:absolute;left:62%;top:4%;width:62px;pointer-events:none;z-index:2}
+.story-mark svg{width:100%;height:auto;overflow:visible}
+/* 商隊：選誰出面、檢定那排骰子 */
+.choice-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.choice{display:grid;gap:1px;text-align:left;padding:6px 8px;border-radius:10px;border:2px solid var(--c);background:rgba(255,255,255,.06);color:var(--fur);font:inherit;cursor:pointer}
+.choice b{color:var(--c);font-size:14px}
+.choice span{font-size:12.5px;line-height:1.35}
+.choice small{font-size:11px;color:var(--dim)}
+.check-row{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:var(--honey);--land:0ms}
+.check-row .dp-total b{font-size:22px;-webkit-text-stroke:2.5px #1f1a24}
+.check-vs{color:var(--fur);font-size:13px}
+.bt-after{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:31}
 .actor.talk{animation:grumble .5s ease}
 .portrait{position:relative;width:100%;height:100%}
 .portrait img{position:absolute;inset:0;width:100%;height:100%;display:block}

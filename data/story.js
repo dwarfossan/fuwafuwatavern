@@ -139,3 +139,86 @@ const AMBUSH = [
   {who:"raccoon",  text:"……馬車後面，躲著一個人。"},
   {who:"narr",     text:"哥布林們聽到動靜，轉過頭來，咧開滿嘴尖牙。"}
 ];
+
+/* ======================== 商隊戰後（大爺 10-03） ========================
+   打贏伏擊 → 商人道謝 → 玩家挑一隻出面，那一隻擲她擅長的屬性（d20＋調整值 ≥ CARAVAN_DC）→ 結果、報酬 → 跟馬車一起往城鎮
+   梗（大爺）：商人其實是走私犯。玲玲看穿、嬌嬌撞破木箱、香香看到稀有金屬反光 → 敲竹槓；默默直接扒他的背包
+   商人只有一張圖、沒有表情：情緒用頭上的泡泡框符號（mark：ok ❗、fail ❓、known …、sweat 滴汗、shake 發抖、anger 青筋、note 音符）
+   台詞全部是香香的草稿，大爺改完才算數；失敗的結果、金額分法、難度是香香定的（大爺 10-03：前面都給你決定），暫定 */
+const CARAVAN_DC = 12;
+const CARAVAN_PICKS = [   // stat：擲哪一項（大爺 10-03：照四小隻擅長的）
+  {id:"fox",     stat:"INT", say:"「我們來談談報酬吧。」"},
+  {id:"tiger",   stat:"STR", say:"「我幫大叔搬貨！」"},
+  {id:"wolf",    stat:"WIS", say:"「……那箱子裡是什麼？」"},
+  {id:"raccoon", stat:"DEX", say:"（悄悄繞到大叔背後）"}
+];
+// 報酬：gold＝四隻合計的金幣（平分）；items＝{角色:[道具名…]}，all＝每隻都有
+const CARAVAN_REWARD = {
+  fox:     {win:{gold:200}, lose:{gold:100}},
+  tiger:   {win:{gold:100, items:{all:["點心","點心"]}}, lose:{gold:100}},
+  wolf:    {win:{gold:100, items:{wolf:["非凡長弓"]}}, lose:{gold:100}},
+  raccoon: {win:{gold:100, items:{raccoon:["次元背包"]}}, lose:{gold:50}}
+};
+const CARAVAN_INTRO = [
+  {who:"narr",     text:"最後一隻哥布林倒下，路上安靜了下來。翻倒的馬車後面，一個戴寬帽的大叔探出頭來。", mark:"known"},
+  {who:"merchant", text:"走、走了嗎？……真的走了？", mark:"shake"},
+  {who:"tiger",    text:"都打跑啦！大叔你沒事吧？"},
+  {who:"merchant", text:"沒事沒事！哎呀，多虧了你們這幾個小傢伙！", mark:"note"},
+  {who:"merchant", text:"我是跑城鎮的行商。這點謝禮請收下——一百金幣！", mark:"ok"},
+  {who:"fox",      text:"……（小聲）只有一個人、一輛車，走這條沒人巡的小路？"},
+  {who:"wolf",     text:"……貨箱封得很緊。"},
+  {who:"raccoon",  text:"……他的背包，很鼓。"},
+  {who:"merchant", text:"哈、哈哈！你們在說什麼悄悄話呢？", mark:"sweat"},
+  {who:"narr",     text:"四小隻互看一眼。要由誰出面？", choice:true}
+];
+const CARAVAN_RESULT = {
+  fox: {
+    win:[{who:"fox", text:"這條路沒人巡，貨箱上的封條是假的。大叔，你在走私吧？"},
+         {who:"merchant", text:"！！", mark:"ok"},
+         {who:"fox", text:"我們什麼都沒看到。不過……一百金幣，好像有點少？"},
+         {who:"merchant", text:"兩、兩百！兩百金幣，這事就當沒發生過！", mark:"sweat"},
+         {who:"narr", text:"四小隻各分到 50 金幣。"}],
+    lose:[{who:"fox", text:"這輛車……嗯……應該只是在抄捷徑吧。"},
+          {who:"merchant", text:"對對對！就是捷徑！", mark:"note"},
+          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+  tiger: {
+    win:[{who:"tiger", text:"大叔，我幫你把貨搬回車上！嘿咻——"},
+         {who:"narr", text:"嬌嬌一腳踩空，整個人撲在木箱上。箱子裂開，滾出一堆貼著外國封條的罐頭和點心。"},
+         {who:"merchant", text:"啊啊啊！那是——！", mark:"shake"},
+         {who:"tiger", text:"……大叔，這些是不是不能讓城裡的人看到？"},
+         {who:"merchant", text:"……拿去！全部拿去！只要你們別說出去！", mark:"sweat"},
+         {who:"narr", text:"四小隻各拿到 2 份點心（戰鬥中花一個動作吃掉，等於短休一次），還有各 25 金幣的謝禮。"}],
+    lose:[{who:"tiger", text:"大叔，我幫你把貨搬回車上！嘿咻——"},
+          {who:"narr", text:"嬌嬌一口氣把箱子全搬回車上，一根釘子都沒掉。"},
+          {who:"merchant", text:"好力氣！謝謝謝謝！", mark:"note"},
+          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+  wolf: {
+    win:[{who:"narr", text:"香香盯著貨箱的縫隙。陽光照進去，反射出一道冷冷的銀光。"},
+         {who:"wolf", text:"……那是稀有金屬。私下買賣，要被抓的。"},
+         {who:"merchant", text:"！", mark:"ok"},
+         {who:"wolf", text:"……我們可以什麼都沒看到。"},
+         {who:"merchant", text:"這、這把弓本來是要賣給貴族的……拿去吧，拜託……", mark:"sweat"},
+         {who:"narr", text:"香香拿到【非凡長弓】（裝備時可以用狩印），四小隻還各分到 25 金幣。"}],
+    lose:[{who:"narr", text:"香香盯著貨箱看了半天，只看到一堆稻草。"},
+          {who:"wolf", text:"……看不出來。"},
+          {who:"merchant", text:"都是些普通貨啦，哈哈。", mark:"note"},
+          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+  raccoon: {
+    win:[{who:"narr", text:"趁大家說話，默默悄悄繞到大叔背後，手一伸——"},
+         {who:"narr", text:"大叔背上那個舊舊的小背包，不見了。"},
+         {who:"raccoon", text:"……（拍拍自己的背）"},
+         {who:"wolf", text:"……默默，妳的背包是不是換了一個？"},
+         {who:"raccoon", text:"……路上撿的。"},
+         {who:"merchant", text:"嗯？大家在看什麼？", mark:"fail"},
+         {who:"narr", text:"默默拿到【次元背包】（裝在背包欄時，負重上限變 2 倍）。大叔什麼都沒發現，照樣給了每隻 25 金幣。"}],
+    lose:[{who:"narr", text:"默默悄悄繞到大叔背後，手一伸——"},
+          {who:"merchant", text:"嗯？小狸貓，妳的手在我包包裡做什麼？", mark:"ok"},
+          {who:"raccoon", text:"……幫你抓蟲。"},
+          {who:"merchant", text:"……謝禮減半！", mark:"anger"},
+          {who:"narr", text:"四小隻各分到 12 金幣 5 銀幣。"}]}
+};
+const CARAVAN_OUTRO = [
+  {who:"merchant", text:"我也要去城鎮。順路的話，一起走吧！", mark:"note"},
+  {who:"fox",      text:"有人帶路，正好。"},
+  {who:"narr",     text:"四小隻跟在馬車旁邊，繼續往城鎮出發。"}
+];

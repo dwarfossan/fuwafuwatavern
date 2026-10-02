@@ -51,6 +51,7 @@ node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次�
 node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）；指定目標的招挑不到躲著的
 node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 node tests/concentration.mjs  # 專注（同時一個、受傷豁免、倒下中斷）、狩印、點心、次元背包
+node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。
@@ -118,7 +119,7 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 | `docs/裝備與感知規格.md` | 被動感知、搜索、狀態卡、裝備三層與錨點、破布衣、+1 薩滿袍、AC |
 | `docs/授權與安全.md` | 借了 SRD 的什麼、不能碰的（D&D 名稱、商標、SRD 以外的內容）、類似遊戲的案例、出處標示怎麼放 |
 | `docs/技能表.md` | 每類武器的招式（`tools/skills_doc.mjs` 產生，不要手改） |
-| `assets/` | 美術素材。遊戲用到：封面 `portraits/party_heads.webp`、送別出發段 `portraits/party.webp`、酒館劇情和商店小頭像的大爺／卡姆（無臉底圖＋`faces/dwarf`、`faces/kam`）；四小隻的頭、商人、哥布林還沒用。`portraits/` 立繪（四小隻合照、四小隻合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（四小隻的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
+| `assets/` | 美術素材。遊戲用到：封面 `portraits/party_heads.webp`、送別出發段 `portraits/party.webp`、酒館劇情和商店小頭像的大爺／卡姆（無臉底圖＋`faces/dwarf`、`faces/kam`）、商隊戰後的商人 `portraits/merchant.webp`；四小隻的頭、哥布林還沒用。`portraits/` 立繪（四小隻合照、四小隻合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（四小隻的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
 
 
 ---

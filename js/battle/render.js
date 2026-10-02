@@ -1176,7 +1176,8 @@ function battleInterfaceHTML(){
   let ov = "";
   if(b.result){
     // 勝利：只放一條常見的勝利標題，不擋操作（大爺 10-02：拿掉整個勝利視窗）
-    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">${POP_TEXT.victory}</div></div>`;
+    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">${POP_TEXT.victory}</div></div>`
+      + (b.def.after ? `<button class="btn bt-after" id="afterWin">繼續 ▶</button>` : "");   // 打完有後續劇情（伏擊→商隊，10-03）
     else ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>${b.result==="win"?"勝利！":"傳送回酒館……"}</h3>
       <p>卡姆的傳送魔法把四小隻送回酒館了。</p>
@@ -1313,6 +1314,7 @@ function bindBattle(){
   if(b && b.focusReq && !b.result){ b.focusReq = false; const u = cur();
     if(u.side==="pc") centerCam(u.x, u.y - 1, true);
     else if(!touches.size && !foeHid(u) && !onScreen(u)) centerCam(u.x, u.y - 1, true); }
+  const aw = document.getElementById("afterWin"); if(aw) battleListen(aw, "click", ()=>{ sfx("pop"); leaveBattleTo(B().def.after); });
   document.querySelectorAll("[data-item]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); const b = B(); b.menu = null; b.mode = {key:"item", item:el.dataset.item}; refreshBattle(); }));
   document.querySelectorAll("[data-swap]").forEach(el=>battleListen(el,"click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));

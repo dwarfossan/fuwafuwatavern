@@ -35,6 +35,13 @@ function teleportHome(){
   state.battle = null; state.scout = null; state.travel = null; state.mapSel = null;
   state.location = "tavern"; state.page = "map"; render(); window.scrollTo(0,0);
 }
+// 打贏後接劇情：熟練格、筆記存回去，戰鬥收掉（計時器都會檢查 B()，不會再動）
+function leaveBattleTo(scene){
+  syncLearnedState();
+  state.battle = null; state.scout = null;
+  state.page = "story"; state.scene = scene; state.line = 0; state.info = null; state.caravan = {};
+  render(); window.scrollTo(0,0);
+}
 function startBattle(id, retry=false){
   if(!retry) snapBattle(id);
   const def = BATTLES[id];

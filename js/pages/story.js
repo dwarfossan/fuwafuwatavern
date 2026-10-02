@@ -2,8 +2,45 @@
 const SCENES = {
   prologue: {script: SCRIPT,   bg:"tavern", back:["back2","回去重骰"],    next:["toShop","去看裝備"]},
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
-  ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]}
+  ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
+  caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]}   // 商隊戰後（10-03）
 };
+/* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
+const STAT_NAME = k => ABILITIES.find(a=>a.k===k).n;
+function caravanScript(){
+  const c = state.caravan || {};
+  if(!c.pick) return CARAVAN_INTRO;                // 還沒選：停在選項那句
+  const p = CARAVAN_PICKS.find(x=>x.id===c.pick), who = CRITTERS.find(x=>x.id===c.pick);
+  return [...CARAVAN_INTRO, {who:c.pick, text:p.say, roll:true}, ...CARAVAN_RESULT[c.pick][c.ok?"win":"lose"], ...CARAVAN_OUTRO];
+}
+// 選好誰出面：擲 d20＋那一項的調整值，發報酬（只發一次），接著往下演
+function caravanPick(id, roll=d20()){   // roll：測試可以指定
+  const c = state.caravan = state.caravan || {};
+  if(c.pick) return;
+  const p = CARAVAN_PICKS.find(x=>x.id===id); if(!p) return;
+  const mod = modOf(finalScore(id, p.stat)), total = roll + mod, ok = total >= CARAVAN_DC;
+  Object.assign(c, {pick:id, stat:p.stat, roll, mod, total, ok, flick:[0,1,2].map(()=>1+Math.floor(Math.random()*20))});
+  const r = CARAVAN_REWARD[id][ok ? "win" : "lose"];
+  CRITTERS.forEach(x=>{
+    state.gold[x.id] = (state.gold[x.id]||0) + Math.round(r.gold * GP / CRITTERS.length);
+    state.inv[x.id] = state.inv[x.id] || [];
+    [...((r.items||{}).all||[]), ...((r.items||{})[x.id]||[])].forEach(n=>{ const it = ITEMS.find(i=>i.n===n); if(it) state.inv[x.id].push(it.id); });
+  });
+  sfx(ok ? "win" : "miss");
+  state.line++; render();
+}
+// 對話框內容：一般台詞；選項那句換成四個按鈕；檢定那句多一排骰子
+function dialogInner(line, who, done){
+  let extra = "";
+  if(line.choice && !(state.caravan||{}).pick)
+    extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
+      return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
+  if(line.roll){ const c = state.caravan;
+    extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${dieFace(20, c.roll, 0, DICE_TUMBLE, c.flick, false)}<span class="dp-mod">${c.mod>=0?"+":"−"}${Math.abs(c.mod)}</span>
+      <span class="dp-total ${c.ok?"res-hit":"res-miss"}"><b>${c.total}</b></span><span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
+  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice?"":"▼ 點一下繼續"}</span>`;
+}
+const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
 /* 劇情裡的被動感知演出（大爺 2026-10-01）
    只在察覺台詞（line.shake）時出現，而且 ambushScript 只有至少一隻察覺到才會插入那幾句，所以全失敗時什麼都不顯示（不劇透）
    每隻：骰子停在 10（被動不擲骰）＋感知調整值＝總和；成功跳 ❗、失敗跳 ❓（跟戰鬥同一個泡泡），成功的卡片抖一下
@@ -45,8 +82,8 @@ function showSpot(on){
 
 /* 酒館舞台上的人（10-03 改新畫風立繪）：台詞的 on 指定誰站在舞台上（預設大爺）；
    face 是站在台上那位這句的表情，沒寫就用預設（PORTRAITS[id].def） */
-const STAGE_ACTORS = ["dwarf", "kam"];
-const onStage = line => line.on || "dwarf";
+const stageActors = () => { const sc = SCENES[state.scene]; return sc.actors || (sc.bg==="tavern" ? ["dwarf", "kam"] : []); };   // 沒寫 actors：酒館＝大爺、卡姆，其他場景沒人
+const onStage = line => line.on || stageActors()[0];
 const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
 
 function updateStoryLine(){
@@ -57,13 +94,14 @@ function updateStoryLine(){
   stage.querySelectorAll(".scene-art").forEach(el=>el.classList.toggle("on", el.dataset.art===line.art));
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
   showSpot(!!line.shake);
-  STAGE_ACTORS.forEach(id=>{ const el = stage.querySelector(".actor."+id); if(!el) return;
+  const mk = stage.querySelector(".story-mark"); if(mk) mk.innerHTML = markHTML(line);
+  stageActors().forEach(id=>{ const el = stage.querySelector(".actor."+id); if(!el) return;
     el.classList.toggle("off", onStage(line)!==id); el.classList.toggle("talk", line.who===id);
     setPortraitFace(el, actorFace(id, line)); });
   const dialog = stage.querySelector(".dialog");
   if(dialog){
     dialog.classList.toggle("narr", line.who==="narr");
-    dialog.innerHTML = `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p><span class="hint">${last?"":"▼ 點一下繼續"}</span>`;
+    dialog.innerHTML = dialogInner(line, who, last);
   }
   const party = document.querySelector(".fp-page .party");
   party?.classList.toggle("cheer", !!line.hug);
@@ -74,7 +112,8 @@ function updateStoryLine(){
   const progress = document.querySelector(".fp-page .progress");
   if(progress) progress.textContent = `${state.line+1} / ${scene.script.length}`;
   const next = document.getElementById(scene.next[0]);
-  if(next){ next.disabled = !last; next.textContent = last ? scene.next[1] : "劇情進行中"; }
+  const done = last && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
+  if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
 }
 
 function renderStory(){
@@ -97,26 +136,25 @@ function renderStory(){
     </button>`;
   }).join("");
 
+  const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
+  const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page">
     <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${scene.bg==="road" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${roadAmbushSVG()}</div>` : `
+      ${scene.bg==="road" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
-      ${STAGE_ACTORS.map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("")}
+      ${actorsHTML}
       ${line.hug?`<div class="hug-glow" aria-hidden="true"></div>`:""}
       <div class="counter" aria-hidden="true"></div>`}
       ${[...new Set(SCRIPT_.map(l=>l.art).filter(Boolean))].map(k=>`<div class="scene-art ${line.art===k?"on":""}" data-art="${k}" aria-hidden="true"><img src="${STORY_ART[k]}" alt=""></div>`).join("")}
-      <div class="dialog ${line.who==="narr"?"narr":""}">
-        ${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}
-        <p>${line.text}</p>
-        <span class="hint">${last?"":"▼ 點一下繼續"}</span>
-      </div>
+      <div class="story-mark" aria-hidden="true">${markHTML(line)}</div>
+      <div class="dialog ${line.who==="narr"?"narr":""}">${dialogInner(line, who, last)}</div>
     </div>
     <div class="party ${line.hug?"cheer":""}" aria-label="隊伍">${party}</div>
     <div class="nav">
       ${scene.back ? `<button class="btn ghost" id="${scene.back[0]}">${scene.back[1]}</button>` : `<span></span>`}
       <span class="progress">${state.line+1} / ${SCRIPT_.length}</span>
-      <button class="btn" id="${scene.next[0]}" ${last?"":"disabled"}>${last?scene.next[1]:"劇情進行中"}</button>
+      <button class="btn" id="${scene.next[0]}" ${done?"":"disabled"}>${done?scene.next[1]:"劇情進行中"}</button>
     </div>
   </section>`;
 }
