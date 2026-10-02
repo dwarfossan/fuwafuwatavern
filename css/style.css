@@ -143,6 +143,34 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .summary{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px;color:var(--dim)}
 .summary b{color:var(--fur);font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .nav{display:flex;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap}
+/* 擲骰頁手機版（大爺 10-02）：四小隻的分頁同一排、屬性格子縮小，盡量一頁看完不用捲 */
+@media (max-width:520px){
+  .rule{font-size:12.5px;line-height:1.55}
+  .tabs{flex-wrap:nowrap;gap:5px;margin-bottom:10px}
+  .tab{flex:1 1 0;min-width:0;justify-content:center;gap:3px;padding:3px 4px;font-size:13px}
+  .tab svg{width:24px;height:24px;flex:none}
+  .tab .done{font-size:11px}
+  .sheet{padding:10px;gap:8px}
+  .sheet-top{gap:10px;flex-wrap:nowrap}
+  .sheet-top svg{width:52px;height:52px}
+  .sheet-top h3{font-size:20px}
+  .sheet-top .cls{font-size:12px;line-height:1.4}
+  .sheet-actions{flex-direction:column;gap:6px}
+  .sheet-actions .btn{padding:6px 12px;font-size:14px}
+  .tray{min-height:58px;padding:6px;gap:6px}
+  .tray-empty{font-size:13px}
+  .token{width:42px;height:42px;font-size:19px;border-width:2px;box-shadow:0 3px 0 #7a5418}
+  .slots{gap:6px}
+  .slot{padding:6px 8px;gap:2px}
+  .slot .ab-name{font-size:14px}
+  .slot .drop{width:46px;height:46px}
+  .slot .drop-hint{font-size:9.5px;padding:0;letter-spacing:-.02em}
+  .slot .mod{font-size:24px}
+  .slot .score{font-size:12px}
+  .slot .bgnote{font-size:10px}
+  .summary{font-size:13px}
+  .nav{margin-top:12px}
+}
 
 /* ---------- 劇情頁 ---------- */
 .story{
