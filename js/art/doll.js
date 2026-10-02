@@ -53,7 +53,13 @@ function tailSVG(id, c){
 }
 
 // 護甲（紙娃娃的衣服層，蓋在身體上）
-/* 身體裝備（2026-10-01：改回 SRD 的 12 件＋法袍，每件畫出差異，大爺之後修）
+/* 身體裝備分三層（大爺 10-02）：
+     body＝蓋在身上（大家共用同一個身體形狀，直接畫在紙娃娃座標上）
+     neck＝項鍊之類，以「頸錨點」為原點畫；畫在身體上、頭下面
+     head＝頭飾，以「頭錨點」為原點畫（頭的 100×100 座標，原點＝額頭正中、布帶的位置）；畫在頭上面
+   錨點每種外觀各一組（critterLook、MONSTER_LOOK 的 anchor），沒寫就用 DEFAULT_ANCHOR
+   ARMOR_ART 的值可以是字串（只有 body），或 {body, neck, head}
+   身體裝備（2026-10-01：改回 SRD 的 12 件＋法袍，每件畫出差異，大爺之後修）
    kind＝裝備名稱；沒有專屬畫法的照分類（輕甲／中甲／重甲）畫。畫在紙娃娃的身體上（身體約 x 48~92、y 83~133） */
 const ARMOR_ART = (()=>{
   // 外框比身體大一圈，蓋住肩膀（2026-10-01 大爺：原本比身體窄，肩膀會露出來）
@@ -73,6 +79,17 @@ const ARMOR_ART = (()=>{
     // 衣服：破布衣（哥布林穿的），形狀跟紙娃娃身體一樣；麻繩腰帶、下襬破成鋸齒
     "破布衣": `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="#7a5a3c" stroke="${INK}" stroke-width="3.5"/>
       ${line("M49 112 Q70 119 91 112","#c9a86a",3.5)}<path d="M50 124 L55 131 L60 126 L66 133 L72 127 L78 133 L84 126 L90 130" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linejoin="round"/>`,
+    // +1 薩滿袍（大爺 10-02）：紫袍＋骷髏頭飾＋牙齒項鍊，一整套
+    "+1 薩滿袍": {
+      body: `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="#5e4a6e" stroke="${INK}" stroke-width="3.5"/>
+        <path d="M50 90 Q70 101 90 90" stroke="${INK}" stroke-width="1.5" fill="none"/>${line("M49 112 Q70 119 91 112","#c9a86a",3.5)}`,
+      neck: [[-12,-2],[-6,1.5],[0,3],[6,1.5],[12,-2]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="#fffbe8" stroke="${INK}" stroke-width="1.5"/>`).join(""),
+      head: `<path d="M-23 5 Q0 -5 23 5" stroke="${INK}" stroke-width="8.5" fill="none" stroke-linecap="round"/><path d="M-23 5 Q0 -5 23 5" stroke="#a33c32" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+        <g transform="translate(2 -13)"><path d="M-11 2 Q-12 -13 0 -14 Q12 -13 11 2 Q11 7 6 8 L6 12 L-6 12 L-6 8 Q-11 7 -11 2 Z" fill="#f3ead2" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>
+        <ellipse cx="-4.5" cy="-1.5" rx="3.3" ry="3.8" fill="${INK}"/><ellipse cx="4.5" cy="-1.5" rx="3.3" ry="3.8" fill="${INK}"/>
+        <path d="M0 2.5 L-1.8 6 L1.8 6 Z" fill="${INK}"/><path d="M-3 12 L-3 8.5 M0 12 L0 8.5 M3 12 L3 8.5" stroke="${INK}" stroke-width="1.3"/></g>
+        <path d="M-1 -2 L5 -2 L2 6 Z" fill="#fffbe8" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`
+    },
     // 輕甲
     "軟甲": body(T,"#d8c7a0") + line("M54 98 L86 120 M54 112 L76 126 M60 90 L88 108 M86 98 L54 120 M86 112 L64 126 M80 90 L52 108","#b59f72",1.8) + line("M58 89 Q70 94 82 89","#b59f72",3),   // 菱格縫線的棉甲
     "皮甲": body(T,"#9a6a3e") + line("M70 88 L70 128","#6e4a32",2.2,'stroke-dasharray="3 3"') + belt(),                                   // 素面皮衣
@@ -99,12 +116,16 @@ const ARMOR_ART = (()=>{
   };
 })();
 const ARMOR_BY_TIER = {"衣服":"法袍", "輕甲":"皮甲", "中甲":"鏈甲衫", "重甲":"鏈甲"};
-function armorSVG(kind){
-  if(!kind) return "";
-  if(ARMOR_ART[kind]) return ARMOR_ART[kind];
-  const it = ITEMS.find(i=>i.type==="armor" && i.n===kind);
-  return ARMOR_ART[ARMOR_BY_TIER[it && it.tier] || "皮甲"];
+function armorArt(kind){                    // 一律回傳 {body, neck, head}
+  if(!kind) return {};
+  let a = ARMOR_ART[kind];
+  if(!a){ const it = ITEMS.find(i=>i.type==="armor" && i.n===kind); a = ARMOR_ART[ARMOR_BY_TIER[it && it.tier] || "皮甲"]; }
+  return typeof a==="string" ? {body:a} : a;
 }
+function armorSVG(kind){ const a = armorArt(kind); return (a.body||"") + (a.neck ? `<g transform="translate(${DEFAULT_ANCHOR.neck.join(" ")})">${a.neck}</g>` : ""); }   // 圖示用：身體＋項鍊
+// 錨點：head＝[x, y, 縮放]（頭的 100×100 座標），neck＝[x, y]（紙娃娃座標）
+const DEFAULT_ANCHOR = {head:[52,28,1], neck:[70,95]};
+
 
 // 拿在手上的裝備：放在 (hx,hy)，握把對準手
 function heldSVG(key, hx, hy, angExtra=0){
@@ -114,10 +135,17 @@ function heldSVG(key, hx, hy, angExtra=0){
 }
 const handSVG = (x,y,c,r=8.5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="#2a2630" stroke-width="3"/><circle cx="${x-2.5}" cy="${y-2.5}" r="${r*.3}" fill="#fff" opacity=".35"/>`;
 
+// 四隻的頭、頸錨點（大爺 10-02）：頭比哥布林圓、大，頭飾放大一點、往上一點；目測，大爺看過再調
+const CRITTER_ANCHOR = {
+  fox:     {head:[52,26,1.15], neck:[70,95]},
+  tiger:   {head:[51,26,1.18], neck:[70,95]},
+  wolf:    {head:[52,26,1.15], neck:[70,95]},
+  raccoon: {head:[51,27,1.18], neck:[70,95]}
+};
 // 四隻的外觀
 function critterLook(id, c){
   const limb = id==="raccoon" ? "#5a3e2e" : c;   // 狸貓的手腳是深咖啡色
-  return {head: critterSide(id), headHurt: critterSide(id, true), headHappy: critterSide(id, false, true), body:c, skin:limb, feet:limb, belly:true, tail: tailSVG(id, c),
+  return {head: critterSide(id), headHurt: critterSide(id, true), headHappy: critterSide(id, false, true), body:c, skin:limb, feet:limb, belly:true, tail: tailSVG(id, c), anchor: CRITTER_ANCHOR[id],
     extra: id==="tiger" ? `<path d="M50 100 L58 102 M49 112 L57 112 M90 100 L82 102 M91 112 L83 112" stroke="#3b3a44" stroke-width="3" stroke-linecap="round"/>` : ""};
 }
 
@@ -125,6 +153,7 @@ function critterLook(id, c){
    down＝生命歸零（橫躺、半透明、X_X）；prone＝被推倒（橫躺、顏色正常） */
 function dollSVG(o){
   const L = o.look || critterLook(o.id, o.color), c = L.skin, INK="#2a2630";
+  const gear = armorArt(o.armor), anc = {...DEFAULT_ANCHOR, ...(L.anchor||{})};
   const main = o.main, off = o.off, h = main && HELD[main];
   const two = h && h.two && !off;
   const now = Date.now();
@@ -158,9 +187,11 @@ function dollSVG(o){
         <path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>
         ${L.belly?`<ellipse cx="70" cy="113" rx="13" ry="14" fill="#fbf4ee" opacity=".85"/>`:""}
         ${L.extra||""}
-        ${armorSVG(o.armor)}
+        ${gear.body||""}
+        ${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}
         ${L.head.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}
         ${o.cheer && L.headHappy ? `<g>${L.headHappy.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
+        ${gear.head ? `<g transform="translate(32 6) scale(.76)"><g transform="translate(${anc.head[0]} ${anc.head[1]}) scale(${anc.head[2]})">${gear.head}</g></g>` : ""}
         ${L.headHurt && o.down ? `<g>${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` :
           L.headHurt && o.anim && o.anim.k==="hurt" ? `<g class="dl-xeyes" data-exp="${now - o.anim.el + DOLL_DUR.hurt}">${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
         <g class="dl-off">${offHand}<circle class="dl-glow" cx="40" cy="96" r="18" fill="${glow}"/></g>

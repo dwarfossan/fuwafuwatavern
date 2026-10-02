@@ -28,7 +28,7 @@ const ENEMIES = {
   // 哥布林薩滿：躲在草叢裡施法（火焰箭、治癒真言、災禍術都來自薩滿圖騰；圖騰被打掉就不能施法）
   // 行動方式見 js/battle/flow.js 的 aiShaman
   goblin_shaman: {
-    name:"哥布林薩滿", look:"goblin_shaman", gear:["薩滿圖騰"],
+    name:"哥布林薩滿", look:"goblin_shaman", gear:["薩滿圖騰","+1 薩滿袍"],
     hp:7, ac:12, speed:6,
     innate:["nimble"],
     mods:{STR:-1, DEX:2, CON:0, INT:0, WIS:2, CHA:0}

@@ -60,9 +60,9 @@ const MONSTER_LOOK = (()=>{
     <path d="${band}" stroke="${INK}" stroke-width="8.5" fill="none" stroke-linecap="round"/><path d="${band}" stroke="#a33c32" stroke-width="5.5" fill="none" stroke-linecap="round"/>`;
   const hat = (svg, xs, band, tooth) => svg.replace(/<\/svg>\s*$/, `${feathers(xs, band)}${tooth}</svg>`);
   const TOOTH = (x,y) => `<path d="M${x-3} ${y-2} L${x+3} ${y-2} L${x} ${y+6} Z" fill="#fffbe8" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
-  const SIDE_F = [54,15], SIDE_B = "M29 33 Q52 23 75 33";     // 骷髏頭的位置（坐在布帶上）
   const FACE_F = [50,15], FACE_B = "M28 34 Q50 24 72 34";
-  const necklace = [[58,93],[64,96.5],[70,98],[76,96.5],[82,93]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="#fffbe8" stroke="${INK}" stroke-width="1.5"/>`).join("");
+  // 哥布林的頭、頸錨點（跟原本薩滿頭飾、項鍊的位置一樣）
+  const GOBLIN_ANCHOR = {head:[52,28,1], neck:[70,95]};
   // 人類大叔（商人，暫定外觀，大爺 2026-10-01：之後再確定）：平頂帽、八字鬍、圓鼻子
   const SK="#f1c9a0", SKD="#d9a77c", HAIR="#6b4a35", CAP="#8a6a44", CAPD="#6e5032";
   const uncleFace = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -100,15 +100,14 @@ const MONSTER_LOOK = (()=>{
               <path d="M78 116 L84 115" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`
     },
     goblin_shaman: {
-      face: hat(goblinHead, FACE_F, FACE_B, TOOTH(50,29)), head: hat(goblinSide, SIDE_F, SIDE_B, TOOTH(54,28)), headHurt: hat(goblinSideHurt, SIDE_F, SIDE_B, TOOTH(54,28)),
-      body:"#5e4a6e", skin:G, feet:"#5a3f28", belly:false, tail:"",
-      extra: `<path d="M50 90 Q70 101 90 90" stroke="${INK}" stroke-width="1.5" fill="none"/>${necklace}
-              <path d="M49 112 Q70 119 91 112" stroke="#c9a86a" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+      // 頭像（face）照舊畫頭飾，認得出是薩滿；紙娃娃的袍子、頭飾、項鍊都來自身上穿的「+1 薩滿袍」
+      face: hat(goblinHead, FACE_F, FACE_B, TOOTH(50,29)), head: goblinSide, headHurt: goblinSideHurt,
+      body:G, skin:G, feet:"#5a3f28", belly:false, tail:"", anchor:GOBLIN_ANCHOR
     },
     goblin: {
       // face：頭像框、先攻列用的正面；head：棋盤上紙娃娃用的側臉
       // 衣服是裝備「破布衣」（js/art/doll.js 的 ARMOR_ART），這裡只畫皮膚
-      face: goblinHead, head: goblinSide, headHurt: goblinSideHurt, body:G, skin:G, feet:"#5a3f28", belly:false, tail:""
+      face: goblinHead, head: goblinSide, headHurt: goblinSideHurt, body:G, skin:G, feet:"#5a3f28", belly:false, tail:"", anchor:GOBLIN_ANCHOR
     }
   };
 })();
