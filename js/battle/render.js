@@ -1181,7 +1181,7 @@ function battleInterfaceHTML(){
   const deep = mine && !b.busy && (b.pendingMove || b.mode || b.moveMode || (b.menu && b.menu!=="root"));
   const logEl = b.result || deep || ov ? "" : b.logLv===2 ? logPanelHTML(b) : logStripHTML(b);
   const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine?resHTML(u,b):""}</div>${logEl}</div>`;
-  const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><b>教學</b> ${TUTORIAL[b.tut]} <button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div>` : "";
+  const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {
     head: `<div class="head"><div><h2>戰鬥：${b.def.name}</h2><p class="rule">第 ${b.round} 回合</p></div>
       <div class="sys-tools">
@@ -1193,15 +1193,16 @@ function battleInterfaceHTML(){
       </div></div>`,
     order: `<div class="order">${order}</div>`,
     hud,
+    tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
-    overlays: `${tut}${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`
+    overlays: `${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`
   };
 }
 function battleUISlot(k,html){ return `<div data-battle-ui="${k}" style="display:contents">${html}</div>`; }
 function renderBattle(){
   if(!B()) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const ui=battleInterfaceHTML();
-  return `<section class="page battle">${["head","order","hud","dice"].map(k=>battleUISlot(k,ui[k])).join("")}<div class="board-wrap">${boardSVG()}${battleUISlot("overlays",ui.overlays)}</div></section>`;
+  return `<section class="page battle">${["head","order","hud","tutorial","dice"].map(k=>battleUISlot(k,ui[k])).join("")}<div class="board-wrap">${boardSVG()}${battleUISlot("overlays",ui.overlays)}</div></section>`;
 }
 // 比較資料依賴，不比較產生出的 HTML；每次更新完整的指定層。
 // 介面不依賴走路座標／面向／跳躍時間，保留按鈕、捲動與拖曳中的 DOM。

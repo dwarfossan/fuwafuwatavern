@@ -9,6 +9,7 @@ function render(){
   }
   rememberShopView(app);
   app.classList.toggle('shop-screen',state.page==='shop');
+  app.classList.toggle('battle-screen',state.page==='battle');
   app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", renderModal());

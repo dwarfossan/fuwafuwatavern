@@ -43,5 +43,22 @@ try{
   await pg.evaluate(()=>{state.page='map';state.travel=null;render();});
   await pg.locator('[data-pagehelp="map"]').click();assert((await pg.locator('[role="dialog"]').innerText()).includes('現在的位置'));
   await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
+  await pg.evaluate(()=>{window.setTimeout=()=>0;quickBattle();});await pg.waitForTimeout(500);
+  await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=0;refreshBattle();});
+  const boardWithTutorial=await pg.locator('.board-wrap').boundingBox();
+  const tutorial=await pg.locator('.tut').boundingBox();
+  assert(tutorial.y+tutorial.height<=boardWithTutorial.y);
+  assert(boardWithTutorial.y+boardWithTutorial.height>=830);
+  assert.equal(await pg.locator('.board-wrap .tut').count(),0);
+  if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/battle-tutorial.png'});
+  const floor=await pg.locator('#board-floor').evaluate(e=>{window.mobileFloor=e;return true;});
+  await pg.locator('#tutNext').click();assert.equal(await pg.evaluate(()=>B().tut),1);
+  await pg.locator('#tutClose').click();assert.equal(await pg.locator('.tut').count(),0);
+  const board=await pg.locator('.board-wrap').boundingBox();
+  assert(board.height>boardWithTutorial.height);assert(board.y<140);assert(board.height>650);
+  assert(await pg.locator('#board-floor').evaluate(e=>e===window.mobileFloor));
+  assert(await pg.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
+  ok('教學位於戰場外，知道了／關閉可用；關閉後戰場擴大，地板圖層保留');
+  if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/battle.png'});
   assert.deepEqual(errors,[]);ok('沒有瀏覽器錯誤');
 }finally{await br.close();}
