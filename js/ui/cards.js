@@ -115,7 +115,7 @@ function renderModal(){
   }
   if(m.kind==="character"){
     const c=CRITTERS.find(x=>x.id===m.id);
-    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterSVG(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p></div>`;
+    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterHead(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p></div>`;
   }
   if(m.kind==="skill"){
     const unit = m.unit && state.battle ? state.battle.units.find(v=>v.id===m.unit) : null;

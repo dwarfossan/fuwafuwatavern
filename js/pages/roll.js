@@ -15,7 +15,7 @@ function renderRoll(){
 
   const tabs = CRITTERS.map((x,i)=>`
     <button class="tab" role="tab" aria-selected="${i===state.active}" data-tab="${i}">
-      ${critterSVG(x.id)}<span>${x.name}</span>${done(x.id)?'<span class="done">✓</span>':''}
+      ${critterHead(x.id)}<span>${x.name}</span>${done(x.id)?'<span class="done">✓</span>':''}
     </button>`).join("");
 
   // 籌碼盤：還沒分配的數值
@@ -55,7 +55,7 @@ function renderRoll(){
     <div class="tabs" role="tablist">${tabs}</div>
     <div class="sheet">
       <div class="sheet-top">
-        ${critterSVG(id)}
+        ${critterHead(id)}
         <div><h3>${c.name}</h3><div class="cls">${c.kind} · ${c.tags.join("、")}</div></div>
         <div class="sheet-actions">
           ${sets?`<button class="btn ghost" id="autoAssign">自動分配</button>`:""}

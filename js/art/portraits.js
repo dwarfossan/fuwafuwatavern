@@ -23,3 +23,16 @@ function setPortraitFace(root, face){
 // 先把所有臉載進來，換表情時才不會閃一下空白
 (function preloadPortraits(){ if(typeof Image==="undefined") return;
   Object.keys(PORTRAITS).forEach(id=>{ const p = PORTRAITS[id]; [p.base, ...(p.list||[]).map(f=>p.faces+f+".webp")].forEach(s=>{ const i = new Image(); i.src = s; }); }); })();
+
+/* 四小隻的頭（大爺 10-03 給的新畫風，210×210，assets/faces/<id>/）：劇情卡片、擲屬性、商店、角色介紹用；戰場、大地圖維持 SVG
+   表情檔名見 assets/faces/README.md；沒有的表情退回 normal */
+const CRITTER_FACES = {
+  fox:["normal","happy","smug","surprised","confused","awkward","guilty","content"],
+  tiger:["normal","happy","fierce","angry","confused","blank","shy","content"],
+  wolf:["normal","resigned","serious","surprised","confused","angry","smile","sigh"],
+  raccoon:["normal","happy","sly","surprised","confused","caught","down"]
+};
+const critterFaceSrc = (id, mood) => `assets/faces/${id}/${(CRITTER_FACES[id]||[]).includes(mood) ? mood : "normal"}.webp`;
+const critterHead = (id, mood) => `<img class="c-head" src="${critterFaceSrc(id, mood)}" alt="" draggable="false">`;
+(function preloadCritterFaces(){ if(typeof Image==="undefined") return;
+  Object.entries(CRITTER_FACES).forEach(([id,l])=>l.forEach(f=>{ const i = new Image(); i.src = `assets/faces/${id}/${f}.webp`; })); })();

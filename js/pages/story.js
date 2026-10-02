@@ -82,6 +82,9 @@ function showSpot(on){
 
 /* 酒館舞台上的人（10-03 改新畫風立繪）：台詞的 on 指定誰站在舞台上（預設大爺）；
    face 是站在台上那位這句的表情，沒寫就用預設（PORTRAITS[id].def） */
+// 四小隻卡片的表情（10-03）：說話的那隻用 mood，其他用 moods 指定，沒寫就平常臉（抱抱時開心臉）
+const HUG_MOOD = {fox:"content", tiger:"happy", wolf:"smile", raccoon:"happy"};
+const critterMood = (id, line) => (line.moods && line.moods[id]) || ((line.who===id || line.who==="all") && line.mood) || (line.hug ? HUG_MOOD[id] : "normal");
 const stageActors = () => { const sc = SCENES[state.scene]; return sc.actors || (sc.bg==="tavern" ? ["dwarf", "kam"] : []); };   // 沒寫 actors：酒館＝大爺、卡姆，其他場景沒人
 const onStage = line => line.on || stageActors()[0];
 const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
@@ -105,7 +108,9 @@ function updateStoryLine(){
   }
   const party = document.querySelector(".fp-page .party");
   party?.classList.toggle("cheer", !!line.hug);
-  party?.querySelectorAll("[data-info]").forEach(el=>el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all"));
+  party?.querySelectorAll("[data-info]").forEach(el=>{ el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all");
+    const img = el.querySelector(".c-head"), src = critterFaceSrc(el.dataset.info, critterMood(el.dataset.info, line));
+    if(img && img.getAttribute("src")!==src) img.setAttribute("src", src); });
   const glow = stage.querySelector(".hug-glow");
   if(line.hug && !glow) stage.querySelector(".counter")?.insertAdjacentHTML("beforebegin", '<div class="hug-glow" aria-hidden="true"></div>');
   else if(!line.hug && glow) glow.remove();
@@ -130,7 +135,7 @@ function renderStory(){
       return `<span class="${m>=2?"hi":m<0?"lo":""}">${a.n[0]}${fmt(m)}</span>`;
     }).join("");
     return `<button class="pf ${line.who===c.id||line.who==="all"?"speaking":""} ${state.info===c.id?"open":""}" data-info="${c.id}" style="--c:${c.color}" aria-label="查看${c.name}">
-      ${critterSVG(c.id)}
+      ${critterHead(c.id, critterMood(c.id, line))}
       <span class="pf-name">${c.name}</span>
       <span class="pf-mods">${minis}</span>
     </button>`;

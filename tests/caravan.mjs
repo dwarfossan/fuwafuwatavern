@@ -15,6 +15,11 @@ try{
  await pg.locator('#afterWin').click();
  assert.equal(await pg.evaluate(()=>state.page+':'+state.scene+':'+(state.battle===null)),'story:caravan:true');
  assert.equal(await pg.locator('.actor.merchant:not(.off) .pt-base').count(),1);ok('打贏伏擊按「繼續」進商隊劇情，戰鬥收掉，商人上台');
+ const fl=await pg.evaluate(()=>SCENES.caravan.script.findIndex(l=>l.who==='fox'&&l.mood));
+ while(await pg.evaluate(f=>state.line<f,fl)) await pg.locator('#stage').click();
+ const heads=await pg.evaluate(()=>[...document.querySelectorAll('.pf .c-head')].map(i=>i.getAttribute('src')));
+ assert.equal(heads.length,4);assert(heads[0].endsWith('fox/'+(await pg.evaluate(f=>SCENES.caravan.script[f].mood,fl))+'.webp'));assert(heads[1].endsWith('tiger/normal.webp'));
+ ok('劇情卡片用新頭像，說話的那隻換表情（10-03）');
  while(await pg.evaluate(()=>!SCENES.caravan.script[state.line].choice)) await pg.locator('#stage').click();
  const line=await pg.evaluate(()=>state.line);
  await pg.locator('#stage').click();

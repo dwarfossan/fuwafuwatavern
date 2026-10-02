@@ -3,7 +3,7 @@ function renderShop(){
   const id = c.id;
   const tabs = CRITTERS.map((x,i)=>`
     <button class="tab" role="tab" aria-selected="${i===state.shopActive}" data-stab="${i}">
-      ${critterSVG(x.id)}<span>${x.name}</span><span class="done">${money(state.gold[x.id])}</span>
+      ${critterHead(x.id)}<span>${x.name}</span><span class="done">${money(state.gold[x.id])}</span>
     </button>`).join("");
   const cats = CATS.map(k=>`<button class="chip ${k===state.shopCat?"on":""}" data-cat="${k}" aria-pressed="${k===state.shopCat}">${k}</button>`).join("");
   const rows = ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(it=>{

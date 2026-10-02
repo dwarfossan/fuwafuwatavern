@@ -77,7 +77,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;
   background:var(--plank);border:2px solid var(--plank-2);color:var(--fur);font-size:15px;
 }
-.tab svg{width:34px;height:34px}
+.tab svg,.tab .c-head{width:34px;height:34px}
 .tab[aria-selected="true"]{border-color:var(--honey);background:var(--plank-2)}
 .tab .done{font-size:12px;color:var(--moss)}
 
@@ -86,7 +86,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   padding:18px;display:grid;gap:16px;max-width:44em;width:100%;
 }
 .sheet-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.sheet-top svg{width:88px;height:88px;flex:none}
+.sheet-top svg,.sheet-top .c-head{width:88px;height:88px;flex:none}
 .sheet-top h3{margin:0;font-family:var(--font-disp);font-size:26px}
 .sheet-top .cls{color:var(--honey);font-size:15px}
 .sheet-actions{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
@@ -148,7 +148,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .rule{font-size:12.5px;line-height:1.55}
   .tabs{flex-wrap:nowrap;gap:5px;margin-bottom:10px}
   .tab{flex:1 1 0;min-width:0;justify-content:center;gap:3px;padding:3px 4px;font-size:13px}
-  .tab svg{width:24px;height:24px;flex:none}
+  .tab svg,.tab .c-head{width:24px;height:24px;flex:none}
   .tab .done{font-size:11px}
   .sheet{padding:10px;gap:8px}
   .sheet-top{gap:10px;flex-wrap:nowrap}
@@ -279,6 +279,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .dialog.with-spot{padding-bottom:50px}
 }
 .pf{position:relative}
+.c-head{display:block;object-fit:contain;user-select:none}   /* 四小隻新畫風頭像（10-03） */
 .pf .obs{position:absolute;left:50%;top:-34px;width:44px;height:50px;margin-left:-22px;overflow:visible;z-index:3}
 .pf.spot-hit{animation:spot-hit .5s ease both;animation-delay:var(--spot-delay,0ms)}
 @keyframes spot-hit{20%{transform:translateX(-4px) rotate(-3deg)}40%{transform:translateX(4px) rotate(3deg)}60%{transform:translateX(-3px) rotate(-2deg)}80%{transform:translateX(2px)}}
@@ -287,7 +288,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   background:var(--plank);border:2px solid var(--plank-2);border-radius:12px;color:var(--fur);
   display:grid;justify-items:center;gap:2px;padding:8px 4px;transition:transform .2s,border-color .2s;
 }
-.pf svg{width:min(64px,16vw);height:min(64px,16vw)}
+.pf svg,.pf .c-head{width:min(64px,16vw);height:min(64px,16vw)}
 .pf-name{font-weight:700;font-size:15px}
 .pf-mods{display:grid;grid-template-columns:repeat(3,auto);gap:0 6px;font-size:11px;color:var(--dim);
   font-variant-numeric:tabular-nums}
@@ -296,7 +297,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .pf.open{background:var(--plank-2)}
 .info{background:var(--plank);border-radius:12px;padding:14px;border-left:5px solid var(--c)}
 .info-top{display:flex;gap:12px;align-items:center}
-.info-top svg{width:56px;height:56px}
+.info-top svg,.info-top .c-head{width:56px;height:56px}
 .info h4{margin:0;font-family:var(--font-disp);font-size:20px}
 .info .cls{color:var(--c);font-size:13px}
 .info .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
@@ -600,7 +601,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .shop-page .quip p{font-size:14px;line-height:1.4}
 .shop-page .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
 .shop-page .tab{display:grid;grid-template-columns:22px auto;justify-content:center;gap:0 4px;padding:4px;border-radius:12px;font-size:14px;white-space:nowrap}
-.shop-page .tab svg{width:22px;height:22px}
+.shop-page .tab svg,.shop-page .tab .c-head{width:22px;height:22px}
 .shop-page .tab .done{grid-column:1/-1;text-align:center;font-size:11px}
 .shop-page .chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .shop-page .chip{min-height:36px;padding:4px;font-size:13px}
