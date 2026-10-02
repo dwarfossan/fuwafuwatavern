@@ -59,18 +59,20 @@ const FAREWELL = [
   {who:"all",   text:"知道啦——！", hug:true},
   // 出發（大爺 10-03：送別最後放四小隻合照，邊打屁邊出發）。art：這幾句換成 STORY_ART 的插圖
   // 以下台詞是香香寫的草稿，大爺改完才算數；不提武器，因為玩家買的裝備不一定跟圖一樣
+  // 梗：圖上默默頂著的寶箱是大爺的，抱抱的時候摸走的（大爺 10-03）
   {who:"narr",  text:"酒館的大門被推開，四個毛球衝進午後的陽光裡。", art:"party"},
   {who:"tiger", text:"出發——！今天要打倒十隻怪！", art:"party"},
-  {who:"fox",   text:"地圖上那片森林，要走大半天。嬌嬌，力氣先省著點。", art:"party"},
-  {who:"wolf",  text:"……默默，妳的包包是不是比剛才鼓？", art:"party"},
-  {who:"raccoon", text:"……放回去一瓶。", art:"party"},
-  {who:"wolf",  text:"……所以本來有幾瓶？", art:"party"},
-  {who:"raccoon", text:"……（看天空）", art:"party"},
   {who:"fox",   text:"話說回來，剛才那個屁，到底是誰放的？", art:"party"},
   {who:"tiger", text:"大爺自己都推出來了啊！", art:"party"},
   {who:"wolf",  text:"……推到一半，就把我們趕出來了。", art:"party"},
-  {who:"narr",  text:"身後的門又打開了。遠遠傳來大爺的吼聲：「水袋——！裝滿了沒——！」", art:"party"},
-  {who:"all",   text:"裝滿了——！", art:"party"}
+  {who:"wolf",  text:"……還有，默默，妳頭上那個是什麼？", art:"party"},
+  {who:"raccoon", text:"……路上撿的。", art:"party"},
+  {who:"wolf",  text:"……我們才剛走出門口。", art:"party"},
+  {who:"fox",   text:"那個鎖頭……是大爺的寶箱吧？", art:"party"},
+  {who:"raccoon", text:"……抱抱的時候，順手。", art:"party"},
+  {who:"narr",  text:"身後，酒館的門「砰」地一聲被撞開。", art:"party"},
+  {who:"dwarf", text:"默默——！大爺的寶箱——！", art:"party"},
+  {who:"all",   text:"快跑——！", art:"party"}
 ];
 /* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
 const STORY_ART = {party:"assets/portraits/party.webp"};
