@@ -15,8 +15,7 @@ function boardMarkState(){
   let moveSet = new Map(), tgtSet = new Set(), areaSet = new Set(), range = -1;
   const myTurn = u && u.side==="pc" && !b.busy && !b.result;
   if(myTurn && !b.mode && b.moveMode && !(b.dazed && b.actionUsed)) moveSet = reachable(u, b.moveLeft);
-  if(myTurn && b.mode && b.mode.key==="observe"){ observeTargets().forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
-  else if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
+  if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
   else if(myTurn && b.mode && b.mode.key==="help"){ range = 1; helpList(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
   else if(myTurn && b.mode && b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item);
     if(it){ range = it.use.range; itemTargets(u, it).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); } }
