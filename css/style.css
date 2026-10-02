@@ -421,6 +421,17 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .dp-total b{font-size:21px;-webkit-text-stroke:2.5px #1f1a24}
   .dp-total small{font-size:9px;letter-spacing:0}
   .dp-mod{font-size:13px;margin:0 1px} }
+/* 三列以上：每列變矮（42 → 30px），骰子底下的 d20 字拿掉、結果字放到數字旁邊，整塊塞得進戰場上緣到螢幕頂端（大爺 10-02） */
+.dice-panel.tight{padding:3px 8px 4px}
+.dice-panel.tight .dp-head{margin-bottom:0;font-size:12px;line-height:16px}
+.dp-more-h{font-size:10.5px;color:var(--dim);white-space:nowrap}
+.dice-panel.tight .dp-row{min-height:30px;gap:5px}
+.dice-panel.tight .dp-die svg{width:22px;height:22px}
+.dice-panel.tight .dp-die small{display:none}
+.dice-panel.tight .dp-total{flex-direction:row;align-items:baseline;gap:3px;min-width:0;margin-left:3px}
+.dice-panel.tight .dp-total b{font-size:18px;-webkit-text-stroke:2.2px #1f1a24}
+.dice-panel.tight .dp-total small{margin-top:0;font-size:9px;letter-spacing:0}
+.dice-panel.tight .dp-mod{font-size:12px}
 /* 燃燒：身上的火焰上下閃動 */
 .board .fx-burn{pointer-events:none}
 .board .burn-f{transform-box:fill-box;transform-origin:50% 100%;animation:burn-f .55s ease-in-out infinite alternate}

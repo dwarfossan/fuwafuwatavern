@@ -82,6 +82,22 @@ try{
   await pg.evaluate(()=>{B().info='tiger';refreshBattle();});await pg.waitForTimeout(250);
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/status.png'});
   ok('四小隻與敵人的裝備格標籤、圖示各占獨立位置');
+  // 骰子面板三列、四列（偷襲、範圍招）：整塊塞在螢幕裡，標題看得到（10-02 大爺選 a：每列變矮）
+  {
+    const p3=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+    await p3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+    await p3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+    await p3.evaluate(()=>{ endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });
+    for(const n of [3,4]){
+      const top=await p3.evaluate(async n=>{ const b=B(), u=b.units.find(v=>v.id==='wolf'); b.panelHidden=false;
+        const es=b.units.filter(v=>v.side==='foe'); es.forEach(e=>{e.hp=e.maxHp=99;});
+        panelStart(u.name+'【測試】'); for(let i=0;i<n;i++) weaponAttack(u,es[i%es.length],{noMod:true}); panelEnd(); refreshBattle();
+        await new Promise(r=>setTimeout(r,300));
+        return Math.round(document.querySelector('#dicePanel .dp-head').getBoundingClientRect().top); },n);
+      assert(top>=0,`${n} 列時標題被擠出畫面（top ${top}）`);
+    }
+    await p3.close(); ok('骰子面板三列、四列：標題留在畫面裡');
+  }
   // 頁面說明第一次自動打開一次（10-02）：新的瀏覽器、沒看過
   {
     const ctx=await br.newContext({viewport:{width:390,height:844},hasTouch:true}); const p2=await ctx.newPage();

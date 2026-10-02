@@ -644,9 +644,13 @@ function dicePanelHTML(b){
       <div class="dp-atk">${d20}<span class="dp-total res-${r.res}" style="--land:${land + 40}ms"><b>${r.total}</b><small>${RES_TEXT[r.res]}</small></span></div>
       ${dmg}</div>`;
   }).join("");
-  const more = p.rows.length > 3 ? `<div class="dp-more">還有 ${p.rows.length - 3} 個，看紀錄</div>` : "";
+  // 三列以上（例如偷襲：潛行、被動、攻擊）每列變矮，整塊塞進戰場上緣到螢幕頂端之間，標題不會被擠出畫面（大爺 10-02 選 a）
+  // 「還有 N 個」也搬到標題列，不多佔一行
+  const tight = p.rows.length >= 3, extra = p.rows.length - 3;
+  const more = extra > 0 && !tight ? `<div class="dp-more">還有 ${extra} 個，看紀錄</div>` : "";
+  const moreHead = extra > 0 && tight ? `<span class="dp-more-h">＋${extra} 看紀錄</span>` : "";
   const target = p.rows.length===1 && ["atk","chk"].includes(p.rows[0].kind) ? ` → ${p.rows[0].tname}` : "";
-  return `<div class="dice-panel" id="dicePanel" role="button" aria-label="收起擲骰結果"><div class="dp-head"><span>${p.label}${target}</span><span class="dp-x" aria-hidden="true">✕</span></div>${rows}${more}</div>`;
+  return `<div class="dice-panel${tight ? " tight" : ""}" id="dicePanel" role="button" aria-label="收起擲骰結果"><div class="dp-head"><span>${p.label}${target}</span>${moreHead}<span class="dp-x" aria-hidden="true">✕</span></div>${rows}${more}</div>`;
 }
 function burnFX(v, cx, cy){
   if(v.dead || !has(v,"burning")) return "";
