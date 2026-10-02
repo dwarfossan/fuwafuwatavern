@@ -39,7 +39,8 @@ const POP_TEXT = {
   miss:"MISS",          // 沒打中、豁免成功沒被抓住／沒被打掉、躲開道具
   crit:"CRITICAL!",     // 爆擊的大字
   victory:"VICTORY",    // 勝利標題（大爺 10-02）
-  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!"
+  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!",
+  teleport:"TELEPORT"   // 死亡豁免失敗三次，被卡姆傳送回酒館（暫定字）
 };
 
 // 手機頁面的說明泡泡；集中放資料，之後可翻譯。

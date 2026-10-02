@@ -6,10 +6,12 @@ function nextTurn(){
   do {
     b.turn++;
     if(b.turn >= b.units.length){ b.turn = 0; b.round++; }
-  } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc");
+  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc");   // 倒下的四小隻照樣輪到：擲死亡豁免
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
+  // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
+  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ refreshBattle(); setTimeout(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
@@ -50,7 +52,7 @@ function beginTurn(u){
   b.moveLeft = mv; b.baseMove = mv;
   if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
-  perceive(u);
+  if(!u.down) perceive(u);                  // 昏過去的不會察覺
 }
 
 function endTurn(){
@@ -67,7 +69,7 @@ function checkResult(){
   const b = B();
   if(b.result) return true;
   if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); refreshBattle(); return true; }
-  if(!alive("pc").length){ b.result = "lose"; blog("四隻都倒下了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }
+  if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
   return false;
 }
 
@@ -536,7 +538,7 @@ function doHelp(u, t){
     // 醫療檢定：d20 + 感知 ≥ 10 就把他扶起來（1 點生命、倒地）
     const r = d20(), total = r + u.mods.WIS, ok = r===20 || (r!==1 && total>=10);
     blog(`${u.name}想把${t.name}扶起來，醫療檢定：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${total>=10?"≥":"<"} 10 → ${ok?"成功":"失敗"}`, ok?"heal":"miss");
-    if(ok){ t.hp = 1; t.down = false; addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
+    if(ok){ t.hp = 1; t.down = false; t.dsFail = 0; addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
   } else {
     addStatus(t, "helped", {until:"start", of:u.id}); sfx("help");
     blog(`${u.name}協助${t.name}：${t.name}下次攻擊有優勢`, "skill");
@@ -778,7 +780,7 @@ const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得�
 function aiTurn(e){
   const b = B();
   if(b.result || e.dead) return;
-  if(!alive("pc").length) return;
+  if(!alive("pc").length){ endTurn(); return; }   // 四小隻全倒在地上擲死亡豁免：敵人沒事做
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); setTimeout(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); setTimeout(endTurn, 800); return; }

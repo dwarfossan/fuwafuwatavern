@@ -155,6 +155,32 @@ function flankMate(a, t){
 // 站在草叢裡：遠程攻擊他有劣勢
 const hidden = t => !!(terrainAt(t.x,t.y)||{}).hide;
 const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead);
+// ---------- 死亡豁免（大爺 10-02，SRD 5.2，選 B）----------
+// 倒下的四小隻每回合開始擲 d20：10 以上撐住（不會穩定下來，不救遲早被送走）、9 以下失敗一次、1 算兩次、20 自己醒來（1 血、倒地）
+// 失敗滿三次：卡姆的傳送魔法把她送回酒館，這場戰鬥少一隻；四隻都被送走＝輸（checkResult）
+// 被治療、被扶起來：失敗次數歸零。倒地又被打算失敗：先不做（敵人 AI 不會打倒地的）
+const DS_MAX = 3;
+function deathSave(u){
+  const r = d20();
+  panelStart(`${u.name}【死亡豁免】`);
+  if(r===20){
+    panelRow("save", u, [r], r, r, "save"); panelEnd();
+    u.hp = 1; u.down = false; u.dsFail = 0; addStatus(u, "prone", {}); fxFloat(u, "+1", "heal"); sfx("heal");
+    blog(`${u.name}死亡豁免：d20=20 → 自己醒過來了！（生命 1，倒地）`, "heal", "醒過來了！");
+    return "up";
+  }
+  const add = r===1 ? 2 : r<10 ? 1 : 0;
+  u.dsFail = Math.min(DS_MAX, (u.dsFail||0) + add);
+  panelRow("save", u, [r], r, r, add ? "fail" : "save"); panelEnd();
+  blog(`${u.name}死亡豁免：d20=${r} ${add ? `< 10 → 失敗${add===2?"兩次（擲到 1）":""}` : "≥ 10 → 撐住了"}（失敗 ${u.dsFail}/${DS_MAX}）`, add ? "miss" : "skill", add ? "失敗" : "撐住");
+  if(u.dsFail >= DS_MAX){
+    u.dead = true; u.deadAt = Date.now() + 700; u.gone = "teleport";
+    fxFloat(u, POP_TEXT.teleport, "heal"); sfx("heal", 300);
+    blog(`卡姆的傳送魔法發動，${u.name}被送回酒館了！`, "kill");
+    return "gone";
+  }
+  return "stay";
+}
 
 // ---------- 潛行與察覺（SRD 5.2 的躲藏；檢定直接用六圍，沒有技能熟練） ----------
 // 能躲：站在草叢裡，或每隻看得到你的敵人跟你之間都有四分之三掩護（樹、篷車），而且旁邊沒有敵人
@@ -456,7 +482,7 @@ function hurt(t, n, type, src){
   }
   if(t.hp===0){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
-    else { t.down = true; t.statuses = []; blog(`${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
+    else { t.down = true; t.dsFail = 0; t.statuses = []; blog(`${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
   }
@@ -465,7 +491,7 @@ function heal(t, n){
   B()._pend = [];                                   // 補血的骰不是傷害骰
   n = Math.max(0, n);                         // 補血不會變成扣血
   const was = t.down;
-  t.hp = Math.min(t.maxHp, t.hp + n); if(t.hp>0) t.down = false;
+  t.hp = Math.min(t.maxHp, t.hp + n); if(t.hp>0){ t.down = false; t.dsFail = 0; }   // 救起來：死亡豁免的失敗次數歸零
   sfx("heal", B().impact||0);
   blog(`　${t.name}恢復 ${n} 點生命（${t.hp}/${t.maxHp}）${was?"，重新站起來了！":""}`, "heal", `${t.name} +${n}`);
   fxFloat(t, `+${n}`, "heal");

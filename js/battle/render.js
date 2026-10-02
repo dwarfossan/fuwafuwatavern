@@ -1069,7 +1069,7 @@ function infoHTML(v, b){
   const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
   return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
-    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?"倒下了":`生命 ${v.hp}/${v.maxHp}`} · AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}）`:`生命 ${v.hp}/${v.maxHp}`} · AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
     <div class="inf-hp"><i style="width:${pct*100}%;background:${pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)"}"></i></div>
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
     ${v.side==="pc"?slotGridHTML(v):""}
@@ -1161,8 +1161,8 @@ function battleInterfaceHTML(){
     // 勝利：只放一條常見的勝利標題，不擋操作（大爺 10-02：拿掉整個勝利視窗）
     if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-title">${POP_TEXT.victory}</div></div>`;
     else ov = `<div class="bt-ov bt-result ${b.result}">
-      <h3>${b.result==="win"?"勝利！":"全員倒下……"}</h3>
-      <p>再試一次吧。</p>
+      <h3>${b.result==="win"?"勝利！":"傳送回酒館……"}</h3>
+      <p>卡姆的傳送魔法把四小隻送回酒館了。</p>
       <button class="btn" id="retry">重新挑戰</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);

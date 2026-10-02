@@ -93,9 +93,10 @@ try{
    sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:19,roll:17}); refreshBattle();
    out.ord=document.querySelectorAll('.ord').length; out.need=b.units.filter(v=>v.side!=='npc'&&!foeHid(v)).length;
    const t=b.units.find(v=>v.side==='pc'&&!v.down&&!v.dead); sh.x=t.x+3; sh.y=t.y;
+   out.pcs=b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).length;   // 出手前算：火焰箭可能把目標打倒
    const bolt=foeUsable(sh).find(s=>s.def.name==='火焰箭'); b.marks=[]; doSkill(sh,bolt,t);
    out.rows=b.panel.rows.slice(0,2).map(r=>`${r.tname}:${r.rolls[0]}→${r.total}:${r.res}${r.still?':still':''}`);
-   out.marks=b.marks.filter(m=>m.kind==='sneak').length; out.pcs=b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).length;
+   out.marks=b.marks.filter(m=>m.kind==='sneak').length;
    out.revealed=!foeHid(sh);
    // 察覺成功：面板「X【察覺】」、頭上 !
    sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:5,roll:3}); sh.x=u.x+1; sh.y=u.y; b.marks=[];
