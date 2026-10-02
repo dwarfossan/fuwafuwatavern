@@ -58,7 +58,8 @@ node tests/upgrades.mjs       # 升階效果（多傷害／多目標／多持續
 
 ### 4. 給大爺測試
 
-- **平常看 dev**：大爺用手機開 dev 預覽網址 https://raw.githack.com/dwarfossan/fuwafuwatavern/dev/index.html#battle （2026-10-01 大爺手機確認打得開）。第三方網站會快取，推上 dev 後可能要等幾分鐘才看得到
+- **給大爺測試，一律給「指定版本」的網址**：`https://raw.githack.com/dwarfossan/fuwafuwatavern/<完整 40 碼 commit>/index.html#battle`。每次推完就附上那一版的網址（`git rev-parse HEAD`）
+  - **不要給 `/dev/` 的網址**：githack 會記住「dev 指向哪一筆」，不知道多久才更新，大爺會看到舊版（10-02 發生兩次，以為程式被改回去）
 - **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）
 - **不要再傳下載用的單一檔案給大爺**，GitHub 才是唯一的版本
 - 給大爺看的參考圖（角色、紙娃娃、裝備的截圖）**一律朝左**，跟戰場上四小隻的方向一樣（2026-10-01 大爺）
