@@ -106,6 +106,10 @@ function spendSlot(u, sk, tier){
 const meleeOrRange = u => isRanged(u) ? rangeOf(u) : reachOf(u);
 const thrownRange = u => Math.max(reachOf(u), rangeOf(u));
 const enemiesOf = u => B().units.filter(x=>hostile(x,u) && !x.down && !x.dead && !isHid(x));   // 躲著的看不到
+// 範圍招（大爺 10-02）：打的是一塊地方，不是指定某一隻，躲在裡面的也會被波及。被波及的先現身再結算
+// （豁免、傷害都會攤在骰子面板上，藏不住）。要指定目標的招（多投、災禍術、橫掃專精）還是用 enemiesOf
+const caught = (u, es) => es.filter(x=>hostile(x,u) && !x.down && !x.dead).map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
+const inArea = (u, at) => caught(u, B().units.filter(at));   // at：哪些格子算在範圍裡
 const alliesOf  = u => B().units.filter(x=>x.side===u.side && !x.dead);
 const stat = u => weaponStat(u);
 
@@ -140,7 +144,7 @@ const SKILL_IMPL = {
   heavy: [
     basicAttack,
     // 橫掃（＋回掃）：攻擊範圍內每個敵人，有觸及的打得到 2 格外
-    {target:"self", run:u=>{ const es = enemiesOf(u).filter(e=>dist(e,u)<=reachOf(u)); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
+    {target:"self", run:u=>{ const es = inArea(u, e=>dist(e,u)<=reachOf(u)); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
     {target:"enemy", range:u=>reachOf(u), ...standStill, run:(u,t)=>{ B().moveLeft = 0; weaponAttack(u,t,{extraDice:1}); }},
     // 撞倒（衝撞＋絆倒）：目標自己選力量或敏捷豁免（取他比較好的那個，照 D&D 推撞）
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxProne(u,t,weaponStat(u),bestOfSave(t,"STR","DEX")))}
@@ -155,7 +159,7 @@ const SKILL_IMPL = {
   mace: [
     basicAttack,
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxDaze(u,t,"STR",upNow()))},
-    {target:"self", run:u=>{ const up = upNow(), es = enemiesOf(u).filter(e=>dist(e,u)<=1); if(!es.length) blog("　範圍內沒有敵人。");
+    {target:"self", run:u=>{ const up = upNow(), es = inArea(u, e=>dist(e,u)<=1); if(!es.length) blog("　範圍內沒有敵人。");
       es.forEach(e=>{ if(saveRoll(e, "DEX", dcOf(u, "STR"))) return; knockProne(e); blog(`　${e.name}倒地！`, "skill");
         if(up && weaponDie(u)){ let n = 0; for(let i=0;i<up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); } }); }},
     // 擊退（重敲＋逼退）：推開，推得動就跟上一步
@@ -189,13 +193,13 @@ const SKILL_IMPL = {
   bow: [
     basicAttack,
     {target:"enemy", range:u=>rangeOf(u), ...standStill, run:(u,t)=>{ B().moveLeft=0; weaponAttack(u,t,{hitMod:2, extraDice:1}); }},
-    {target:"area", range:u=>rangeOf(u), radius:1, run:(u,c)=>{ const up = upNow(), es = enemiesOf(u).filter(e=>dist(e,c)<=1); if(!es.length) blog("　箭雨落空了。");
+    {target:"area", range:u=>rangeOf(u), radius:1, run:(u,c)=>{ const up = upNow(), es = inArea(u, e=>dist(e,c)<=1); if(!es.length) blog("　箭雨落空了。");
       es.forEach(e=>{ if(saveRoll(e,"DEX",dcOf(u,"DEX"))) return; let n = 0; for(let i=0;i<=up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); }); }},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxHamper(t))}
   ],
   crossbow: [
     basicAttack,
-    {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ lineUnits(u,t,rangeOf(u)).filter(e=>hostile(e,u) && !isHid(e)).forEach(e=>weaponAttack(u,e,{})); }},
+    {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ caught(u, lineUnits(u,t,rangeOf(u))).forEach(e=>weaponAttack(u,e,{})); }},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"slowed",{via:"pin", stop:true, until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>weaponAttack(u,t,{pointBlank:true})}
   ],
@@ -241,7 +245,7 @@ const SKILL_IMPL = {
   ],
   flame_orb: [
     {target:"enemy", range:()=>24, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.CHA+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
-    {target:"cone", range:()=>1, run:(u,c)=>{ const es = coneUnits(u,c,3).filter(e=>hostile(e,u)); if(!es.length) blog("　火焰沒燒到任何敵人。");
+    {target:"cone", range:()=>1, run:(u,c)=>{ const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
       es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,"CHA")) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
   ],
