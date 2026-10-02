@@ -221,7 +221,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
    換算：卡姆 88.5%、底 3% → 大爺高 63%、底 12%（眼睛在原圖：卡姆 301/1100、大爺 305/1000） */
 .actor.dwarf{aspect-ratio:1100/1000;height:63%;bottom:12%}
 .actor.kam{aspect-ratio:880/1100;height:88.5%;bottom:3%}
-.actor.merchant{aspect-ratio:1024/880;height:66%;bottom:20%}   /* 商人（10-03，大小暫定） */
+.actor.merchant{aspect-ratio:1024/880;height:86%;bottom:0}   /* 商人（10-03）：半身圖，下緣貼齊畫面底（路上沒有吧檯擋，貼底才不會像浮在半空） */
 /* 劇情頭上的泡泡框符號（商人沒有表情，10-03）：固定在舞台上的人頭頂附近，位置暫定 */
 .story-mark{position:absolute;left:62%;top:4%;width:62px;pointer-events:none;z-index:2}
 .story-mark svg{width:100%;height:auto;overflow:visible}
