@@ -72,8 +72,13 @@ const ITEMS = [
   {type:"focus",n:"火焰法球",en:"Flame Orb",cat:"法器",cost:20*GP,wt:3,stat:"CHA",spells:"火焰箭、燃燒之手、火焰護盾"},
   // 薩滿圖騰：哥布林薩滿拿的，商店不賣（noShop），打掉之後誰都能撿來用
   {type:"focus",n:"薩滿圖騰",en:"Shaman Totem",cat:"法器",cost:20*GP,wt:3,stat:"WIS",spells:"火焰箭、治癒真言、災禍術",noShop:true},
+  // 商隊的報酬（大爺 10-03）：商店不賣。base＝原型武器（規則照原型算）；grants＝裝備時多出的特性技能
+  {...W("非凡長弓","Uncommon Longbow","軍用遠程",0,2,"1d8 穿刺",["彈藥 150/600","重型","雙手"],"緩速 Slow"), base:"長弓", noShop:true, grants:["hunters_mark"],
+   desc:"非凡品質的長弓，弓身嵌著稀有金屬。狩獵者特性：裝備時可以使用【狩印】。"},
   // 冒險用品
-  {type:"gear",n:"背包",en:"Backpack",cat:"冒險用品",cost:2*GP,wt:5},
+  {type:"gear",n:"背包",en:"Backpack",cat:"冒險用品",cost:2*GP,wt:5, bag:1},
+  // 次元背包：放在背包欄（裝備）時，負重上限變 2 倍（大爺 10-03）；重量照 SRD 15 磅
+  {type:"gear",n:"次元背包",en:"Bag of Holding",cat:"冒險用品",cost:0,wt:15, bag:2, noShop:true, desc:"裡面比外面大得多。裝在背包欄時，負重上限變成 2 倍。"},
   {type:"gear",n:"睡袋",en:"Bedroll",cat:"冒險用品",cost:1*GP,wt:7},
   {type:"gear",n:"繩索（50 呎）",en:"Rope",cat:"冒險用品",cost:1*GP,wt:5},
   {type:"gear",n:"火把",en:"Torch",cat:"冒險用品",cost:1*CP,wt:1},
@@ -95,6 +100,9 @@ const ITEMS = [
    use:{kind:"save", range:4, save:"DEX", dmg:"2d6", type:"強酸"}, proj:"flask_acid", desc:"丟向 4 格內的敵人：敏捷豁免失敗受 2d6 強酸傷害。"},
   {type:"consumable",n:"網子",en:"Net",cat:"道具",cost:1*GP,wt:3,
    use:{kind:"save", range:3, save:"DEX", status:"restrained", escape:10}, proj:"net", desc:"丟向 3 格內的敵人：敏捷豁免失敗就被束縛（不能移動；打他有優勢、他攻擊有劣勢），要花動作做力量檢定 10 才能掙脫。"},
+  // 點心：商隊的報酬（大爺 10-03）。跟其他道具不同，吃要花「動作」；吃下去＝這一隻短休一次（熟練格每階回一半），也能餵貼身隊友
+  {type:"consumable",n:"點心",en:"Snack",cat:"道具",cost:0,wt:0.5, noShop:true,
+   use:{kind:"eat", range:1, action:true}, desc:"花一個動作吃掉（或餵給貼身的隊友）：等於這一隻短休一次，熟練格每一階回一半。"},
   {type:"gear",n:"材料包",en:"Material Pack",cat:"冒險用品",cost:5*GP,wt:2, desc:"重現特殊／天生能力用的通用材料。只要放在背包裡就能使用需要材料的怪招。"},
   {type:"gear",n:"探險者套組",en:"Explorer's Pack",cat:"冒險用品",cost:10*GP,wt:55}
 ].map((it,i)=>({...it,id:"it"+i}));

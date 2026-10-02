@@ -121,3 +121,5 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
   };
   return {ART, RAW};
 })();
+// 狩獵者特性（狩印）沒有自己的裝備圖，借弓的圖示（10-03）
+ITEM_ART.hunter = ITEM_ART.bow;

@@ -70,7 +70,7 @@ const SKILL_GROUPS = [
     {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次（近戰或遠程都行），命中的話目標下回合移動 −2 格。"}]},
 
   {id:"bow", name:"弓類", stat:"敏捷",
-   weapons:["短弓","長弓"],
+   weapons:["短弓","長弓","非凡長弓"],
    skills:[
     {name:"射擊", kind:"遠程",     tier:0,   text:"遠程攻擊，造成武器傷害，觸發武器專精。"},
     {id:"aimed_shot", name:"瞄準射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"本回合不能移動；攻擊一次，命中 +2，傷害多 1 顆武器骰。"},
@@ -119,7 +119,7 @@ const SKILL_GROUPS = [
    skills:[
     {id:"healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：6 格內一名隊友恢復 1d4 + 感知調整值的生命值。"},
     {id:"cure_wounds", name:"治療傷口", req:"focus", kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"碰觸一名隊友，恢復 2d8 + 感知調整值的生命值。"},
-    {id:"bless", name:"祝福術", req:"focus", kind:"輔助",   tier:1, srd:true, up:"每高一階多 1 名隊友。", text:"最多 3 名隊友整場戰鬥的攻擊和豁免多擲 1d4 加上去。"}]},
+    {id:"bless", name:"祝福術", req:"focus", kind:"輔助",   tier:1, srd:true, conc:true, up:"每高一階多 1 名隊友。", text:"專注：最多 3 名隊友的攻擊和豁免多擲 1d4 加上去，直到你的專注中斷。"}]},
 
   {id:"flame_orb", name:"火焰法球", stat:"魅力",
    weapons:["火焰法球"],
@@ -134,7 +134,13 @@ const SKILL_GROUPS = [
    skills:[
     {name:"火焰箭", req:"focus", kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"12 格內遠程法術攻擊，1d10 火焰傷害。"},
     {id:"totem_healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：12 格內一名同伴恢復 1d4 + 感知調整值的生命值。"},
-    {id:"bane", name:"災禍術", req:"focus", kind:"豁免", dmg:"",   tier:1, srd:true, up:"每高一階多 1 個目標。", text:"6 格內最多 3 個看得到的敵人做魅力豁免，失敗的話攻擊和豁免 −1d4，直到施法者倒下。"}]}
+    {id:"bane", name:"災禍術", req:"focus", kind:"豁免", dmg:"",   tier:1, srd:true, up:"每高一階多 1 個目標。", conc:true, text:"專注：6 格內最多 3 個看得到的敵人做魅力豁免，失敗的話攻擊和豁免 −1d4，直到你倒下或專注中斷。"}]},
+
+  // 狩獵者：不是武器類別，是某些裝備附帶的特性（item.grants）。非凡長弓（大爺 10-03）
+  {id:"hunter", name:"狩獵者", stat:"—", trait:true,
+   weapons:[],
+   skills:[
+    {id:"hunters_mark", name:"狩印", kind:"輔助", dmg:"", tier:1, srd:true, free:true, conc:true, noUp:true, text:"免費動作、專注：標記 18 格內一個看得到的敵人，你的攻擊打中他時多 1d6 力場傷害（爆擊加倍）。他倒下後，可以免費把印記改標到下一個敵人。"}]}
 ];
 // 技能類型標籤：判定方式・傷害，例如「近戰・物理」「遠程・法術」「豁免・火焰」；輔助、不造成傷害的只寫前半
 const FOCUS_GROUPS = ["arcane_staff", "healing_book", "flame_orb", "shaman_totem"];
@@ -148,7 +154,7 @@ function basicName(g, item){
   if(g.id==="thrown") return "投擲";
   return BASIC_BY_DMG[item.dmg.split(" ")[1]] || "打擊";
 }
-const HAS_BASIC = g => !FOCUS_GROUPS.includes(g.id) || g.id==="arcane_staff";   // 這組的第 0 招是基本攻擊（法杖能打擊，其他法器第 0 招是法術）
+const HAS_BASIC = g => !g.trait && (!FOCUS_GROUPS.includes(g.id) || g.id==="arcane_staff");   // 這組的第 0 招是基本攻擊（法杖能打擊，其他法器第 0 招是法術）
 // 技能表用：這組基本攻擊可能出現的名稱，例如「斬擊／刺擊」
 const basicNames = g => [...new Set(g.weapons.map(n=>basicName(g, (typeof ITEMS!=="undefined" ? ITEMS : []).find(i=>i.n===n))))].join("／");
 // 傷害種類給玩家看的名字：物理三種合併成物理；力場、光耀算法術；元素照寫

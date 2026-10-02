@@ -55,8 +55,8 @@ function startBattle(id, retry=false){
       activeSet: 1,
       armor:  inv.find(it=>it.type==="armor") || null,
       accessories: inv.filter(it=>it.type==="accessory").slice(0,2),
-      backpackEquip: inv.find(it=>it.type==="gear" && it.n==="背包") || null,
-      backpack: (()=>{ const ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it.n!=="背包"); return [...ws.slice(2),...ar.slice(1),...ac.slice(2),...ge,...co]; })(),
+      backpackEquip: bestBag(inv),
+      backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.slice(2),...ar.slice(1),...ac.slice(2),...ge,...co]; })(),
       speed:6, statuses:[], level:1, learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,3).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
@@ -66,7 +66,7 @@ function startBattle(id, retry=false){
     units.push({
       id:"foe"+i, side:"foe", type:f.type, name:e.name+"ABCD"[i], look:e.look,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, mods:{...e.mods}, baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
-      weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:inv.find(it=>it.type==="gear" && it.n==="背包")||null, backpack:inv.filter(it=>(it.type==="gear" && it.n!=="背包") || it.type==="consumable"),
+      weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
     });
@@ -330,6 +330,25 @@ const logDue = l => !l.at || l.at <= Date.now() + 30;
 // via＝哪一種來源（同一個狀態可能由不同招式造成，例如束縛有網子、擒抱）；同狀態＋同來源＋同 via 才互相取代
 function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src && s.via===o.via)); u.statuses.push({k, ...o}); }
 const has = (u,k) => u.statuses.find(s=>s.k===k);
+
+// ---------- 專注（SRD 5.2，大爺 10-03）----------
+// 同時只能專注一個法術；再開一個專注法術，前一個就結束。受傷要過體質豁免 DC＝傷害的一半（最少 10、最多 30），
+// 失敗、倒下就中斷，這個法術掛在別人身上的效果（src＝施法者）全部消失。專注法術：祝福術、災禍術、狩印
+const CONC_EFFECTS = ["blessed", "bane", "marked"];
+const concOf = u => has(u, "conc");
+function startConc(u, key, name){ endConc(u, concOf(u) ? "改專注別的法術" : ""); addStatus(u, "conc", {key, name}); }
+function endConc(u, why){
+  const c = concOf(u); if(!c) return;
+  u.statuses = u.statuses.filter(s=>s.k!=="conc");
+  B().units.forEach(v=>{ v.statuses = v.statuses.filter(s=>!(CONC_EFFECTS.includes(s.k) && s.src===u.id)); });
+  if(why) blog(`　${u.name}的專注中斷（${why}）：【${c.name}】的效果消失了`, "miss");
+}
+function concCheck(t, n){
+  if(!concOf(t) || t.hp<=0 || t.dead) return;
+  const dc = Math.min(30, Math.max(10, Math.floor(n/2)));
+  blog(`　${t.name}受傷，要維持專注：`);
+  if(!saveRoll(t, "CON", dc)) endConc(t, "受傷沒撐住");
+}
 const hasVia = (u,k,via) => u.statuses.find(s=>s.k===k && s.via===via);
 // left＝還要多撐幾輪（升階「多 1 輪」）：時間到了先扣 left，扣完才拿掉；守護那種每輪擋一次的，新的一輪重新能擋
 function expire(when, unitId){
@@ -464,6 +483,8 @@ function attackRoll(a, t, o={}){
   let hit = r===20 || (r!==1 && total >= ac);
   panelRow("atk", t, adv ? [r1, r2] : [r1], r, total, r===20 ? "crit" : hit ? "hit" : r===1 ? "fumble" : "miss", a);   // 沒中就不會擲傷害骰
   if(hit && r===20) critMoment(t);
+  // 狩印：打中自己標記的目標，這一擊多 1d6 力場（爆擊骰加倍）；傷害在 hurt 裡補上
+  if(hit && t.statuses.some(s=>s.k==="marked" && s.src===a.id)) B().markHit = {a:a.id, t:t.id, crit:r===20};
   const advTxt = adv>0?`（優勢 ${r1}/${r2}）`:adv<0?`（劣勢 ${r1}/${r2}）`:"";
   if(!hit){ fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", B().impact||0); }
   const why = [sneak ? sneak+"（優勢）" : "", flankTxt ? flankTxt+"（優勢）" : "", covAC ? `${cov.by}擋著，${coverName(cov)} AC +${covAC}` : "", hideTxt ? hideTxt+"（劣勢）" : ""].filter(Boolean).join("；");
@@ -500,6 +521,8 @@ function hurt(t, n, type, src){
     const f = rollDice(`${1 + (has(t,"fireShield").n||0)}d6`).total;   // 升階：每高一階多 1d6（反燒的骰給攻擊者，沒有他的列就丟掉）
     blog(`　火焰護盾反燒 ${src.name}！`, "skill"); hurt(src, f, "火焰", null);
   }
+  if(t.hp>0) concCheck(t, n);
+  else endConc(t, "倒下了");
   if(t.hp===0){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
     else { t.down = true; t.dsFail = 0; t.statuses = []; blog(`${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
@@ -510,6 +533,10 @@ function hurt(t, n, type, src){
     if(t.side==="foe" && !b.units.some(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v))
        && b.units.some(v=>foeHid(v) && !v.dead && !v.down)) barkOn("hunch", t, at + 700 + BARK_MS);
   }
+  // 狩印的追加傷害：同一擊打中、目標還站著才補
+  const mh = B().markHit;
+  if(mh && src && mh.a===src.id && mh.t===t.id){ B().markHit = null;
+    if(!t.dead && !t.down){ const m = rollDice(mh.crit ? "2d6" : "1d6").total; blog(`　狩印追加：`, "skill"); hurt(t, m, "力場", null); } }
 }
 function heal(t, n){
   B()._pend = [];                                   // 補血的骰不是傷害骰

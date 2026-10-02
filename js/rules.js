@@ -20,7 +20,11 @@ function money(cp){
 const scoreK = (id,k) => finalScore(id,k);
 const invItems = id => state.inv[id].map(x=>ITEMS.find(i=>i.id===x));
 const weightOf = id => invItems(id).reduce((s,i)=>s+i.wt,0);
-const capOf = id => scoreK(id,"STR")*15;   // 負重上限 = 力量值 × 15 磅
+// 背包欄：bag＝負重倍數（普通背包 1、次元背包 2，10-03）；身上有好幾個背包時，背包欄放倍數最大的
+const isBag = it => !!(it && it.type==="gear" && it.bag);
+const bestBag = list => list.filter(isBag).sort((a,b)=>b.bag-a.bag)[0] || null;
+const bagMul = it => (it && it.bag) || 1;
+const capOf = id => scoreK(id,"STR")*15*bagMul(bestBag(invItems(id)));   // 負重上限 = 力量值 × 15 磅（× 背包倍數）
 // AC 公式：沒穿＝10＋敏捷；有穿＝護甲 AC＋敏捷（中甲最多 +2、重甲不加）；拿盾 +2
 // 商店（acOf，看背包清單）和戰鬥（acOfUnit，看身上現在穿的）共用這一條（大爺 10-02：戰鬥中換裝 AC 原本不會變）
 function armorAC(armor, shield, dex){

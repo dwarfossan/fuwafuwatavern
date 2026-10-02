@@ -562,10 +562,11 @@ function unitDoll(v, active){
 // 頭上的狀態小圖示：壞的紅底、好的綠底，最多五個；大小見 overlayK（跟著地圖縮放，有最小尺寸）
 // 有倒數的狀態，圖示上方標剩幾回合（流血＝剩幾次、到某人回合開始／結束＝1）；燒到撲滅、整場的不標
 // 圖示不用字，出其他語言版本也不用改
-// 15 個狀態（2026-10-01 大爺定上限）：12 個掛圖示＋凍結、麻痺、中毒。icon 是 null 的不掛頭上（身上已經看得出來、或不用提醒），狀態卡照樣列出
+// 17 個狀態（2026-10-01 大爺定上限 15，10-03 放寬到 17）：12 個掛圖示＋凍結、麻痺、中毒＋狩印、專注。icon 是 null 的不掛頭上（身上已經看得出來、或不用提醒），狀態卡照樣列出
 const STATUS_BADGE = {
   dazed:["daze",0], slowed:["slow",0], restrained:["net",0], sapped:["weak",0], bane:["skull",0], acDown:["crack",0], bleed:["drop",0],
-  frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0],
+  frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0], marked:["target",0],
+  conc:["focus",1],   // 10-03 大爺：上限放寬到 17，加狩印（被標的）和專注（施法的）
   blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
   prone:[null,0], burning:[null,0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
 };
@@ -589,6 +590,8 @@ const ST_ICON = {
   bolt:`<path d="M11.5 2.5L5 11h4.2L8 17.5 15 8.6h-4.3z" fill="#fff"/>`,
   bubble:`<circle cx="8" cy="12.5" r="4.2" fill="#fff"/><circle cx="13.6" cy="7.4" r="2.6" fill="#fff"/><circle cx="8.6" cy="4.4" r="1.6" fill="#fff"/><circle cx="6.8" cy="11.4" r="1.2" fill="#a33c32"/>`,
   hand:`<path d="M10 3.5v13M3.5 10h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
+  target:`<circle cx="10" cy="10" r="5.6" stroke="#fff" stroke-width="1.9" fill="none"/><circle cx="10" cy="10" r="1.7" fill="#fff"/><path d="M10 2v3.2M10 14.8V18M2 10h3.2M14.8 10H18" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>`,
+  focus:`<circle cx="10" cy="10" r="7" stroke="#fff" stroke-width="1.6" fill="none" stroke-dasharray="3 2.2"/><circle cx="10" cy="10" r="3.6" fill="#fff"/>`,
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
 const stTurns = s => (s.k==="bleed" || s.k==="poisoned") ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
@@ -706,13 +709,13 @@ function equipKeys(v){
 
 // 狀態名稱、說明（2026-10-01 大爺：名字不能混淆；同一個狀態可能由不同招式造成，說明照 via 分）
 const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained:"束縛", sapped:"削弱", bane:"災禍", acDown:"破甲", bleed:"流血", burning:"燃燒",
-  frozen:"凍結", paralyzed:"麻痺", poisoned:"中毒",
+  frozen:"凍結", paralyzed:"麻痺", poisoned:"中毒", marked:"狩印", conc:"專注",
   blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離"};
 const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
-  dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下。",
+  dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下或專注中斷。",
   bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花動作撲滅。",
   frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害。",
-  blessed:"攻擊和豁免各多擲 1d4 加上去，整場戰鬥。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
+  blessed:"攻擊和豁免各多擲 1d4 加上去，直到施法者的專注中斷。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
   mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。"};
 function statusLabel(v,s){return STATUS_NAME[s.k]||s.k;}
 function statusExplain(v,s){
@@ -725,6 +728,8 @@ function statusExplain(v,s){
     case "helped": t = s.target ? `下一次攻擊${who(s.target)}有優勢。` : "下一次攻擊有優勢。"; break;
     case "dodge": t = s.once ? `${who(s.by)}守護著他：打他的第一次攻擊有劣勢（${who(s.by)}要在旁邊）。` : "打他的攻擊有劣勢。"; break;
     case "stance": t = s.via==="guard" ? "第一個走進攻擊範圍的敵人會立刻被攻擊一次。" : "AC +2；被近戰打空會立刻反擊。"; break;
+    case "marked": t = `被${who(s.src)}打上狩印：${who(s.src)}打中他時多 1d6 力場傷害，直到${who(s.src)}的專注中斷。`; break;
+    case "conc": t = `正在專注【${s.name}】。受傷要過體質豁免（DC＝傷害一半，最少 10），失敗或倒下就中斷；再施另一個專注法術，這個就結束。`; break;
     case "fireShield": t = `近戰打中他的敵人受 ${1+(s.n||0)}d6 火焰傷害，整場戰鬥。`; break;
     default: t = STATUS_DESC[s.k] || "目前作用中的戰鬥狀態。";
   }
@@ -824,7 +829,8 @@ function menuHTML(u, b){
   } else if(lv==="items"){
     title = "道具";
     const groups = [...new Set(u.items)];
-    body = groups.map(it=>`<button class="mn-b" data-item="${it.id}"><span>${it.n} ×${u.items.filter(i=>i===it).length}</span><small>${it.use.kind==="drink"?"喝或餵貼身隊友":`丟 ${it.use.range} 格內`}</small></button>`).join("") +
+    body = groups.map(it=>{ const noAct = it.use.action && !canAct();   // 點心要花動作（10-03）
+      return `<button class="mn-b" data-item="${it.id}" ${noAct?"disabled":""}><span>${it.n} ×${u.items.filter(i=>i===it).length}</span><small>${noAct?"動作用完了":it.use.kind==="drink"?"喝或餵貼身隊友":it.use.kind==="eat"?"吃或餵貼身隊友（用掉動作）":`丟 ${it.use.range} 格內`}</small></button>`; }).join("") +
            u.spare.slice(0,1).map((w,i)=>`<button class="mn-b" data-swap="${i}"><span>切換配置：${w.n}${u.offhand2?"＋"+u.offhand2.n:""}</span><small>主手與副手一起切換</small></button>`).join("") +
            `<button class="mn-back" data-cmd="root">← 返回</button>`;
   } else if(lv==="skills"){
@@ -923,7 +929,7 @@ function equipItemAt(u, from, to){
     if(slot==="offhand1"||slot==="offhand2")return it.type==="shield";
     if(slot==="armor")return it.type==="armor";
     if(slot==="acc1"||slot==="acc2")return it.type==="accessory";
-    if(slot==="backpack")return it.type==="gear" && it.n==="背包";
+    if(slot==="backpack")return isBag(it);
     if(slot==="bag")return true;
     return false;
   };
@@ -1050,14 +1056,14 @@ function infoHTML(v, b){
   }
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.n)}</svg>`;
-  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(it.type==="gear"&&it.n==="背包")return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(g.id,38):`<span class="eq-text">${it.n}</span>`};
+  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(g.id,38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
     const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=finalScore(v.id,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
     const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:null;
     const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
     const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
-    const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=finalScore(v.id,"STR")*15, loadPct=Math.min(100,cap?load/cap*100:0);
+    const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=finalScore(v.id,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
     const bagOpen=!!b.gearBagOpen;
     const bagIt=v.backpackEquip||null;
     const bag=`<div class="status-eqslot backpack ${bagOpen?"on":""}" data-gearslot="backpack"><small>背包</small>${bagIt?`<button class="status-eqitem status-bagbtn eq-tip" data-bagtoggle data-uid="${v.id}" data-gearitem="backpack" data-tip="${eqTip(bagIt)}" aria-label="${bagOpen?"收起":"打開"}背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button>`:`<span class="status-eqempty">＋</span>`}</div>`;

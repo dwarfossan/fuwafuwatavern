@@ -301,7 +301,7 @@ const REQ_TEXT = {
 const weaponProps = w => (w&&w.props)||[];
 // 全單位共用彈藥規則（玩家／敵人／NPC）：弓靠箭袋、弩靠矢匣；放在背包即可，普通彈藥不逐發消耗。
 // 特殊彈藥是 consumable + ammoFor；可代替普通彈藥來源，透過「道具」切換，下一次射擊後消耗。
-const ammoKind = w => !w ? null : (["短弓","長弓"].includes(w.n) ? "bow" : (["輕弩","手弩","重弩"].includes(w.n) ? "crossbow" : null));
+const ammoKind = w => !w ? null : (["短弓","長弓"].includes(w.base||w.n) ? "bow" : (["輕弩","手弩","重弩"].includes(w.n) ? "crossbow" : null));
 const ammoStock = u => [...(u.backpack||[]), ...(u.items||[])].filter(Boolean);
 const hasNormalAmmo = (u,k) => ammoStock(u).some(it=>it.type==="gear" && it.ammoFor===k);
 const specialAmmo = (u,k) => ammoStock(u).filter(it=>it.type==="consumable" && it.ammoFor===k);
@@ -328,7 +328,7 @@ function reqOne(u, r){
     case "longWeapon": return isMeleeWeapon(w) && (hasProp(w,"觸及") || ["長棍","矛","三叉戟","長矛"].includes(w.n));
     case "lightMelee": return isMeleeWeapon(w) && (hasProp(w,"輕型")||hasProp(w,"靈巧"));
     case "rangedWeapon": return isRangedWeaponReq(w);
-    case "bow": return !!(w&&["短弓","長弓"].includes(w.n));
+    case "bow": return !!(w&&["短弓","長弓"].includes(w.base||w.n));   // base：魔法版武器的原型（非凡長弓→長弓）
     case "piercingProjectile": return isRangedWeaponReq(w) && hasDmg(w,"穿刺");
     case "thrown": return !!(w&&hasProp(w,"投擲"));
     case "unarmed": return !w;
@@ -561,7 +561,7 @@ function syncBattleBag(u){
 function itemTargets(u, it){
   const k = it.use.kind;
   if(k==="ammo") return [u];
-  if(k==="drink") return B().units.filter(v=>v.side===u.side && !v.dead && dist(u,v)<=1);
+  if(k==="drink" || k==="eat") return B().units.filter(v=>v.side===u.side && !v.dead && dist(u,v)<=1);
   return B().units.filter(v=>!v.dead && ((hostile(v,u) && !v.down && !isHid(v) && dist(u,v)<=it.use.range) || (v.side===u.side && v!==u && dist(u,v)===1)));
 }
 function dropItem(u, it){
@@ -573,6 +573,14 @@ function dropItem(u, it){
     const i=u.items.indexOf(it); if(i>=0) u.items.splice(i,1);
   }
 }
+// 點心＝這一隻短休一次：熟練格每一階回一半（無條件進位），跟 takeRest 的短休同一條公式；不算進每天兩次短休
+function snackRest(t){
+  const max = slotMax(t), s = slotsOf(t);
+  t.slots = max.map((m,i)=>Math.min(m, (s[i]||0) + Math.ceil(m/2)));
+  if(t.side==="pc") state.proficiency[t.id] = t.slots.slice();
+  blog(`　${t.name}吃飽了，像短休過一樣：熟練格 ${t.slots.join("/")}`, "heal", `${t.name} 熟練格回復`);
+  fxFloat(t, POP_TEXT.yum, "heal"); fxHit(t, "heal");
+}
 function useItem(u, it, t){
   const b = B();
   b.mode = null;
@@ -582,15 +590,21 @@ function useItem(u, it, t){
     if(!k || it.ammoFor!==k){ blog(`${it.n}不能用在目前的武器上`); refreshBattle(); return; }
     spendFree(u); u.loadedAmmo=it; blog(`${u.name}切換成${it.n}，下一次射擊會使用它`, "skill"); sfx("pop"); refreshBattle(); return;
   }
-  spendFree(u); dropItem(u, it);
+  if(it.use.action){ if(!canAct()){ refreshBattle(); return; } useAction(u); }   // 點心：花動作（10-03）
+  else spendFree(u);
+  dropItem(u, it);
   if(t!==u) faceTo(u, t);
   // 丟給貼身的隊友：交給他
-  if(it.use.kind!=="drink" && t.side===u.side){
+  if(it.use.kind!=="drink" && it.use.kind!=="eat" && t.side===u.side){
     if(t.side==="pc"){ t.backpack=t.backpack||[]; t.backpack.push(it); syncBattleBag(t); if(state.inv[t.id]) state.inv[t.id].push(it.id); }
     else t.items.push(it);
     blog(`${u.name}把${it.n}交給${t.name}`, "skill"); sfx("pop"); afterShow(u, 400); return;
   }
-  if(it.use.kind==="drink"){
+  if(it.use.kind==="eat"){
+    u.anim = {k:"cast", t:Date.now()}; animSfx("cast");
+    blog(t===u ? `${u.name}吃掉${it.n}` : `${u.name}把${it.n}餵給${t.name}`, "heal");
+    snackRest(t);
+  } else if(it.use.kind==="drink"){
     u.anim = {k:"cast", t:Date.now()}; animSfx("cast");
     blog(t===u ? `${u.name}喝下${it.n}` : `${u.name}把${it.n}餵給${t.name}`, "heal");
     b.impact = DOLL_IMPACT.cast || 0; heal(t, Math.max(1, rollDice(it.use.heal).total)); b.impact = 0;
@@ -665,7 +679,8 @@ function doSkill(u, sk, t){
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
   if(u.side==="foe" && !sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))) observedSkill(u,sk.key,sk.def.name,false);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
-  const tier = tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
+  // 狩印：標記的目標倒下後，改標下一個不用再花格子（SRD：之後的回合可以轉移印記）
+  const tier = remarkFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
   const names = Array.isArray(t) ? [...new Set(t.map(x=>x.name))].join("、") : (t && t.name && t!==u ? t.name : "");
   const paid = spendSlot(u, sk, tier);
   blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${TIER_NAME[paid]}格${up ? `，升 ${up} 階` : ""}）` : ""}`, "skill");
@@ -680,6 +695,7 @@ function doSkill(u, sk, t){
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
   sk.impl.run(u, t);
+  b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身
   b.impact = 0;

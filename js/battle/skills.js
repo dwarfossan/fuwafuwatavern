@@ -31,6 +31,8 @@ function unitSkills(u){
       if(g.id==="arcane_staff" || g.id==="healing_book") out.push(focusCantripSkill(g));
     }
   }
+  // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
+  [u.weapon, u.focus].forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
   return out.filter((x,i,a)=>a.findIndex(y=>y.key===x.key)===i);
 }
@@ -94,7 +96,10 @@ function tiersFor(u, sk){
 const lowestTier = (u, sk) => tiersFor(u, sk)[0];
 // 用第 tier 階的格子放，效果升了幾階
 const upOf = (u, sk, tier) => canUp(sk) && tier ? Math.max(0, tier - baseTierOf(sk)) + freeUp(u, sk) : 0;
-function skillReady(u, sk){ return tiersFor(u, sk).length > 0; }
+function skillReady(u, sk){ return tiersFor(u, sk).length > 0 || remarkFree(u, sk); }
+// 狩印正在專注、標記的目標已經倒下：改標不花格子
+const remarkFree = (u, sk) => sk.key==="hunters_mark" && (concOf(u)||{}).key==="hunters_mark"
+  && !B().units.some(v=>!v.dead && !v.down && v.statuses.some(s=>s.k==="marked" && s.src===u.id));
 const upNow = () => (B() && B().up) || 0;
 function spendSlot(u, sk, tier){
   if(!tier) return 0;
@@ -241,7 +246,8 @@ const SKILL_IMPL = {
     {target:"ally", range:()=>6, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods.WIS))},   // 感知是負的也至少補 1（不會補成扣血）
     {target:"ally", range:()=>1, run:(u,t)=>heal(t, Math.max(1, rollDice(`${2*(1+upNow())}d8`).total + u.mods.WIS))},
     {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>!p.down && dist(p,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
-      ps.forEach(p=>addStatus(p,"blessed",{until:"battle"})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4`,"skill"); }}
+      startConc(u, "bless", "祝福術");
+      ps.forEach(p=>addStatus(p,"blessed",{src:u.id})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4（${u.name}專注中）`,"skill"); }}
   ],
   flame_orb: [
     {target:"enemy", range:()=>24, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.CHA+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
@@ -249,14 +255,21 @@ const SKILL_IMPL = {
       es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,"CHA")) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
   ],
+  // 狩獵者（非凡長弓的特性，大爺 10-03）：狩印＝SRD 獵人印記。免費動作、專注；標記 18 格內看得到的敵人，
+  // 打中他多 1d6 力場；標記的目標倒下後可以免費改標下一個（skillReady／doSkill 的 remarkFree）
+  hunter: [
+    {target:"enemy", range:()=>18, run:(u,t)=>{ startConc(u, "hunters_mark", "狩印"); addStatus(t, "marked", {src:u.id});
+      fxFloat(t, POP_TEXT.mark, "dmg"); blog(`　${t.name}被打上狩印：${u.name}打中他時多 1d6 力場傷害（專注中）`, "skill"); }}
+  ],
   shaman_totem: [
     {target:"enemy", range:()=>12, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.WIS+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
     {target:"ally", range:()=>12, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods.WIS))},
     // 災禍術：自動挑 6 格內最近、看得到的 3 個敵人
     {target:"self", run:u=>{ const ts = enemiesOf(u).filter(e=>dist(e,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
       if(!ts.length) blog("　6 格內沒有看得到的敵人。");
+      else startConc(u, "bane", "災禍術");
       ts.forEach(p=>{ if(!saveRoll(p,"CHA",dcOf(u,"WIS"))){ addStatus(p,"bane",{src:u.id}); fxFloat(p,POP_TEXT.bane,"dmg"); fxHit(p,"spark");
-        blog(`　${p.name}被詛咒了：攻擊和豁免 −1d4，直到${u.name}倒下`,"skill"); } }); }}
+        blog(`　${p.name}被詛咒了：攻擊和豁免 −1d4，直到${u.name}倒下或專注中斷`,"skill"); } }); }}
   ]
 };
 
