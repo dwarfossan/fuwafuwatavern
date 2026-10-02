@@ -45,7 +45,7 @@ const FAREWELL = [
   {who:"dwarf", text:"講三遍怎麼了！大爺擔心不行嗎！"},
   {who:"tiger", text:"知道啦——先抱一下再出發！"},
   {who:"narr",  text:"嬌嬌第一個撲了上去，接著是玲玲、默默，最後香香也被一起拉了進去。", hug:true},
-  {who:"narr",  text:"大爺張開粗壯的手臂，把四個毛球一把抱住。大鬍子扎得大家咯咯直笑。", hug:true},
+  {who:"narr",  text:"大爺張開小小的手臂，把四個毛球一把抱住。辮子鬍扎得大家咯咯直笑。", hug:true},
   {who:"narr",  text:"……空氣中，飄來一股微妙的味道。", hug:true},
   {who:"dwarf", text:"……誰放屁？", hug:true},
   {who:"tiger", text:"是玲玲放的！", hug:true},
