@@ -145,7 +145,9 @@ function syncBoardCamera(){
 // 約好在開始那一刻再更新一次場景層，不然要等到下一次有人重畫才看得到（多半已經演完了）
 let sceneWake=null;
 function wakeSceneAt(b){
-  const now=Date.now(), next=Math.min(...b.units.map(v=>v.anim && v.anim.t>now ? v.anim.t : Infinity));
+  const now=Date.now(), times=[...b.units.flatMap(v=>[v.anim?.t,...v.statuses.map(s=>s.visualAt)]),
+    ...Object.values(b.groundEffects||{}).map(f=>f.visualAt),...(b.fx||[]).map(f=>f.t),...(b.proj||[]).flatMap(p=>[p.t,p.t+p.dur])];
+  const next=Math.min(...times.filter(t=>t>now));
   clearTimeout(sceneWake); sceneWake=null;
   if(next<Infinity) sceneWake=setTimeout(()=>{ sceneWake=null; if(B()===b) refreshBattle(); }, next-now+5);
 }
@@ -704,9 +706,10 @@ function dicePanelHTML(b){
   const target = p.rows.length===1 && ["atk","chk"].includes(p.rows[0].kind) && !p.rows[0].vs ? ` → ${p.rows[0].tname}` : "";
   return `<div class="dice-panel${tight ? " tight" : ""}" id="dicePanel" role="button" aria-label="收起擲骰結果"><div class="dp-head"><span>${p.label}${target}</span>${moreHead}<span class="dp-x" aria-hidden="true">✕</span></div>${rows}${more}</div>`;
 }
+const visibleStatus=(v,k)=>{const s=has(v,k);return s && (s.visualAt||0)<=Date.now()?s:null;};
 function burnFX(v, cx, cy){
-  if(v.dead || !has(v,"burning")) return "";
-  const low = v.down || has(v,"prone"), ys = low ? [-18,-26,-14] : [-44,-78,-30], xs = [-22, 8, 24];
+  if(v.dead || !visibleStatus(v,"burning")) return "";
+  const low = v.down || visibleStatus(v,"prone"), ys = low ? [-18,-26,-14] : [-44,-78,-30], xs = [-22, 8, 24];
   const flame = (x,y,s,d) => `<g transform="translate(${cx+x} ${cy+y}) scale(${s})"><g class="burn-f" style="animation-delay:${d}ms">
     <path d="M0 -22c3 7 11 10 11 19a11 11 0 0 1-22 0c0-5 3-8 5-11 .6 3.5 2.4 5.4 4.4 6C-1.7 -12 -1.2 -17 0 -22z" fill="#f2703a" stroke="#2a2630" stroke-width="2" opacity=".92"/>
     <path d="M0 -10c1.6 3.5 5.5 5 5.5 9a5.5 5.5 0 0 1-11 0c0-2.4 1.4-3.8 2.6-5.3.3 1.6 1 2.5 2 2.8-.3-2.2-.2-4.3.9-6.5z" fill="#ffd36a"/></g></g>`;
@@ -715,19 +718,19 @@ function burnFX(v, cx, cy){
 // 狀態身上演出：外觀暫定GPT。只讀statuses，放原場景層；不畫角色外框。
 function statusBodyFX(v,cx,cy){
   if(v.dead)return "";
-  const low=v.down||has(v,"prone"), base=low?-12:-26, ink="#2a2630",out=[];
+  const low=v.down||visibleStatus(v,"prone"), base=low?-12:-26, ink="#2a2630",out=[];
   const path=(d,fill,stroke=ink,w=2.5)=>`<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if(has(v,"frozen"))out.push(`<g data-body-status="frozen">${path("M-31 6L-29 -23L-19 -35L-9 -21L-8 7Z","#a7e6ed")}${path("M13 8L15 -30L26 -42L36 -20L34 10Z","#8ac4df")}<path d="M-25 -16L-17 -24M20 -20L27 -31" stroke="#f5ffff" stroke-width="3"/></g>`);
-  if(has(v,"paralyzed"))out.push(`<g data-body-status="paralyzed" class="status-electric">${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#292330",7)}${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#fff29c",3)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#292330",7)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#fff29c",3)}</g>`);
-  if(has(v,"poisoned"))out.push(`<g data-body-status="poisoned">${[[-26,4,6,0],[25,-10,5,250],[15,8,4,500]].map(([x,y,r,d])=>`<g transform="translate(${x} ${y+base})"><circle class="status-poison-bubble" r="${r}" fill="#a5ce64" stroke="${ink}" stroke-width="2" style="animation-delay:${-d}ms"/></g>`).join("")}</g>`);
-  if(has(v,"bleed"))out.push(`<g data-body-status="bleed" class="status-drip">${path("M-19 -17Q-31 0 -20 2Q-9 0 -19 -17Z","#c34e4a")}${path("M19 -9Q11 3 19 4Q27 3 19 -9Z","#c34e4a")}</g>`);
-  if(has(v,"restrained"))out.push(`<g data-body-status="restrained" transform="translate(0 ${base})">${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none",ink,5)}${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none","#dac69a",2)}</g>`);
+  if(visibleStatus(v,"frozen"))out.push(`<g data-body-status="frozen">${path("M-31 6L-29 -23L-19 -35L-9 -21L-8 7Z","#a7e6ed")}${path("M13 8L15 -30L26 -42L36 -20L34 10Z","#8ac4df")}<path d="M-25 -16L-17 -24M20 -20L27 -31" stroke="#f5ffff" stroke-width="3"/></g>`);
+  if(visibleStatus(v,"paralyzed"))out.push(`<g data-body-status="paralyzed" class="status-electric">${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#292330",7)}${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#fff29c",3)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#292330",7)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#fff29c",3)}</g>`);
+  if(visibleStatus(v,"poisoned"))out.push(`<g data-body-status="poisoned">${[[-26,4,6,0],[25,-10,5,250],[15,8,4,500]].map(([x,y,r,d])=>`<g transform="translate(${x} ${y+base})"><circle class="status-poison-bubble" r="${r}" fill="#a5ce64" stroke="${ink}" stroke-width="2" style="animation-delay:${-d}ms"/></g>`).join("")}</g>`);
+  if(visibleStatus(v,"bleed"))out.push(`<g data-body-status="bleed" class="status-drip">${path("M-19 -17Q-31 0 -20 2Q-9 0 -19 -17Z","#c34e4a")}${path("M19 -9Q11 3 19 4Q27 3 19 -9Z","#c34e4a")}</g>`);
+  if(visibleStatus(v,"restrained"))out.push(`<g data-body-status="restrained" transform="translate(0 ${base})">${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none",ink,5)}${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none","#dac69a",2)}</g>`);
   return out.length?`<g class="status-body-fx" transform="translate(${cx} ${cy})">${out.join("")}</g>`:"";
 }
 // 火焰護盾：腳下一圈火光、身體外圍一層淡淡的火焰光暈（不掛圖示）
 function fireShieldFX(v, cx, cy){
-  if(v.dead || v.down || !has(v,"fireShield")) return "";
-  const low = has(v,"prone"), ry = low ? 30 : 62, oy = low ? -20 : -56;
+  if(v.dead || v.down || !visibleStatus(v,"fireShield")) return "";
+  const low = visibleStatus(v,"prone"), ry = low ? 30 : 62, oy = low ? -20 : -56;
   return `<g class="fx-fshield"><ellipse cx="${cx}" cy="${cy-4}" rx="40" ry="13" fill="none" stroke="#f2903a" stroke-width="3" opacity=".75"/>
     <ellipse class="fs-glow" cx="${cx}" cy="${cy+oy}" rx="${low?58:42}" ry="${ry}" fill="#f2903a" opacity=".16" stroke="#ffd36a" stroke-width="1.5" stroke-dasharray="6 7"/></g>`;
 }
@@ -1299,9 +1302,9 @@ function battleLayerKeys(){
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
   // svgMood 在 b.units 中，場景、先攻介面與狀態卡更新鍵均涵蓋表情。
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
-  const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks]):"none";
+  const marks=selectable?battleDataKey([b.turn,b.phase,b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks,b.groundEffects]):"none";
   const ui=battleDataKey([b,state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
     ["objectTip","def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
     +battleDataKey(b.units,["x","y","face","anim"])

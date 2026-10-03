@@ -9,7 +9,7 @@ function groundReact(x,y,type){
  if(type==="火焰"){const barrel=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);if(barrel)return explodeBarrel(barrel,cur());}
  const b=B(),o=b.def.blocks.find(o=>o.x===x&&o.y===y),kind=groundReaction(x,y,type);
  if(!kind)return false;
- (b.groundEffects ||= {})[`${x},${y}`]={x,y,kind,left:GROUND_RULES[kind].ms};
+ (b.groundEffects ||= {})[`${x},${y}`]={x,y,kind,visualAt:impactAt(),left:GROUND_RULES[kind].ms};
  if(o?.kind==='oil')o.found=true;
  b.units.filter(u=>!u.dead&&!u.down&&u.x===x&&u.y===y).forEach(u=>groundEnter(u,{iceTried:true}));
  blog(`地面反應：${{fire:'燃燒',ice:'結冰',charged:'帶電水面',steam:'蒸氣'}[kind]}`,'skill');refreshBattle();return true;
@@ -84,6 +84,7 @@ function groundAvoid(u,x,y){
 }
 // 地面美術暫定GPT：大形狀＋少量動畫，仍在原場景層。
 function groundEffectSVG(f){
+ if((f.visualAt||0)>Date.now())return '';
  const p=iso(f.x,f.y),cx=p.x,cy=p.y+TH/2,ink='#2a2630';
  const colors={fire:'#d89446',ice:'#a9dce6',charged:'#78b7cd',steam:'#c9cbd3'};
  let art=`<polygon points="${diamond(f.x,f.y)}" fill="${colors[f.kind]}" opacity=".72" stroke="${ink}" stroke-width="2"/>`;

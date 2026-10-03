@@ -364,7 +364,7 @@ const logDue = l => !l.at || l.at <= Date.now() + 30;
 // ---------- 狀態效果 ----------
 // {k, src, via, until:"start"|"end"|"battle", of:unitId, val, left}
 // via＝哪一種來源（同一個狀態可能由不同招式造成，例如束縛有網子、擒抱）；同狀態＋同來源＋同 via 才互相取代
-function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src && s.via===o.via)); u.statuses.push({k, ...o}); }
+function addStatus(u, k, o={}){ u.statuses = u.statuses.filter(s=>!(s.k===k && s.src===o.src && s.via===o.via)); u.statuses.push({k, visualAt:impactAt(), ...o}); }
 const has = (u,k) => u.statuses.find(s=>s.k===k);
 
 // ---------- 專注（SRD 5.2，大爺 10-03）----------
