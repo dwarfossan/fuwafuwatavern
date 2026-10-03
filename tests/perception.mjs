@@ -11,7 +11,7 @@ try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
- await pg.evaluate(()=>{ window.__nt=nextTurn; endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });
+ await pg.evaluate(()=>{ window.__nt=nextTurn; endTurn=()=>{}; nextTurn=()=>{}; B().flowEpoch=(B().flowEpoch||0)+1; B().tut=-1; });
 
  // 公式
  const f=await pg.evaluate(()=>{ const u=B().units.find(v=>v.side==='pc'), e=B().units.find(v=>v.type==='goblin');
@@ -20,7 +20,8 @@ try{
 
  // 被動：感知不夠看不穿，夠了就看穿，寫進紀錄
  const p=await pg.evaluate(()=>{ const b=B(), e=b.units.find(v=>v.side==='foe'&&!foeHid(v)); b.pocketSeen={};
-   b.units.filter(v=>v.side==='pc').forEach(v=>v.mods.WIS=-1); passivePocket(); const before=pocketKnown(e);
+   // 開場敵人可能先擊倒香香；本 fixture 驗清醒角色的被動感知，明確還原清醒，不修改遊戲判定。
+   b.units.filter(v=>v.side==='pc').forEach(v=>{v.mods.WIS=-1;v.down=false;v.dead=false;v.hp=v.maxHp;}); passivePocket(); const before=pocketKnown(e);
    b.units.find(v=>v.id==='wolf').mods.WIS=4; passivePocket();
    return {before, after:pocketKnown(e), log:b.log.slice(-2).map(l=>l.t).join(' / ')}; });
  assert.equal(p.before,false);assert.equal(p.after,true);assert.match(p.log,/香香.*看穿/);ok('被動感知夠高才看穿，紀錄寫出是誰');

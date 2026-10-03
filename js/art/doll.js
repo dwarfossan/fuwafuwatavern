@@ -177,14 +177,14 @@ function dollSVG(o){
     else offHand = handSVG(40,106,c);
   }
   const glow = GLOW[off] || GLOW[main] || "#f2b441";
-  const act = o.anim ? `act-${o.anim.k}` : "";
+  const act = o.walking ? "act-walk" : o.anim ? `act-${o.anim.k}` : "";
   const flip = (o.face||1) < 0 ? `transform="translate(140 0) scale(-1 1)"` : "";
   const bob = -((now + (o.seed||0)*237) % 1600);
   const H = o.w*150/140;
   return `<svg class="doll ${o.down?"dl-down":o.prone?"dl-prone":o.cheer?"dl-cheer":""}" x="${o.x}" y="${o.y}" width="${o.w}" height="${H}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true">
-    <g ${flip}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--b:${bob}ms">
-      <ellipse cx="60" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
-      <ellipse cx="80" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
+    <g ${flip}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--b:${bob}ms;--walk:${-(now%360)}ms">
+      <ellipse class="dl-foot-left" cx="60" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
+      <ellipse class="dl-foot-right" cx="80" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <g class="dl-bob">
         ${o.backpack?`<g class="dl-backpack" transform="translate(42 74) scale(.42)">${ITEM_RAW.backpack}</g>`:""}
         ${L.tail}

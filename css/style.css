@@ -1085,3 +1085,11 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes status-drip{0%,100%{opacity:.85}50%{opacity:.45}}
 @keyframes ground-steam{0%,100%{opacity:.85}50%{opacity:.55}}
 @media(prefers-reduced-motion:reduce){.status-electric,.ground-electric,.status-poison-bubble,.status-drip,.ground-flame,.ground-steam{animation:none}}
+
+/* 探索踏步：身體留在地面，腳交替，不使用 hop。速度／幅度暫定 GPT。 */
+.act-walk .dl-foot-left{animation:explore-foot .36s linear infinite;animation-delay:var(--walk)}
+.act-walk .dl-foot-right{animation:explore-foot .36s linear infinite;animation-delay:calc(var(--walk) - 180ms)}
+.act-walk .dl-bob{animation:explore-sway .36s linear infinite;animation-delay:var(--walk)}
+@keyframes explore-foot{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
+@keyframes explore-sway{0%,100%{transform:translateX(-1px)}50%{transform:translateX(1px)}}
+@media(prefers-reduced-motion:reduce){.act-walk .dl-foot-left,.act-walk .dl-foot-right,.act-walk .dl-bob{animation:none}}

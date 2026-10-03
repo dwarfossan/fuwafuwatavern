@@ -144,7 +144,7 @@ function wakeSceneAt(b){
 function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const {b,d,u}=ctx, out=[], raised=raisedTiles();
   wakeSceneAt(b);
-  const nowOn=u && !b.result && !u.dead && !u.down && !foeHid(u)?u:null;
+  const nowOn=b.phase!=="explore" && u && !b.result && !u.dead && !u.down && !foeHid(u)?u:null;
   const glow=nowOn?`<polygon class="tile-now" points="${diamond(nowOn.x,nowOn.y)}"/>`:"";
   if(nowOn && hAt(nowOn.x,nowOn.y)===0) out.push(glow);
   // 物件與棋子，依前後順序畫
@@ -315,7 +315,7 @@ function initBoardDrag(){
     if(touches.size===2){ drag = null; startPinch(); return; }     // 第二根手指放下 → 改成縮放，不算點格子
     if(touches.size>2) return;
     const t = e.target.closest("[data-tile]");
-    drag = {id:e.pointerId, sx:e.clientX, sy:e.clientY, c:{...(B().cam||{x:0,y:0})}, moved:false, tile:t && t.dataset.tile};
+    drag = {id:e.pointerId, sx:e.clientX, sy:e.clientY, c:{...(B().cam||{x:0,y:0})}, moved:false, unit:e.target.closest("[data-explore-body]")?.dataset.exploreBody, tile:t && t.dataset.tile};
   });
   window.addEventListener("pointermove", e=>{
     if(!touches.has(e.pointerId)) return;
@@ -351,7 +351,14 @@ function initBoardDrag(){
     const d = drag; drag = null; document.body.classList.remove("board-dragging");
     if(e.type==="pointerup" && !d.moved && d.tile){
       if(e.pointerType!=="mouse") ghostUntil = Date.now() + 400;
-      const [x,y] = d.tile.split(",").map(Number); clickTile(x,y);
+      const [x,y] = d.tile.split(",").map(Number);
+      if(B().phase==="explore" && d.unit){
+        if(!B().busy&&!B().exploreStopped){B().info=B().info===d.unit?null:d.unit;refreshBattle();}
+      }else if(B().phase==="explore" && !unitAt(x,y) && !exploreObjectAt(x,y)){
+        const q=wrapXY(e),b=B(),z=camZoom(),sx=((q.x-b.cam.x)/z-b.def.h*TW/2)/(TW/2),sy=((q.y-b.cam.y)/z-130-TH/2+hAt(x,y)*HZ)/(TH/2);
+        const px=(sx+sy)/2,py=(sy-sx)/2;
+        exploreClick(Math.max(x-.45,Math.min(x+.45,px)),Math.max(y-.45,Math.min(y+.45,py)));
+      }else clickTile(x,y);
     }
   };
   // 手機點格子：放開手指時選單就畫出來了，瀏覽器接著補發的 click 會重新找手指底下的元素，
@@ -566,7 +573,7 @@ function unitDoll(v, active){
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el} : null;   // el < 0：還在擲骰，動作還沒開始
   const look = v.side!=="pc" ? MONSTER_LOOK[v.look] : null;
-  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
+  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});
 }
 // 頭上的狀態小圖示：壞的紅底、好的綠底，最多五個；大小見 overlayK（跟著地圖縮放，有最小尺寸）
@@ -712,7 +719,7 @@ const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺�
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g class="hud" data-tile="${v.x},${v.y}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
+  return `<g class="hud" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
 }
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
@@ -721,7 +728,7 @@ function tokenSVG(v, active){
   const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${v.x},${v.y}"`}>
+  return `<g ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}

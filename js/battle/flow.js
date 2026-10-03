@@ -84,8 +84,9 @@ const DIRS = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
 function reachable(u, max){
   groundKnown(u);
   const drag = victimsOf(u).length ? 2 : 1;          // 拖著被抓住的人：每格花費加倍
-  const start = `${u.x},${u.y}`, best = new Map([[start, 0]]), paths = new Map([[start, []]]);
-  const open = [[0, u.x, u.y]];
+  const ux=mapCell(u.x),uy=mapCell(u.y);
+  const start = `${ux},${uy}`, best = new Map([[start, 0]]), paths = new Map([[start, []]]);
+  const open = [[0, ux, uy]];
   while(open.length){
     open.sort((a,b)=>a[0]-b[0]);
     const [c, x, y] = open.shift();
@@ -93,7 +94,9 @@ function reachable(u, max){
     for(const [dx,dy] of DIRS){
       const nx=x+dx, ny=y+dy, k=`${nx},${ny}`;
       if(B().phase==="explore"&&B().exploreGoal&&B().exploreGoal.id!==u.id&&nx===B().exploreGoal.x&&ny===B().exploreGoal.y)continue;
-      if(groundAvoid(u,nx,ny)||blocked(nx,ny) || (unitAt(nx,ny) && !(bExploreHidden(unitAt(nx,ny))))) continue;
+      if(B().phase==="explore"&&dx&&dy&&(blocked(x+dx,y)||blocked(x,y+dy)))continue;
+      const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&!v.dead&&!v.fled&&!bExploreHidden(v)&&Math.hypot(v.x-nx,v.y-ny)<.55) : !!unitAt(nx,ny);
+      if(groundAvoid(u,nx,ny)||blocked(nx,ny)||occupied) continue;
       const nc = c + stepCost(x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
       best.set(k, nc);

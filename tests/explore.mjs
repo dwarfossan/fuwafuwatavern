@@ -10,7 +10,7 @@ try{
  // 同一隨機場中選一條足夠長、沒敵人偵測的路，真觸控點地板。
  const dest=await pg.evaluate(()=>{const b=B(),u=exploreUnit();centerCam(u.x,u.y);const r=document.querySelector('.board-wrap').getBoundingClientRect(),z=camZoom();for(const [k,p] of reachable(u,10000)){if(p.length<7)continue;const [x,y]=k.split(',').map(Number);if(p.some(q=>b.units.some(e=>e.side==='foe'&&dist(e,q)<=ENEMIES[e.type].detectRange+1)))continue;const a=iso(x,y),cx=r.left+b.cam.x+a.x*z,cy=r.top+b.cam.y+(a.y+TH/2)*z;if(document.elementFromPoint(cx,cy)?.closest('[data-tile]')?.dataset.tile===k)return {x,y,cx,cy};}return null;});
  assert(dest,'超過戰棋移動上限的可見安全格');const groupBefore=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));await pg.touchscreen.tap(dest.cx,dest.cy);
- await pg.waitForFunction(p=>!B().busy&&exploreUnit().x===p.x&&exploreUnit().y===p.y,dest,{timeout:30000});
+ await pg.waitForFunction(p=>!B().busy&&Math.round(exploreUnit().x)===p.x&&Math.round(exploreUnit().y)===p.y,dest,{timeout:30000});
  assert(await pg.evaluate(()=>B().exploreSteps>6));const groupAfter=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));assert(groupAfter.every((p,i)=>p[1]!==groupBefore[i][1]||p[2]!==groupBefore[i][2]),'每隻都跟隨移動');assert.equal(new Set(groupAfter.map(p=>p.slice(1).join(','))).size,4,'隊形不重疊');assert(await pg.evaluate(()=>document.getElementById('board-floor').firstElementChild===window.__floor));
  assert(await pg.evaluate(()=>window.__layers.every((e,i)=>e===document.getElementById(['board-floor','board-marks','board-scene'][i]))));await shot('group-move');
  await pg.locator('[data-explore-unit="raccoon"]').click();assert.equal(await pg.evaluate(()=>B().exploreSolo),'raccoon');await shot('individual');

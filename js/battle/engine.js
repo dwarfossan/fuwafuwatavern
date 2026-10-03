@@ -133,7 +133,8 @@ const B = () => state.battle;
 // 戰鬥用計時器：排的時候記下是哪一場。時間到發現已經換了一場（重新挑戰）或戰鬥不在了（傳送回酒館）就不跑
 // （10-02：輸掉後馬上按重新挑戰，上一場排好的換回合跑進新的一場，第一隻被跳過）。js/battle/flow.js 的計時器都用這個
 function later(fn, ms){ const b=B(),epoch=b?.flowEpoch||0;return setTimeout(()=>{if(b&&B()===b&&(b.flowEpoch||0)===epoch)fn();},ms); }
-const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && u.x===x && u.y===y);
+const mapCell = n => B()?.phase==="explore" ? Math.round(n) : n;
+const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && mapCell(u.x)===mapCell(x) && mapCell(u.y)===mapCell(y));
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
@@ -147,7 +148,7 @@ const TERRAIN = {
   tree:  {name:"樹",   solid:true,  cover:.75},
   bush:  {name:"草叢", solid:false, cost:2, hide:true}
 };
-const terrainAt = (x,y) => { const o = B().def.blocks.find(b=>b.x===x&&b.y===y); return o ? TERRAIN[o.kind] : null; };
+const terrainAt = (x,y) => { const o = B().def.blocks.find(b=>b.x===mapCell(x)&&b.y===mapCell(y)); return o ? TERRAIN[o.kind] : null; };
 const blocked = (x,y) => { const d=B().def; if(x<0||y<0||x>=d.w||y>=d.h) return true; const t = terrainAt(x,y); return !!(t && t.solid); };
 const moveCost = (x,y) => (terrainAt(x,y)||{}).cost || 1;
 /* ---------- 高度（大爺 2026-10-01，照 SRD 5.2 簡化） ----------
@@ -160,7 +161,7 @@ const HZ = 40;   // 畫面上一層的高度（像素）
 function hAt(x, y){
   const b = B(); if(!b) return 0; const d = b.def;
   if(!d._h){ d._h = new Map(); (d.elev||[]).forEach(r=>{ for(let i=r.x0;i<=r.x1;i++) for(let j=r.y0;j<=r.y1;j++){ const k=`${i},${j}`; d._h.set(k, Math.max(d._h.get(k)||0, r.h)); } }); }
-  return d._h.get(`${x},${y}`) || 0;
+  return d._h.get(`${mapCell(x)},${mapCell(y)}`) || 0;
 }
 const climbCost = (fx,fy,x,y) => { const dh = hAt(x,y) - hAt(fx,fy); return dh > 0 ? dh : dh <= -2 ? -dh : 0; };
 const stepCost = (fx,fy,x,y) => moveCost(x,y) + climbCost(fx,fy,x,y);
@@ -675,7 +676,7 @@ function tryDisarm(a, t){
 }
 // 走到有武器的格子：誰都能撿，只要手空得出來（原主、隊友、敵人都行）
 function pickUp(u){
-  const b = B(), i = (b.drops||[]).findIndex(d=>d.x===u.x && d.y===u.y && canPick(u, d.item));
+  const b = B(), i = (b.drops||[]).findIndex(d=>d.x===mapCell(u.x) && d.y===mapCell(u.y) && canPick(u, d.item));
   if(i<0) return false;
   const d = b.drops.splice(i,1)[0];
   equip(u, d.item);

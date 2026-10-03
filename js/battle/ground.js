@@ -1,7 +1,7 @@
 /* 共用地面反應：B().groundEffects，原場景層；數值與圖形暫定 GPT。
    探索毫秒／戰棋每輪 6000ms。選單、提示、背景不走探索時鐘。 */
 const GROUND_RULES={fire:{ms:18000},ice:{ms:18000,dc:13},charged:{ms:6000},steam:{ms:6000}};
-const groundAt=(x,y)=>B()?.groundEffects?.[`${x},${y}`];
+const groundAt=(x,y)=>B()?.groundEffects?.[`${mapCell(x)},${mapCell(y)}`];
 const GROUND_REACTIONS={bush:{火焰:'fire'},oil:{火焰:'fire'},water:{火焰:'steam',寒冷:'ice',閃電:'charged'},ice:{火焰:'steam'}};
 function groundReaction(x,y,type){const b=B(),o=b?.def.blocks.find(o=>o.x===x&&o.y===y),old=groundAt(x,y);return GROUND_REACTIONS[old?.kind==='ice'?'ice':o?.kind]?.[type];}
 const groundCanReact=(x,y,type)=>!!groundReaction(x,y,type);
@@ -36,7 +36,7 @@ function groundStatusSave(u){
  }
  return attempted;
 }
-function groundPoison(u){const o=B().def.blocks.find(o=>o.x===u.x&&o.y===u.y&&o.kind==='poisonSwamp');return o?groundAfflict(u,'poisoned',o.dc??13):false;}
+function groundPoison(u){const o=B().def.blocks.find(o=>o.x===mapCell(u.x)&&o.y===mapCell(u.y)&&o.kind==='poisonSwamp');return o?groundAfflict(u,'poisoned',o.dc??13):false;}
 function groundEnter(u,move={}){
  groundPoison(u);
  const b=B(),fx=groundAt(u.x,u.y);if(!fx)return true;
