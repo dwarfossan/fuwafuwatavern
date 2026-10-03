@@ -224,3 +224,45 @@ const CARAVAN_OUTRO = [
   {who:"fox",      text:"有人帶路，正好。", mood:"content"},
   {who:"narr",     text:"四小隻跟在馬車旁邊，繼續往城鎮出發。"}
 ];
+
+/* 進城告別與小隊成立：GPT 草稿；表情配置暫定。默默偷包成功不揭露走私。 */
+const TOWN_GOODBYE = {
+  exposed:[
+    {who:"narr",text:"馬車停在城門旁。商人把貨箱的布又拉緊了一些。"},
+    {who:"merchant",text:"到、到了！護送就到這裡吧。我那批貨……還有人等著收。",mark:"sweat"},
+    {who:"fox",text:"放心，報酬收到了。我們也有自己的事要忙。",mood:"smug"},
+    {who:"wolf",text:"……下次把箱子封好一點。",mood:"serious"}
+  ],
+  hurry:[
+    {who:"narr",text:"馬車停在城門旁。商人望了望城內，急著抓起韁繩。"},
+    {who:"merchant",text:"多謝多謝！護送就到這裡。我還得趕緊去交貨，失陪啦！",mark:"sweat"},
+    {who:"fox",text:"好，我們自己逛。你忙你的吧。",mood:"content"}
+  ]
+};
+const TOWN_FOUNDING = [
+  {who:"merchant",text:"對了，你們四個湊在一起……還真像一排毛絨絨的玩具。",mark:"note"},
+  {who:"tiger",text:"你家的玩具會拿斧頭喔？",mood:"confused"},
+  {who:"merchant",text:"哈、哈哈！我先走了！",mark:"sweat"},
+  {who:"narr",text:"商人趕著馬車進城，很快就消失在人群裡。",on:"none"},
+  {who:"raccoon",text:"毛絨絨……",on:"none",mood:"happy"},
+  {who:"fox",text:"毛絨絨小隊？以後接委託就報這個名字。",on:"none",mood:"happy"},
+  {who:"wolf",text:"……聽起來不像能打的。",on:"none",mood:"resigned"},
+  {who:"tiger",text:"打過就知道了！",on:"none",mood:"happy"},
+  {who:"raccoon",text:"那就這個吧。別人聽一次就記得。",on:"none",mood:"happy"},
+  {who:"all",text:"毛絨絨小隊，成立！",on:"none",mood:"happy"}
+];
+const TOWN_BAG_CHAT = [
+  {who:"raccoon",text:"我想先找個地方整理背包。",on:"none",mood:"sly"},
+  {who:"wolf",text:"……妳原本那個呢？",on:"none",mood:"confused"},
+  {who:"raccoon",text:"退休了。",on:"none",mood:"sly"},
+  {who:"fox",text:"妳換背包比我們換工作還快。",on:"none",mood:"awkward"}
+];
+const TOWN_WHERE_NEXT = [
+  {who:"fox",text:"第一件事，先找地方住，還是先逛？",on:"none",mood:"confused"},
+  {who:"tiger",text:"先吃。",on:"none",mood:"happy"},
+  {who:"wolf",text:"……她問的是住還是逛。",on:"none",mood:"resigned"},
+  {who:"tiger",text:"住的地方也能吃，逛的地方也能吃。",on:"none",mood:"happy"},
+  {who:"raccoon",text:"旅店、裝備店、公會……那邊還有道具店。",on:"none",mood:"normal"},
+  {who:"fox",text:"好，先去哪裡，我們一起決定！",on:"none",mood:"happy"}
+];
+[...Object.values(TOWN_GOODBYE).flat(),...TOWN_FOUNDING,...TOWN_BAG_CHAT,...TOWN_WHERE_NEXT].forEach(l=>l.draft="GPT");

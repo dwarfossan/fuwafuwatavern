@@ -41,7 +41,11 @@ function startTravel(){
     const p = roadPoint(tr.from, tr.to, tr.t);
     document.getElementById("party-marker")?.setAttribute("transform", `translate(${p.x} ${p.y})`);
     if(tr.t < tr.stop){ requestAnimationFrame(step); return; }
-    if(tr.arrive){ state.travel = null; state.location = tr.arrive; render(); return; }   // 一般到站（商隊戰後走到城鎮）
+    if(tr.arrive){
+      state.travel = null; state.location = tr.arrive;
+      if(tr.arrive==="town" && !state.townFounded){state.page="story";state.scene="townArrival";state.line=0;state.info=null;}
+      render(); return;
+    }
     tr.alert = true; render();
     setTimeout(()=>{
       if(state.travel!==tr) return;
@@ -154,6 +158,7 @@ function bindTokens(){
 
 function bind(){
   const $ = id => document.getElementById(id);
+  $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="map";state.mapSel="town";render();window.scrollTo(0,0);});
   $("start")?.addEventListener("click", ()=>{state.page="roll";render()});
   $("back")?.addEventListener("click", ()=>{state.page="cover";render()});
   $("back2")?.addEventListener("click", ()=>{state.page="roll";render()});

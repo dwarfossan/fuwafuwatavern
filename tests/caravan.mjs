@@ -49,6 +49,6 @@ try{
  while(await pg.evaluate(()=>state.line<SCENES.caravan.script.length-1)) await pg.locator('#stage').click();
  await pg.locator('#toRoad').click();
  await pg.waitForFunction(()=>state.location==='town'&&!state.travel,null,{timeout:10000});
- assert.equal(await pg.evaluate(()=>state.page),'map');ok('繼續上路：在大地圖上從半路走到城鎮');
+ assert.equal(await pg.evaluate(()=>state.page+':'+state.scene),'story:townArrival');ok('繼續上路：大地圖走到城鎮，接進城告別');
  assert.deepEqual(errors,[]);ok('no browser errors');
 }finally{await br.close();}

@@ -3,10 +3,16 @@ const SCENES = {
   prologue: {script: SCRIPT,   bg:"tavern", back:["back2","回去重骰"],    next:["toShop","去看裝備"]},
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
-  caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]}   // 商隊戰後（10-03）
+  caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
+  townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]}
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
 const STAT_NAME = k => ABILITIES.find(a=>a.k===k).n;
+function townArrivalScript(){
+  const c=state.caravan||{}, exposed=c.ok && ["fox","tiger","wolf"].includes(c.pick);
+  return [...TOWN_GOODBYE[exposed?"exposed":"hurry"], ...TOWN_FOUNDING,
+    ...((c.pick==="raccoon" && c.ok)?TOWN_BAG_CHAT:[]), ...TOWN_WHERE_NEXT];
+}
 function caravanScript(){
   const c = state.caravan || {};
   if(!c.pick) return CARAVAN_INTRO;                // 還沒選：停在選項那句
@@ -145,7 +151,7 @@ function renderStory(){
   const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page">
     <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${scene.bg==="road" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${roadAmbushSVG()}</div>${actorsHTML}` : `
+      ${scene.bg==="road" || scene.bg==="town" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
       ${actorsHTML}

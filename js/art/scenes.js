@@ -1,4 +1,19 @@
 /* 第一人稱場景背景（從四隻的眼睛看出去） */
+// 城門代表圖（GPT 暫定）：正式素材日後替換，重要部分留在手機中央。
+function townGateSVG(){
+  return `<svg viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="1600" height="1100" fill="#b8d4d8"/>
+    <path d="M0 590 Q400 390 800 550 T1600 500 V1100 H0Z" fill="#7f986b"/>
+    <g stroke="#302b32" stroke-width="12" stroke-linejoin="round">
+      <path d="M240 390H1360V920H240Z" fill="#baa890"/>
+      <path d="M530 920V460 Q800 180 1070 460V920" fill="#625449"/>
+      <path d="M620 920V490 Q800 280 980 490V920" fill="#e1c699"/>
+      <path d="M360 390V240H520V390M1080 390V240H1240V390" fill="#baa890"/>
+      <path d="M540 1100L700 730H900L1060 1100" fill="#cfb38a"/>
+      <path d="M670 600H780V735H670ZM840 540H940V735H840Z" fill="#e2b98a"/>
+      <path d="M650 600L725 520L800 600M820 540L890 475L960 540" fill="#a45d50"/>
+    </g></svg>`;
+}
 function roadAmbushSVG(){
   const INK = "#2a2630";
   // 巢狀 <svg> 不支援 transform，左右翻轉要包在 <g> 裡

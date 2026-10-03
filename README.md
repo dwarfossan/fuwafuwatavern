@@ -51,6 +51,7 @@ node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次�
 node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）；指定目標的招挑不到躲著的
 node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 node tests/concentration.mjs  # 專注（同時一個、受傷豁免、倒下中斷）、狩印、點心、次元背包
+node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手机對話
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試、返回探索及休息
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
