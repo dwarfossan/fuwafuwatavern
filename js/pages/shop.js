@@ -30,7 +30,7 @@ function renderShop(){
     <div class="head"><div>
       <h2>${venue?venue.name:"大爺的裝備牆"}</h2>
     </div>${pageHelpHTML("shop")}</div>
-    <div class="quip"><div class="quip-face ${venue?'town-shop-face':''}">${venue?townOwnerSVG(venue,true):portraitHTML("dwarf")}</div><p>${state.quip}</p></div>
+    <div class="quip">${venue?"":`<div class="quip-face">${portraitHTML("dwarf")}</div>`}<p>${state.quip}</p></div>
     <div class="tabs" role="tablist" aria-label="${SHOP_UI.characters}">${tabs}</div>
     <details class="shop-side" ${state.shopBagOpen?"open":""}>
       <summary>

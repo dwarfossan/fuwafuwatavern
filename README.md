@@ -62,8 +62,6 @@ node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸�
 node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
 node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
-node tests/npc-loading.mjs # NPC圖檔延遲、失敗提示與重試恢復
-node tests/npc-portraits.mjs # 四位 NPC 半身立繪、12表情、商店頭像與劇情換臉
 node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休息與筆記
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮

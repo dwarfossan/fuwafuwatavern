@@ -1044,15 +1044,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .town-street{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px 8px;background:#75614f;border:3px solid var(--ink);border-radius:20px}
 .town-building{display:flex;flex-direction:column;align-items:center;min-height:172px;background:var(--venue);color:var(--ink);border:4px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 #302b32}
 .town-building svg{width:92px;height:92px}.town-building b{font-size:21px}.town-building span{font-size:14px}
-.town-interior{position:relative;height:230px;overflow:hidden;border:3px solid var(--ink);border-radius:18px;background:repeating-linear-gradient(90deg,#493d43 0 60px,#302b32 61px 65px)}
-.town-shelf{display:flex;justify-content:space-between;padding:16px 22px}.town-shelf svg{width:70px;height:70px;background:var(--venue);border-radius:12px}
-.town-owner{position:absolute;width:150px;height:150px;left:50%;bottom:15px;transform:translateX(-50%)}
-.town-counter{position:absolute;bottom:0;width:100%;height:45px;background:#996f50;border-top:5px solid var(--ink)}
 .town-dialog{padding:12px 14px;border:2px solid #655362;border-radius:12px;background:var(--plank)}
 .town-dialog b{color:var(--honey)}.town-dialog p{font-size:15px;line-height:1.6}
 .town-page .nav{margin-top:auto}.town-panel,.town-rest{background:var(--plank);padding:14px;border-radius:12px}
 .town-rest .rest-box{max-height:none;overflow:visible;color:#292330}.town-rest p{font-size:13px;color:var(--dim)}
-.town-shop-face>svg{width:100%;height:100%}
 /* 休息直接開共用狀態小筆記；抄寫鉛筆暫定。 */
 .rest-heads{gap:5px}.rest-heads .tab{min-width:0;flex:1;padding:4px}.rest-heads .c-head{width:48px;height:48px}.rest-heads .tab.on{border-color:var(--honey)}
 .rest-box .note-page{color:#292330}.rest-box .note-entry{grid-template-columns:28px 1fr}.rest-box .sk-n{color:#292330}.rest-box .sk-info{color:#86601a}.rest-box .note-cap{font-size:13px}
@@ -1093,19 +1088,3 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes explore-foot{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
 @keyframes explore-sway{0%,100%{transform:translateX(-1px)}50%{transform:translateX(1px)}}
 @media(prefers-reduced-motion:reduce){.act-walk .dl-foot-left,.act-walk .dl-foot-right,.act-walk .dl-bob{animation:none}}
-
-/* 大爺提供的 NPC 立繪：半身視窗；底圖與 4×3 表情同一畫布，不拉伸。 */
-.npc-portrait{overflow:hidden;height:auto}
-.npc-portrait .pt-canvas{position:absolute}
-.npc-portrait .pt-sheet{position:absolute;display:block;background-size:400% 300%;background-repeat:no-repeat}
-.town-owner{position:relative;width:100%;height:auto;left:auto;bottom:auto;transform:none}
-.town-interior{height:auto;background:linear-gradient(180deg,var(--venue),#241e29)}
-.quip-face .npc-portrait{position:relative;inset:auto;width:100%;height:100%;aspect-ratio:1}
-.actor:has(.npc-portrait){height:auto;bottom:0;width:100%;aspect-ratio:auto}
-
-/* NPC 圖片與表情共用載入狀態，避免未載完顯示空白／無臉。 */
-.npc-portrait .pt-sheet-source{display:none}
-.npc-portrait:not([data-load="ready"]) .pt-canvas{visibility:hidden}
-.npc-portrait .pt-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:16px;text-align:center;font-size:14px}
-.npc-portrait[data-load="ready"] .pt-load{display:none}
-.npc-portrait .pt-load button[hidden]{display:none}

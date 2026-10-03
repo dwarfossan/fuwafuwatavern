@@ -20,7 +20,7 @@ try{
  await shot('town-street.png');
  for(const id of ['inn','smith','guild','items']){
   await page.locator(`[data-town-place="${id}"]`).tap();
-  assert.equal(await page.locator('.town-owner .npc-half').count(),1);
+  assert.equal(await page.locator('.town-page .portrait').count(),0);assert.equal(await page.locator('.town-interior').count(),0);
   assert.equal(await page.locator('#board-floor').count(),0);
   await shot(`town-${id}.png`);
   if(id==='inn'){
