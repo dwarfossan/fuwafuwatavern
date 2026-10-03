@@ -34,9 +34,10 @@ function boardMarkState(){
 // 探索偵測格屬地板層；警示記號屬場景最上方 HUD。外觀暫定（GPT）。
 function exploreWatchCells(){
  const b=B(),out=new Set();if(b.phase!=="explore"||!b.exploreSneak)return out;
- const e=b.units.find(u=>u.id===b.info&&u.side==="foe"&&!foeHid(u));if(!e)return out;
- const range=ENEMIES[e.type].detectRange;
- for(let x=0;x<b.def.w;x++)for(let y=0;y<b.def.h;y++)if(dist(e,{x,y})<=range&&exploreSight(e,{x,y}))out.add(`${x},${y}`);
+ for(const e of b.units.filter(u=>u.side==="foe"&&!u.dead&&!u.down&&!u.fled&&!foeHid(u))){
+  const range=ENEMIES[e.type].detectRange;
+  for(let x=0;x<b.def.w;x++)for(let y=0;y<b.def.h;y++)if(dist(e,{x,y})<=range&&exploreSight(e,{x,y}))out.add(`${x},${y}`);
+ }
  return out;
 }
 function exploreAlertSVG(v,x,y){const a=B().phase==="explore"&&B().exploreMarks?.[v.id];return a?`<g class="explore-alert" data-alert="${a}"><circle cx="${x}" cy="${y}" r="16" fill="${a===2?"#e35b52":"#e8c057"}" stroke="#292330" stroke-width="3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="24" font-weight="bold" fill="#292330">!</text></g>`:"";}
@@ -113,7 +114,12 @@ function boardMarksHTML(ctx=boardMarkState()){
 }
 // 地板、標示各有獨立 DOM。標示的 paint server 只換格子的填色；
 // 場景以原生 SVG use 引用台地，保留山壁與角色的斜角前後遮擋。
-function boardTerrainKey(){ const b=B(),d=b.def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,b.phase==="explore"&&b.exploreSneak?d.blocks.map(o=>[o.x,o.y,o.kind]):null,b.phase==="explore"?b.info:null,b.phase==="explore"&&b.exploreSneak?b.units.filter(u=>u.id===b.info).map(u=>[u.x,u.y]):null]); }
+function boardTerrainKey(){
+ const b=B(),d=b.def,watch=b.phase==="explore"&&b.exploreSneak;
+ // 所有可見敵人的偵測範圍依位置、存活／隱藏、視線及光照更新；不依選取，也不跟我方逐幀重畫。
+ return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,
+  watch?[d.lighting,d.blocks.map(o=>[o.x,o.y,o.kind]),b.units.filter(u=>u.side==="foe").map(u=>[u.id,u.type,u.x,u.y,u.dead,u.down,u.fled,foeHid(u),u.scores,u.mods,u.learned,u.activeSkills,u.passiveSkills,ENEMIES[u.type].detectRange])]:null]);
+}
 function updateBoardFloor(){
   const layer=document.getElementById("board-floor"); if(!layer) return;
   layer.innerHTML=boardFloorHTML();

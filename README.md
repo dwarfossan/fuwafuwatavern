@@ -65,6 +65,7 @@ node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立�
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試、返回探索及休息
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
+node tests/explore-watch.mjs # 潛行自動顯示可見敵人範圍、移動保留、地板更新與遮擋
 node tests/explore-continuous.mjs # 連續座標、碰撞、踏步、陷阱／地面中斷與開戰就近佔位
 node tests/explore.mjs       # 探索同頁分層、群體／個體、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊
