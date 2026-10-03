@@ -61,6 +61,7 @@ node tests/town-supplier.mjs # 首次離店送貨、商人貨源暗示與一次�
 node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸控與原技能說明
 node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
+node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
 node tests/npc-portraits.mjs # 四位 NPC 半身立繪、12表情、商店頭像與劇情換臉
 node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休息與筆記
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
@@ -101,7 +102,7 @@ node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；�
 
 ### 4. 給大爺測試
 
-- **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。打開時即時問 GitHub dev 最新是哪一筆，按「快速戰鬥」或「從頭玩」跳到那一筆的指定版本網址（`raw.githack.com/.../<40 碼 commit>/index.html`）。推完跟大爺說「推好了」和 commit 前 7 碼就好，不用再貼網址
+- **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。打開時即時問 GitHub dev 最新是哪一筆，按「快速戰鬥」、「直達城鎮」或「從頭玩」跳到那一筆的指定版本網址（`raw.githack.com/.../<40 碼 commit>/index.html`）。推完跟大爺說「推好了」和 commit 前 7 碼就好，不用再貼網址
   - 入口頁是 main 上的 `test.html`，遊戲不讀它；改它要動 main，先問大爺
   - **不要給 `/dev/` 的網址**：githack 會記住「dev 指向哪一筆」，不知道多久才更新，大爺會看到舊版（10-02 發生兩次，以為程式被改回去）
 - **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）

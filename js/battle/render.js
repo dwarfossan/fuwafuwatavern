@@ -1334,7 +1334,8 @@ function updateBattleFrame(){
   if(terrain || keys.camera!==prev.camera) syncBoardCamera();
   if(uiChanged || B().focusReq) bindBattle();
   bindModal();
-  refreshBattle.keys=battleLayerKeys();
+  // 保留這次開始繪製時的場景鍵，避免繪製跨過特效開始時間，吞掉下一次更新。
+  refreshBattle.keys={...battleLayerKeys(),scene:keys.scene};
 }
 // 保留的按鈕只綁一次；新介面節點各自取得新的事件處理器。
 const battleEvents=new WeakMap();

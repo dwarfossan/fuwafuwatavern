@@ -261,7 +261,15 @@ function quickBattle(battleId="ambush",phase="combat"){
   });
   state.page = "battle"; startBattle(battleId,false,phase);
 }
-if(/^#battle(?:\?|$)/.test(location.hash)){
+// 快速城鎮驗收：沿用快速場的四隻屬性／裝備，保存旅店筆記資料，收掉戰場。
+function quickTown(){
+  BATTLES.random=generateRandomBattle(123);quickBattle("random","explore");
+  state.townRest=JSON.parse(JSON.stringify(B()));state.townRest.busy=false;state.townRest.exploreStopped=false;
+  state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
+  state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
+}
+if(location.hash==="#town")quickTown();
+else if(/^#battle(?:\?|$)/.test(location.hash)){
   const raw=new URLSearchParams(location.hash.split("?")[1]||"").get("seed");
   const seed=raw!==null && /^\d+$/.test(raw)?Number(raw)>>>0:crypto.getRandomValues(new Uint32Array(1))[0];
   BATTLES.random=generateRandomBattle(seed); quickBattle("random",new URLSearchParams(location.hash.split("?")[1]||"").get("phase")==="combat"?"combat":"explore");
