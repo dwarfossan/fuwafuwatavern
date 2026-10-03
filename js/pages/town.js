@@ -9,11 +9,7 @@ function townSymbolSVG(symbol){
  };
  return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#302b32" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${shapes[symbol]||shapes.board}</g></svg>`;
 }
-function townOwnerSVG(p){
- const horns=p.id==='items'?'<path d="M29 37Q8 33 17 15L33 30M67 37Q88 33 79 15L63 30" fill="#c897ac"/>':'';
- const beard=p.id==='smith'?'<path d="M28 53L36 78H60L70 53Z" fill="#9b795e"/>':'';
- return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#302b32" stroke-width="3" stroke-linejoin="round"><path d="M15 96Q15 65 49 65Q85 65 85 96" fill="${p.color}"/><path d="M22 57V37Q23 12 49 12Q80 12 77 57" fill="${p.id==='items'?'#aba9af':'#786151'}"/>${horns}<ellipse cx="49" cy="43" rx="24" ry="27" fill="${p.id==='items'?'#a65f76':'#e5bb98'}"/>${beard}<path d="M36 40H41M57 40H62M43 56Q50 61 57 55" fill="none"/>${p.id==='items'?'<path d="M28 31L49 28L71 31V43L57 47L49 42L40 47L27 43Z" fill="#e58884"/><path d="M36 38H42M56 38H62" stroke="#f6c664"/>':''}</g></svg>`;
-}
+function townOwnerSVG(p,head=false){return npcPortraitHTML(p.portrait,p.face,head);}
 function renderTown(){
  const p=townPlace();
  if(!p)return `<section class="page town-page"><div class="head"><h2>${TOWN_UI.title}</h2></div><p>${TOWN_UI.subtitle}</p><div class="town-street">${TOWN_PLACES.map(p=>`<button class="town-building" data-town-place="${p.id}" style="--venue:${p.color}">${townSymbolSVG(p.symbol)}<b>${p.name}</b><span>${p.owner}</span></button>`).join('')}</div><small>${TOWN_UI.draft}</small><div class="nav"><button class="btn ghost" id="townMap">${TOWN_UI.map}</button></div></section>`;

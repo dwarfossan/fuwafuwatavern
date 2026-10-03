@@ -78,3 +78,7 @@
 | `surprised.webp` | 驚訝 |
 | `smirk.webp` | 奸笑 |
 | `shy.webp` | 害羞 |
+
+## 城鎮 NPC（10-04 大爺提供）
+`lilianna/` 莉莉安娜、`mira/` 米拉、`ada/` 艾妲、`bronn/` 布隆各有 `sheet.webp`，保留原透明 4×3 表情表。由左到右、由上到下：normal 平常、happy 開心、laugh 大笑、smirk 得意、angry 生氣、sad 難過、cry 哭泣、surprised 驚訝、shy 害羞、worried 擔心、tired 疲倦、wink 眨眼。表情命名為 GPT 暫定。
+全身無臉底圖在 `assets/portraits/<id>_noface.webp`；原圖只轉 WebP，半身與頭像用 CSS 視窗裁切，沒有另外重畫或壓扁。尺寸、半身裁切和臉部對位由 PORTRAITS 設定，npcPortraitHTML 讓底圖與表情共用完整畫布；setPortraitFace 只換表情表格位。莉莉安娜保留原面紗與底圖眉毛，CSS 僅顯示表情眼睛，鼻口／眼淚落在面紗後面。
