@@ -1,0 +1,35 @@
+/* 狀態／休息共用小筆記，不另做一套技能列。抄寫演出暫定 GPT。 */
+function noteSkillRowHTML(n,u){
+ const sk=learnedSkillByKey(n.key);
+ return `<div class="note-skill-row"><div class="note-skill-main" data-skill-thought="${u.id}:${n.key}" tabindex="0">${sk?skillIcon(sk.group.id,sk.def,sk.impl,24):''}<span class="sk-n">${sk?.def.name||n.name}</span></div>${sk?`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}::${u.id}" aria-label="${n.name}的說明">ⓘ</button>`:''}</div>`;
+}
+function notebookPageHTML(u,b,rest=false){
+ const learned=u.learned||[],total=notePages(u.id);b.notePages=b.notePages||{};
+ const page=Math.min(Math.max(1,b.notePages[u.id]||1),total);b.notePages[u.id]=page;
+ const entries=learned.slice((page-1)*NOTE_PAGE_SIZE,page*NOTE_PAGE_SIZE).map(n=>{
+  const on=(u.activeSkills||[]).includes(n.key),copy=b.noteCopy?.[u.id]?.includes(n.key);
+  return `<div class="note-entry ${copy?'note-copying':''}"><button class="note-check ${on?'on':''}" data-noteskill="${n.key}" ${rest?'':'disabled'} aria-label="${rest?'啟動技能':'戰鬥中技能配置已鎖定'}：${n.name}">${on?'✓':''}</button><div>${noteSkillRowHTML(n,u)}<small>${n.from==='起始技能'?'起始技能':`${n.innate?'天生能力':'招式'} · 從${n.from||'未知對手'}觀察學會`}</small>${copy?'<span class="copy-pencil" aria-label="正在抄寫">✎ 抄寫中……</span>':''}</div></div>`;
+ }).join('');
+ const pending=rest?(u.pendingLearned||[]):[];
+ b.restPicks=b.restPicks||{};
+ const picks=b.restPicks[u.id]??=pending.map(n=>n.key);
+ const ling=b.units.find(x=>x.id==='fox');
+ const teach=rest&&u.id!=='fox'?(ling?.learned||[]).filter(n=>!learned.some(x=>x.key===n.key)&&!pending.some(x=>x.key===n.key)):[];
+ return `<div class="note-page"><div class="note-cap">${u.name}　小筆記 ${learned.length}/${noteCap(u.id)} · 啟動技能 ${(u.activeSkills||[]).length}/3${rest?'':'　戰鬥中配置已鎖定'}</div><div class="note-list">${entries||'<div class="note-empty">還沒有記下任何招式。</div>'}</div><div class="note-pager"><button data-notepage="${u.id}:${page-1}" ${page<=1?'disabled':''} aria-label="上一頁">‹</button><span>${page} / ${total}</span><button data-notepage="${u.id}:${page+1}" ${page>=total?'disabled':''} aria-label="下一頁">›</button></div>${rest?`<h4>這次理解，休息時抄寫</h4>${pending.length?pending.map(n=>`<div class="note-entry"><input type="checkbox" data-restpick="${u.id}:${n.key}" ${picks.includes(n.key)?'checked':''} aria-label="抄寫${n.name}"><div>${noteSkillRowHTML(n,u)}</div></div>`).join(''):'<small>這次沒有待抄的招式</small>'}${teach.length?`<h4>向玲玲學</h4>${teach.map(n=>`<button class="btn small ghost" data-teach="${u.id}:${n.key}">${n.name}</button>`).join('')}`:''}${learned.length>=noteCap(u.id)?`<h4>筆記已滿，先擦掉舊招</h4>${learned.map(n=>`<button class="btn small ghost" data-erase="${u.id}:${n.key}">橡皮擦：${n.name}</button>`).join('')}`:''}`:''}</div>`;
+}
+function restNotebookHTML(b){
+ b.restWho=b.restWho||'fox';const u=b.units.find(u=>u.id===b.restWho&&u.side==='pc');
+ return `<div class="rest-box"><div class="tabs rest-heads" role="tablist">${CRITTERS.map(c=>`<button class="tab ${c.id===b.restWho?'on':''}" data-rest-who="${c.id}" role="tab" aria-selected="${c.id===b.restWho}">${critterHead(c.id)}<span>${c.name}</span></button>`).join('')}</div><div class="gear-tabs"><span class="gear-tab on">小筆記</span></div>${notebookPageHTML(u,b,true)}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?'disabled':''}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
+}
+function restPickSelections(b){
+ const out={};b.units.filter(u=>u.side==='pc').forEach(u=>out[u.id]=b.restPicks?.[u.id]??(u.pendingLearned||[]).map(n=>n.key));return out;
+}
+function bindRestNotebook(b){
+ const redraw=()=>{if(b===B())refreshBattle();else render();};
+ const pencil=document.querySelector(".rest-box .copy-pencil"),box=document.querySelector(".rest-box");
+ if(pencil && box){const delta=pencil.getBoundingClientRect().bottom-box.getBoundingClientRect().bottom;if(delta>0)box.scrollTop+=delta+12;}
+ document.querySelectorAll('[data-rest-who]').forEach(el=>modalListen(el,'click',()=>{b.restWho=el.dataset.restWho;redraw();}));
+ document.querySelectorAll('[data-restpick]').forEach(el=>modalListen(el,'change',()=>{const [id,key]=el.dataset.restpick.split(':');const keys=b.restPicks[id]||=[];if(el.checked&&!keys.includes(key))keys.push(key);else if(!el.checked)b.restPicks[id]=keys.filter(k=>k!==key);}));
+ if(b!==B())document.querySelectorAll('[data-notepage]').forEach(el=>modalListen(el,'click',()=>{const [id,p]=el.dataset.notepage.split(':');b.notePages[id]=+p;redraw();}));
+ document.querySelectorAll('.rest-box [data-noteskill]').forEach(el=>modalListen(el,'click',()=>{const u=b.units.find(u=>u.id===b.restWho),k=el.dataset.noteskill,i=(u.activeSkills||=[]).indexOf(k);if(i>=0)u.activeSkills.splice(i,1);else if(u.activeSkills.length<3)u.activeSkills.push(k);syncLearnedState(b);redraw();}));
+}

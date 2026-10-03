@@ -1058,23 +1058,7 @@ function infoHTML(v, b){
   const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
   const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
-  let notes="";
-  if(v.side==="pc"){
-    const learned=v.learned||[], perPage=5, totalPages=v.id==="fox"?3:2;
-    b.notePages=b.notePages||{};
-    const maxPage=Math.max(1,totalPages), pageNo=Math.min(Math.max(1,b.notePages[v.id]||1),maxPage);
-    b.notePages[v.id]=pageNo;
-    const shown=learned.slice((pageNo-1)*perPage,pageNo*perPage);
-    const entries=shown.map(n=>{
-      const on=(v.activeSkills||[]).includes(n.key), sk=learnedSkillByKey(n.key), usable=!!sk?.impl;
-      const sourceNote=n.from==="起始技能"?"起始技能":`${n.innate?"天生能力":"招式"} · 從${n.from||"未知對手"}觀察學會`;
-      const skillRow=sk
-        ? `<div class="note-skill-row"><div class="note-skill-main">${skillIcon(sk.group.id,sk.def,sk.impl,24)}<span class="sk-n">${sk.def.name}</span></div><button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}::${v.id}" aria-label="${sk.def.name}的說明">ⓘ</button></div>`
-        : `<div class="note-skill-row"><div class="note-skill-main"><span class="sk-n">${n.name}</span></div></div>`;
-      return `<div class="note-entry"><button class="note-check ${on?"on":""}" data-noteskill="${n.key}" disabled aria-label="戰鬥中技能配置已鎖定：${n.name}">${on?"✓":""}</button><div>${skillRow}<small>${sourceNote}${!usable?" · 尚未實裝":""}</small></div></div>`;
-    }).join("");
-    notes=`<div class="note-page">${learned.length?`<div class="note-cap">啟動技能 ${(v.activeSkills||[]).length}/3　戰鬥中配置已鎖定</div><div class="note-list">${entries}</div><div class="note-pager"><button data-notepage="${v.id}:${pageNo-1}" ${pageNo<=1?"disabled":""} aria-label="上一頁">‹</button><span>${pageNo} / ${totalPages}</span><button data-notepage="${v.id}:${pageNo+1}" ${pageNo>=totalPages?"disabled":""} aria-label="下一頁">›</button></div>`:`<div class="note-empty">還沒有記下任何招式。<br><small>戰鬥中先理解招式，休息時再由玩家決定是否寫進來。</small></div><div class="note-pager"><button disabled>‹</button><span>1 / ${totalPages}</span><button ${totalPages<=1?"disabled":""} data-notepage="${v.id}:2">›</button></div>`}</div>`;
-  }
+  const notes=v.side==="pc"?notebookPageHTML(v,b):"";
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.n)}</svg>`;
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(it.art||g.id,38):`<span class="eq-text">${it.n}</span>`};
@@ -1166,11 +1150,7 @@ function logPanelHTML(b){
 }
 
 
-function restChoiceHTML(b){
-  const pcs=b.units.filter(u=>u.side==="pc"), ling=pcs.find(u=>u.id==="fox"), teach=(ling&&ling.learned)||[];
-  const rows=pcs.map(u=>{ const pend=u.pendingLearned||[], cap=noteCap(u.id), teachable=u.id!=="fox"?teach.filter(x=>!(u.learned||[]).some(y=>y.key===x.key)&&!pend.some(y=>y.key===x.key)):[]; return `<div class="rest-unit"><b>${u.name}　小筆記 ${u.learned.length}/${cap}</b>${pend.length?pend.map(x=>`<label class="rest-skill"><input type="checkbox" data-restpick="${u.id}:${x.key}" checked> ${x.name}</label>`).join(""):`<small>這次沒有待抄的招式</small>`}${teachable.length?`<small>向玲玲學（使用同一套學習檢定）：</small>${teachable.map(x=>`<button class="btn small ghost" data-teach="${u.id}:${x.key}">${x.name}</button>`).join("")}`:""}${u.learned.length>=cap?`<small>筆記已滿；先用橡皮擦空出位置。</small>${u.learned.map(x=>`<button class="btn small ghost" data-erase="${u.id}:${x.key}">橡皮擦：${x.name}</button>`).join("")}`:""}</div>`; }).join("");
-  return `<div class="rest-box"><h4>休息與抄筆記</h4>${rows}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?"disabled":""}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
-}
+function restChoiceHTML(b){return restNotebookHTML(b);}
 
 function battleInterfaceHTML(){
   const b = B();
@@ -1371,7 +1351,8 @@ function bindBattle(){
   bindGearDrag();
   document.querySelectorAll("[data-teach]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.teach.split(":"); const u=B().units.find(x=>x.id===id); if(u){learnFromLingling(u,key);refreshBattle();} }));
   document.querySelectorAll("[data-erase]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.erase.split(":"); const u=B().units.find(x=>x.id===id); if(u&&eraseNote(u,key)){syncLearnedState();refreshBattle();} }));
-  const restSelections=()=>{const o={};document.querySelectorAll("[data-restpick]:checked").forEach(el=>{const [id,key]=el.dataset.restpick.split(":");(o[id]??=[]).push(key)});return o;};
+  if(b.exploreRest)bindRestNotebook(b);
+  const restSelections=()=>restPickSelections(b);
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
   battleListen(document.getElementById("longRest"),"click",()=>takeRest("long",restSelections()));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）

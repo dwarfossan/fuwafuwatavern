@@ -1053,3 +1053,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .town-page .nav{margin-top:auto}.town-panel,.town-rest{background:var(--plank);padding:14px;border-radius:12px}
 .town-rest .rest-box{max-height:none;overflow:visible;color:#292330}.town-rest p{font-size:13px;color:var(--dim)}
 .town-shop-face>svg{width:100%;height:100%}
+/* 休息直接開共用狀態小筆記；抄寫鉛筆暫定。 */
+.rest-heads{gap:5px}.rest-heads .tab{min-width:0;flex:1;padding:4px}.rest-heads .c-head{width:48px;height:48px}.rest-heads .tab.on{border-color:var(--honey)}
+.rest-box .note-page{color:#292330}.rest-box .note-entry{grid-template-columns:28px 1fr}.rest-box .sk-n{color:#292330}.rest-box .sk-info{color:#86601a}.rest-box .note-cap{font-size:13px}
+.note-copying{position:relative;animation:copy-glow 1.8s ease}.copy-pencil{display:block;color:#986914;animation:copy-pencil .22s ease-in-out infinite alternate}
+@keyframes copy-pencil{to{transform:translateX(8px) rotate(-3deg)}}@keyframes copy-glow{50%{background:#f6dba6}}
+
+.rest-heads{position:sticky;top:0;z-index:2;background:#fffaf0}.rest-heads .tab{display:flex;flex-direction:column;gap:0;font-size:12px}.rest-box .note-entry{padding:6px 8px}.rest-box .note-entry small{font-size:10px}

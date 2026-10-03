@@ -450,14 +450,19 @@ function takeRest(kind, selections={},b=B()){
   const atInn=b && b===state.townRest && state.page==="town" && state.townPlace==="inn";
   if(!b || (!["short","long"].includes(kind)) || (!atInn && (b!==B() || (b.result!=="win" && b.phase!=="explore"))) || b.busy || b.exploreStopped)return false;
   if(kind==="short" && state.shortRestsUsed>=2)return false;
+  b.noteCopy={};
   b.units.filter(u=>u.side==="pc").forEach(u=>{
-    transcribePending(u,selections[u.id]||[]);
+    b.noteCopy[u.id]=transcribePending(u,selections[u.id]||[]).map(n=>n.key);
+    if(b.noteCopy[u.id].length)(b.notePages||={})[u.id]=Math.ceil(u.learned.length/NOTE_PAGE_SIZE);
     // 短休：每一階各回一半（無條件進位）；長休全回
     const max=slotMax(u), s=slotsOf(u);
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
     state.proficiency[u.id]=u.slots.slice();
   });
   if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; }   // 長休：重新挑戰的次數也回滿
+  b.restPicks={};
+  const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
+  setTimeout(()=>{if(copyId!==b.noteCopyId)return;if(b!==B() && !(state.page==="town" && b===state.townRest))return;b.noteCopy=null;if(b===B())refreshBattle();else render();},1800);
   syncLearnedState(b); b.restDone=true; restMessage(b,kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`); if(atInn)render();else refreshBattle(); return true;
 }
 

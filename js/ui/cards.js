@@ -120,7 +120,7 @@ function renderModal(){
     body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterHead(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p></div>`;
   }
   if(m.kind==="skill"){
-    const unit = m.unit && state.battle ? state.battle.units.find(v=>v.id===m.unit) : null;
+    const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
     body = skillCardHTML(m.group, m.idx, m.item ? itemById(m.item) : null, unit);
   }
   return `<div class="modal-back" data-close="1"><div class="modal ${["help","character"].includes(m.kind)?"page-bubble":""}" role="dialog" aria-modal="true">

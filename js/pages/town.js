@@ -29,7 +29,8 @@ function bindTown(){
    state.shopContext=p.id;state.page='shop';state.shopCat=shopCategories()[0];state.quip=p.line;render();
   }else{state.townPanel=p.id==='inn'?'rest':'guild';render();}
  });
- const selections=()=>{const o={};document.querySelectorAll('[data-restpick]:checked').forEach(el=>{const [id,key]=el.dataset.restpick.split(':');(o[id]??=[]).push(key);});return o;};
+ if(state.townRest && state.townPanel==='rest')bindRestNotebook(state.townRest);
+ const selections=()=>restPickSelections(state.townRest);
  document.getElementById('shortRest')?.addEventListener('click',()=>takeRest('short',selections(),state.townRest));
  document.getElementById('longRest')?.addEventListener('click',()=>takeRest('long',selections(),state.townRest));
  document.querySelectorAll('[data-teach]').forEach(el=>el.addEventListener('click',()=>{const [id,key]=el.dataset.teach.split(':');const b=state.townRest,u=b.units.find(u=>u.id===id);if(u){learnFromLingling(u,key,b);render();}}));
