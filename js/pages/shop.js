@@ -1,4 +1,4 @@
-function shopCategories(){return state.shopContext==="smith"?CATS.filter(k=>!["法器","道具","冒險用品"].includes(k)):state.shopContext==="items"?CATS.filter(k=>["法器","道具","冒險用品"].includes(k)):CATS;}
+function shopCategories(){return state.shopContext==="smith"?CATS.filter(k=>!["法器","道具","冒險用品"].includes(k)):state.shopContext==="items"?[...CATS.filter(k=>["法器","道具","冒險用品"].includes(k)),MAGIC_SHOP_UI.cat]:CATS;}
 function renderShop(){
   const venue=TOWN_PLACES.find(p=>p.id===state.shopContext);
   const c = CRITTERS[state.shopActive];
@@ -8,7 +8,7 @@ function renderShop(){
       ${critterHead(x.id)}<span>${x.name}</span><span class="done">${money(state.gold[x.id])}</span>
     </button>`).join("");
   const cats = shopCategories().map(k=>`<button class="chip ${k===state.shopCat?"on":""}" data-cat="${k}" aria-pressed="${k===state.shopCat}">${k}</button>`).join("");
-  const rows = ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(shopItem).map(it=>{
+  const rows = state.shopContext==="items" && state.shopCat===MAGIC_SHOP_UI.cat ? magicStockHTML() : ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(shopItem).map(it=>{
     const why = blockReason(id,it);
     let spec="";
     if(it.type==="weapon") spec = `${it.dmg}${it.props.length?" · "+it.props.join("、"):""} · 專精：${it.mastery}`;

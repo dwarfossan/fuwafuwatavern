@@ -1068,3 +1068,4 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .supplier-story .actor.merchant{height:45%;bottom:16%;left:49%;animation:supplier-walk 1s ease-out both}
 .supplier-story .actor.merchant.off{animation:none;opacity:0}
 @keyframes supplier-walk{from{transform:translateX(-140%) scale(.9)}to{transform:translateX(-50%) scale(.9)}}
+.market-day{margin:4px 0;font-size:13px;color:var(--honey)}.market-draft{font-size:11px;color:var(--dim)}

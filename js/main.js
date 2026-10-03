@@ -212,6 +212,7 @@ function bind(){
   });
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop") bindShop();
+  document.querySelectorAll("[data-magic-buy]").forEach(el=>el.addEventListener("click",()=>buyMagic(el.dataset.magicBuy)));
   document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
     if(blockReason(id,it)) return;

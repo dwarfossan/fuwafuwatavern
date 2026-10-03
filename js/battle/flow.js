@@ -459,7 +459,7 @@ function takeRest(kind, selections={},b=B()){
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
     state.proficiency[u.id]=u.slots.slice();
   });
-  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; }   // 長休：重新挑戰的次數也回滿
+  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
   setTimeout(()=>{if(copyId!==b.noteCopyId)return;if(b!==B() && !(state.page==="town" && b===state.townRest))return;b.noteCopy=null;if(b===B())refreshBattle();else render();},1800);

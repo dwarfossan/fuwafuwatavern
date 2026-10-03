@@ -2,7 +2,7 @@
    target：enemy 單一敵人／ally 單一隊友／self 自己／area 範圍（點格子）／cone 錐形（點方向）／line 直線（點敵人定方向）
    range(u)：可選目標的距離；run(u, 目標) 執行 */
 
-const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.n));
+const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.base||item.n) || g.weapons.includes(item.n));
 
 // 角色身上可用的技能（敵我一樣）：武器（沒武器也沒法器就徒手）＋法器＋盾牌
 // 只拿法器、法器又沒有不用格子的攻擊（例如治癒法書）：補一個徒手普攻，格子用完時還有東西能打

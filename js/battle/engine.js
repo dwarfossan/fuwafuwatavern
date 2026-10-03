@@ -22,7 +22,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock"];
+const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -540,7 +540,7 @@ function dmgRoll(dice, mod, crit, extraDice=0){
 function damageAfterResistance(t, n, type){
   n = Math.max(0, n);
   if((t.damageImmunities||[]).includes(type)) return 0;
-  return (t.resistances||[]).includes(type) ? Math.floor(n/2) : n;
+  return [...(t.resistances||[]),...itemResistances(t)].includes(type) ? Math.floor(n/2) : n;
 }
 function hurt(t, n, type, src){
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
@@ -776,7 +776,7 @@ function weaponAttack(a, t, o={}){
     // 特殊彈藥一旦射出，不論命中與否都消耗。具體附加效果由該道具資料之後接入。
     a.loadedAmmo=null; dropItem(a, loaded); blog(`　${a.name}使用${loaded.n}`, "skill");
   }
-  const res = attackRoll(a, t, {bonus: mod + 2 + (o.hitMod||0), adv:o.adv, dis:o.dis, ranged, pointBlank:o.pointBlank});
+  const res = attackRoll(a, t, {bonus: mod + 2 + ((o.hitMod||0)+(a.weapon?.hitBonus||0)), adv:o.adv, dis:o.dis, ranged, pointBlank:o.pointBlank});
   const die = weaponDie(a) || "1d1";
   const m = a.weapon ? a.weapon.mastery.split(" ")[0] : null;
   if(res.hit){
@@ -787,6 +787,7 @@ function weaponAttack(a, t, o={}){
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
     hurt(t, n, dmgType(a), a);
+    const extra=a.weapon?.extraDamage;if(extra && !t.dead && !t.down){hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
     if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
   } else if(o.mastery && m==="擦傷" && mod>0){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(a), a);

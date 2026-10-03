@@ -1060,7 +1060,7 @@ function infoHTML(v, b){
   const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
   const notes=v.side==="pc"?notebookPageHTML(v,b):"";
   let statusPage="";
-  const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.n)}</svg>`;
+  const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(it.art||g.id,38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
@@ -1246,7 +1246,7 @@ function battleLayerKeys(){
   const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
-  const ui=battleDataKey([b,state.inv,state.focusItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
+  const ui=battleDataKey([b,state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
     ["def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
     +battleDataKey(b.units,["x","y","face","anim"])
     +(b.mode?units:"");

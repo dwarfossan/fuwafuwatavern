@@ -19,7 +19,7 @@ function money(cp){
 }
 const scoreK = (id,k) => finalScore(id,k);
 // 每件法器有自己的識別與施法屬性；模板仍供規格／測試查詢。
-const itemById = id => (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
+const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
 function makeItem(it){
   if(!it || it.type!=="focus" || it.baseId) return it;
   state.focusItems=state.focusItems||{};

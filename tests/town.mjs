@@ -43,7 +43,7 @@ try{
   }else{
    await page.locator('#townAction').tap();
    const cats=await page.locator('[data-cat]').allTextContents();
-   assert.deepEqual(cats,id==='smith'?['簡易近戰','簡易遠程','軍用近戰','軍用遠程','護甲','盾牌']:['法器','道具','冒險用品']);
+   assert.deepEqual(cats,id==='smith'?['簡易近戰','簡易遠程','軍用近戰','軍用遠程','護甲','盾牌']:['法器','道具','冒險用品','魔法物品']);
    assert.equal(await page.locator('#depart').count(),0);assert.equal(await page.locator('#backStory').count(),0);
    const wanted=id==='smith'?'匕首':'奧術法杖';
    await page.evaluate(()=>{state.gold.fox=1000*GP;state.inv.fox=[];render();});

@@ -212,5 +212,5 @@ function dollGear(u){                       // 敵我一樣：照手上的武器
   if(!main && !f) main = "unarmed";
   if(u.shield) off = "shield";
   else if(f && f!==main) off = f;
-  return {main, off, armor: u.armor ? u.armor.n : null, backpack: !!u.backpackEquip};
+  return {main, off, armor: u.armor ? (u.armor.base||u.armor.n) : null, backpack: !!u.backpackEquip};
 }
