@@ -41,8 +41,9 @@ function exploreWatchCells(){
 }
 function exploreAlertSVG(v,x,y){const a=B().phase==="explore"&&B().exploreMarks?.[v.id];return a?`<g class="explore-alert" data-alert="${a}"><circle cx="${x}" cy="${y}" r="16" fill="${a===2?"#e35b52":"#e8c057"}" stroke="#292330" stroke-width="3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="24" font-weight="bold" fill="#292330">!</text></g>`:"";}
 function exploreDockHTML(){
- const b=B();if(b.exploreStopped)return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.found,`<p>${EXPLORE_UI.stopped}</p>`);
+ const b=B();if(b.exploreStopped)return dockWrap(exploreUnit(),b,"dk-pick",b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found,`<p>${EXPLORE_UI.stopped}</p>${b.exploreStopReason==="trap"?`<button class="mn-b" data-explore-cmd="resume">${EXPLORE_ACTION_TEXT.resume}</button>`:""}`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
+ if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
  return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}`);
 }
 function boardFloorHTML(){
@@ -111,7 +112,7 @@ function boardMarksHTML(ctx=boardMarkState()){
 }
 // 地板、標示各有獨立 DOM。標示的 paint server 只換格子的填色；
 // 場景以原生 SVG use 引用台地，保留山壁與角色的斜角前後遮擋。
-function boardTerrainKey(){ const b=B(),d=b.def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,b.phase==="explore"?b.info:null,b.phase==="explore"&&b.exploreSneak?b.units.filter(u=>u.id===b.info).map(u=>[u.x,u.y]):null]); }
+function boardTerrainKey(){ const b=B(),d=b.def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,b.phase==="explore"&&b.exploreSneak?d.blocks.map(o=>[o.x,o.y,o.kind]):null,b.phase==="explore"?b.info:null,b.phase==="explore"&&b.exploreSneak?b.units.filter(u=>u.id===b.info).map(u=>[u.x,u.y]):null]); }
 function updateBoardFloor(){
   const layer=document.getElementById("board-floor"); if(!layer) return;
   layer.innerHTML=boardFloorHTML();
@@ -151,7 +152,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   raised.forEach(({x,y})=>{
     things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
-  d.blocks.forEach(o=> things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:blockSVG(o)}));
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:`<g data-tile="${o.x},${o.y}">${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
@@ -480,6 +481,7 @@ function projSVG(pj, now){
 }
 
 function blockSVG(o){
+  if(o.kind==="trap"&&!o.found)return "";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
     `<polygon points="${cx},${cy-TH/2-h} ${cx+TW/2-8},${cy-h} ${cx},${cy+TH/2-h} ${cx-TW/2+8},${cy-h}" fill="${top}" stroke="#2a2630" stroke-width="2"/>
@@ -505,6 +507,10 @@ function blockSVG(o){
         <ellipse rx="3" ry="3.2" fill="#b0834f" stroke="#2a2630" stroke-width="1.5"/></g>
     </g>`;
   }
+  // 互動物件的手繪 SVG 暫定（GPT）；與既有場景一起排序。
+  if(o.kind==="chest")return `<g class="explore-chest">${box(o.opened?12:30,"#d2a459","#94633e","#744c32")}<path d="M${cx-4} ${cy-22} h8 v12 h-8Z" fill="${o.opened?"#777":"#e8c45b"}" stroke="#2a2630" stroke-width="2"/></g>`;
+  if(o.kind==="door"||o.kind==="doorOpen")return `<g class="explore-door" transform="translate(${cx} ${cy})"><path d="M-38 5 V-100 H38 V5" fill="none" stroke="#2a2630" stroke-width="7"/><path d="${o.kind==="door"?"M-32 0 V-95 H32 V0Z":"M-32 0 V-95 L-55 -80 V15Z"}" fill="#98714e" stroke="#2a2630" stroke-width="3"/><circle cx="${o.kind==="door"?22:-47}" cy="-40" r="4" fill="#ebc965"/></g>`;
+  if(o.kind==="trap")return `<g class="explore-trap"><ellipse cx="${cx}" cy="${cy}" rx="30" ry="15" fill="${o.disarmed?"#aaa":"#cf7d58"}" stroke="#2a2630" stroke-width="3"/><path d="M${cx-22} ${cy} l8 -12 l8 12 l8 -12 l8 12" fill="none" stroke="#2a2630" stroke-width="3"/></g>`;
   if(o.kind==="crate") return box(24, "#c49a62", "#9a6a3e", "#7a5230");
   if(o.kind==="tree") return `<g class="tree" transform="translate(${cx} ${cy}) scale(${TREE_K}) translate(${-cx} ${-cy})">
     <ellipse cx="${cx}" cy="${cy+2}" rx="30" ry="13" fill="#000" opacity=".22"/>
@@ -1220,7 +1226,7 @@ function battleInterfaceHTML(){
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>`,
     order: `<div class="order">${order}</div>`,
-    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?EXPLORE_UI.found:EXPLORE_UI.hint}</b></div>`:hud,
+    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}</b></div>`:hud,
     tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
     overlays: `${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`

@@ -125,6 +125,10 @@ const unitAt = (x,y) => B().units.find(u=>!u.dead && u.x===x && u.y===y);
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
+  chest: {name:"寶箱",solid:true,cover:.5},
+  door: {name:"門",solid:true,cover:.75},
+  doorOpen: {name:"門",solid:false},
+  trap: {name:"陷阱",solid:false},
   wagon: {name:"馬車", solid:true,  cover:.75},
   crate: {name:"箱子", solid:true,  cover:.5},
   tree:  {name:"樹",   solid:true,  cover:.75},
@@ -153,7 +157,7 @@ const stepCost = (fx,fy,x,y) => moveCost(x,y) + climbCost(fx,fy,x,y);
 // 攻擊者自己的同伴不會擋。取經過的東西裡最好的掩護。回傳 {v:0|.5|.75, by:"箱子"...}
 //   高度（2026-10-01）：線從攻擊者出手的高度（站的層 + .8）直直連到目標身體中間（層 + .5）。
 //   經過的格子，東西的頂端比線在那裡的高度還低，線就從上面過去、不算掩護；地面本身比線高（斷層）就是四分之三掩護
-const COVER_TOP = {wagon:1.5, crate:1, tree:3};   // 地形物件高出地面幾層；角色算 1 層
+const COVER_TOP = {wagon:1.5, crate:1, chest:1, door:3, tree:3};   // 地形物件高出地面幾層；角色算 1 層
 function coverOf(a, t){
   const n = Math.max(1, dist(a,t)) * 6, seen = new Set();
   const za = hAt(a.x,a.y) + .8, zt = hAt(t.x,t.y) + .5;

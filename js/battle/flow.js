@@ -133,7 +133,7 @@ function walk(u, path, done){
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(pickUp(u)){ b.pickedUp = true; }
-    if(b.phase==="explore"){checkExposure();exploreDetect();}
+    if(b.phase==="explore"){checkExposure();exploreTraps(u);exploreDetect();}
     else {checkGuards(u, prev);checkExposure();}
     refreshBattle();
     later(step, 140);

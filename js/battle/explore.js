@@ -5,7 +5,7 @@ const exploreUnit=()=>B().units.find(u=>u.id===(B().exploreSolo||B().leader))||e
 function beginExplore(){
  const b=B();b.phase="explore";b.leader=b.leader||"fox";b.exploreSolo=null;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
  b.turn=b.units.findIndex(u=>u.id===b.leader);b.busy=false;b.mode=null;b.moveMode=false;b.menu=null;b.tut=-1;b.result=null;b.round=0;
- exploreDetect();refreshBattle();
+ exploreTraps();exploreDetect();refreshBattle();
 }
 function exploreSelect(id){const b=B();if(b.busy||b.exploreStopped)return;const p=exploreParty().find(u=>u.id===id);if(!p)return;b.exploreSolo=id;b.turn=b.units.indexOf(p);b.info=null;refreshBattle();}
 function exploreGather(){const b=B();if(b.busy||b.exploreStopped)return;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);refreshBattle();}
@@ -31,28 +31,59 @@ function exploreDetect(){
  if(b.exploreStopped)b.busy=false;
 }
 function explorePath(u,x,y){return reachable(u,10000).get(`${x},${y}`);}
-function exploreMove(x,y){
+function exploreMove(x,y,done){
  const b=B(),u=exploreUnit();if(b.busy||b.exploreStopped||!u||blocked(x,y))return;
  const path=explorePath(u,x,y);if(!path){blog(EXPLORE_UI.noPath);refreshBattle();return;}
+ const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1;
  b.busy=true;b.info=null;b.exploreSteps=0;b.exploreGoal={x,y,id:u.id};
  const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);let i=0;
  function step(){
-  if(B()!==b||!exploring())return;
-  if(b.exploreStopped||(u.x===x&&u.y===y)){b.busy=false;b.exploreGoal=null;refreshBattle();return;}
+  if(B()!==b||!exploring()||b.exploreMoveId!==moveId)return;
+  if(b.exploreStopped||(u.x===x&&u.y===y)){b.busy=false;b.exploreGoal=null;refreshBattle();if(!b.exploreStopped&&u.x===x&&u.y===y)done?.();return;}
   const next=explorePath(u,x,y);if(!next?.length){b.busy=false;b.exploreGoal=null;blog(EXPLORE_UI.blocked);refreshBattle();return;}
   const old=[{x:u.x,y:u.y},...followers.map(p=>({x:p.x,y:p.y}))],p=next[0];i++;
   // 隱藏單位不洩漏到尋路；實際接觸時不能重疊，停在上一格。
   const occupied=unitAt(p.x,p.y);if(occupied&&occupied!==u){b.busy=false;blog(EXPLORE_UI.blocked);refreshBattle();return;}
   walk(u,[p],()=>{
+   if(b.exploreMoveId!==moveId)return;
    if(b.exploreStopped){b.busy=false;refreshBattle();return;}
-   let n=0;function follow(){if(b.exploreStopped||n>=followers.length){b.exploreSteps++;if(!touches.size&&!onScreen(u))centerCam(u.x,u.y-1,true);refreshBattle();later(step,140);return;}
+   let n=0;function follow(){if(b.exploreMoveId!==moveId)return;if(b.exploreStopped||n>=followers.length){b.exploreSteps++;if(!touches.size&&!onScreen(u))centerCam(u.x,u.y-1,true);refreshBattle();later(step,140);return;}
     const f=followers[n],target=old[n++],fp=explorePath(f,target.x,target.y);if(fp?.length)walk(f,[fp[0]],follow);else follow();}
    follow();
   });
  }
  step();
 }
-function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;const t=unitAt(x,y);
+function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;const o=exploreObjectAt(x,y);if(o){exploreApproach(o);return;}const t=unitAt(x,y);
  if(t&&!foeHid(t)){b.info=b.info===t.id?null:t.id;refreshBattle();return;}exploreMove(x,y);
 }
-function exploreCmd(c){if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
+function exploreCmd(c){if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
+
+// 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
+const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed);
+function exploreApproach(o){
+ const b=B(),leader=b.units.find(u=>u.id===b.leader);if(!leader||leader.down||leader.dead)return;
+ b.exploreSolo=null;b.turn=b.units.indexOf(leader);b.exploreObject=null;
+ const open=()=>{if(B()===b&&!b.exploreStopped&&dist(leader,o)<=1){b.exploreObject=o;b.info=null;refreshBattle();}};
+ if(dist(leader,o)<=1){open();return;}
+ const paths=reachable(leader,10000),candidates=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const x=o.x+dx,y=o.y+dy,p=paths.get(`${x},${y}`);if(p&&!unitAt(x,y)&&!blocked(x,y))candidates.push({x,y,n:p.length});}
+ candidates.sort((a,b)=>a.n-b.n);const t=candidates[0];if(t)exploreMove(t.x,t.y,open);else{blog(EXPLORE_UI.noPath);refreshBattle();}
+}
+function exploreTraps(u){
+ const b=B();for(const o of b.def.blocks.filter(o=>o.kind==="trap"&&!o.disarmed)){
+  if(!o.found&&exploreParty().some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
+  if(u&&u.side==="pc"&&!u.down&&u.x===o.x&&u.y===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;blog(EXPLORE_ACTION_TEXT.trapHit);hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
+ }
+}
+function exploreInteract(action){
+ const b=B(),o=b.exploreObject,u=b.units.find(u=>u.id===b.leader);if(!exploring()||b.busy||b.exploreStopped||!o||!u||u.down||u.dead||dist(u,o)>1||!EXPLORE_OBJECTS[o.kind]?.actions.includes(action))return;
+ const text=EXPLORE_ACTION_TEXT;
+ if(action==="door"){if(o.kind==="doorOpen"&&unitAt(o.x,o.y)){blog(text.occupied);refreshBattle();return;}o.kind=o.kind==="door"?"doorOpen":"door";}
+ else if(action==="push"){const dx=Math.sign(o.x-u.x),dy=Math.sign(o.y-u.y),x=o.x+dx,y=o.y+dy;if(blocked(x,y)||unitAt(x,y)||b.def.blocks.some(q=>q!==o&&q.x===x&&q.y===y)){blog(text.blocked);refreshBattle();return;}o.x=x;o.y=y;b.exploreObject=null;}
+ else if(action==="search"){o.searched=true;blog(text.searched);if(o.opened){if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push({...it}));o.contents=[];syncBattleBag(u);}}}
+ else {if(o.kind==="chest"&&o.opened){blog(text.opened);refreshBattle();return;}
+ const rule=EXPLORE_CHECKS[action];if(rule.tool&&!hasGear([u.backpackEquip,...u.backpack],rule.tool)){blog(text.needTool);refreshBattle();return;}
+ const roll=d20(),value=roll+u.mods[rule.ability],ok=value>=rule.dc;blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${rule.dc}，${ok?"OK":text.failed}`);
+ if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);}}}
+ exploreTraps();exploreDetect();refreshBattle();
+}
