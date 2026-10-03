@@ -1029,3 +1029,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .inf-slots .sl-r{line-height:1.45;white-space:nowrap}
 .inf-slots em{font-style:normal;font-family:var(--font-disp);color:var(--fur);display:inline-block;min-width:2.2em}
 .inf-slots b{letter-spacing:1px;color:var(--honey)}.inf-slots i{font-style:normal;color:var(--dim)}
+
+/* 探索休息沿用原休息清單；手機寬度暫定（GPT）。 */
+.board-wrap .bt-bottom .bt-dock.dk-rest{width:min(340px,100%)}
+.dk-rest .rest-box{color:#292330}
+
+.dk-rest .mn-list{display:block}
+.dk-rest .mn-list>.mn-b{width:100%;margin-top:8px}

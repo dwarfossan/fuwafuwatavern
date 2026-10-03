@@ -42,9 +42,10 @@ function exploreWatchCells(){
 function exploreAlertSVG(v,x,y){const a=B().phase==="explore"&&B().exploreMarks?.[v.id];return a?`<g class="explore-alert" data-alert="${a}"><circle cx="${x}" cy="${y}" r="16" fill="${a===2?"#e35b52":"#e8c057"}" stroke="#292330" stroke-width="3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="24" font-weight="bold" fill="#292330">!</text></g>`:"";}
 function exploreDockHTML(){
  const b=B();if(b.exploreStopped)return dockWrap(exploreUnit(),b,"dk-pick",b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found,`<p>${EXPLORE_UI.stopped}</p>${b.exploreStopReason==="trap"?`<button class="mn-b" data-explore-cmd="resume">${EXPLORE_ACTION_TEXT.resume}</button>`:""}`);
+ if(b.exploreRest)return dockWrap(exploreUnit(),b,"dk-rest",EXPLORE_COMBAT.rest,restChoiceHTML(b)+`<button class="mn-b" data-explore-cmd="rest">${EXPLORE_ACTION_TEXT.close}</button>`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
  if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
- return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}`);
+ return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
@@ -156,7 +157,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
-  const shown = b.units.filter(v=>(!v.dead || now - v.deadAt < 900) && !foeHid(v));
+  const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v));
   shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(t.svg));
   // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
@@ -1169,7 +1170,7 @@ function battleInterfaceHTML(){
   const b = B();
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const u = cur();
-  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
+  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg></div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
@@ -1214,6 +1215,7 @@ function battleInterfaceHTML(){
   // 紀錄：指令列在最上層那一頁（或演出中）才出現；點進子選單、瞄準、移動、狀態卡打開時讓位，段數記著
   const deep = mine && !b.busy && (b.pendingMove || b.mode || b.moveMode || (b.menu && b.menu!=="root"));
   const logEl = b.result || deep || ov ? "" : b.logLv===2 ? logPanelHTML(b) : logStripHTML(b);
+  if(b.manualCombat&&mine&&!b.busy)dock+=dockWrap(u,b,"dk-pick",EXPLORE_COMBAT.return,`<button class="mn-b" data-explore-cmd="return">${EXPLORE_COMBAT.return}</button>`);
   const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine&&b.phase!=="explore"?resHTML(u,b):""}</div>${logEl}</div>`;
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {

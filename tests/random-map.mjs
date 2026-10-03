@@ -14,8 +14,8 @@ try{
  assert.notEqual(first,await pg.evaluate(()=>JSON.stringify(generateRandomBattle(124))));
  const maps=await pg.evaluate(()=>Array.from({length:50},(_,seed)=>generateRandomBattle(seed)));
  // 獨立 BFS，不用產生器自身的驗證當作測試結果。
- for(const d of maps){assert.equal(d.w,23);assert.equal(d.h,26);assert.equal(d.foes.length,4);assert(d.elev.some(e=>e.h===2));
-  const blocks=new Set(d.blocks.filter(q=>q.kind!=='bush').map(q=>`${q.x},${q.y}`));
+ for(const d of maps){assert.equal(d.w,23);assert.equal(d.h,26);assert.equal(d.foes.length,4);assert.deepEqual([0,1].map(s=>d.foes.filter(e=>e.squad===s).length),[2,2]);assert(d.elev.some(e=>e.h===2));
+  const blocks=new Set(d.blocks.filter(q=>['tree','wagon','crate','chest','door'].includes(q.kind)).map(q=>`${q.x},${q.y}`));
   const points=[...d.party,...d.foes.map(q=>[q.x,q.y])],seen=new Set([points[0].join(',')]),queue=[points[0]];
   assert.equal(new Set(points.map(p=>p.join(','))).size,8);
   for(let i=0;i<queue.length;i++){const [x,y]=queue[i];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
@@ -24,13 +24,15 @@ try{
  }
  assert(await pg.getByText('Seed 123',{exact:false}).isVisible());
  await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=-1;b.moveMode=false;render();centerCam(cur().x,cur().y);});
- await pg.locator('[data-cmd="move"]').click();
- await pg.locator('[data-cmd="walk"]').count().then(async n=>{if(n)await pg.locator('[data-cmd="walk"]').click();});
+ const tapButton=async loc=>{const r=await loc.boundingBox();assert(r);await pg.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);};
+ await tapButton(pg.locator('[data-cmd="move"]'));
+ await pg.locator('[data-cmd="walk"]').count().then(async n=>{if(n)await tapButton(pg.locator('[data-cmd="walk"]'));});
  // 真觸控點相鄰可達格，沿用遊戲移動；只恢復演出計時，不讓 AI 換回合。
+ assert.equal(await pg.evaluate(()=>document.querySelector('.board-wrap').scrollLeft),0,'手機觸控選單不會讓戰場容器額外橫捲');
  const dest=await pg.evaluate(()=>{window.setTimeout=window.__realTimeout;const b=B(),u=cur();for(const [k,pth] of reachable(u,b.moveLeft)){if(!pth.length)continue;const [x,y]=k.split(',').map(Number),p=iso(x,y),r=document.querySelector('.board-wrap').getBoundingClientRect(),z=camZoom(),cx=r.left+b.cam.x+p.x*z,cy=r.top+b.cam.y+(p.y+TH/2)*z,el=document.elementFromPoint(cx,cy);if(el?.closest('[data-tile]')?.dataset.tile===k)return {x,y,cx,cy};}return null;});
  assert(dest,'可點的可達格');await pg.touchscreen.tap(dest.cx,dest.cy);
  await pg.waitForFunction(p=>cur().x===p.x&&cur().y===p.y,dest);
- await pg.getByRole('button',{name:'確認',exact:true}).count().then(async n=>{if(n)await pg.getByRole('button',{name:'確認',exact:true}).click();});
+ await pg.getByRole('button',{name:'確認',exact:true}).count().then(async n=>{if(n)await tapButton(pg.getByRole('button',{name:'確認',exact:true}));});
  if(process.env.RANDOM_SCREENSHOT)await pg.screenshot({path:process.env.RANDOM_SCREENSHOT});
  await pg.reload();assert.equal(await pg.evaluate(()=>JSON.stringify(generateRandomBattle(B().def.seed))),first);
  await pg.goto(url+'#battle');assert.equal(await pg.evaluate(()=>B().id),'random');assert(Number.isInteger(await pg.evaluate(()=>B().def.seed)));

@@ -28,7 +28,8 @@ function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
   state.retriesLeft--;
   Object.entries(JSON.parse(JSON.stringify(s.data))).forEach(([k,v])=>{ state[k] = v; });
-  startBattle(s.id, true);
+  if(s.battle){state.battle=JSON.parse(JSON.stringify(s.battle));delete B().def._h;B().flowEpoch=(B().flowEpoch||0)+1;refreshBattle.keys=null;nextTurn();refreshBattle();}
+  else startBattle(s.id, true);
 }
 // 傳送回酒館：回到大地圖、站在酒館（代價還沒定，先不扣東西）
 function teleportHome(){
@@ -71,7 +72,7 @@ function startBattle(id, retry=false, phase="combat"){
     const e = ENEMIES[f.type], inv = (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean);
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
-      id:"foe"+i, side:"foe", type:f.type, name:e.name+"ABCD"[i], look:e.look,
+      id:"foe"+i, side:"foe", squad:f.squad, type:f.type, name:e.name+"ABCD"[i], look:e.look,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, mods:{...e.mods}, baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
@@ -120,8 +121,8 @@ function startBattle(id, retry=false, phase="combat"){
 const B = () => state.battle;
 // 戰鬥用計時器：排的時候記下是哪一場。時間到發現已經換了一場（重新挑戰）或戰鬥不在了（傳送回酒館）就不跑
 // （10-02：輸掉後馬上按重新挑戰，上一場排好的換回合跑進新的一場，第一隻被跳過）。js/battle/flow.js 的計時器都用這個
-function later(fn, ms){ const b = B(); return setTimeout(()=>{ if(b && B()===b) fn(); }, ms); }
-const unitAt = (x,y) => B().units.find(u=>!u.dead && u.x===x && u.y===y);
+function later(fn, ms){ const b=B(),epoch=b?.flowEpoch||0;return setTimeout(()=>{if(b&&B()===b&&(b.flowEpoch||0)===epoch)fn();},ms); }
+const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && u.x===x && u.y===y);
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
@@ -185,7 +186,8 @@ function flankMate(a, t){
 }
 // 站在草叢裡：遠程攻擊他有劣勢
 const hidden = t => !!(terrainAt(t.x,t.y)||{}).hide;
-const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead);
+const inCombat=u=>!u.fled&&(!B().explorationMap||B().phase!=="combat"||u.combatActive);
+const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead && inCombat(u));
 // ---------- 死亡豁免（大爺 10-02，SRD 5.2，選 B）----------
 // 倒下的四小隻每回合開始擲 d20：10 以上撐住（不會穩定下來，不救遲早被送走）、9 以下失敗一次、1 算兩次、20 自己醒來（1 血、倒地）
 // 失敗滿三次：卡姆的傳送魔法把她送回酒館，這場戰鬥少一隻；四隻都被送走＝輸（checkResult）
@@ -223,7 +225,7 @@ function deathSave(u){
 const HIDE_DC = 13;
 const isHid = u => !!has(u,"hidden");
 // 敵對：雙方陣營不同、而且都不是 NPC。NPC（商人等）站在戰場上但不屬於任何一方，不能被當成目標、也不會攻擊人
-const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc";
+const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc" && inCombat(a) && inCombat(b);
 const sideColor = v => v.side==="pc" ? v.color : v.side==="npc" ? "#c9b7a6" : "#e0766e";
 const foeHid = u => u.side==="foe" && isHid(u);                 // 玩家看不到的敵人
 const nameFor = u => foeHid(u) ? "？？？" : u.name;
@@ -767,7 +769,7 @@ function weaponAttack(a, t, o={}){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(a), a);
   }
   // 架開反擊：擺好架式的人被近戰打空，立刻反擊一次（反擊本身不會再觸發反擊）
-  if(!res.hit && !ranged && !o.counter && hasVia(t,"stance","parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){
+  if(!res.hit && !ranged && !o.counter && !t.surprised && hasVia(t,"stance","parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){
     blog(`　${t.name}架開攻擊，反擊！`, "skill");
     weaponAttack(t, a, {counter:true});
   }

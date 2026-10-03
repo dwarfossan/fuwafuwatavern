@@ -6,11 +6,12 @@ function nextTurn(){
   if(checkResult()) return;
   do {
     b.turn++;
-    if(b.turn >= b.units.length){ b.turn = 0; b.round++; }
-  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc");   // 倒下的四小隻照樣輪到：擲死亡豁免
+    if(b.turn >= b.units.length){b.turn=0;b.round++;exploreReinforcements();}
+  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 倒下的四小隻照樣輪到：擲死亡豁免
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
+  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;if(!checkResult())nextTurn();},1100);return;}
   // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
   if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
@@ -70,6 +71,8 @@ function endTurn(){
 function checkResult(){
   const b = B();
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
+  if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead)){b.result="lose";blog("四隻都被卡姆傳送回酒館了……","kill");refreshBattle();return true;}
+  if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){finishExploreCombat();return true;}return false;}
   if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
   return false;
@@ -142,7 +145,7 @@ function walk(u, path, done){
 }
 // ---------- 藉機攻擊 ----------
 // 能不能藉機攻擊：要有近戰手段（拿弓弩的不行），這輪還沒藉機攻擊過（敵我一樣）
-const canOA = h => !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
+const canOA = h => inCombat(h) && !h.surprised && !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
 function oaTriggers(u, next){
   if(has(u,"disengage") || isHid(u)) return [];
   const dragged = victimsOf(u);                     // 被拖著的人跟著走，不算被甩開
@@ -165,7 +168,7 @@ function opportunityAttack(h, u){
 // 躲著走的看不到，不會被阻截（跟藉機攻擊一樣）；途中挨過打，這次移動就不能取消
 function checkGuards(e, prev){
   if(isHid(e)) return;
-  B().units.filter(p=>hostile(p,e) && !p.down && !p.dead).forEach(p=>{
+  B().units.filter(p=>hostile(p,e) && !p.surprised && !p.down && !p.dead).forEach(p=>{
     const g = hasVia(p,"stance","guard");   // 架式（阻截）
     if(g && !e.down && !e.dead && dist(prev,p) > reachOf(p) && dist(e,p) <= reachOf(p)){
       blog(`${p.name}阻截走進範圍的${e.name}！`, "skill");
@@ -421,7 +424,7 @@ function learnFromLingling(student,key){
   blog(`${ok?"!":"?"} ${student.name}向玲玲學【${note.name}】：${ok?"理解了！":"沒學會"}`,ok?"skill":"miss"); return ok;
 }
 function takeRest(kind, selections={}){
-  const b=B(); if(!b || b.result!=="win")return false;
+  const b=B(); if(!b || (b.result!=="win" && b.phase!=="explore") || b.busy || b.exploreStopped)return false;
   if(kind==="short" && state.shortRestsUsed>=2)return false;
   b.units.filter(u=>u.side==="pc").forEach(u=>{
     transcribePending(u,selections[u.id]||[]);
