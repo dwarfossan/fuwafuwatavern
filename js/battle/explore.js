@@ -36,7 +36,7 @@ function exploreMove(x,y,done){
  const b=B(),u=exploreUnit();if(!exploring()||b.busy||b.exploreStopped||!u||u.down||u.dead||blocked(x,y))return;
  const path=explorePath(u,x,y);if(!path){blog(EXPLORE_UI.noPath);refreshBattle();return;}
  if(has(u,"paralyzed"))return;
- if(has(u,"prone")){u.statuses=u.statuses.filter(s=>s.k!=="prone");blog(`${u.name}爬起來。`);}
+ if(has(u,"prone")&&!hasVia(u,"prone","ground")){u.statuses=u.statuses.filter(s=>s.k!=="prone");blog(`${u.name}爬起來。`);}
  const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1;
  b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;b.exploreGoal={x,y,id:u.id};
  const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);let i=0;

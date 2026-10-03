@@ -752,6 +752,12 @@ function statusExplain(v,s){
     case "fireShield": t = `近戰打中他的敵人受 ${1+(s.n||0)}d6 火焰傷害，整場戰鬥。`; break;
     default: t = STATUS_DESC[s.k] || "目前作用中的戰鬥狀態。";
   }
+  if(s.via==="ground"&&GROUND_STATUS_RULES[s.k]){
+    if(s.k==="prone")t="倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢；移動減半。";
+    if(s.k==="paralyzed")t="整個回合不能行動。";
+    const rule=GROUND_STATUS_RULES[s.k],name=ABILITIES.find(a=>a.k===rule.stat).n;
+    t+=` 地面造成；回合結束${name}豁免 DC ${s.dc??rule.dc}，成功解除，失敗持續。探索每 6 秒結算一次。`;
+  }
   if(s.k==="poisoned")t += ` 解毒體質豁免 DC ${s.dc??13}。`;
   const n = stTurns(s);
   if(n!=null) t += (s.k==="bleed"||s.k==="poisoned") ? ` 剩 ${n} 次。` : ` 剩餘 ${n} 回合。`;

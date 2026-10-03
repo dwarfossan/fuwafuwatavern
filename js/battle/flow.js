@@ -11,11 +11,11 @@ function nextTurn(){
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
-  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;poisonSave(u);if(!checkResult())nextTurn();},1100);return;}
+  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
   // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
-  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ poisonSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
+  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
-  if(u.dead || u.down){ refreshBattle(); later(()=>{ poisonSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
+  if(u.dead || u.down){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
   if(B().skipTurn){ B().busy = true; refreshBattle(); later(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
@@ -34,7 +34,7 @@ function beginTurn(u){
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
   b.dazed = !!has(u,"dazed");
   let mv = u.speed;
-  if(has(u,"prone")){ mv = Math.floor(mv/2); u.statuses = u.statuses.filter(s=>s.k!=="prone"); u.anim = {k:"getup", t:Date.now()}; sfx("swing"); blog(`${u.name}從地上爬起來（移動減半）`); }
+  if(has(u,"prone")){ mv = Math.floor(mv/2); u.statuses = u.statuses.filter(s=>s.k!=="prone"||s.via==="ground"); if(!hasVia(u,"prone","ground")){u.anim = {k:"getup", t:Date.now()}; sfx("swing"); blog(`${u.name}從地上爬起來（移動減半）`);} }
   // 緩速（含釘住）：同名不疊加，取扣最多的（扎腿升階多扣）；釘住那種＝移動歸零
   { const sl = u.statuses.filter(s=>s.k==="slowed");
     if(sl.length) mv = sl.some(s=>s.stop) ? 0 : Math.max(0, mv - Math.max(...sl.map(s=>2 + (s.n||0)))); }
@@ -47,9 +47,9 @@ function beginTurn(u){
     bl.n--; if(bl.n<=0) u.statuses = u.statuses.filter(s=>s!==bl); }
   // 毒沼仍是來源；傷害與解毒沿用同一套中毒規則。
   groundPoison(u);poisonDamage(u);
-  // 麻痺：這一回合整個跳過（只有一回合）
+  // 麻痺：整個回合跳過；非地面來源照原期限，地面來源結束豁免
   b.skipTurn = !u.down && !u.dead && !!has(u,"paralyzed");
-  if(b.skipTurn){ u.statuses = u.statuses.filter(s=>s.k!=="paralyzed"); }
+  if(b.skipTurn){ u.statuses = u.statuses.filter(s=>s.k!=="paralyzed"||s.via==="ground"); }
   b.moveLeft = mv; b.baseMove = mv;
   if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
@@ -61,7 +61,7 @@ function endTurn(){
   if(!b || b.result) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
   const u = cur();
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
-  poisonSave(u);
+  groundStatusSave(u);
   expire("end", u.id);
   b.mode = null;
   if(b.tut===2) b.tut = 3; else if(b.tut===3) b.tut = 4;

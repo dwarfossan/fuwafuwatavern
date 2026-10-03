@@ -17,14 +17,33 @@ function groundStopMove(u){
  const b=B();if(u===cur())b.moveRolled=true;
  if(b.phase==='explore'){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;}
 }
-function groundPoison(u){const o=B().def.blocks.find(o=>o.x===u.x&&o.y===u.y&&o.kind==='poisonSwamp');if(!o||u.dead)return false;if(!has(u,'poisoned')){addStatus(u,'poisoned',{via:'ground',dc:o.dc??13});blog(`${u.name}踏進毒沼，中毒了！`,'skill');}return true;}
+// 地面狀態共用進入／解除豁免，地面本身的秒／輪期限不受影響。
+const GROUND_STATUS_RULES={burning:{stat:'DEX',dc:13},paralyzed:{stat:'CON',dc:13},prone:{stat:'DEX',dc:13},poisoned:{stat:'CON',dc:13}};
+function groundStatusRoll(u,k,dc){const r=GROUND_STATUS_RULES[k];panelStart(`${u.name}【${STATUS_NAME[k]}豁免】`);const ok=saveRoll(u,r.stat,dc);panelEnd();return ok;}
+function groundAfflict(u,k,dc=GROUND_STATUS_RULES[k].dc){
+ if(u.dead||has(u,k))return false;
+ if(groundStatusRoll(u,k,dc))return false;
+ if(k==='prone'){knockProne(u);Object.assign(has(u,k),{via:'ground',dc});}
+ else addStatus(u,k,{via:'ground',dc});
+ blog(`${u.name}地面豁免失敗，${STATUS_NAME[k]}！`,'skill');return true;
+}
+function groundStatusSave(u){
+ let attempted=poisonSave(u);if(u.dead)return attempted;
+ for(const s of [...u.statuses])if(s.via==='ground'&&s.k!=='poisoned'&&GROUND_STATUS_RULES[s.k]){
+  attempted=true;if(groundStatusRoll(u,s.k,s.dc??GROUND_STATUS_RULES[s.k].dc)){
+   u.statuses=u.statuses.filter(x=>x!==s);blog(`${u.name}豁免成功，解除${STATUS_NAME[s.k]}。`,'skill');
+  }
+ }
+ return attempted;
+}
+function groundPoison(u){const o=B().def.blocks.find(o=>o.x===u.x&&o.y===u.y&&o.kind==='poisonSwamp');return o?groundAfflict(u,'poisoned',o.dc??13):false;}
 function groundEnter(u,move={}){
  groundPoison(u);
  const b=B(),fx=groundAt(u.x,u.y);if(!fx)return true;
- if(fx.kind==='fire')addStatus(u,'burning',{});
- if(fx.kind==='charged'){addStatus(u,'paralyzed',{via:'ground'});u.groundLock=6000;groundStopMove(u);blog(`${u.name}踩入帶電水面，麻痺！`,'skill');return false;}
+ if(fx.kind==='fire')groundAfflict(u,'burning');
+ if(fx.kind==='charged'){groundAfflict(u,'paralyzed');if(has(u,'paralyzed')){groundStopMove(u);return false;}}
  if(b.phase==='explore'){b.exploreIceTried ||= {};move.iceTried ||= !!b.exploreIceTried[u.id];}
- if(fx.kind==='ice'&&!move.iceTried){move.iceTried=true;if(b.phase==='explore')b.exploreIceTried[u.id]=true;panelStart(`${u.name}【冰面】`);const ok=saveRoll(u,'DEX',GROUND_RULES.ice.dc);panelEnd();if(!ok){knockProne(u);groundStopMove(u);blog(`${u.name}滑倒，停止這次移動。`,'skill');return false;}}
+ if(fx.kind==='ice'&&!move.iceTried){move.iceTried=true;if(b.phase==='explore')b.exploreIceTried[u.id]=true;if(groundAfflict(u,'prone',GROUND_RULES.ice.dc)){groundStopMove(u);blog(`${u.name}滑倒，停止這次移動。`,'skill');return false;}}
  return true;
 }
 function groundAdvance(ms,combat=false){
@@ -34,9 +53,12 @@ function groundAdvance(ms,combat=false){
  if(combat)for(const f of existing)if(f.kind==='fire')for(const o of b.def.blocks)if(o.kind==='bush'&&Math.max(Math.abs(o.x-f.x),Math.abs(o.y-f.y))===1&&!groundAt(o.x,o.y))spread.push(o);
  for(const f of existing){f.left-=ms;if(f.left<=0){delete b.groundEffects[`${f.x},${f.y}`];changed=true;}}
  if(!combat){
-  for(const u of b.units){if(u.groundLock>0){u.groundLock-=ms;if(u.groundLock<=0){u.statuses=u.statuses.filter(s=>!(s.k==='paralyzed'&&s.via==='ground'));changed=true;}}}
   b.groundPulse=(b.groundPulse||0)+ms;
-  while(b.groundPulse>=6000){b.groundPulse-=6000;for(const u of b.units)if(!u.dead){groundPoison(u);if(poisonDamage(u)){poisonSave(u);changed=true;}}for(const u of b.units)if(!u.dead&&!u.down&&has(u,'burning')){hurt(u,rollDice('1d4').total,'火焰',null);changed=true;}
+  while(b.groundPulse>=6000){b.groundPulse-=6000;for(const u of b.units)if(!u.dead){
+   groundPoison(u);if(poisonDamage(u))changed=true;
+   if(!u.dead&&!u.down&&has(u,'burning')){hurt(u,rollDice('1d4').total,'火焰',null);changed=true;}
+   if(groundStatusSave(u))changed=true;
+  }
    // 探索的六秒也算一次地面蔓延；沒有角色回合或行動次數。
    for(const f of Object.values(b.groundEffects||{}))if(f.kind==='fire')for(const o of b.def.blocks)if(o.kind==='bush'&&Math.max(Math.abs(o.x-f.x),Math.abs(o.y-f.y))===1&&!groundAt(o.x,o.y))spread.push(o);
   }

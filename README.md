@@ -68,6 +68,7 @@ node tests/enemy-traps.mjs # 少量敵人佈陷阱、花動作、發現拆除、
 node tests/damage-types.mjs # 力場／光耀原名、傷害與抗性隔離、手機紀錄
 node tests/hidden-ground.mjs # 隱藏油感知、範圍與遮擋、敵人獨立知識、手機搜索
 node tests/poison.mjs       # 中毒傷害、體質解毒、毒沼來源、秒／回合、手機狀態卡
+node tests/ground-saves.mjs # 地面進入與解除豁免、持續失敗、來源隔離、手機麻痺／恢復
 node tests/ground.mjs       # 地面反應、冰面、蒸氣、已知危險、秒／輪計時與手機施法
 node tests/elements.mjs     # 冷電法器、戲法傷害與到期、手機瞄準施放
 node tests/unit-scores.mjs # 敵我完整六圍、13門檻、怪物被動資料與手機狀態卡
