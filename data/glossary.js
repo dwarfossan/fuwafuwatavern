@@ -55,15 +55,13 @@ const PAGE_UI = {
   }
 };
 
-// 關於／授權（10-04）：SRD 5.1、5.2 的 CC-BY 4.0 出處標示，玩家在遊戲裡看得到。英文是官方原句，不要改字（見 docs/授權與安全.md）
+// 關於／授權（10-04）：大爺 10-04 要短，只說部分用 AI、規則來自 SRD。
+// 畫面上不能寫 D&D（商標，見 docs/授權與安全.md）；下面兩句英文是 CC-BY 要求的出處標示，官方原句不要改字、不能拿掉
 const ABOUT = {
   title:"關於／授權",
-  intro:"《毛絨絨小隊》的規則以 SRD 為底，為了好玩改了一些。角色、世界觀、地圖、劇情、美術都是原創。",
-  ai:{title:"AI 使用說明", text:"本作在開發過程中使用 AI 工具協助製作，包括程式、美術與部分文字。所有內容都由開發者審閱、修改並決定是否採用。"},   // 大爺 10-04 要求標明；文字暫定（香香）
+  intro:"本作部分內容使用 AI 製作；規則取自 SRD 5.2、5.1。",
   srd:[
-    {name:"SRD 5.2", en:'This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.',
-     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.2（「SRD 5.2」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"},
-    {name:"SRD 5.1", en:'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.',
-     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.1（「SRD 5.1」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"}
+    {name:"SRD 5.2", en:'This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.'},
+    {name:"SRD 5.1", en:'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.'}
   ]
 };

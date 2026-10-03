@@ -6,7 +6,7 @@ const check=async()=>{
   const t=await pg.locator('.modal .about').innerText();
   assert(t.includes('This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd.'),'5.2 原句');
   assert(t.includes('This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document.'),'5.1 原句');
-  assert(t.includes('AI 使用說明')&&t.includes('使用 AI 工具協助製作'),'有標明使用 AI');
+  assert(t.includes('部分內容使用 AI 製作'),'有標明使用 AI');assert(!/D&D|Dungeons & Dragons|龍與地下城/i.test(t),'畫面不寫 D&D 商標');
   assert.equal((t.match(/Creative Commons Attribution 4\.0 International License/g)||[]).length,2);
   assert.equal(await pg.locator('.modal .about a[href="https://creativecommons.org/licenses/by/4.0/legalcode"]').count(),2,'授權網址可點、句點不算進網址');
   const box=await pg.locator('.modal').boundingBox();assert(box.x>=0&&box.x+box.width<=390,'手機不出界');
