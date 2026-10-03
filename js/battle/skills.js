@@ -49,8 +49,8 @@ function focusStrikeSkill(g){
 function focusCantripSkill(g){
   const sacred=g.id==="healing_book";
   const def=sacred
-    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,req:"focus",srd:true,basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
-    : {name:"火焰箭",kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
+    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
+    : {name:"火焰箭",kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : {target:"enemy",range:()=>24,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit)hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);}};

@@ -111,7 +111,7 @@ const SKILL_GROUPS = [
     {id:"shield_guard", name:"守護", kind:"輔助", req:"shield", tier:1,   free:true, up:"每高一階多 1 輪。", text:"免費動作：直到你下回合開始，所有貼身的隊友被打的第一次攻擊有劣勢（你要還在他旁邊）。"}]},
 
   // 法器：法杖／法書／法球三種，每件法器綁定一組法術（法杖另外能敲人），以法術主題命名
-  //       施法屬性：法杖＝智力、法書＝感知、法球＝魅力
+  //       施法屬性：每件固定隨機 INT／WIS／CHA
   {id:"arcane_staff", name:"奧術法杖", stat:"智力",
    weapons:["奧術法杖"],
    skills:[
@@ -148,6 +148,19 @@ const SKILL_GROUPS = [
    skills:[
     {id:"hunters_mark", name:"狩印", kind:"輔助", dmg:"", tier:1, srd:true, free:true, conc:true, noUp:true, text:"免費動作、專注：標記 18 格內一個看得到的敵人，你的攻擊打中他時多 1d6 力場傷害（爆擊加倍）。他倒下後，可以免費把印記改標到下一個敵人。"}]}
 ];
+// 聲勢材：對照 SRD 5.2.1 各法術；火焰護盾沿用本作效果，只借成分。
+const SPELL_COMPONENTS = {
+  "魔法飛彈":{v:true,s:true},"護盾術":{v:true,s:true},
+  "法師護甲":{v:true,s:true,m:{name:"鞣製皮革"}},
+  "治癒真言":{v:true},"治療傷口":{v:true,s:true},
+  "祝福術":{v:true,s:true,m:{name:"聖徽",cost:5*GP}},
+  "火焰箭":{v:true,s:true},"聖火術":{v:true,s:true},
+  "燃燒之手":{v:true,s:true},"火焰護盾":{v:true,s:true,m:{name:"磷或螢火蟲"}},
+  "災禍術":{v:true,s:true,m:{name:"一滴血"}},"狩印":{v:true}
+};
+SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>{if(SPELL_COMPONENTS[s.name])s.components=SPELL_COMPONENTS[s.name];}));
+const componentsText = c => c ? [c.v?"聲":"",c.s?"勢":"",c.m?`材（${c.m.name}${c.m.cost?`，至少 ${c.m.cost/GP} gp`:""}${c.m.consumed?"，消耗":""}）`:""].filter(Boolean).join("、") : "—";
+
 // 技能類型標籤：判定方式・傷害，例如「近戰・物理」「遠程・法術」「豁免・火焰」；輔助、不造成傷害的只寫前半
 const FOCUS_GROUPS = ["arcane_staff", "healing_book", "flame_orb", "shaman_totem"];
 const skillDmg = (g, s) => s.kind==="輔助" ? "" : s.dmg !== undefined ? s.dmg : FOCUS_GROUPS.includes(g.id) ? "法術" : "物理";

@@ -347,7 +347,24 @@ function reqOne(u, r){
     default:return true;
   }
 }
-const skillCanUse = (u, sk) => skillReqMet(u, sk) && hasAmmoFor(u) && (sk.def.free ? canFree() : canAct());
+// 施法手與持武器攻擊不同：雙手武器暫時以一手持住時，另一手可做勢。
+const castHandFree = u => ((u.weapon?1:0)+(u.focus?1:0)+(u.shield?1:0)+(u.offhand2?1:0)) < 2;
+function componentProblem(u, sk){
+  const c=sk.def.components;if(!c)return "";
+  if(c.v && (u.silenced || u.gagged))return "無法發聲";
+  const focus=[u.weapon,u.focus].find(it=>it?.type==="focus"),free=castHandFree(u);
+  const material=c.m,ordinary=material&&!material.cost&&!material.consumed;
+  if(c.s && !free && !(ordinary&&focus))return "需要空出一隻手";
+  if(material){
+    const bag=[u.backpackEquip,...(u.backpack||[])].filter(Boolean);
+    if(ordinary&&focus)return "";
+    if(!free)return "需要空手取用材料";
+    if(ordinary&&hasGear(bag,"材料包"))return "";
+    if(!hasGear(bag,material.name))return `缺少${material.name}`;
+  }
+  return "";
+}
+const skillCanUse = (u, sk) => skillReqMet(u, sk) && !componentProblem(u,sk) && hasAmmoFor(u) && (sk.def.free ? canFree() : canAct());
 const canWalk = () => { const b = B(); return b.moveLeft > 0 && !(b.dazed && b.actionUsed); };
 function useAction(u){ const b = B(); b.actionUsed = true; if(b.dazed) b.moveLeft = 0; if(u.side==="pc" && b.tut>=0 && b.tut<2) b.tut = 2; }
 // ---------- 被動觀察／學習 ----------
@@ -690,6 +707,8 @@ function skillAnimBase(u, sk, t){
 }
 function doSkill(u, sk, t){
   const b = B();
+  const problem=componentProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
+  if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
   if(u.side==="foe" && !sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))) observedSkill(u,sk.key,sk.def.name,false);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
@@ -828,7 +847,7 @@ function aiTurn(e){
   // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
   if(!e.testSkillUsed && e.testSkill){
     const sk=learnedSkillByKey(e.testSkill);
-    if(sk && sk.impl && skillReqMet(e,sk) && skillReady(e,sk)){
+    if(sk && sk.impl && skillReqMet(e,sk) && !componentProblem(e,sk) && skillReady(e,sk)){
       let t=null;
       if(sk.impl.target==="self") t=e;
       else if(sk.impl.target==="enemy"){

@@ -11,8 +11,8 @@ const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 const reqSrc = read('js/battle/flow.js').match(/const REQ_TEXT = \{[\s\S]*?\n\};/)[0];
 const ctx = vm.createContext({});
 vm.runInContext([read('data/items.js'), read('data/skills.js'), reqSrc,
-  'globalThis.__out = {SKILL_GROUPS, REQ_TEXT, skillType, basicNames, HAS_BASIC, ITEMS};'].join('\n;\n'), ctx);
-const {SKILL_GROUPS, REQ_TEXT, skillType, basicNames, HAS_BASIC} = ctx.__out;
+  'globalThis.__out = {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC, ITEMS};'].join('\n;\n'), ctx);
+const {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC} = ctx.__out;
 
 const TIER = ["不用格子","一階","二階","三階","四階","五階","六階","七階","八階","九階"];
 const reqText = r => !r ? "—" : (Array.isArray(r) ? r : [r]).map(x=>REQ_TEXT[x]||x).join("或");
@@ -44,11 +44,11 @@ let n = 0;
 for(const g of SKILL_GROUPS){
   out.push(`## ${g.name}\n`);
   out.push(`${g.id==="shield" ? "裝備" : "武器"}：${g.weapons.length ? g.weapons.join("、") : "（沒拿武器）"}｜屬性：${g.stat}\n`);
-  out.push(`| 技能 | 類型 | 熟練格 | 施展條件 | 效果 | 升階 |\n|---|---|---|---|---|---|`);
+  out.push(`| 技能 | 類型 | 熟練格 | 施展條件 | 聲勢材 | 效果 | 升階 |\n|---|---|---|---|---|---|---|`);
   g.skills.forEach((s, i)=>{
     const name = i===0 && HAS_BASIC(g) && !s.tier && s.kind!=="輔助" ? basicNames(g) : s.name;   // 基本攻擊照武器取名（盾牌第一招不是攻擊）
     const cost = TIER[s.tier||0] + (s.free ? "・免費動作" : "");
-    out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(s.text)} | ${cell(upText(s))} |`);
+    out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(componentsText(s.components))} | ${cell(s.text)} | ${cell(upText(s))} |`);
     n++;
   });
   out.push("");

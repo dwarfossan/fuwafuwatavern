@@ -790,6 +790,7 @@ const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}
 // 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
 function skillTag(u, sk){
   if(sk.impl && sk.impl.passive) return "自動";
+  if(componentProblem(u,sk))return componentProblem(u,sk);
   if(!skillReady(u, sk)) return "格子用完";
   return sk.def.free ? (B() && u===cur() && !freeLeft() ? "用動作" : "免費動作") : "";
 }

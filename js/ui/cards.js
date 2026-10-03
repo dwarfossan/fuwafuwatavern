@@ -82,6 +82,7 @@ function skillCardHTML(groupId, idx, item, unit){
     ["距離", im && im.passive ? "—" : range],
     ["屬性", skillStatText(g, item)]
   ];
+  if(s.components)rows.push(["聲勢材",componentsText(s.components)]);
   if(s.req) rows.push(["施展條件", reqText(s.req)]);
   if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; rows.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
   if(s.tier) rows.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);

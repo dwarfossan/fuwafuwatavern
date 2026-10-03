@@ -97,14 +97,19 @@ try{
    out.pcs=b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).length;   // 出手前算：火焰箭可能把目標打倒
    // 潛行比較發生在命中／傷害前；火焰箭可能打倒最高感知者，預期值不能在傷害後才算。
    out.best=Math.max(...b.units.filter(v=>v.side==='pc'&&!v.dead&&!v.down).map(passivePer));
-   const bolt=foeUsable(sh).find(s=>s.def.name==='火焰箭'); b.marks=[]; doSkill(sh,bolt,t);
+   const bolt=foeUsable(sh).find(s=>s.def.name==='火焰箭'),oldWeapon=sh.weapon; sh.weapon=ITEMS.find(i=>i.n==='短弓');
+   const shot={key:'bow_fixture',group:groupOf(sh.weapon),def:{name:'射擊',kind:'遠程',tier:0,basicAttack:true},impl:basicAttack};
+   b.marks=[]; doSkill(sh,shot,t); sh.weapon=oldWeapon;
    out.rows=b.panel.rows.slice(0,2).map(r=>`${r.tname}:${r.rolls[0]}→${r.total}:${r.res}${r.vs?`|${r.vs.n}:${r.vs.res}`:''}`);
    out.marks=b.marks.filter(m=>m.kind==='sneak').length;
    out.revealed=!foeHid(sh);
+   sh.statuses.push({k:'hidden',val:19,roll:17});b.marks=[];const voiceTarget=b.units.find(v=>v.side==='pc'&&!v.down&&!v.dead);doSkill(sh,bolt,voiceTarget);
+   out.voice={revealed:!foeHid(sh),noSneak:!b.panel.rows.some(r=>r.res==='hide'),noMarks:!b.marks.some(m=>m.kind==='sneak'),log:b.log.some(l=>l.t.includes('詠唱，現身了'))};
    // 察覺成功：面板「X【察覺】」、頭上 !
    sh.statuses=sh.statuses.filter(s=>s.k!=='hidden'); sh.statuses.push({k:'hidden',val:5,roll:3}); sh.x=u.x+1; sh.y=u.y; b.marks=[];
    perceive(u); out.spotLabel=b.panel.label; out.spotRows=b.panel.rows.map(r=>`${r.tname}:${r.res}${r.vs?`|${r.vs.name}:${r.vs.res}`:''}`).join(','); out.uname=u.name; out.spotMark=b.marks.some(m=>m.id===u.id&&m.kind==='ok');
    return out; });
+ assert(v2.voice.revealed&&v2.voice.noSneak&&v2.voice.noMarks&&v2.voice.log);ok('有聲法術：詠唱先現身，不冒充無聲潛行出手');
  assert.equal(v2.ord,v2.need);ok('先攻列沒有躲著的敵人（拿掉 ???）');
  assert.equal(v2.rows[0],`潛行:17→19:hide|${v2.best}:fail`);assert.doesNotMatch(v2.rows[1]||'',/^潛行|^被動/);assert.equal(v2.marks,v2.pcs);assert(v2.revealed);
  ok(`從藏身處出手：面板第一列攤潛行 17→19 對被動感知（同一列），下一列就是出手，四小隻頭上都跳 ?（${v2.rows.join(' / ')}）`);
