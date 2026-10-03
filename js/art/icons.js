@@ -1,4 +1,4 @@
-/* 基礎裝備圖示（14 種＋10-03 火槍、手槍）（手繪風：黑框、平塗、一點亮面）
+/* 基礎裝備圖示（14 種＋10-03 火槍、手槍）（手繪風：黑框、平塗、一點亮面；10-03精簡外觀暫定GPT）
    ITEM_ART：圖示用（長兵器轉斜）；ITEM_RAW：拿在紙娃娃手上用（直立、未旋轉）
    畫布 120×120 */
 const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
@@ -10,9 +10,14 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
   const c  = (x,y,r,f,w=SW) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${INK}" stroke-width="${w}"/>`;
   // 長兵器：縮到 80% 再轉斜，才不會被邊框切掉
   const rot = (inner,a=-45,k=.8) => `<g transform="translate(60 60) scale(${k}) translate(-60 -60) rotate(${a} 60 60)">${inner}</g>`;
-  const grip = (y1,y2,w=6) => p(`M${60-w} ${y1} L${60+w} ${y1} L${60+w} ${y2} L${60-w} ${y2} Z`, LEATHER) + ln(`M${60-w} ${y1+8} L${60+w} ${y1+12} M${60-w} ${y1+18} L${60+w} ${y1+22}`, "#4a3020", 2.5);
+  const grip = (y1,y2,w=6) => p(`M${60-w} ${y1} L${60+w} ${y1} L${60+w} ${y2} L${60-w} ${y2} Z`, LEATHER) + ln(`M${60-w} ${(y1+y2)/2} L${60+w} ${(y1+y2)/2+3}`, "#4a3020", 3);
   const haft = (y1,y2,w=7) => p(`M${60-w} ${y1} L${60+w} ${y1} L${60+w} ${y2} L${60-w} ${y2} Z`, WOOD) + ln(`M${60-w+3} ${y1+6} L${60-w+3} ${y2-6}`, WOOD_DK, 2);
   const ART = {
+    // 哥布林常用的木棒／彎刀：敵我共用，純外觀
+    club: rot(RAW.club = p("M52 44Q42 28 46 5Q48 -8 61 -8Q78 -8 78 8L70 44L66 132L54 132Z",WOOD)
+      + ln("M53 8L52 30M62 59L61 111",WOOD_DK,4),-35),
+    scimitar: rot(RAW.scimitar = p("M50 82Q39 26 81 -25Q71 23 68 81Z",STEEL)
+      + ln("M59 69Q55 29 73 0",STEEL_HI,4)+p("M34 81L84 81L81 92L37 92Z",GOLD)+grip(93,122)+c(60,130,7,GOLD),-35),
     // 劍類：細長直劍、十字護手
     sword: rot(RAW.sword =
       p("M52 -14 L60 -30 L68 -14 L68 82 L52 82 Z", STEEL) + ln("M60 -18 L60 78", STEEL_SH, 2.5) + ln("M56 -12 L56 76", STEEL_HI, 3)
@@ -100,40 +105,36 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
       ${ln("M30 52 L90 52 M44 70 L44 96 M76 70 L76 96", "#d1a66f", 3)}
       ${p("M55 48 L65 48 L65 58 L55 58 Z", GOLD, 3)}
     </g>`,
-    // 盾牌：鳶形盾
-    shield: RAW.shield = `<g>
-      ${p("M60 6 L104 20 Q104 80 60 114 Q16 80 16 20 Z", "#40669a")}
-      ${p("M60 18 L92 28 Q92 74 60 100 Q28 74 28 28 Z", "#5a82b6", 3)}
-      ${ln("M60 20 L60 100 M30 50 L90 50", GOLD, 7)}${c(60,50,10,GOLD,4)}
-      ${ln("M26 26 Q24 50 34 70", "#8fb2d8", 3)}
-    </g>`,
-    // 奧術法杖：木杖 + 水晶
+    // 盾牌：一層輪廓＋大十字，縮小後仍清楚
+    shield: RAW.shield = p("M60 7L104 22Q103 82 60 114Q17 82 16 22Z", "#426e9e")
+      + ln("M60 20V98M30 48H90", GOLD, 8) + c(60,48,10,GOLD,4),
+    // 法杖：菱形水晶，與圓形法球分開辨識；握點不變
     arcane_staff: rot(RAW.arcane_staff =
-      p("M56 26 L64 26 L68 148 L52 148 Z", WOOD) + ln("M58 36 L58 140", WOOD_DK, 2.5)
-      + p("M44 28 Q60 12 76 28 L70 36 L50 36 Z", GOLD, 4)
-      + `<circle cx="60" cy="8" r="26" fill="#8fd0f0" opacity=".25"/>` + c(60,8,16,"#8fd0f0") + `<circle cx="54" cy="2" r="5" fill="#fff" opacity=".85"/>`, -30),
+      haft(27,148,6) + p("M60 -18L79 6L60 30L41 6Z", "#8fd0f0")
+      + p("M60 -18L60 30L41 6Z", "#63a8cb", 2.5)
+      + p("M46 26L74 26L70 37L50 37Z", GOLD,4), -30),
     // 治癒法書
     healing_book: `<g transform="rotate(-8 60 60)">${RAW.healing_book = `
       ${p("M20 20 L92 14 Q100 14 100 22 L104 100 Q104 108 96 108 L28 112 Q20 112 20 104 Z", "#6f9960")}
       ${p("M92 14 Q100 14 100 22 L104 100 L98 104 L94 22 Z", "#f1e2c6", 3)}
       ${ln("M30 24 L30 104", "#4f7a3a", 4)}
       ${p("M54 42 L68 42 L68 54 L80 54 L80 68 L68 68 L68 80 L54 80 L54 68 L42 68 L42 54 L54 54 Z", GOLD, 4)}
-      ${ln("M26 16 L26 110", GOLD, 3)}
+
     `}</g>`,
     // 火焰法球
     flame_orb: RAW.flame_orb = `<g>
-      <circle cx="60" cy="50" r="46" fill="#f2b441" opacity=".2"/>
+
       ${c(60,50,34,"#f2b441")}
       ${p("M60 22 Q80 40 70 62 Q64 50 58 64 Q42 46 60 22 Z", "#e0584a", 4)}
       ${p("M60 40 Q68 50 62 60 Q58 54 55 60 Q52 50 60 40 Z", "#ffd98a", 3)}
-      <circle cx="46" cy="36" r="7" fill="#fff" opacity=".7"/>
+
       ${p("M32 86 L88 86 L80 110 L40 110 Z", GOLD)}${ln("M40 98 L80 98", WOOD_DK, 3)}
     </g>`,
     // 薩滿圖騰：彎彎的木杖、頂上一顆小骷髏、掛著三色羽毛（跟哥布林薩滿的頭飾同色）
     shaman_totem: rot(RAW.shaman_totem =
       p("M55 30 Q50 70 56 110 L54 148 L66 148 L68 110 Q62 70 65 30 Z", WOOD) + ln("M59 40 Q55 80 60 140", WOOD_DK, 2.5)
       + p("M42 12 Q42 -10 60 -10 Q78 -10 78 12 Q78 24 70 28 L70 34 L50 34 L50 28 Q42 24 42 12 Z", "#f1e8d4", 4)
-      + c(52,10,5.5,INK,0) + c(68,10,5.5,INK,0) + ln("M55 26 L55 32 M60 26 L60 32 M65 26 L65 32", INK, 2)
+      + c(52,10,5.5,INK,0) + c(68,10,5.5,INK,0)
       + ln("M50 36 Q40 44 38 58 M70 36 Q80 44 82 56", "#6b4a35", 2.5)
       + `<ellipse cx="36" cy="66" rx="5" ry="12" fill="#e0766e" stroke="${INK}" stroke-width="3" transform="rotate(12 36 66)"/>`
       + `<ellipse cx="84" cy="64" rx="5" ry="12" fill="#5fa8a0" stroke="${INK}" stroke-width="3" transform="rotate(-12 84 64)"/>`
@@ -143,3 +144,9 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
 })();
 // 狩獵者特性（狩印）沒有自己的裝備圖，借弓的圖示（10-03）
 ITEM_ART.hunter = ITEM_ART.bow;
+
+// 裝備外觀與技能類別分開；魔法物品沿用base，撿起仍為同一畫法。
+function equipmentArtKey(it){
+  if(!it)return null;
+  return it.art || ({"短棒":"club","彎刀":"scimitar"})[it.base||it.n] || groupOf(it)?.id;
+}
