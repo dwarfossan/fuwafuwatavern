@@ -47,7 +47,7 @@ function itemCardHTML(it){
     rows.push(["護甲等級", "AC +2"]);
   } else if(it.type==="focus"){
     rows.push(["施法屬性", ABILITIES.find(a=>a.k===it.stat).n]);
-    rows.push(["說明", "拿著法器就能施放它綁定的三個法術。"]);
+    rows.push(["說明", "拿著法器就能施放它附帶的法術；招式仍依小筆記與施展條件。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
     rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉免費動作（每回合一次）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
@@ -56,10 +56,11 @@ function itemCardHTML(it){
   }
   rows.push(["價格／重量", `${money(it.cost)}／${it.wt} 磅`]);
   const g = groupOf(it);
-  const on = g ? g.skills.map((s,i)=>({s,i})) : [];
+  const on = g ? (it.elementFocus?g.skills.slice(0,1):g.skills).map((s,i)=>({s,i,gid:g.id})) : [];
+  if(it.elementFocus)(it.grants||[]).forEach(key=>{const f=SKILL_BY_ID[key];if(f)on.push({s:f.g.skills[f.idx],i:f.idx,gid:f.g.id});});
   const skills = g ? `<h4 class="md-sub">${on.length===1?"給的技能":`給的${["","一","兩","三","四","五"][on.length]||on.length}個技能`}</h4>
-    <div class="md-skills">${on.map(({s,i})=>{ const im=(SKILL_IMPL[g.id]||[])[i];
-      return `<button class="md-sk" data-skinfo="${g.id}:${i}:${it.id}">${skillIcon(g.id,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
+    <div class="md-skills">${on.map(({s,i,gid})=>{ const im=(SKILL_IMPL[gid]||[])[i];
+      return `<button class="md-sk" data-skinfo="${gid}:${i}:${it.id}">${skillIcon(gid,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
     <p class="dim md-hint">點技能看詳細說明</p>` : "";
   return `<div class="md-head">${g?iconSVG(g.id,34):""}<div><h3>${it.n}</h3><div class="dim">${it.en}・${it.cat}</div></div></div>
     <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${skills}`;

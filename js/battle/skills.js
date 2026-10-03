@@ -28,7 +28,7 @@ function unitSkills(u){
     out.push({key:`${g.id}_0`,group:g,idx:0,def:basicDef(g,sk,u),impl});
     if(FOCUS_GROUPS.includes(g.id)){
       if(g.id!=="arcane_staff") out.push(focusStrikeSkill(g));
-      if(g.id==="arcane_staff" || g.id==="healing_book") out.push(focusCantripSkill(g));
+      if(!held.elementFocus && (g.id==="arcane_staff" || g.id==="healing_book")) out.push(focusCantripSkill(g));
     }
   }
   // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
@@ -64,7 +64,7 @@ function basicDef(g, s, u){
   return {...s, name: basicName(g, item)};
 }
 const attackSkills = u => unitSkills(u).filter(s=>s.group.id!=="shield" && !(s.impl&&s.impl.passive) &&
-  (s.synthetic ? !!s.def.basicAttack : s.idx===0 && s.def.kind!=="輔助" && (s.def.tier||0)===0));
+  (!!s.def.basicAttack || (s.idx===0 && s.def.kind!=="輔助" && (s.def.tier||0)===0)));
 const attackSkill = u => attackSkills(u)[0] || null;
 
 // ---------- 熟練格（2026-10-01 大爺：點數池改成一階、二階的格子） ----------
@@ -261,6 +261,10 @@ const SKILL_IMPL = {
   hunter: [
     {target:"enemy", range:()=>18, run:(u,t)=>{ startConc(u, "hunters_mark", "狩印"); addStatus(t, "marked", {src:u.id});
       fxFloat(t, POP_TEXT.mark, "dmg"); blog(`　${t.name}被打上狩印：${u.name}打中他時多 1d6 力場傷害（專注中）`, "skill"); }}
+  ],
+  elements: [
+    {target:"enemy",range:()=>12,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"寒冷",u);if(!t.dead&&!t.down)addStatus(t,"slowed",{until:"start",of:u.id,src:u.id});}}},
+    {target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2});if(r.hit){hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"閃電",u);if(!t.dead&&!t.down){t.shockNoOA=true;blog(`　${t.name}在下回合開始前不能藉機攻擊。`,"skill");}}}}
   ],
   shaman_totem: [
     {target:"enemy", range:()=>12, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},

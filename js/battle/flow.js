@@ -25,6 +25,7 @@ function nextTurn(){
 
 function beginTurn(u){
   const b = B();
+  u.shockNoOA=false;
   expire("start", u.id);
   u._cleaved = false;
   b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = false;
@@ -145,7 +146,7 @@ function walk(u, path, done){
 }
 // ---------- 藉機攻擊 ----------
 // 能不能藉機攻擊：要有近戰手段（拿弓弩的不行），這輪還沒藉機攻擊過（敵我一樣）
-const canOA = h => inCombat(h) && !h.surprised && !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
+const canOA = h => inCombat(h) && !h.surprised && !h.shockNoOA && !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
 function oaTriggers(u, next){
   if(has(u,"disengage") || isHid(u)) return [];
   const dragged = victimsOf(u);                     // 被拖著的人跟著走，不算被甩開
@@ -696,6 +697,7 @@ function skillAnim(u, sk, t){
   return k==="shoot" && cg && cg.id==="firearm" ? "fire" : k;
 }
 function skillAnimBase(u, sk, t){
+  if(sk.def.components)return "cast";
   const base = sk.anim || animFor(sk.group.id, sk.idx);
   if(FOCUS_GROUPS.includes(sk.group.id)) return base;
   const far = t && t.x!==undefined && dist(u,t) > reachOf(u);

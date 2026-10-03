@@ -113,7 +113,7 @@ const SKILL_GROUPS = [
   // 法器：法杖／法書／法球三種，每件法器綁定一組法術（法杖另外能敲人），以法術主題命名
   //       施法屬性：每件固定隨機 INT／WIS／CHA
   {id:"arcane_staff", name:"奧術法杖", stat:"智力",
-   weapons:["奧術法杖"],
+   weapons:["奧術法杖","霜雷法杖"],
    skills:[
     {name:"打擊", kind:"近戰", dmg:"物理",     tier:0,   text:"用法杖敲人：近戰攻擊，1d6 + 力量調整值的物理傷害。"},
     {id:"magic_missile", name:"魔法飛彈", req:"focus", kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 2 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
@@ -147,9 +147,13 @@ const SKILL_GROUPS = [
    weapons:[],
    skills:[
     {id:"hunters_mark", name:"狩印", kind:"輔助", dmg:"", tier:1, srd:true, free:true, conc:true, noUp:true, text:"免費動作、專注：標記 18 格內一個看得到的敵人，你的攻擊打中他時多 1d6 力場傷害（爆擊加倍）。他倒下後，可以免費把印記改標到下一個敵人。"}]}
+  ,{id:"elements",name:"元素戲法",stat:"法器屬性",trait:true,weapons:[],skills:[
+    {id:"ray_of_frost",basicAttack:true,name:"寒冷射線",req:"focus",kind:"遠程",dmg:"寒冷",tier:0,srd:true,text:"12 格內遠程法術攻擊，1d8 寒冷傷害；命中後目標速度減少 2 格，直到你的下回合開始。5／11／17 級增加傷害骰。"},
+    {id:"shocking_grasp",basicAttack:true,name:"電擊術",req:"focus",kind:"近戰",dmg:"閃電",tier:0,srd:true,text:"貼身法術攻擊，1d8 閃電傷害；命中後目標不能藉機攻擊，直到牠下回合開始。5／11／17 級增加傷害骰。"}]}
 ];
 // 聲勢材：對照 SRD 5.2.1 各法術；火焰護盾沿用本作效果，只借成分。
 const SPELL_COMPONENTS = {
+  "寒冷射線":{v:true,s:true},"電擊術":{v:true,s:true},
   "魔法飛彈":{v:true,s:true},"護盾術":{v:true,s:true},
   "法師護甲":{v:true,s:true,m:{name:"鞣製皮革"}},
   "治癒真言":{v:true},"治療傷口":{v:true,s:true},

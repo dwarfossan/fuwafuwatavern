@@ -138,7 +138,7 @@ const SFX = (()=>{
 const sfx = (name, delay) => SFX.play(name, delay);
 
 // 動作 → 出手的聲音（跟紙娃娃動畫對齊：揮動在打中前一點點、射箭在放手那一刻）
-const HIT_SFX = {"毒素":"hit_magic", "揮砍":"hit_slash", "穿刺":"hit_pierce", "鈍擊":"hit_blunt", "火焰":"hit_fire", "力場":"hit_magic", "光耀":"hit_magic", "流血":"hit_pierce", "強酸":"hit_magic"};
+const HIT_SFX = {"寒冷":"hit_magic", "閃電":"hit_magic", "毒素":"hit_magic", "揮砍":"hit_slash", "穿刺":"hit_pierce", "鈍擊":"hit_blunt", "火焰":"hit_fire", "力場":"hit_magic", "光耀":"hit_magic", "流血":"hit_pierce", "強酸":"hit_magic"};
 function animSfx(k, lead=0){                 // lead：先擲骰，出招往後延幾毫秒
   const imp = (DOLL_IMPACT[k] || 0) + lead;
   if(k==="shoot") return sfx("twang", imp);

@@ -123,5 +123,6 @@ const ITEMS = [
   PACK("祭司套組","Priest's Pack",33*GP,29,["背包","毯子","聖水","油燈","口糧（1 天）","長袍","火絨盒"],"口糧 7 天"),
   PACK("學者套組","Scholar's Pack",40*GP,22,["背包","書","墨水","筆","油燈","油（10 瓶）","羊皮紙","火絨盒"],"羊皮紙 10 張"),
   {type:"gear",n:"聖徽",en:"Holy Symbol",cat:"冒險用品",cost:5*GP,wt:1,srd:true,desc:"祝福術所需的至少 5 gp 聖徽；不會因施法消耗。需要空手取用，法器不能代替這件有標價的材料。"}
+  ,{type:"focus",n:"霜雷法杖",en:"Frost and Spark Staff",cat:"法器",cost:20*GP,wt:4,stat:"INT",art:"arcane_staff",elementFocus:true,grants:["ray_of_frost","shocking_grasp"],spells:"寒冷射線、電擊術",draft:"GPT",desc:"暫定：20 gp、4 lb，沿用奧術法杖外觀；兩種元素戲法。"}
 ].map((it,i)=>({...it,id:"it"+i}));
 const CATS = ["簡易近戰","簡易遠程","軍用近戰","軍用遠程","護甲","盾牌","法器","道具","冒險用品"];
