@@ -32,7 +32,8 @@ try{
  while(await page.evaluate(()=>state.line<SCENES.townArrival.script.length-1))await page.locator('#stage').tap();
  await page.locator('#finishTownArrival').tap();
  assert.equal(await page.evaluate(()=>state.townFounded),true);
- assert.equal(await page.evaluate(()=>state.page),'map');
+ assert.equal(await page.evaluate(()=>state.page),'town');
+ assert.equal(await page.locator('[data-town-place]').count(),4);
  assert.deepEqual(errors,[]);
  console.log('✓ eight branches, merchant leaves, four speak, mobile touch founding and finish');
 }finally{await browser.close();}

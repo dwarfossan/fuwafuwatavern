@@ -25,7 +25,7 @@ function renderMap(){
         <h3>${sel.name}${here?`<span class="here">你們在這裡</span>`:""}</h3>
         <p>${sel.desc}</p>
       </div>
-      <button class="btn" disabled>${here?"探索（待製作）":"前往（待製作）"}</button>
+      ${here && sel.id==="town" && state.townFounded?`<button class="btn" id="enterTown">${TOWN_UI.enter}</button>`:`<button class="btn" disabled>${here?"探索（待製作）":"前往（待製作）"}</button>`}
     </div>
   </section>`;
 }

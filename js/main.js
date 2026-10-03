@@ -21,7 +21,7 @@ function render(){
   app.classList.toggle('shop-screen',state.page==='shop');
   app.classList.toggle('battle-screen',state.page==='battle');
   app.classList.toggle('map-screen',state.page==='map');
-  app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
+  app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", renderModal());
   if(entering) app.firstElementChild?.classList.add("enter");
@@ -158,7 +158,10 @@ function bindTokens(){
 
 function bind(){
   const $ = id => document.getElementById(id);
-  $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="map";state.mapSel="town";render();window.scrollTo(0,0);});
+  $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
+  $("enterTown")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;render();});
+  $("leaveTownShop")?.addEventListener("click",leaveTownShop);
+  if(state.page==="town")bindTown();
   $("start")?.addEventListener("click", ()=>{state.page="roll";render()});
   $("back")?.addEventListener("click", ()=>{state.page="cover";render()});
   $("back2")?.addEventListener("click", ()=>{state.page="roll";render()});
@@ -180,7 +183,7 @@ function bind(){
 
   $("toShop")?.addEventListener("click", ()=>{
     CRITTERS.forEach(c=>{ if(state.gold[c.id]===undefined){ state.gold[c.id]=100*GP; state.inv[c.id]=[]; } });
-    state.page="shop"; render(); window.scrollTo(0,0);
+    state.shopContext=null;state.page="shop"; render(); window.scrollTo(0,0);
   });
   $("backStory")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";render()});
   $("depart")?.addEventListener("click", ()=>{state.page="story";state.scene="farewell";state.line=0;state.info=null;render();window.scrollTo(0,0)});
@@ -211,20 +214,20 @@ function bind(){
     const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
     if(blockReason(id,it)) return;
     state.gold[id] -= it.cost; state.inv[id].push(makeItem(it).id); if(it.baseId)delete state.shopFocusStock[it.baseId];
-    state.quip = pick(DWARF_QUIPS.buy); render();
+    state.quip = state.shopContext?TOWN_UI.buy:pick(DWARF_QUIPS.buy); render();
   }));
   document.querySelectorAll("[data-sell]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id;
     const [x] = state.inv[id].splice(+b.dataset.sell,1);
     state.gold[id] += itemById(x).cost;
-    state.quip = pick(DWARF_QUIPS.sell); render();
+    state.quip = state.shopContext?TOWN_UI.sell:pick(DWARF_QUIPS.sell); render();
   }));
   // 滑到被擋的按鈕上時，大爺吐槽一句
   document.querySelectorAll(".item.blocked").forEach(el=>el.addEventListener("click", e=>{
     if(e.target.closest("[data-iteminfo]")) return;
     const why = el.querySelector(".it-why").textContent;
     const k = why.includes("力量")||why.includes("敏捷") ? "str" : why.includes("金幣") ? "gold" : why.includes("揹") ? "weight" : "dup";
-    state.quip = pick(DWARF_QUIPS[k]); render();
+    state.quip = state.shopContext?why:pick(DWARF_QUIPS[k]); render();
   }));
   $("rollAll")?.addEventListener("click", rollAll);
   $("autoAssign")?.addEventListener("click", autoAssign);

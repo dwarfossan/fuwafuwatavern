@@ -1,11 +1,13 @@
+function shopCategories(){return state.shopContext==="smith"?CATS.filter(k=>!["法器","道具","冒險用品"].includes(k)):state.shopContext==="items"?CATS.filter(k=>["法器","道具","冒險用品"].includes(k)):CATS;}
 function renderShop(){
+  const venue=TOWN_PLACES.find(p=>p.id===state.shopContext);
   const c = CRITTERS[state.shopActive];
   const id = c.id;
   const tabs = CRITTERS.map((x,i)=>`
     <button class="tab" role="tab" aria-selected="${i===state.shopActive}" data-stab="${i}">
       ${critterHead(x.id)}<span>${x.name}</span><span class="done">${money(state.gold[x.id])}</span>
     </button>`).join("");
-  const cats = CATS.map(k=>`<button class="chip ${k===state.shopCat?"on":""}" data-cat="${k}" aria-pressed="${k===state.shopCat}">${k}</button>`).join("");
+  const cats = shopCategories().map(k=>`<button class="chip ${k===state.shopCat?"on":""}" data-cat="${k}" aria-pressed="${k===state.shopCat}">${k}</button>`).join("");
   const rows = ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(shopItem).map(it=>{
     const why = blockReason(id,it);
     let spec="";
@@ -26,9 +28,9 @@ function renderShop(){
   const wt = weightOf(id), cap = capOf(id);
   return `<section class="page shop-page" data-shop-category="${state.shopCat}">
     <div class="head"><div>
-      <h2>大爺的裝備牆</h2>
+      <h2>${venue?venue.name:"大爺的裝備牆"}</h2>
     </div>${pageHelpHTML("shop")}</div>
-    <div class="quip"><div class="quip-face">${portraitHTML("dwarf")}</div><p>${state.quip}</p></div>
+    <div class="quip"><div class="quip-face ${venue?'town-shop-face':''}">${venue?townOwnerSVG(venue):portraitHTML("dwarf")}</div><p>${state.quip}</p></div>
     <div class="tabs" role="tablist" aria-label="${SHOP_UI.characters}">${tabs}</div>
     <details class="shop-side" ${state.shopBagOpen?"open":""}>
       <summary>
@@ -48,8 +50,7 @@ function renderShop(){
       <div class="items">${rows}</div>
     </div>
     <div class="nav">
-      <button class="btn ghost" id="backStory">回到酒館</button>
-      <button class="btn" id="depart">出發！</button>
+      ${venue?`<button class="btn ghost" id="leaveTownShop">回到${venue.name}</button>`:`<button class="btn ghost" id="backStory">回到酒館</button><button class="btn" id="depart">出發！</button>`}
     </div>
   </section>`;
 }
@@ -62,7 +63,7 @@ function rememberShopView(app){
   state.shopBagOpen=page.querySelector('.shop-side').open;
 }
 function selectShopCategory(cat){
-  if(cat===state.shopCat || !CATS.includes(cat)) return;
+  if(cat===state.shopCat || !shopCategories().includes(cat)) return;
   state.shopCat=cat; render();
 }
 function bindShop(){
@@ -91,8 +92,8 @@ function bindShop(){
     const g=gesture; gesture=null;
     if(g.axis) suppressClickUntil=performance.now()+500;
     if(g.axis==='x' && Math.abs(g.dx)>=48){
-      const i=CATS.indexOf(state.shopCat)+(g.dx<0?1:-1);
-      if(CATS[i]) selectShopCategory(CATS[i]); // 首尾不循環
+      const cats=shopCategories(),i=cats.indexOf(state.shopCat)+(g.dx<0?1:-1);
+      if(cats[i]) selectShopCategory(cats[i]); // 首尾不循環
     }
   });
   list.addEventListener('pointercancel',()=>{gesture=null;suppressClickUntil=performance.now()+500;});

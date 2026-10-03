@@ -419,14 +419,15 @@ function observeInnate(e,key,name){observedSkill(e,`innate:${key}`,name,true);}
 const NOTE_PAGE_SIZE = 5;
 const notePages = id => id==="fox" ? 3 : 2;
 const noteCap = id => notePages(id) * NOTE_PAGE_SIZE;
-function syncLearnedState(){
-  const b=B(); if(!b)return;
+function syncLearnedState(b=B()){
+  if(!b)return;
   b.units.filter(u=>u.side==="pc").forEach(u=>{ state.learned[u.id]=(u.learned||[]).map(x=>({...x})); state.activeSkills[u.id]=(u.activeSkills||[]).filter(k=>(u.learned||[]).some(x=>x.key===k)).slice(0,3); state.proficiency[u.id]=slotsOf(u).slice(); });   // 10-03 修：以前存 u.pts（舊點數制，已不存在）＝ undefined，休息或擦筆記後熟練格被蓋掉
 }
-function eraseNote(u,key){
+function restMessage(b,text){if(b===B())blog(text,"skill");else state.restMessage=text;}
+function eraseNote(u,key,b=B()){
   const i=(u.learned||[]).findIndex(x=>x.key===key); if(i<0)return false;
   const [gone]=u.learned.splice(i,1); u.activeSkills=(u.activeSkills||[]).filter(k=>k!==key);
-  blog(`${u.name}拿橡皮擦把【${gone.name}】從小筆記擦掉了。`,"skill"); return true;
+  restMessage(b,`${u.name}拿橡皮擦把【${gone.name}】從小筆記擦掉了。`); return true;
 }
 function transcribePending(u,keys){
   u.learned=u.learned||[]; u.pendingLearned=u.pendingLearned||[];
@@ -437,15 +438,17 @@ function transcribePending(u,keys){
   u.pendingLearned=[];
   return add;
 }
-function learnFromLingling(student,key){
-  const b=B(), ling=b&&b.units.find(u=>u.id==="fox"), note=ling&&(ling.learned||[]).find(x=>x.key===key);
+function learnFromLingling(student,key,b=B()){
+  const ling=b&&b.units.find(u=>u.id==="fox"), note=ling&&(ling.learned||[]).find(x=>x.key===key);
   if(!note || student.id==="fox" || (student.learned||[]).some(x=>x.key===key)) return false;
   const dc=5+Math.max(1,note.lv||1), r1=d20(), r2=student.id==="wolf"?d20():null, roll=r2===null?r1:Math.max(r1,r2), ok=roll+(student.mods.WIS||0)>=dc;
   if(ok){ student.pendingLearned=student.pendingLearned||[]; if(!student.pendingLearned.some(x=>x.key===key)) student.pendingLearned.push({...note,from:"玲玲"}); }
-  blog(`${ok?"!":"?"} ${student.name}向玲玲學【${note.name}】：${ok?"理解了！":"沒學會"}`,ok?"skill":"miss"); return ok;
+  const text=`${ok?"!":"?"} ${student.name}向玲玲學【${note.name}】：${ok?"理解了！":"沒學會"}`;
+  if(b===B())blog(text,ok?"skill":"miss");else state.restMessage=text; return ok;
 }
-function takeRest(kind, selections={}){
-  const b=B(); if(!b || (b.result!=="win" && b.phase!=="explore") || b.busy || b.exploreStopped)return false;
+function takeRest(kind, selections={},b=B()){
+  const atInn=b && b===state.townRest && state.page==="town" && state.townPlace==="inn";
+  if(!b || (!["short","long"].includes(kind)) || (!atInn && (b!==B() || (b.result!=="win" && b.phase!=="explore"))) || b.busy || b.exploreStopped)return false;
   if(kind==="short" && state.shortRestsUsed>=2)return false;
   b.units.filter(u=>u.side==="pc").forEach(u=>{
     transcribePending(u,selections[u.id]||[]);
@@ -455,7 +458,7 @@ function takeRest(kind, selections={}){
     state.proficiency[u.id]=u.slots.slice();
   });
   if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; }   // 長休：重新挑戰的次數也回滿
-  syncLearnedState(); b.restDone=true; blog(kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`,"skill"); refreshBattle(); return true;
+  syncLearnedState(b); b.restDone=true; restMessage(b,kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`); if(atInn)render();else refreshBattle(); return true;
 }
 
 function battleCmd(c){

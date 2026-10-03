@@ -39,6 +39,11 @@ function teleportHome(){
 // 打贏後接劇情：熟練格、筆記存回去，戰鬥收掉（計時器都會檢查 B()，不會再動）
 function leaveBattleTo(scene){
   syncLearnedState();
+  // 商隊進城後整理同一場理解的招式；保留休息資料，不讓戰場計時器繼續。
+  if(scene==="caravan"){
+    state.townRest=JSON.parse(JSON.stringify(B()));
+    state.townRest.busy=false;state.townRest.exploreStopped=false;
+  }
   state.battle = null; state.scout = null;
   state.page = "story"; state.scene = scene; state.line = 0; state.info = null; state.caravan = {};
   render(); window.scrollTo(0,0);

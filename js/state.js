@@ -39,6 +39,7 @@ const state = {
   location:"tavern", // 大地圖：目前所在地
   mapSel:null,       // 大地圖：點選中的地點
   travel:null,       // 大地圖旅行中：{from, to, t, stop, alert}
+  townFounded:false, townPlace:null, townPanel:null, townRest:null, shopContext:null, restMessage:null,
   retriesLeft:3,     // 輸掉後「重新挑戰」還剩幾次；長休回滿（大爺 10-02，RETRY_MAX 在 js/battle/engine.js）
   battleSnap:null,   // 開戰前的存檔：重新挑戰時整個還原（血、熟練格、道具、筆記）
 };
