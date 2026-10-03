@@ -51,7 +51,7 @@ function groundClock(now=Date.now()){
 setInterval(()=>groundClock(),200);
 document.addEventListener('visibilitychange',()=>{if(B())B().groundClockAt=Date.now();});
 function groundKnown(u){
- const b=B();u.knownGround ||= [];const range=ENEMIES[u.type]?.detectRange||senseRange(u);
+ groundDetect(u);const b=B();u.knownGround ||= [];const range=ENEMIES[u.type]?.detectRange||senseRange(u);
  for(const f of [...Object.values(b.groundEffects||{}),...b.def.blocks.filter(o=>o.kind==='poisonSwamp')])if(f.kind!=='steam'&&dist(u,f)<=range&&coverOf(u,f).v<.75&&!u.knownGround.includes(`${f.x},${f.y}`))u.knownGround.push(`${f.x},${f.y}`);
 }
 function groundAvoid(u,x,y){
@@ -67,4 +67,11 @@ function groundEffectSVG(f){
  if(f.kind==='charged')art+=`<path d="M${cx+8} ${cy-19} L${cx-12} ${cy+1} L${cx+3} ${cy+1} L${cx-8} ${cy+18}" fill="none" stroke="#fff49b" stroke-width="5"/>`;
  if(f.kind==='steam')art+=`<path d="M${cx-24} ${cy+3} C${cx-52} ${cy-13} ${cx-15} ${cy-25} ${cx-7} ${cy-18} C${cx-7} ${cy-42} ${cx+28} ${cy-41} ${cx+25} ${cy-19} C${cx+57} ${cy-20} ${cx+48} ${cy+8} ${cx+21} ${cy+6} Z" fill="#dedde2" opacity=".75" stroke="${ink}" stroke-width="2"/>`;
  return `<g class="ground-effect" data-ground="${f.kind}" data-tile="${f.x},${f.y}">${art}</g>`;
+}
+
+// 隱藏油：每個觀察者各自知道；只有我方察覺才揭露畫面。DC13 暫定 GPT。
+function groundDetect(u,total=passivePer(u),range=u.side==='foe'?(ENEMIES[u.type]?.detectRange??senseRange(u)):senseRange(u)){
+ if(u.dead||u.down||u.side==='npc')return 0;u.knownGround ||= [];let count=0;
+ for(const o of B().def.blocks.filter(o=>o.kind==='oil')){const key=`${o.x},${o.y}`;if(u.knownGround.includes(key)||dist(u,o)>range||coverOf(u,o).v>=.75||total<(o.dc??13))continue;
+ u.knownGround.push(key);count++;if(u.side==='pc'&&!o.found){o.found=true;blog(`${u.name}察覺草叢底下的油。`,'skill');}}return count;
 }

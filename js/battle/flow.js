@@ -553,8 +553,9 @@ function doSearch(u, t){
   panelStart(`${u.name}【搜索】`);
   const r = d20(), total = r + u.mods.WIS;
   const found = hiddenNear(u).filter(v=>total >= has(v,"hidden").val);
+  const groundFound=groundDetect(u,total,SEARCH_RANGE);
   const ok = t ? total >= pocketDC(t) : false;
-  panelRow("chk", t || {id:u.id, name:"四周"}, [r], r, total, ok || found.length ? "found" : "fail");
+  panelRow("chk", t || {id:u.id, name:"四周"}, [r], r, total, ok || found.length || groundFound ? "found" : "fail");
   if(t){
     blog(`${u.name}搜索${t.name}身上帶的東西`, "skill");
     blog(`　感知：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${ok?"≥":"<"} DC ${pocketDC(t)} → ${ok?"看穿了":"沒看出來"}`, ok?"skill":"miss", ok?"看穿了":"沒看出來");

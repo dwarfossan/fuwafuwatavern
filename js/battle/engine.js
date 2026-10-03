@@ -258,6 +258,7 @@ function reveal(u, why){
 }
 const senseRange = u => Math.max(0, u.speed - (u.statuses.some(s=>s.k==="slowed" && !s.stop) ? 2 : 0));   // 察覺範圍＝移動速度
 function perceive(u){
+  groundDetect(u);
   B().units.filter(v=>hostile(v,u) && !v.dead && !v.down && isHid(v) && dist(u,v)<=senseRange(u)).forEach(v=>{
     const total = passivePer(u), need = has(v,"hidden").val, ok = total >= need;
     // 我方沒找到躲著的敵人時不寫紀錄，不然等於告訴玩家附近有東西
@@ -311,6 +312,7 @@ function passivePocket(){
 }
 // 有人走動之後：躲著的人如果被看到了（走出草叢或掩護、敵人繞到旁邊）就現身
 function checkExposure(){
+  B().units.forEach(u=>groundDetect(u));
   B().units.forEach(v=>{ if(isHid(v) && !v.dead && !v.down && !concealed(v)) reveal(v, "被看到了，現身！"); });
 }
 // 災禍術：攻擊和豁免 −1d4，直到施法的薩滿倒下

@@ -154,7 +154,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
     things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
   Object.values(b.groundEffects||{}).forEach(f=>things.push({s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
-  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:`<g data-tile="${o.x},${o.y}">${svg}</g>`});});
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}">${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
@@ -486,7 +486,7 @@ function blockSVG(o){
   if(o.kind==="trap"&&!o.found)return "";
   if(o.kind==="poisonSwamp"){const p=iso(o.x,o.y);return `<g class="poison-swamp"><polygon points="${diamond(o.x,o.y)}" fill="#859948" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x-18}" cy="${p.y+30}" r="6" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x+16}" cy="${p.y+38}" r="9" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/></g>`;}
   if(o.kind==="water")return `<polygon points="${diamond(o.x,o.y)}" fill="#6da8b9" stroke="#2a2630" stroke-width="2"/>`;
-  if(o.kind==="oil")return o.found?`<polygon points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
+  if(o.kind==="oil")return o.found?`<polygon class="ground-oil" points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
     `<polygon points="${cx},${cy-TH/2-h} ${cx+TW/2-8},${cy-h} ${cx},${cy+TH/2-h} ${cx-TW/2+8},${cy-h}" fill="${top}" stroke="#2a2630" stroke-width="2"/>
