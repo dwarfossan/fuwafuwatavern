@@ -53,7 +53,7 @@ function beginTurn(u){
   b.moveLeft = mv; b.baseMove = mv;
   if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
-  if(!u.down){perceive(u);exploreTraps();}                  // 昏過去的不會察覺
+  if(!u.down){detectTurnEnemies();perceive(u);exploreTraps();}                  // 昏過去的不會察覺
 }
 
 function endTurn(){
@@ -143,7 +143,7 @@ function walk(u, path, done){
     if(exploreTraps(u)){refreshBattle();done?.(i);return;}
     if(pickUp(u)){ b.pickedUp = true; }
     if(b.phase==="explore"){checkExposure();exploreDetect();}
-    else {checkGuards(u, prev);checkExposure();}
+    else {checkGuards(u, prev);detectTurnEnemies();checkExposure();}
     refreshBattle();
     later(step, 140);
   };
@@ -260,10 +260,10 @@ function validTarget(u, sk, x, y){
   if(!sk)return null;
   const im = sk.impl, r = im.range ? im.range(u) : 0, object=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);
   if(object&&im.target==="enemy"&&dist(u,object)<=r&&(sk.def.basicAttack||(sk.idx===0&&HAS_BASIC(sk.group))||sk.def.groundElement))return barrelTarget(object);
-  const t = unitAt(x,y), p = {x,y};
+  const t = unitAt(x,y), p = {x,y}, enemy=t&&(hostile(t,u)||(B().explorationMap&&t.side!==u.side&&t.side!=="npc"&&!t.fled));
   switch(im.target){
-    case "enemy":  if(!t&&sk.def.groundElement&&dist(u,p)<=r&&groundCanReact(x,y,sk.def.dmg))return p;return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
-    case "line":   return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
+    case "enemy":  if(!t&&sk.def.groundElement&&dist(u,p)<=r&&groundCanReact(x,y,sk.def.dmg))return p;return enemy && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
+    case "line":   return enemy && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
     case "ally":   return t && t.side===u.side && !t.dead && dist(u,t)<=r && !(im.notSelf && t===u) ? t : null;
     case "area":   return !blocked(x,y) && dist(u,p)<=r ? p : null;
     case "cone":   return dist(u,p)===1 ? p : null;
@@ -731,6 +731,7 @@ function skillAnimBase(u, sk, t){
 function doSkill(u, sk, t){
   const b = B();
   const problem=componentProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
+  if(b.explorationMap&&u.side==="pc"&&sk.def.kind!=="輔助"){const targets=Array.isArray(t)?t:sk.impl.target==="cone"?coneUnits(u,t,3):sk.impl.target==="area"?b.units.filter(v=>dist(v,t)<=(sk.impl.radius||1)):sk.impl.target==="line"?lineUnits(u,t,sk.impl.range(u)):[t];targets.forEach(v=>{if(v?.side==="foe")engageExploreSquad(v,u);});}
   if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
   if(u.side==="foe" && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);

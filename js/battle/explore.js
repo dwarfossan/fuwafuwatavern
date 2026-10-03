@@ -99,7 +99,7 @@ function exploreMove(x,y,done){
 function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.mode?.key==="placeBarrel"){placeBarrel(Math.round(x),Math.round(y));return;}const o=exploreObjectAt(Math.round(x),Math.round(y));if(o){exploreApproach(o);return;}const t=unitAt(x,y);
  if(t&&!foeHid(t)){b.info=b.info===t.id?null:t.id;refreshBattle();return;}exploreMove(x,y);
 }
-function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){const b=B(),t=b.units.find(u=>u.id===b.info&&u.side==="foe"&&!u.fled&&!u.dead)||b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down&&!foeHid(u)).sort((a,c)=>dist(exploreUnit(),a)-dist(exploreUnit(),c))[0];enterExploreCombat(t?.id,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
+function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
 
 // 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
 const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed);
@@ -172,9 +172,23 @@ function enterExploreCombat(targetId,manual=false){
 }
 function exploreReinforcements(){
  const b=B();if(!b.explorationMap||b.phase!=="combat")return;const pcs=b.units.filter(u=>u.side==="pc"&&!u.dead&&!u.down),join=new Set();
- for(const e of b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.combatActive&&!u.dead&&!u.down))if(pcs.some(p=>exploreAware(e,p)||dist(e,p)<=EXPLORE_COMBAT.hear))join.add(e.squad===undefined?e.id:e.squad);
+ for(const e of b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.combatActive&&!u.dead&&!u.down))if(pcs.some(p=>exploreAware(e,p)||(!b.manualCombat&&dist(e,p)<=EXPLORE_COMBAT.hear)))join.add(e.squad===undefined?e.id:e.squad);
  for(const e of b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.combatActive&&!u.dead&&!u.down))if(join.has(e.squad===undefined?e.id:e.squad)){e.combatActive=true;e.surprised=false;e.init=d20()+e.mods.DEX+Math.random()*.1;blog(EXPLORE_COMBAT.reinforce);}
+ if(join.size)b.manualCombat=false;
  // 只在新一輪開始重排；保留原本單位的先攻，不重擲。
  b.units.sort((a,c)=>c.init-a.init);
 }
 function finishExploreCombat(){const b=B();if(!b.explorationMap)return;syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
+
+// 手動戰棋只是回合模式；被看到或主動攻擊才把敵方小隊加入先攻。
+function engageExploreSquad(target,attacker=null){
+ const b=B();if(!b.explorationMap||b.phase!=="combat"||!target||target.side!=="foe"||target.dead||target.down||target.fled)return;
+ const squad=b.units.filter(e=>e.side==="foe"&&!e.dead&&!e.down&&!e.fled&&!e.combatActive&&(e===target||(target.squad!==undefined&&e.squad===target.squad)));
+ for(const e of squad){e.surprised=!!attacker&&!exploreAware(e,attacker);e.combatActive=true;e.init=d20()+e.mods.DEX+Math.random()*.1;}
+ if(squad.length){b.manualCombat=false;blog(EXPLORE_COMBAT.reinforce);}
+ // 不在當前動作中重排，下一輪統一排序，保留目前行動者與先攻。
+}
+function detectTurnEnemies(){const b=B();if(!b.explorationMap||b.phase!=="combat")return;
+ const pcs=b.units.filter(u=>u.side==="pc"&&!u.dead&&!u.down);
+ for(const e of b.units.filter(u=>u.side==="foe"&&!u.combatActive&&!u.dead&&!u.down&&!u.fled))if(pcs.some(p=>exploreAware(e,p)))engageExploreSquad(e);
+}

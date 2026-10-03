@@ -1260,7 +1260,7 @@ function battleInterfaceHTML(){
   const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine&&b.phase!=="explore"?resHTML(u,b):""}</div>${logEl}</div>`;
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {
-    head: `<div class="head"><div><h2>${b.phase==="explore"?EXPLORE_UI.title:"戰鬥"}：${b.def.name}</h2><p class="rule">${b.phase==="explore"?(b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group):`第 ${b.round} 回合`}${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
+    head: `<div class="head"><div><h2>${b.phase==="explore"?EXPLORE_UI.title:b.manualCombat?EXPLORE_UI.turn:"戰鬥"}：${b.def.name}</h2><p class="rule">${b.phase==="explore"?(b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group):`第 ${b.round} 回合`}${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
       <div class="sys-tools">
         <button class="snd ${SFX.isMuted()?"off":""}" id="sndToggle" aria-label="主音量" title="主音量">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${SFX.isMuted()?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg></button>
@@ -1269,7 +1269,7 @@ function battleInterfaceHTML(){
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>`,
     order: `<div class="order">${order}</div>`,
-    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}</b></div>`:hud,
+    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${exploreParty().filter(isHid).length}/${exploreParty().length}`:""}</b></div>`:hud,
     tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
     overlays: `${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`

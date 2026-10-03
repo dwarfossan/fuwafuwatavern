@@ -244,7 +244,7 @@ const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc" &&
 const sideColor = v => v.side==="pc" ? v.color : v.side==="npc" ? "#c9b7a6" : "#e0766e";
 const foeHid = u => u.side==="foe" && isHid(u);                 // 玩家看不到的敵人
 const nameFor = u => foeHid(u) ? "？？？" : u.name;
-const watchers = u => B().units.filter(v=>hostile(v,u) && !v.down && !v.dead && !isHid(v));
+const watchers = u => B().units.filter(v=>!v.fled&&v.side!==u.side&&v.side!=="npc"&&u.side!=="npc"&&!v.down&&!v.dead&&!isHid(v)&&(!B().explorationMap||(dist(v,u)<=(v.side==="foe"?ENEMIES[v.type].detectRange:senseRange(v))&&exploreSight(v,u))));
 const concealed = u => hidden(u) || watchers(u).every(v=>coverOf(v,u).v >= .75);
 function hideBlock(u){                                           // 不能躲的原因；null＝可以躲
   if(isHid(u)) return "已經躲好了";
@@ -322,7 +322,7 @@ function passivePocket(){
 // 有人走動之後：躲著的人如果被看到了（走出草叢或掩護、敵人繞到旁邊）就現身
 function checkExposure(){
   B().units.forEach(u=>groundDetect(u));
-  B().units.forEach(v=>{ if(isHid(v) && !v.dead && !v.down && !concealed(v)) reveal(v, "被看到了，現身！"); });
+  B().units.forEach(v=>{ if(isHid(v) && !v.dead && !v.down && (B().explorationMap?watchers(v).some(u=>exploreAware(u,v)):!concealed(v))) reveal(v, "被看到了，現身！"); });
 }
 // 災禍術：攻擊和豁免 −1d4，直到施法的薩滿倒下
 const baned = u => { const s = has(u,"bane"); return !!(s && B().units.some(v=>v.id===s.src && !v.dead && !v.down)); };
@@ -548,6 +548,7 @@ function damageAfterResistance(t, n, type){
 }
 function hurt(t, n, type, src){
   if(t.worldObject){if(n>0&&!t.dead){t.dead=true;explodeBarrel(t.worldObject,src);}return;}
+  if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）
