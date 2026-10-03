@@ -17,7 +17,9 @@ function groundStopMove(u){
  const b=B();if(u===cur())b.moveRolled=true;
  if(b.phase==='explore'){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;}
 }
+function groundPoison(u){const o=B().def.blocks.find(o=>o.x===u.x&&o.y===u.y&&o.kind==='poisonSwamp');if(!o||u.dead)return false;if(!has(u,'poisoned')){addStatus(u,'poisoned',{via:'ground',dc:o.dc??13});blog(`${u.name}踏進毒沼，中毒了！`,'skill');}return true;}
 function groundEnter(u,move={}){
+ groundPoison(u);
  const b=B(),fx=groundAt(u.x,u.y);if(!fx)return true;
  if(fx.kind==='fire')addStatus(u,'burning',{});
  if(fx.kind==='charged'){addStatus(u,'paralyzed',{via:'ground'});u.groundLock=6000;groundStopMove(u);blog(`${u.name}踩入帶電水面，麻痺！`,'skill');return false;}
@@ -34,7 +36,7 @@ function groundAdvance(ms,combat=false){
  if(!combat){
   for(const u of b.units){if(u.groundLock>0){u.groundLock-=ms;if(u.groundLock<=0){u.statuses=u.statuses.filter(s=>!(s.k==='paralyzed'&&s.via==='ground'));changed=true;}}}
   b.groundPulse=(b.groundPulse||0)+ms;
-  while(b.groundPulse>=6000){b.groundPulse-=6000;for(const u of b.units)if(!u.dead&&!u.down&&has(u,'burning')){hurt(u,rollDice('1d4').total,'火焰',null);changed=true;}
+  while(b.groundPulse>=6000){b.groundPulse-=6000;for(const u of b.units)if(!u.dead){groundPoison(u);if(poisonDamage(u)){poisonSave(u);changed=true;}}for(const u of b.units)if(!u.dead&&!u.down&&has(u,'burning')){hurt(u,rollDice('1d4').total,'火焰',null);changed=true;}
    // 探索的六秒也算一次地面蔓延；沒有角色回合或行動次數。
    for(const f of Object.values(b.groundEffects||{}))if(f.kind==='fire')for(const o of b.def.blocks)if(o.kind==='bush'&&Math.max(Math.abs(o.x-f.x),Math.abs(o.y-f.y))===1&&!groundAt(o.x,o.y))spread.push(o);
   }
@@ -50,10 +52,10 @@ setInterval(()=>groundClock(),200);
 document.addEventListener('visibilitychange',()=>{if(B())B().groundClockAt=Date.now();});
 function groundKnown(u){
  const b=B();u.knownGround ||= [];const range=ENEMIES[u.type]?.detectRange||senseRange(u);
- for(const f of Object.values(b.groundEffects||{}))if(f.kind!=='steam'&&dist(u,f)<=range&&coverOf(u,f).v<.75&&!u.knownGround.includes(`${f.x},${f.y}`))u.knownGround.push(`${f.x},${f.y}`);
+ for(const f of [...Object.values(b.groundEffects||{}),...b.def.blocks.filter(o=>o.kind==='poisonSwamp')])if(f.kind!=='steam'&&dist(u,f)<=range&&coverOf(u,f).v<.75&&!u.knownGround.includes(`${f.x},${f.y}`))u.knownGround.push(`${f.x},${f.y}`);
 }
 function groundAvoid(u,x,y){
- if(u.side!=='foe')return false;const f=groundAt(x,y);if(!f||f.kind==='steam'||!u.knownGround?.includes(`${x},${y}`))return false;
+ if(u.side!=='foe')return false;const f=groundAt(x,y)||B().def.blocks.find(o=>o.x===x&&o.y===y&&o.kind==='poisonSwamp');if(!f||f.kind==='steam'||!u.knownGround?.includes(`${x},${y}`))return false;
  return !(f.kind==='fire'&&u.damageImmunities?.includes('火焰'));
 }
 function groundEffectSVG(f){

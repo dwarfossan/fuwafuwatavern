@@ -130,7 +130,7 @@ const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && u.x===x && u.y==
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
-  water:{name:"水面",solid:false}, oil:{name:"油",solid:false},
+  poisonSwamp:{name:"毒沼",solid:false}, water:{name:"水面",solid:false}, oil:{name:"油",solid:false},
   chest: {name:"寶箱",solid:true,cover:.5},
   door: {name:"門",solid:true,cover:.75},
   doorOpen: {name:"門",solid:false},
@@ -804,3 +804,7 @@ function applyMastery(a, t, m, mod){
       break; }
   }
 }
+
+// 中毒：大爺 10-03 定，傷害在回合開始；結束時體質豁免，沒過持續。
+function poisonDamage(u){const po=has(u,"poisoned");if(!po||u.dead)return false;blog(`${u.name}中毒了……`,"dmg");hurt(u,rollDice(po.dice||"1d4").total,"毒素",null);return true;}
+function poisonSave(u){const poisons=u.statuses.filter(s=>s.k==="poisoned");if(!poisons.length||u.dead)return false;panelStart(`${u.name}【解毒】`);const ok=saveRoll(u,"CON",Math.max(...poisons.map(s=>s.dc??13)));panelEnd();if(ok){u.statuses=u.statuses.filter(s=>s.k!=="poisoned");blog(`${u.name}體質豁免成功，解毒了。`,"skill");}return true;}

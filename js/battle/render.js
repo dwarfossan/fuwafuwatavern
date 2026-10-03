@@ -484,6 +484,7 @@ function projSVG(pj, now){
 
 function blockSVG(o){
   if(o.kind==="trap"&&!o.found)return "";
+  if(o.kind==="poisonSwamp"){const p=iso(o.x,o.y);return `<g class="poison-swamp"><polygon points="${diamond(o.x,o.y)}" fill="#859948" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x-18}" cy="${p.y+30}" r="6" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x+16}" cy="${p.y+38}" r="9" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/></g>`;}
   if(o.kind==="water")return `<polygon points="${diamond(o.x,o.y)}" fill="#6da8b9" stroke="#2a2630" stroke-width="2"/>`;
   if(o.kind==="oil")return o.found?`<polygon points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
@@ -603,7 +604,7 @@ const ST_ICON = {
   focus:`<circle cx="10" cy="10" r="7" stroke="#fff" stroke-width="1.6" fill="none" stroke-dasharray="3 2.2"/><circle cx="10" cy="10" r="3.6" fill="#fff"/>`,
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
-const stTurns = s => (s.k==="bleed" || s.k==="poisoned") ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
+const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
 function statusBadges(v, cx, y){
   const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
   v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;
@@ -732,7 +733,7 @@ const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained
 const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
   dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下或專注中斷。",
   bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花動作撲滅。",
-  frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害。",
+  frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害；回合結束體質豁免，成功解毒，失敗持續。探索每 6 秒結算一次。",
   blessed:"攻擊和豁免各多擲 1d4 加上去，直到施法者的專注中斷。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
   mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。"};
 function statusLabel(v,s){return STATUS_NAME[s.k]||s.k;}
@@ -751,6 +752,7 @@ function statusExplain(v,s){
     case "fireShield": t = `近戰打中他的敵人受 ${1+(s.n||0)}d6 火焰傷害，整場戰鬥。`; break;
     default: t = STATUS_DESC[s.k] || "目前作用中的戰鬥狀態。";
   }
+  if(s.k==="poisoned")t += ` 解毒體質豁免 DC ${s.dc??13}。`;
   const n = stTurns(s);
   if(n!=null) t += (s.k==="bleed"||s.k==="poisoned") ? ` 剩 ${n} 次。` : ` 剩餘 ${n} 回合。`;
   return t;

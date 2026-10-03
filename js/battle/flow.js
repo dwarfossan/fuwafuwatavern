@@ -11,11 +11,11 @@ function nextTurn(){
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
-  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;if(!checkResult())nextTurn();},1100);return;}
+  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;poisonSave(u);if(!checkResult())nextTurn();},1100);return;}
   // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
-  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ if(!checkResult()) nextTurn(); }, 1500); return; }
+  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ poisonSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
-  if(u.dead || u.down){ refreshBattle(); later(()=>{ if(!checkResult()) nextTurn(); }, 900); return; }
+  if(u.dead || u.down){ refreshBattle(); later(()=>{ poisonSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
   if(B().skipTurn){ B().busy = true; refreshBattle(); later(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
   if(u.side==="pc") sfx("turn");
@@ -45,10 +45,8 @@ function beginTurn(u){
   const bl = has(u,"bleed");
   if(bl){ blog(`${u.name}流血中……`, "dmg"); hurt(u, rollDice("1d4").total, "流血", null);
     bl.n--; if(bl.n<=0) u.statuses = u.statuses.filter(s=>s!==bl); }
-  // 中毒：回合開始受毒素傷害，次數用完就解毒（攻擊劣勢在 attackRoll）
-  const po = has(u,"poisoned");
-  if(po){ blog(`${u.name}中毒了……`, "dmg"); hurt(u, rollDice(po.dice||"1d4").total, "毒素", null);
-    po.n--; if(po.n<=0) u.statuses = u.statuses.filter(s=>s!==po); }
+  // 毒沼仍是來源；傷害與解毒沿用同一套中毒規則。
+  groundPoison(u);poisonDamage(u);
   // 麻痺：這一回合整個跳過（只有一回合）
   b.skipTurn = !u.down && !u.dead && !!has(u,"paralyzed");
   if(b.skipTurn){ u.statuses = u.statuses.filter(s=>s.k!=="paralyzed"); }
@@ -63,6 +61,7 @@ function endTurn(){
   if(!b || b.result) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
   const u = cur();
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
+  poisonSave(u);
   expire("end", u.id);
   b.mode = null;
   if(b.tut===2) b.tut = 3; else if(b.tut===3) b.tut = 4;
