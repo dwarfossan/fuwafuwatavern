@@ -45,6 +45,7 @@ try{
  await pg.waitForTimeout(150);
  if(process.env.ART_SHOT)await pg.screenshot({path:process.env.ART_SHOT});
  await pg.goto('file://'+path.resolve('index.html')+'#doll');await pg.reload();
+ await pg.waitForSelector('[data-demo^="anim:"]');assert(!(await pg.evaluate(()=>[...document.querySelectorAll('[data-demo^="anim:"]')].some(e=>/undefined/.test(e.textContent)))),'紙娃娃動作按鈕不能有 undefined');
  await pg.locator('[data-demo="mood:nervous"]').tap();
  assert.equal(await pg.locator('.demo-stage [data-expression="nervous"]').count(),4);
  await pg.locator('[data-demo="anim:hurt"]').tap();

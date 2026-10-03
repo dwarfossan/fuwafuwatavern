@@ -4,6 +4,7 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.h
 const shot=async n=>{if(process.env.EXPLORE_SHOTS)await pg.screenshot({path:process.env.EXPLORE_SHOTS+'/'+n+'.png'});};
 try{
  await pg.goto('file://'+root+'#battle?seed=123');assert.equal(await pg.evaluate(()=>B().phase),'explore');assert(await pg.evaluate(()=>B().units.filter(u=>u.side!=='npc').every(u=>u.init===0)),'探索入場不擲先攻');
+ await pg.evaluate(()=>{B().info=exploreUnit().id;refreshBattle();});assert(!(await pg.evaluate(()=>/undefined/.test(document.querySelector('.bt-me')?.closest('div')?.parentElement?.textContent||document.body.textContent))),'探索狀態卡不能有 undefined');await pg.evaluate(()=>{B().info=null;refreshBattle();});
  await pg.waitForTimeout(500);const round=await pg.evaluate(()=>B().round);await pg.waitForTimeout(1000);assert.equal(await pg.evaluate(()=>B().round),round);
  await pg.evaluate(()=>{window.__layers=['board-floor','board-marks','board-scene'].map(id=>document.getElementById(id));window.__floor=document.getElementById('board-floor').firstElementChild;});
  await shot('group');

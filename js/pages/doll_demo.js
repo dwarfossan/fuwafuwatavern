@@ -3,7 +3,7 @@ const DEMO_MAIN = ["sword","heavy","axe","mace","polearm","dagger","bow","crossb
 const DEMO_OFF  = [null,"shield","healing_book","flame_orb"];
 const DEMO_ARM  = [null, ...ITEMS.filter(i=>i.type==="armor").map(i=>i.n)];   // 全部護甲都能試穿
 const DEMO_ACT  = ["slash","smash","combo","spin","thrust","guard","shoot","fire","throw","punch","cast","slam","hurt","hop"];
-const ACT_NAME  = {slash:"揮砍",smash:"重劈",combo:"連擊",spin:"迴旋",thrust:"突刺",guard:"架式",shoot:"射擊",throw:"投擲",punch:"揮拳",cast:"施法",slam:"跳砸",hurt:"受傷",hop:"走路",down:"倒下"};
+const ACT_NAME  = {slash:"揮砍",smash:"重劈",combo:"連擊",spin:"迴旋",thrust:"突刺",guard:"架式",shoot:"射擊",fire:"開槍",throw:"投擲",punch:"揮拳",cast:"施法",slam:"跳砸",hurt:"受傷",hop:"走路",down:"倒下"};
 const GROUP_NAME = k => ({unarmed:"徒手"})[k] || (SKILL_GROUPS.find(g=>g.id===k)||{}).name || "無";
 function renderDollDemo(){
   const d = state.demo || (state.demo = {main:"sword", off:"shield", armor:"鑲釘皮甲", anim:null, down:false});

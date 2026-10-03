@@ -817,9 +817,9 @@ const TUTORIAL = [
   "每回合一次「動作」。離開敵人身邊會被藉機攻擊（每隻敵人每輪一次），先「撤離」就不會。做完選「待機」結束回合。"
 ];
 
-// 燈號：動作、剩餘移動（只有輪到的那隻有）
+// 燈號：動作、剩餘移動（只有輪到的那隻有）；探索不分回合，不顯示（10-04 修 移動 undefined）
 function econHTML(u, b, pts=true){
-  if(!(b && u===cur())) return "";
+  if(!(b && u===cur()) || b.phase==="explore") return "";
   return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${b.freeUsed?"used":""}" title="免費動作（每回合一次）">免費</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
 }
 // 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
