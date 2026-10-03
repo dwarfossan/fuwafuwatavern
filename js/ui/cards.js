@@ -55,7 +55,7 @@ function itemCardHTML(it){
     rows.push(["說明", it.desc || "冒險用品，目前沒有戰鬥效果。"]);   // 套組、彈袋、箭袋等有寫 desc 的照寫（10-03）
   }
   if(it.rarity){rows.push(["分類",MAGIC_RARITIES[it.rarity].name]);if(it.desc)rows.push(["效果",it.desc]);if(it.lore)rows.push([MAGIC_SHOP_UI.lore,it.lore+"（草稿）"]);rows.push(["暫定",MAGIC_SHOP_UI.draft]);}
-  rows.push(["價格／重量", `${money(it.cost)}／${it.wt} 磅`]);
+  rows.push([it.noRefund?"領取／重量":"價格／重量", `${it.noRefund?"不可退換":money(it.cost)}／${it.wt} 磅`]);
   const g = groupOf(it);
   const on = g ? (it.elementFocus?g.skills.slice(0,1):g.skills).map((s,i)=>({s,i,gid:g.id})) : [];
   if(it.elementFocus)(it.grants||[]).forEach(key=>{const f=SKILL_BY_ID[key];if(f)on.push({s:f.g.skills[f.idx],i:f.idx,gid:f.g.id});});
@@ -111,6 +111,7 @@ function closeDetailModal(){
 function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
+  if(["seal","sealIntro"].includes(m.kind))body=sealModalHTML(m);
   if(m.kind==="item") body = itemCardHTML(itemById(m.id));
   if(m.kind==="help"){
     const h=PAGE_UI.helpPages[m.id];

@@ -51,6 +51,7 @@ node tests/death-save.mjs     # 死亡豁免：1 算兩次、20 醒來、三次�
 node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）；指定目標的招挑不到躲著的
 node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 node tests/concentration.mjs  # 專注（同時一個、受傷豁免、倒下中斷）、狩印、點心、次元背包
+node tests/sealed-goods.mjs # 封印付費／領取、十次保底、週自選與跨週保存
 node tests/magic-shop.mjs   # 每日魔法現貨、保存、裝備效果與手機購買
 node tests/town-supplier.mjs # 首次離店送貨、商人貨源暗示與一次性事件
 node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸控與原技能說明

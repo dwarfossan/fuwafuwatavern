@@ -8,7 +8,7 @@ function renderShop(){
       ${critterHead(x.id)}<span>${x.name}</span><span class="done">${money(state.gold[x.id])}</span>
     </button>`).join("");
   const cats = shopCategories().map(k=>`<button class="chip ${k===state.shopCat?"on":""}" data-cat="${k}" aria-pressed="${k===state.shopCat}">${k}</button>`).join("");
-  const rows = state.shopContext==="items" && state.shopCat===MAGIC_SHOP_UI.cat ? magicStockHTML() : ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(shopItem).map(it=>{
+  const rows = state.shopContext==="items" && state.shopCat===MAGIC_SHOP_UI.cat ? sealedGoodsHTML()+magicStockHTML() : ITEMS.filter(i=>i.cat===state.shopCat && !i.noShop).map(shopItem).map(it=>{
     const why = blockReason(id,it);
     let spec="";
     if(it.type==="weapon") spec = `${it.dmg}${it.props.length?" · "+it.props.join("、"):""} · 專精：${it.mastery}`;
@@ -23,7 +23,7 @@ function renderShop(){
       ${why?`<div class="it-why">${why}</div>`:""}
     </div>`;
   }).join("");
-  const bag = invItems(id).map((it,idx)=>`<li><button class="it-name" data-iteminfo="${it.id}">${it.n}</button><button class="btn small ghost" data-sell="${idx}">退</button></li>`).join("")
+  const bag = invItems(id).map((it,idx)=>`<li><button class="it-name" data-iteminfo="${it.id}">${it.n}</button>${it.noRefund?'<small>不可退換</small>':`<button class="btn small ghost" data-sell="${idx}">退</button>`}</li>`).join("")
             || `<li class="empty">還沒買東西</li>`;
   const wt = weightOf(id), cap = capOf(id);
   return `<section class="page shop-page" data-shop-category="${state.shopCat}">

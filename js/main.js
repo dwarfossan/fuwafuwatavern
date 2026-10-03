@@ -211,7 +211,7 @@ function bind(){
     g.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
   });
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
-  if(state.page==="shop") bindShop();
+  if(state.page==="shop"){bindShop();bindSeal();}
   document.querySelectorAll("[data-magic-buy]").forEach(el=>el.addEventListener("click",()=>buyMagic(el.dataset.magicBuy)));
   document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
@@ -221,6 +221,7 @@ function bind(){
   }));
   document.querySelectorAll("[data-sell]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id;
+    if(itemById(state.inv[id][+b.dataset.sell])?.noRefund)return;
     const [x] = state.inv[id].splice(+b.dataset.sell,1);
     state.gold[id] += itemById(x).cost;
     state.quip = state.shopContext?TOWN_UI.sell:pick(DWARF_QUIPS.sell); render();

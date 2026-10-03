@@ -1069,3 +1069,6 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .supplier-story .actor.merchant.off{animation:none;opacity:0}
 @keyframes supplier-walk{from{transform:translateX(-140%) scale(.9)}to{transform:translateX(-50%) scale(.9)}}
 .market-day{margin:4px 0;font-size:13px;color:var(--honey)}.market-draft{font-size:11px;color:var(--dim)}
+
+/* 封印奇物：圖形暫定，使用商店商品捲動區和原詳細框。 */
+.seal-panel{padding:14px;border:1px solid #725982;border-radius:14px;background:#2c2234;margin-bottom:14px}.seal-panel h3,.seal-panel h4{margin:8px 0}.seal-panel p{margin:8px 0;line-height:1.5}.seal-question{float:right;width:48px;height:54px;border:2px solid #bfa0d7;border-radius:9px;background:#493452;color:#f3d591;font-size:32px;cursor:pointer}.seal-small{font-size:12px;color:#c8bdce}.seal-prize{margin-top:12px;padding-top:10px;border-top:1px solid #68556f}.seal-prize small{margin-left:8px;color:#c4b4c9}.seal-speaker{display:flex;align-items:center;gap:12px;margin:12px 0}.seal-speaker svg,.seal-speaker .critter-head{width:64px;height:64px}.seal-speaker img{width:64px;height:64px;object-fit:contain}.seal-pending{margin-top:12px;padding:10px;background:#403142;border-radius:10px}

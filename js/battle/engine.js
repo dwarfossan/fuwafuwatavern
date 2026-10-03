@@ -787,7 +787,7 @@ function weaponAttack(a, t, o={}){
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
     hurt(t, n, dmgType(a), a);
-    const extra=a.weapon?.extraDamage;if(extra && !t.dead && !t.down){hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
+    const extra=a.weapon?.extraDamage;if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
     if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
   } else if(o.mastery && m==="擦傷" && mod>0){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(a), a);
