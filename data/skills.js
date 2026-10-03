@@ -180,8 +180,8 @@ function basicName(g, item){
 const HAS_BASIC = g => !g.trait && (!FOCUS_GROUPS.includes(g.id) || g.id==="arcane_staff");   // 這組的第 0 招是基本攻擊（法杖能打擊，其他法器第 0 招是法術）
 // 技能表用：這組基本攻擊可能出現的名稱，例如「斬擊／刺擊」
 const basicNames = g => [...new Set(g.weapons.map(n=>basicName(g, (typeof ITEMS!=="undefined" ? ITEMS : []).find(i=>i.n===n))))].join("／");
-// 傷害種類給玩家看的名字：物理三種合併成物理；力場、光耀算法術；元素照寫
-const DMG_SHOWN = {"揮砍":"物理", "穿刺":"物理", "鈍擊":"物理", "流血":"物理", "力場":"法術", "光耀":"法術"};
+// 傷害種類給玩家看的名字：物理三種與流血合併成物理；力場、光耀與元素保留原名
+const DMG_SHOWN = {"揮砍":"物理", "穿刺":"物理", "鈍擊":"物理", "流血":"物理"};
 const dmgShown = t => DMG_SHOWN[t] || t;
 
 // 地面反應沿用法術傷害類型，沒有另外一套施法規則。

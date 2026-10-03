@@ -56,6 +56,7 @@ node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
 node tests/explore.mjs       # 探索同頁分層、群體／個體、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊
+node tests/damage-types.mjs # 力場／光耀原名、傷害與抗性隔離、手機紀錄
 node tests/hidden-ground.mjs # 隱藏油感知、範圍與遮擋、敵人獨立知識、手機搜索
 node tests/poison.mjs       # 中毒傷害、體質解毒、毒沼來源、秒／回合、手機狀態卡
 node tests/ground.mjs       # 地面反應、冰面、蒸氣、已知危險、秒／輪計時與手機施法
