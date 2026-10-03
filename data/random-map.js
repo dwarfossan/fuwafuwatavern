@@ -22,7 +22,7 @@ function generateRandomBattle(seed,options={}){
     // 出生區在兩側，預留周圍空格，避免一出生就被包住。
     for(let i=0;i<4;i++)d.party.push(pick(cfg.w-5,cfg.w-2,8,cfg.h-8));
     const types=Object.keys(ENEMIES);
-    for(let i=0;i<cfg.foes;i++){const [x,y]=pick(1,7,6,cfg.h-6),type=types[int(0,types.length-1)],hidden=r()<.35;d.foes.push({type,x,y,hidden,squad:Math.floor(i/2)});if(hidden)d.blocks.push({x,y,kind:"bush"});}
+    for(let i=0;i<cfg.foes;i++){const [x,y]=pick(1,7,6,cfg.h-6),type=types[int(0,types.length-1)],hidden=r()<.35;d.foes.push({type,x,y,hidden,trapCharges:ENEMY_TRAPS.count,squad:Math.floor(i/2)});if(hidden)d.blocks.push({x,y,kind:"bush"});}
     for(const [x,y] of [...d.party,...d.foes.map(q=>[q.x,q.y])])for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)reserved.add(`${x+dx},${y+dy}`);
     const row=int(10,15);d.road=roadRow([row,row+1],cfg.w);
     for(const kind of ["bush","tree","crate","wagon"]){const range=cfg[kind],count=Array.isArray(range)?int(...range):range;

@@ -73,10 +73,12 @@ function exploreApproach(o){
  candidates.sort((a,b)=>a.n-b.n);const t=candidates[0];if(t)exploreMove(t.x,t.y,open);else{blog(EXPLORE_UI.noPath);refreshBattle();}
 }
 function exploreTraps(u){
- const b=B();for(const o of b.def.blocks.filter(o=>o.kind==="trap"&&!o.disarmed)){
+ const b=B();let hit=false;for(const o of b.def.blocks.filter(o=>o.kind==="trap"&&!o.disarmed)){
   if(!o.found&&exploreParty().some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
-  if(u&&u.side==="pc"&&!u.down&&u.x===o.x&&u.y===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;blog(EXPLORE_ACTION_TEXT.trapHit);hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
- }
+  if(u&&u.side==="pc"&&!u.down&&u.x===o.x&&u.y===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;hit=true;
+   if(b.phase==='explore'){b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;}else b.moveRolled=true;
+   blog(EXPLORE_ACTION_TEXT.trapHit);hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
+ }return hit;
 }
 function exploreInteract(action){
  const b=B(),o=b.exploreObject,u=b.units.find(u=>u.id===b.leader);if(!exploring()||b.busy||b.exploreStopped||!o||!u||u.down||u.dead||dist(u,o)>1||!EXPLORE_OBJECTS[o.kind]?.actions.includes(action))return;

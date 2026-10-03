@@ -53,7 +53,7 @@ function beginTurn(u){
   b.moveLeft = mv; b.baseMove = mv;
   if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
-  if(!u.down) perceive(u);                  // 昏過去的不會察覺
+  if(!u.down){perceive(u);exploreTraps();}                  // 昏過去的不會察覺
 }
 
 function endTurn(){
@@ -137,8 +137,9 @@ function walk(u, path, done){
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(!groundEnter(u,groundMove)){refreshBattle();done?.(i);return;}
+    if(exploreTraps(u)){refreshBattle();done?.(i);return;}
     if(pickUp(u)){ b.pickedUp = true; }
-    if(b.phase==="explore"){checkExposure();exploreTraps(u);exploreDetect();}
+    if(b.phase==="explore"){checkExposure();exploreDetect();}
     else {checkGuards(u, prev);checkExposure();}
     refreshBattle();
     later(step, 140);
@@ -848,6 +849,7 @@ function aiTurn(e){
   { const f = foeFreePick(e);
     if(f && (!b.freeUsed || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
   if(!canAct()){ refreshBattle(); later(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
+  const trapTarget=enemyTrapTarget(e);if(trapTarget&&placeEnemyTrap(e,trapTarget)){later(endTurn,settle(900));return;}
   // 學習系統測試：每隻哥布林先使用一項「既有技能表」裡的招式一次。
   // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
   if(!e.testSkillUsed && e.testSkill){
@@ -987,3 +989,13 @@ function shamanCast(e, sk, t){
 const OBS_DUR = {ok:1400, fail:1700, known:2000, sneak:900, sweat:1800, shake:1600, anger:1400, note:1800};   // 後四個是漫畫符號（10-03，時間暫定）   // sneak：從藏身處出手時對面沒發現的 ?（js/battle/engine.js 的 sneakShow）
 function obsMark(u, kind){ (B().marks = B().marks || []).push({id:u.id, kind, t:impactAt(), dur:OBS_DUR[kind]}); }
 function fxFloat(u, text, cls){ (B().floats = B().floats || []).push({x:u.x, y:u.y, text, cls, t:impactAt()}); }
+
+// 陷阱使用現有 blocks，不新增頁面；AI 暫定在我方離 2～4 格時放在接近路線上。
+function enemyTrapTarget(e){
+ if(e.side!=='foe'||e.down||e.dead||!(e.trapCharges>0))return null;const t=seenPcs().filter(p=>dist(e,p)>=2&&dist(e,p)<=4&&exploreSight(e,p)).sort((a,b)=>dist(e,a)-dist(e,b))[0];if(!t)return null;
+ return DIRS.map(([dx,dy])=>({x:e.x+dx,y:e.y+dy})).filter(p=>!blocked(p.x,p.y)&&!unitAt(p.x,p.y)&&!B().def.blocks.some(o=>o.x===p.x&&o.y===p.y)&&!groundAvoid(e,p.x,p.y)).sort((a,b)=>dist(a,t)-dist(b,t))[0]||null;
+}
+function placeEnemyTrap(e,p){
+ const b=B();if(b.phase!=='combat'||e!==cur()||e.side!=='foe'||e.down||e.dead||!(e.trapCharges>0)||!canAct()||dist(e,p)!==1||blocked(p.x,p.y)||unitAt(p.x,p.y)||b.def.blocks.some(o=>o.x===p.x&&o.y===p.y))return false;
+ e.trapCharges--;useAction(e);reveal(e);b.def.blocks.push({kind:'trap',x:p.x,y:p.y,owner:e.id,found:false});blog(`${e.name}${ENEMY_TRAPS.placed}。`,'skill');exploreTraps();refreshBattle();return true;
+}

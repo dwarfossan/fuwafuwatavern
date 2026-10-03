@@ -10,9 +10,10 @@ try{
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!cur().down&&!cur().dead&&!B().busy,null,{timeout:60000});
  const r=await pg.evaluate(()=>{
   const b=B(), u=cur(), out={};
+  if(u.down||u.dead)throw Error("專注驗收必須由清醒施法者開始");
   b.units.filter(v=>v.side==='pc').forEach(v=>{v.statuses=[];});
   u.weapon=ITEMS.find(i=>i.n==='非凡長弓'); u.level=1; u.slots=slotMax(u).slice();
   const f=b.units.find(v=>v.side==='foe'&&!v.dead&&!foeHid(v)); f.hp=f.maxHp=200;
