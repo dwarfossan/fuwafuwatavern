@@ -122,7 +122,7 @@ function renderModal(){
   }
   if(m.kind==="about"){
     const link=t=>t.replace(/https:\/\/[^\s]+?(?=\.?(\s|$))/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
-    body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p>${ABOUT.srd.map(x=>`<section><h4>${x.name}</h4><p class="about-en" lang="en">${link(x.en)}</p><p class="about-zh">${x.zh}</p></section>`).join("")}</div>`;
+    body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p><section class="about-ai"><h4>${ABOUT.ai.title}</h4><p class="about-zh">${ABOUT.ai.text}</p></section>${ABOUT.srd.map(x=>`<section><h4>${x.name}</h4><p class="about-en" lang="en">${link(x.en)}</p><p class="about-zh">${x.zh}</p></section>`).join("")}</div>`;
   }
   if(m.kind==="character"){
     const c=CRITTERS.find(x=>x.id===m.id);

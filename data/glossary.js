@@ -59,6 +59,7 @@ const PAGE_UI = {
 const ABOUT = {
   title:"關於／授權",
   intro:"《毛絨絨小隊》的規則以 SRD 為底，為了好玩改了一些。角色、世界觀、地圖、劇情、美術都是原創。",
+  ai:{title:"AI 使用說明", text:"本作在開發過程中使用 AI 工具協助製作，包括程式、美術與部分文字。所有內容都由開發者審閱、修改並決定是否採用。"},   // 大爺 10-04 要求標明；文字暫定（香香）
   srd:[
     {name:"SRD 5.2", en:'This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.',
      zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.2（「SRD 5.2」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"},
