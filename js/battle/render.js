@@ -817,6 +817,21 @@ const TUTORIAL = [
   "每回合一次「動作」。離開敵人身邊會被藉機攻擊（每隻敵人每輪一次），先「撤離」就不會。做完選「待機」結束回合。"
 ];
 
+// 狀態卡的三條（大爺 10-04）：名稱｜條｜數字，三條一樣長、左邊對齊。敵人只有生命
+// 經驗、壓力還沒有規則，現在只顯示（都是 0）；經驗門檻暫時照 SRD 5.2 升級表
+const STRESS_MAX = 100;
+const XP_NEXT = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+const stressOf = v => Math.max(0, Math.min(STRESS_MAX, v.stress||0));
+function infoBarsHTML(v, pct){
+  const row=(k,label,w,col,num)=>`<span class="ib-l">${label}</span><span class="ib-bar ib-${k}"><i style="width:${Math.max(0,Math.min(100,w*100))}%;background:${col}"></i></span><span class="ib-n">${num}</span>`;
+  const gone = v.gone==="teleport" || v.dead;
+  let h = row("hp","生命",gone?0:pct,pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)",`${Math.max(0,v.hp)}/${v.maxHp}`);
+  if(v.side==="pc"){
+    const lv=v.level||1, need=XP_NEXT[lv]||XP_NEXT[XP_NEXT.length-1], xp=v.xp||0;
+    h += row("xp","經驗",xp/need,"#7fb8e0",`${xp}/${need}`) + row("stress","壓力",stressOf(v)/STRESS_MAX,"#9b7fd0",`${stressOf(v)}/${STRESS_MAX}`);
+  }
+  return `<div class="inf-bars">${h}</div>`;
+}
 // 燈號：動作、剩餘移動（只有輪到的那隻有）；探索不分回合，不顯示（10-04 修 移動 undefined）
 function econHTML(u, b, pts=true){
   if(!(b && u===cur()) || b.phase==="explore") return "";
@@ -1148,8 +1163,8 @@ function infoHTML(v, b){
   const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
   return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
-    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}）`:`生命 ${v.hp}/${v.maxHp}`} · AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
-    <div class="inf-hp"><i style="width:${pct*100}%;background:${pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)"}"></i></div>
+    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}） · `:""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    ${infoBarsHTML(v, pct)}
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
     ${v.side==="pc"?slotGridHTML(v):""}
     ${v.oaUsed&&!v.down&&!v.dead?`<div class="inf-g dim">這輪已經藉機攻擊過了</div>`:""}
@@ -1214,7 +1229,7 @@ function battleInterfaceHTML(){
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const u = cur();
   const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
-      <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg></div>`).join("");
+      <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${v.side==="pc"?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
   let hint = "";

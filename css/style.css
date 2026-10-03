@@ -781,7 +781,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .bt-info h3{margin:0;font-family:var(--font-disp);font-size:18px}
 .bt-info .dim{font-size:13px}
 .inf-x{position:absolute;right:6px;top:4px;background:none;border:none;color:var(--dim);font-size:16px;width:32px;height:32px}
-.inf-hp{height:6px;border-radius:3px;background:var(--night);overflow:hidden}.inf-hp i{display:block;height:100%}
+.inf-bars{display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center;font-size:12px;margin-top:4px}   /* 生命／經驗／壓力 三條（大爺 10-04） */
+.inf-bars .ib-l{color:var(--dim);font-weight:700}.inf-bars .ib-n{font-variant-numeric:tabular-nums;text-align:right;min-width:4.5em}
+.ib-bar{height:6px;border-radius:3px;background:var(--night);overflow:hidden}.ib-bar i{display:block;height:100%}
 .inf-g{font-size:13px}
 .board-wrap .bt-result{left:50%;top:50%;transform:translate(-50%,-50%);width:min(320px,86%);padding:18px}
 @media (max-width:560px){
@@ -941,7 +943,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .gear-info{width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow:auto;padding:9px;gap:5px}
   .gear-info .bt-me h3{font-size:16px}
   .gear-info .bt-me .dim{font-size:11px}
-  .gear-info .inf-hp{height:5px}
+  .gear-info .ib-bar{height:5px}.gear-info .inf-bars{font-size:11px}
   .gear-info>.econ{margin-top:1px}
   .gear-tabs{margin:5px 0 0;gap:5px}
   .gear-tab{padding:5px 11px;font-size:12px}
@@ -1094,3 +1096,9 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .about p{margin:6px 0;line-height:1.55}
 .about-en{font-size:12.5px;color:var(--dim);overflow-wrap:anywhere}
 .about-en a{color:var(--honey)}
+
+/* 頭像列的壓力小條（大爺 10-04）：四小隻頭像下面，0～100 */
+.ord{position:relative}
+.battle .order{padding-bottom:5px}
+.ord-stress{position:absolute;left:3px;right:3px;bottom:-6px;height:5px;border-radius:3px;background:#1f1a24;border:1px solid rgba(0,0,0,.6);line-height:0;overflow:hidden}
+.ord-stress i{display:block;height:100%;background:#9b7fd0}
