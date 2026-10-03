@@ -42,7 +42,6 @@ function critterExpression(id, view, mood="normal"){
     else if(id==="tiger")face+=path(`M${nx} ${ny+3}q-3 7 -8 4m8 -4q3 7 8 4`,ink,2);
     else face+=path(`M${nx-4} ${ny+10}q4 ${mood==="angry"?-3:2} 8 0`,ink,2);
   }
-  if(mood==="nervous")face+=`<path d="M85 32q-8 10 -2 13q9 1 2 -13Z" fill="#91d7ed" stroke="${ink}" stroke-width="1.8"/>`;
   return `<g class="critter-expression" data-expression="${mood}">${face}</g>`;
 }
 function critterDrawing(id,view,mood){

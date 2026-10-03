@@ -3,7 +3,7 @@ const browser=await chromium.launch();try{
 const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
 const checks=await p.evaluate(()=>{
- startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch++;b.turn=b.units.indexOf(u);b.busy=false;b.tut=-1;b.actionUsed=b.freeUsed=false;
+ startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.tut=-1;b.actionUsed=b.freeUsed=false;
  u.weapon=u.focus=u.offhand2=null;u.shield=false;u.mods={STR:0,DEX:0,CON:0,INT:1,WIS:4,CHA:2};u.backpack=[];u.slots=[2];
  const r={stat:spellStat(u),noFocus:skillReqMet(u,learnedSkillByKey('magic_missile')),components:componentProblem(u,learnedSkillByKey('magic_missile')),dc:dcOf(u,spellStat(u))};
  u.learned=[{key:'magic_missile',name:'魔法飛彈'},{key:'mage_armor',name:'法師護甲'}];u.activeSkills=['magic_missile','mage_armor'];
@@ -16,7 +16,7 @@ assert.equal(checks.stat,'WIS');assert.equal(checks.dc,14);assert(checks.noFocus
 await p.locator('[data-cmd="skills"]').tap();assert(!await p.locator('[data-skill="mage_armor"]').isDisabled());await p.locator('[data-skill="mage_armor"]').tap();assert(await p.evaluate(()=>!!has(cur(),'mageArmor')));
 await p.waitForTimeout(300);if(process.env.REVIEW_SHOT)await p.screenshot({path:process.env.REVIEW_SHOT});
 const learned=await p.evaluate(()=>{
- const b=B(),u=b.units.find(v=>v.id==='fox'),e=b.units.find(v=>v.side==='foe');b.flowEpoch++;b.busy=false;b.actionUsed=b.freeUsed=false;u.dead=false;u.pendingLearned=[];e.weapon=null;e.focus=null;e.statuses=[];e.dead=e.down=false;e.mods.INT=3;e.shield=false;
+ const b=B(),u=b.units.find(v=>v.id==='fox'),e=b.units.find(v=>v.side==='foe');b.flowEpoch=(b.flowEpoch||0)+1;b.busy=false;b.actionUsed=b.freeUsed=false;u.dead=false;u.pendingLearned=[];e.weapon=null;e.focus=null;e.statuses=[];e.dead=e.down=false;e.mods.INT=3;e.shield=false;
  const old=Math.random;Math.random=()=>.99;
  doSkill(e,learnedSkillByKey('shocking_grasp'),u);
  b.actionUsed=b.freeUsed=false;doSkill(e,focusCantripSkill(SKILL_GROUPS.find(g=>g.id==='healing_book')),u);
