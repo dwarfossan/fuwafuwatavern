@@ -113,7 +113,7 @@ function scoutBattle(id){
   const def = BATTLES[id], foes = {};
   def.foes.forEach((f,i)=>{
     if(!f.hidden) return;
-    const roll = d20(), hide = roll + ENEMIES[f.type].mods.DEX;
+    const roll = d20(), hide = roll + abilityMods(ENEMIES[f.type]).DEX;
     const spotted = CRITTERS.filter(c=>hide < HIDE_DC || 10 + modOf(finalScore(c.id,"WIS")) >= hide).map(c=>c.id);
     foes[i] = {hide, roll, spotted};
   });

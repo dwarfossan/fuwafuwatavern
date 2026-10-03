@@ -918,7 +918,7 @@ function syncWeaponSet(u){
 }
 function switchWeaponSet(u,set){
   if(!u||u.side!=="pc")return;
-  if(set===2 && focusRequirement(u.spare?.[0],k=>finalScore(u.id,k)))return;
+  if(set===2 && equipmentRequirement(u.spare?.[0],k=>abilityScore(u,k)))return;
   u.activeSet=set===2?2:1;
   // 戰鬥實際使用欄位永遠指向目前配置；切組不消耗任何動作。
   if(u.activeSet===2){
@@ -947,7 +947,7 @@ function equipItemAt(u, from, to){
   };
   const accepts=(slot,it)=>{
     if(!it)return true;
-    if(slot!=="bag" && focusRequirement(it,k=>finalScore(u.id,k)))return false;
+    if(slot!=="bag" && equipmentRequirement(it,k=>abilityScore(u,k)))return false;
     if(slot==="weapon1"||slot==="weapon2")return it.type==="weapon"||it.type==="focus";
     if(slot==="offhand1"||slot==="offhand2")return it.type==="shield";
     if(slot==="armor")return it.type==="armor";
@@ -1066,18 +1066,18 @@ function infoHTML(v, b){
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(it.art||g.id,38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
-    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=finalScore(v.id,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
+    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=abilityScore(v,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
     const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:null;
     const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
     const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
-    const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=finalScore(v.id,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
+    const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=abilityScore(v,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
     const bagOpen=!!b.gearBagOpen;
     const bagIt=v.backpackEquip||null;
     const bag=`<div class="status-eqslot backpack ${bagOpen?"on":""}" data-gearslot="backpack"><small>背包</small>${bagIt?`<button class="status-eqitem status-bagbtn eq-tip" data-bagtoggle data-uid="${v.id}" data-gearitem="backpack" data-tip="${eqTip(bagIt)}" aria-label="${bagOpen?"收起":"打開"}背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button>`:`<span class="status-eqempty">＋</span>`}</div>`;
     const bagDrawer=bagOpen?`<div class="status-bagdrawer gear-bag" data-gearbag><div class="gear-load"><div class="gear-load-head"><span>負重</span><b>${+load.toFixed(1)} / ${cap} lb</b></div><div class="gear-load-track"><div class="gear-load-fill" style="width:${loadPct}%"></div></div></div><div class="gear-bagitems">${(v.backpack||[]).map((it,i)=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-uid="${v.id}" data-gearitem="bag:${i}" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${g?iconSVG(g.id,24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty bag-drop">背包是空的；可把裝備拖到這裡</span>`}</div></div>`:"";
     statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
   } else {
-    // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（只有調整值，資料裡沒有屬性值）；不顯示熟練格、燈號、小筆記
+    // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（介面沿用只顯示調整值，資料保存完整屬性值）；不顯示熟練格、燈號、小筆記
     // 背包：看穿（被動感知、搜索）或打倒之後才打得開（大爺 10-02）
     const big=`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:sideColor(v),look:MONSTER_LOOK[v.look],...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`;
     const roSlot=(it,label,cls)=>`<div class="status-eqslot ro ${cls}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:""}</div>`;

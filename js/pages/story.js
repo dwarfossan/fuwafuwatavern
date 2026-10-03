@@ -59,7 +59,7 @@ function spotRowHTML(){
   const sc = state.scout, hit = sc && Object.entries(sc.foes).find(([,x])=>x.spotted.length);
   let title = "被動感知";
   if(hit){
-    const [i, x] = hit, foe = ENEMIES[BATTLES[sc.battle].foes[i].type], m = foe.mods.DEX;
+    const [i, x] = hit, foe = ENEMIES[BATTLES[sc.battle].foes[i].type], m = abilityMods(foe).DEX;
     const flick = [0,1,2].map(()=>1 + Math.floor(Math.random()*20));
     title = `${foe.name}潛行 ${dieFace(20, x.roll, 0, DICE_TUMBLE, flick, false)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span><b>${x.hide}</b>${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
   }

@@ -46,7 +46,7 @@ try{
    assert.deepEqual(cats,id==='smith'?['簡易近戰','簡易遠程','軍用近戰','軍用遠程','護甲','盾牌']:['法器','道具','冒險用品','魔法物品']);
    assert.equal(await page.locator('#depart').count(),0);assert.equal(await page.locator('#backStory').count(),0);
    const wanted=id==='smith'?'匕首':'奧術法杖';
-   await page.evaluate(()=>{state.gold.fox=1000*GP;state.inv.fox=[];render();});
+   await page.evaluate(()=>{state.gold.fox=1000*GP;state.inv.fox=[];for(const k of ['INT','WIS','CHA'])state.rolls.fox[k]=[6,6,6,6];render();});
    const item=page.locator('.item').filter({has:page.locator('.it-name',{hasText:wanted})}).first();
    await item.locator('[data-buy]').tap();
    assert(await page.evaluate(n=>invItems('fox').some(i=>i.n===n),wanted));

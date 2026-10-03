@@ -70,6 +70,7 @@ node tests/hidden-ground.mjs # 隱藏油感知、範圍與遮擋、敵人獨立�
 node tests/poison.mjs       # 中毒傷害、體質解毒、毒沼來源、秒／回合、手機狀態卡
 node tests/ground.mjs       # 地面反應、冰面、蒸氣、已知危險、秒／輪計時與手機施法
 node tests/elements.mjs     # 冷電法器、戲法傷害與到期、手機瞄準施放
+node tests/unit-scores.mjs # 敵我完整六圍、13門檻、怪物被動資料與手機狀態卡
 node tests/casting-rules.mjs # 最高施法屬性、法器13門檻、裝備戲法抄寫與手機施放
 node tests/components.mjs   # 聲勢材、空手、標價材料、禁止施法與手機提示
 node tests/focus-instance.mjs # 法器逐件固定隨機屬性、現貨、裝備卡與重試

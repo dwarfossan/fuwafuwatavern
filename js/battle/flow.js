@@ -671,7 +671,7 @@ function useItem(u, it, t){
 // 切換整組手持配置：主手＋副手一起切換；整理裝備不消耗動作
 function swapWeapon(u, i){
   const w=u.spare&&u.spare[i];
-  if(!w || focusRequirement(w,k=>finalScore(u.id,k)))return;
+  if(!w || equipmentRequirement(w,k=>abilityScore(u,k)))return;
   const old=u.weapon, oldOff=u.shield?{n:"盾牌",type:"shield",_shield:true}:null, nextOff=u.offhand2||null;
   u.weapon=w; u.spare[i]=old;
   u.shield=!!nextOff;

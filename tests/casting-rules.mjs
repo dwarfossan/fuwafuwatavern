@@ -7,9 +7,9 @@ const checks=await p.evaluate(()=>{
  u.weapon=u.focus=u.offhand2=null;u.shield=false;u.mods={STR:0,DEX:0,CON:0,INT:1,WIS:4,CHA:2};u.backpack=[];u.slots=[2];
  const r={stat:spellStat(u),noFocus:skillReqMet(u,learnedSkillByKey('magic_missile')),components:componentProblem(u,learnedSkillByKey('magic_missile')),dc:dcOf(u,spellStat(u))};
  u.learned=[{key:'magic_missile',name:'魔法飛彈'},{key:'mage_armor',name:'法師護甲'}];u.activeSkills=['magic_missile','mage_armor'];
- for(const k of ['INT','WIS','CHA'])state.rolls.fox[k]=[2,2,2,2];state.gold.fox=100*GP;
+ for(const k of ['INT','WIS','CHA'])state.rolls.fox[k]=[2,2,2,2];state.gold.fox=100*GP;u.scores=abilityScores("fox");
  const it=makeItem({...ITEMS.find(it=>it.n==='薩滿圖騰')},false);r.fixed=it.stat;r.block=blockReason('fox',it);r.pickBlocked=!canPick(u,it);u.backpack=[it];r.equipBlocked=!equipItemAt(u,'bag:0','weapon1');
- state.rolls.fox.WIS=[4,4,5,1];r.pickAllowed=canPick(u,it);r.equipAllowed=equipItemAt(u,'bag:0','weapon1');r.same=u.weapon===it&&it.stat==='WIS';
+ state.rolls.fox.WIS=[4,4,5,1];u.scores=abilityScores("fox");r.pickAllowed=canPick(u,it);r.equipAllowed=equipItemAt(u,'bag:0','weapon1');r.same=u.weapon===it&&it.stat==='WIS';
  u.weapon=null;u.focus=null;u.backpack=[ITEMS.find(it=>it.n==='材料包')];u.statuses=[];u.shield=false;b.menu='act';refreshBattle();return r;
 });
 assert.equal(checks.stat,'WIS');assert.equal(checks.dc,14);assert(checks.noFocus);assert.equal(checks.components,'');assert.equal(checks.fixed,'WIS');assert.match(checks.block,/需要感知 13/);assert(checks.pickBlocked&&checks.equipBlocked&&checks.pickAllowed&&checks.equipAllowed&&checks.same);

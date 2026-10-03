@@ -8,6 +8,10 @@ const fmt = m => (m>0?"+":m<0?"−":"±") + Math.abs(m);
 // 背景加成與最終屬性值（創角時屬性值上限 20）
 const bgOf = (id,k) => CRITTERS.find(c=>c.id===id).bg[k] || 0;
 const finalScore = (id,k) => Math.min(20, scoreOf(state.rolls[id][k]) + bgOf(id,k));
+// 地圖上的所有單位保存同一份完整六圍；商店／創角以角色識別取值。
+const abilityScore = (subject,k) => typeof subject==="string" ? finalScore(subject,k) : subject.scores[k];
+const abilityScores = subject => Object.fromEntries(ABILITIES.map(a=>[a.k,abilityScore(subject,a.k)]));
+const abilityMods = subject => Object.fromEntries(ABILITIES.map(a=>[a.k,modOf(abilityScore(subject,a.k))]));
 const done = id => state.rolls[id] && ABILITIES.every(a => state.rolls[id][a.k]);
 
 const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -17,7 +21,7 @@ function money(cp){
   const g=Math.floor(cp/100), s=Math.floor(cp%100/10), c=cp%10;
   return [g?`${g} gp`:"", s?`${s} sp`:"", c?`${c} cp`:""].filter(Boolean).join(" ") || "0 gp";
 }
-const scoreK = (id,k) => finalScore(id,k);
+const scoreK = abilityScore;
 // 每件法器有自己的識別與使用屬性；模板仍供規格／測試查詢。
 const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
 function makeItem(it, randomStat=true){
@@ -55,11 +59,15 @@ function acOf(id){
   return armorAC(inv.find(i=>i.type==="armor"), inv.some(i=>i.type==="shield"), modOf(scoreK(id,"DEX")));
 }
 const focusRequirement = (it, score) => it?.type==="focus" && score(it.stat)<13 ? `需要${ABILITIES.find(a=>a.k===it.stat).n} 13（目前 ${score(it.stat)}）` : null;
+function equipmentRequirement(it, score){
+  const focus=focusRequirement(it,score);if(focus)return focus;
+  if(it?.type==="armor" && it.str && score("STR")<it.str)return `需要力量 ${it.str}（目前 ${score("STR")}）`;
+  return null;
+}
 /* 能不能買：回傳理由字串，null 代表可以買 */
 function blockReason(id, it){
-  const need=focusRequirement(it,k=>scoreK(id,k));if(need)return need;
+  const need=equipmentRequirement(it,k=>abilityScore(id,k));if(need)return need;
   const str = scoreK(id,"STR"), dex = scoreK(id,"DEX");
-  if(it.type==="armor" && it.str && str < it.str) return `需要力量 ${it.str}（目前 ${str}）`;
   if(it.type==="weapon" && it.props.includes("重型")){
     const ranged = it.props.some(p=>p.startsWith("彈藥"));
     if(ranged && dex < 13) return `重型遠程武器需要敏捷 13（目前 ${dex}）`;
