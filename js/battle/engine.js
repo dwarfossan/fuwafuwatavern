@@ -74,6 +74,7 @@ function startBattle(id, retry=false, phase="combat"){
     units.push({
       id:"foe"+i, side:"foe", squad:f.squad, type:f.type, name:e.name+"ABCD"[i], look:e.look,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, mods:{...e.mods}, baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
+      resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
@@ -521,7 +522,16 @@ function dmgRoll(dice, mod, crit, extraDice=0){
   return Math.max(0, rollDice(`${n}d${m[2]}`).total + mod);
 }
 
+// SRD 5.2.1 p17：同類抗性只減半一次、向下取整；傷害免疫優先。
+// 使用原始傷害類型（穿刺等），不能用介面合併顯示的「物理」判斷。
+function damageAfterResistance(t, n, type){
+  n = Math.max(0, n);
+  if((t.damageImmunities||[]).includes(type)) return 0;
+  return (t.resistances||[]).includes(type) ? Math.floor(n/2) : n;
+}
 function hurt(t, n, type, src){
+  const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
+  if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）
     if(row){ row.dmg = (row.dmg||0) + Math.max(0, n); row.type = type; row.faces.push(...(b._pend||[])); }
     b._pend = []; }
