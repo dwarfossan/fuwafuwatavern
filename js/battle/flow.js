@@ -368,7 +368,7 @@ function componentProblem(u, sk){
   }
   return "";
 }
-const skillCanUse = (u, sk) => skillReqMet(u, sk) && !componentProblem(u,sk) && hasAmmoFor(u) && (sk.def.free ? canFree() : canAct());
+const skillCanUse = (u, sk) => skillReqMet(u, sk) && !componentProblem(u,sk) && (sk.def.components || hasAmmoFor(u)) && (sk.def.free ? canFree() : canAct());
 const canWalk = () => { const b = B(); return b.moveLeft > 0 && !(b.dazed && b.actionUsed); };
 function useAction(u){ const b = B(); b.actionUsed = true; if(b.dazed) b.moveLeft = 0; if(u.side==="pc" && b.tut>=0 && b.tut<2) b.tut = 2; }
 // ---------- 被動觀察／學習 ----------
@@ -671,7 +671,7 @@ function useItem(u, it, t){
 // 切換整組手持配置：主手＋副手一起切換；整理裝備不消耗動作
 function swapWeapon(u, i){
   const w=u.spare&&u.spare[i];
-  if(!w)return;
+  if(!w || focusRequirement(w,k=>finalScore(u.id,k)))return;
   const old=u.weapon, oldOff=u.shield?{n:"盾牌",type:"shield",_shield:true}:null, nextOff=u.offhand2||null;
   u.weapon=w; u.spare[i]=old;
   u.shield=!!nextOff;
@@ -724,7 +724,7 @@ function doSkill(u, sk, t){
   const problem=componentProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
   if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
-  if(u.side==="foe" && !sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))) observedSkill(u,sk.key,sk.def.name,false);
+  if(u.side==="foe" && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
   // 狩印：標記的目標倒下後，改標下一個不用再花格子（SRD：之後的回合可以轉移印記）
   const tier = remarkFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
@@ -770,7 +770,7 @@ const settle = ms => Math.max(ms, (B().impactEnd||0) - Date.now() + 600);
 // ---------- 敵人挑招（跟我方同一套技能，照手上的武器、法器） ----------
 // 範圍招（橫掃、震地、回掃）：身邊有兩個以上看得到的敵人才用
 const AOE_SELF = {cleave:u=>reachOf(u), quake:u=>1};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
-const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && hasAmmoFor(e) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
+const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && (s.def.components || hasAmmoFor(e)) && !componentProblem(e,s) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
 // 對 t 能用的攻擊招：要用格子的招式還有格子就用（六成機率），不然普攻；回傳 {sk, t}
 // 不升階（一律用最低階的格子）；之後頭目會省格子，再加判斷
 function foePick(e, t){

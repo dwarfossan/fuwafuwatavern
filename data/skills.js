@@ -7,7 +7,7 @@
      沒有大招這種突然很特別的招式（大爺決定）；說明和實作都不寫死武器名稱，只看武器屬性（投擲、觸及、靈巧……），以後好替換
    - 盾牌 1 招（守護，免費動作）；護甲只給被動數值，不給主動技能
    - 升階效果只有三種：多傷害、多目標、多持續時間；範圍招的範圍固定，不能靠升階變大（大爺 2026-10-01、10-02 再確認）
-   - 法器分法杖／法書／法球，每件綁定一組 3 個法術，以主題命名（施法屬性：每件生成時智力／感知／魅力隨機擇一並固定）
+   - 法器分法杖／法書／法球，每件綁定一組 3 個法術，以主題命名（使用屬性：每件生成時智力／感知／魅力隨機擇一並固定）
    共通數字：命中 = d20 + 屬性調整值 + 2 ≥ 目標 AC；豁免 DC = 8 + 2 + 屬性調整值；
              生命值（1 級）= 8 + 體質調整值；地圖 1 格 = 5 呎
    tier：這招要求的熟練格階數（0 = 普攻、戲法，不用格子；其他都是 1＝一階）。每個角色照等級有一階、二階……的格子
@@ -111,36 +111,36 @@ const SKILL_GROUPS = [
     {id:"shield_guard", name:"守護", kind:"輔助", req:"shield", tier:1,   free:true, up:"每高一階多 1 輪。", text:"免費動作：直到你下回合開始，所有貼身的隊友被打的第一次攻擊有劣勢（你要還在他旁邊）。"}]},
 
   // 法器：法杖／法書／法球三種，每件法器綁定一組法術（法杖另外能敲人），以法術主題命名
-  //       施法屬性：每件固定隨機 INT／WIS／CHA
+  //       使用屬性：每件固定隨機 INT／WIS／CHA
   {id:"arcane_staff", name:"奧術法杖", stat:"智力",
    weapons:["奧術法杖","霜雷法杖"],
    skills:[
     {name:"打擊", kind:"近戰", dmg:"物理",     tier:0,   text:"用法杖敲人：近戰攻擊，1d6 + 力量調整值的物理傷害。"},
-    {id:"magic_missile", name:"魔法飛彈", req:"focus", kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 2 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
-    {id:"shield_spell", name:"護盾術", req:"focus", kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, text:"免費動作：直到你下回合開始，AC +5。"},
-    {id:"mage_armor", name:"法師護甲", req:"focus", kind:"輔助", tier:1, srd:true, noUp:true, text:"沒穿護甲或只穿布甲時，整場戰鬥的基礎 AC 變成 13 + 敏捷調整值。"}]},
+    {id:"magic_missile", name:"魔法飛彈",  kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 2 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
+    {id:"shield_spell", name:"護盾術",  kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, text:"免費動作：直到你下回合開始，AC +5。"},
+    {id:"mage_armor", name:"法師護甲",  kind:"輔助", tier:1, srd:true, noUp:true, text:"沒穿護甲或只穿布甲時，整場戰鬥的基礎 AC 變成 13 + 敏捷調整值。"}]},
 
   {id:"healing_book", name:"治癒法書", stat:"感知",
    weapons:["治癒法書"],
    skills:[
-    {id:"healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：6 格內一名隊友恢復 1d4 + 法器施法屬性調整值的生命值。"},
-    {id:"cure_wounds", name:"治療傷口", req:"focus", kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"碰觸一名隊友，恢復 2d8 + 法器施法屬性調整值的生命值。"},
-    {id:"bless", name:"祝福術", req:"focus", kind:"輔助",   tier:1, srd:true, conc:true, up:"每高一階多 1 名隊友。", text:"專注：最多 3 名隊友的攻擊和豁免多擲 1d4 加上去，直到你的專注中斷。"}]},
+    {id:"healing_word", name:"治癒真言",  kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：6 格內一名隊友恢復 1d4 + 最高施法屬性調整值的生命值。"},
+    {id:"cure_wounds", name:"治療傷口",  kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"碰觸一名隊友，恢復 2d8 + 最高施法屬性調整值的生命值。"},
+    {id:"bless", name:"祝福術",  kind:"輔助",   tier:1, srd:true, conc:true, up:"每高一階多 1 名隊友。", text:"專注：最多 3 名隊友的攻擊和豁免多擲 1d4 加上去，直到你的專注中斷。"}]},
 
   {id:"flame_orb", name:"火焰法球", stat:"魅力",
    weapons:["火焰法球"],
    skills:[
-    {name:"火焰箭", req:"focus", kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"遠程法術攻擊，1d10 火焰傷害。"},
-    {id:"burning_hands", name:"燃燒之手", req:"focus", kind:"豁免", dmg:"火焰", tier:1,   srd:true, up:"每高一階多 1d6。", text:"前方 3 格錐形，範圍內做敏捷豁免，失敗受 3d6 火焰傷害，成功減半。"},
-    {id:"fire_shield", name:"火焰護盾", req:"focus", kind:"輔助", tier:1, up:"每高一階，反燒多 1d6。", text:"整場戰鬥中，近戰打中你的敵人會受 1d6 火焰傷害。"}]},
+    {id:"fire_bolt", name:"火焰箭",  kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"遠程法術攻擊，1d10 火焰傷害。"},
+    {id:"burning_hands", name:"燃燒之手",  kind:"豁免", dmg:"火焰", tier:1,   srd:true, up:"每高一階多 1d6。", text:"前方 3 格錐形，範圍內做敏捷豁免，失敗受 3d6 火焰傷害，成功減半。"},
+    {id:"fire_shield", name:"火焰護盾",  kind:"輔助", tier:1, up:"每高一階，反燒多 1d6。", text:"整場戰鬥中，近戰打中你的敵人會受 1d6 火焰傷害。"}]},
 
-  // 薩滿圖騰：哥布林薩滿的法器（商店不賣），施法屬性感知
+  // 薩滿圖騰：哥布林薩滿的法器（商店不賣），使用屬性感知
   {id:"shaman_totem", name:"薩滿圖騰", stat:"感知",
    weapons:["薩滿圖騰"],
    skills:[
-    {name:"火焰箭", req:"focus", kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"12 格內遠程法術攻擊，1d10 火焰傷害。"},
-    {id:"totem_healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：12 格內一名同伴恢復 1d4 + 法器施法屬性調整值的生命值。"},
-    {id:"bane", name:"災禍術", req:"focus", kind:"豁免", dmg:"",   tier:1, srd:true, up:"每高一階多 1 個目標。", conc:true, text:"專注：6 格內最多 3 個看得到的敵人做魅力豁免，失敗的話攻擊和豁免 −1d4，直到你倒下或專注中斷。"}]},
+    {id:"totem_fire_bolt", name:"火焰箭",  kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"12 格內遠程法術攻擊，1d10 火焰傷害。"},
+    {id:"totem_healing_word", name:"治癒真言",  kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：12 格內一名同伴恢復 1d4 + 最高施法屬性調整值的生命值。"},
+    {id:"bane", name:"災禍術",  kind:"豁免", dmg:"",   tier:1, srd:true, up:"每高一階多 1 個目標。", conc:true, text:"專注：6 格內最多 3 個看得到的敵人做魅力豁免，失敗的話攻擊和豁免 −1d4，直到你倒下或專注中斷。"}]},
 
   // 狩獵者：不是武器類別，是某些裝備附帶的特性（item.grants）。非凡長弓（大爺 10-03）
   {id:"hunter", name:"狩獵者", stat:"—", trait:true,
@@ -148,8 +148,8 @@ const SKILL_GROUPS = [
    skills:[
     {id:"hunters_mark", name:"狩印", kind:"輔助", dmg:"", tier:1, srd:true, free:true, conc:true, noUp:true, text:"免費動作、專注：標記 18 格內一個看得到的敵人，你的攻擊打中他時多 1d6 力場傷害（爆擊加倍）。他倒下後，可以免費把印記改標到下一個敵人。"}]}
   ,{id:"elements",name:"元素戲法",stat:"法器屬性",trait:true,weapons:[],skills:[
-    {id:"ray_of_frost",basicAttack:true,name:"寒冷射線",req:"focus",kind:"遠程",dmg:"寒冷",tier:0,srd:true,text:"12 格內遠程法術攻擊，1d8 寒冷傷害；命中後目標速度減少 2 格，直到你的下回合開始。5／11／17 級增加傷害骰。"},
-    {id:"shocking_grasp",basicAttack:true,name:"電擊術",req:"focus",kind:"近戰",dmg:"閃電",tier:0,srd:true,text:"貼身法術攻擊，1d8 閃電傷害；命中後目標不能藉機攻擊，直到牠下回合開始。5／11／17 級增加傷害骰。"}]}
+    {id:"ray_of_frost",basicAttack:true,name:"寒冷射線",kind:"遠程",dmg:"寒冷",tier:0,srd:true,text:"12 格內遠程法術攻擊，1d8 寒冷傷害；命中後目標速度減少 2 格，直到你的下回合開始。5／11／17 級增加傷害骰。"},
+    {id:"shocking_grasp",basicAttack:true,name:"電擊術",kind:"近戰",dmg:"閃電",tier:0,srd:true,text:"貼身法術攻擊，1d8 閃電傷害；命中後目標不能藉機攻擊，直到牠下回合開始。5／11／17 級增加傷害骰。"}]}
 ];
 // 聲勢材：對照 SRD 5.2.1 各法術；火焰護盾沿用本作效果，只借成分。
 const SPELL_COMPONENTS = {

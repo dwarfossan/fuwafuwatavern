@@ -10,6 +10,7 @@ const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.base||item.
 const SKILL_BY_ID = {};
 SKILL_GROUPS.forEach(g=>g.skills.forEach((s,idx)=>{ if(s.id) SKILL_BY_ID[s.id] = {g, idx}; }));
 function learnedSkillByKey(key){
+  if(/^(arcane_staff|healing_book)_cantrip$/.test(key))return focusCantripSkill(SKILL_GROUPS.find(g=>g.id===key.split("_cantrip")[0]));
   const f = SKILL_BY_ID[key]; if(!f) return null;
   const {g, idx} = f;
   return {key, group:g, idx, def:g.skills[idx], impl:(SKILL_IMPL[g.id]||[])[idx]};
@@ -56,7 +57,7 @@ function unitSkills(u){
     }
   }
   // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
-  [u.weapon, u.focus].forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
+  equippedMagic(u).forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
   return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
@@ -73,12 +74,12 @@ function focusStrikeSkill(g){
 function focusCantripSkill(g){
   const sacred=g.id==="healing_book";
   const def=sacred
-    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
-    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
+    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
+    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};
-  return {key:`${g.id}_cantrip`,group:g,idx:0,synthetic:true,anim:"cast",def,impl};
+  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def,impl};
 }
 
 // 基本攻擊名稱看武器；法器戲法另列為免費攻擊選項。

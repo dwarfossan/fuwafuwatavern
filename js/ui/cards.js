@@ -19,7 +19,7 @@ function probeUnit(item, real){
 }
 const TARGET_TEXT = {enemy:"單一敵人", ally:"單一隊友", self:"自己（或自己周圍）", area:"指定一塊範圍", cone:"前方錐形", line:"一整條直線", shadow:"瞬移到敵人身旁"};
 function skillStatText(group, item){
-  if(item && item.type==="focus") return ABILITIES.find(a=>a.k===item.stat).n;
+  if(item && item.type==="focus") return "力量";
   if(group.id==="unarmed") return "力量";
   if(group.id==="shield") return "—";
   if(!item) return group.stat;
@@ -46,8 +46,8 @@ function itemCardHTML(it){
   } else if(it.type==="shield"){
     rows.push(["護甲等級", "AC +2"]);
   } else if(it.type==="focus"){
-    rows.push(["施法屬性", ABILITIES.find(a=>a.k===it.stat).n]);
-    rows.push(["說明", "拿著法器就能施放它附帶的法術；招式仍依小筆記與施展條件。"]);
+    rows.push(["使用門檻", `${ABILITIES.find(a=>a.k===it.stat).n} 13 以上才能用`]);
+    rows.push(["說明", "裝備附帶技能不用學；施放仍需聲勢材。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
     rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉免費動作（每回合一次）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
@@ -69,8 +69,8 @@ function itemCardHTML(it){
 
 // ---------- 技能卡 ----------
 function skillCardHTML(groupId, idx, item, unit){
-  const g = SKILL_GROUPS.find(x=>x.id===groupId), im = (SKILL_IMPL[groupId]||[])[idx];
-  let s = g.skills[idx];
+  const g = SKILL_GROUPS.find(x=>x.id===groupId), extra=idx===-1?focusCantripSkill(g):null, im = extra?.impl || (SKILL_IMPL[groupId]||[])[idx];
+  let s = extra?.def || g.skills[idx];
   if(idx===0 && HAS_BASIC(g) && g.id!=="shield")        // 基本攻擊名稱看武器；沒指定武器（技能總表）就列出這組可能的名稱
     s = {...s, name: g.id==="arcane_staff" || g.id==="unarmed" ? "打擊" : item && item.type==="weapon" ? basicName(g, item) : basicNames(g)};
   const t = tierOf(s, im);
@@ -82,7 +82,7 @@ function skillCardHTML(groupId, idx, item, unit){
     ["使用", t.label],
     ["目標", im && im.passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"],
     ["距離", im && im.passive ? (s.darkvision?`${s.darkvision} 格（${s.darkvision*5} 呎）`:"—") : range],
-    ["屬性", skillStatText(g, item)]
+    ["屬性", s.components ? "智力／感知／魅力取最高" : skillStatText(g, item)]
   ];
   if(s.components)rows.push(["聲勢材",componentsText(s.components)]);
   if(s.req) rows.push(["施展條件", reqText(s.req)]);

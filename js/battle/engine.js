@@ -54,13 +54,14 @@ function startBattle(id, retry=false, phase="combat"){
   const units = [];
   CRITTERS.forEach((c,i)=>{
     const inv = invItems(c.id);
+    const usable = it=>!focusRequirement(it,k=>finalScore(c.id,k));
     const mods = {}; ABILITIES.forEach(a=> mods[a.k] = modOf(finalScore(c.id,a.k)));
     const hp = Math.max(1, 8 + mods.CON);
     units.push({
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, mods,
-      weapon: inv.find(it=>it.type==="weapon" || it.type==="focus") || null,
-      spare:  inv.filter(it=>it.type==="weapon" || it.type==="focus").slice(1,2),
+      weapon: inv.find(it=>(it.type==="weapon" || it.type==="focus") && usable(it)) || null,
+      spare:  inv.filter(it=>(it.type==="weapon" || it.type==="focus") && usable(it)).slice(1,2),
       items:  [],
       focus:  null,
       shield: inv.some(it=>it.type==="shield"),
@@ -69,12 +70,12 @@ function startBattle(id, retry=false, phase="combat"){
       armor:  inv.find(it=>it.type==="armor") || null,
       accessories: inv.filter(it=>it.type==="accessory").slice(0,2),
       backpackEquip: bestBag(inv),
-      backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.slice(2),...ar.slice(1),...ac.slice(2),...ge,...co]; })(),
+      backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.filter(it=>!usable(it)),...ws.filter(usable).slice(2),...ar.slice(1),...ac.slice(2),...ge,...co]; })(),
       speed:6, statuses:[], level:1, learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{
-    const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(makeItem);
+    const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(it=>makeItem(it,false));
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
@@ -424,7 +425,7 @@ function rangeOf(u){        // 遠程或投擲的射程（格）
   return r ? Math.floor(+r.split(" ")[1].split("/")[0]/5) : 0;
 }
 const isRanged = u => !!(u.weapon && (u.weapon.props||[]).some(p=>p.startsWith("彈藥")));
-const spellStat = u => [u.weapon,u.focus].find(it=>it&&it.type==="focus")?.stat || "INT";
+const spellStat = u => ["INT","WIS","CHA"].reduce((best,k)=>(u.mods[k]||0)>(u.mods[best]||0)?k:best,"INT");
 const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 
 // ---------- 攻擊與傷害 ----------
@@ -603,7 +604,7 @@ const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (
 const inGrapple = u => !!grappled(u) || victimsOf(u).length > 0;
 const twoHandLocked = u => holdsTwoHanded(u) && inGrapple(u);
 // 這招是不是雙手武器給的
-const fromTwoHanded = (u, sk) => !!(u.weapon && holdsTwoHanded(u) && groupOf(u.weapon)===sk.group);
+const fromTwoHanded = (u, sk) => !!(!sk.def.components && u.weapon && holdsTwoHanded(u) && groupOf(u.weapon)===sk.group);
 function releaseGrapple(t, why){
   const g = grapplerOf(t);
   t.statuses = t.statuses.filter(s=>!(s.k==="restrained" && s.via==="grapple"));
@@ -641,13 +642,14 @@ function takeFrom(t, it){
   else if(t.focus===it) t.focus = null;
 }
 function equip(u, it){
+  if(focusRequirement(it,k=>u.side==="pc"?finalScore(u.id,k):10+2*(u.mods[k]||0)))return false;
   if(it.type==="focus") u.focus = it;
   else u.weapon = it;
 }
 // 撿不撿得起來（敵我一樣）：武器欄／法器欄是空的，而且手夠（盾、法器、武器各佔一隻手，雙手武器佔兩隻）
 // 哥布林撿到玲玲的法杖也照樣會用
 function canPick(u, it){
-  if(u.down || u.dead) return false;
+  if(u.down || u.dead || focusRequirement(it,k=>u.side==="pc"?finalScore(u.id,k):10+2*(u.mods[k]||0))) return false;
   if(inGrapple(u) && it.props && it.props.includes("雙手")) return false;   // 擒抱中撿不起雙手武器
   const hands = it2 => it2 ? (it2.props && it2.props.includes("雙手") ? 2 : 1) : 0;
   if(it.type==="focus") return !u.focus && hands(u.weapon) + (u.shield?1:0) + 1 <= 2;

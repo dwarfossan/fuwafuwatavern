@@ -806,7 +806,7 @@ function skillBtn(u, sk, label){
   const src = sk.group.id==="shield" ? ITEMS.find(i=>i.type==="shield") : (u.weapon && groupOf(u.weapon)===sk.group) ? u.weapon : (u.focus && groupOf(u.focus)===sk.group) ? u.focus : null;
   return `<div class="skill-row"><button class="skill ${b.mode&&b.mode.key===sk.key?"on":""}" data-skill="${sk.key}" data-skill-thought="${u.id}:${sk.def.name}" ${off?"disabled":""}>
     ${skillIcon(sk.group.id, sk.def, sk.impl, 24)}<span class="sk-n">${label||sk.def.name}</span><span class="sk-t">${locked ? (grappled(u) ? "被抓住" : "抓著人") : skillTag(u,sk)}</span></button>
-    ${sk.synthetic?"":`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}:${src?src.id:""}:${u.id}" aria-label="${sk.def.name}的說明">ⓘ</button>`}</div>`;
+    ${sk.synthetic&&sk.idx!==-1?"":`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}:${src?src.id:""}:${u.id}" aria-label="${sk.def.name}的說明">ⓘ</button>`}</div>`;
 }
 // 指令列（大爺 2026-09-29 定案）：輪到我方時一直貼在戰場右下角，五顆由上到下：待機、狀態、道具、走位、動作（動作離大拇指最近）
 // 點進去就原地換成那一層，最底下「← 返回」；瞄準列、移動確認、移動中也在同一個位置
@@ -918,6 +918,7 @@ function syncWeaponSet(u){
 }
 function switchWeaponSet(u,set){
   if(!u||u.side!=="pc")return;
+  if(set===2 && focusRequirement(u.spare?.[0],k=>finalScore(u.id,k)))return;
   u.activeSet=set===2?2:1;
   // 戰鬥實際使用欄位永遠指向目前配置；切組不消耗任何動作。
   if(u.activeSet===2){
@@ -946,6 +947,7 @@ function equipItemAt(u, from, to){
   };
   const accepts=(slot,it)=>{
     if(!it)return true;
+    if(slot!=="bag" && focusRequirement(it,k=>finalScore(u.id,k)))return false;
     if(slot==="weapon1"||slot==="weapon2")return it.type==="weapon"||it.type==="focus";
     if(slot==="offhand1"||slot==="offhand2")return it.type==="shield";
     if(slot==="armor")return it.type==="armor";

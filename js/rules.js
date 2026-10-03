@@ -18,13 +18,13 @@ function money(cp){
   return [g?`${g} gp`:"", s?`${s} sp`:"", c?`${c} cp`:""].filter(Boolean).join(" ") || "0 gp";
 }
 const scoreK = (id,k) => finalScore(id,k);
-// 每件法器有自己的識別與施法屬性；模板仍供規格／測試查詢。
+// 每件法器有自己的識別與使用屬性；模板仍供規格／測試查詢。
 const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
-function makeItem(it){
+function makeItem(it, randomStat=true){
   if(!it || it.type!=="focus" || it.baseId) return it;
   state.focusItems=state.focusItems||{};
   const id="focus-instance-"+(state.focusSerial=(state.focusSerial||0)+1);
-  return state.focusItems[id]={...it,id,baseId:it.id,stat:pick(["INT","WIS","CHA"])};
+  return state.focusItems[id]={...it,id,baseId:it.id,stat:randomStat?pick(["INT","WIS","CHA"]):it.stat};
 }
 function shopItem(it){
   if(it.type!=="focus")return it;
@@ -54,8 +54,10 @@ function acOf(id){
   const inv = invItems(id);
   return armorAC(inv.find(i=>i.type==="armor"), inv.some(i=>i.type==="shield"), modOf(scoreK(id,"DEX")));
 }
+const focusRequirement = (it, score) => it?.type==="focus" && score(it.stat)<13 ? `需要${ABILITIES.find(a=>a.k===it.stat).n} 13（目前 ${score(it.stat)}）` : null;
 /* 能不能買：回傳理由字串，null 代表可以買 */
 function blockReason(id, it){
+  const need=focusRequirement(it,k=>scoreK(id,k));if(need)return need;
   const str = scoreK(id,"STR"), dex = scoreK(id,"DEX");
   if(it.type==="armor" && it.str && str < it.str) return `需要力量 ${it.str}（目前 ${str}）`;
   if(it.type==="weapon" && it.props.includes("重型")){

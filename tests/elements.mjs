@@ -5,7 +5,7 @@ const out={anim:skillAnim(u,learnedSkillByKey("ray_of_frost"),t),skills:unitSkil
 SKILL_IMPL.elements[0].run(u,t);out.cold={hp:t.hp,slowed:!!has(t,'slowed'),of:has(t,'slowed')?.of};expire('start',u.id);out.expired=!has(t,'slowed');t.oaUsed=false;
 SKILL_IMPL.elements[1].run(u,t);out.shock={hp:t.hp,locked:!canOA(t),flag:t.shockNoOA};beginTurn(t);out.reset=!t.shockNoOA;
 Math.random=saved;b.turn=b.units.indexOf(u);b.busy=false;b.actionUsed=b.freeUsed=false;b.menu='act';refreshBattle();return out;});
-assert.deepEqual(r.skills,['arcane_staff_0','ray_of_frost','shocking_grasp']);assert.equal(r.stat,'WIS');assert.equal(r.anim,'cast');assert.deepEqual(r.cold,{hp:93,slowed:true,of:'fox'});assert(r.expired);assert.deepEqual(r.shock,{hp:86,locked:true,flag:true});assert(r.reset);
+assert.deepEqual(r.skills,['arcane_staff_0','ray_of_frost','shocking_grasp']);assert.equal(r.stat,'CHA');assert.equal(r.anim,'cast');assert.deepEqual(r.cold,{hp:93,slowed:true,of:'fox'});assert(r.expired);assert.deepEqual(r.shock,{hp:86,locked:true,flag:true});assert(r.reset);
 await pg.locator('[data-skill="ray_of_frost"]').tap();assert.equal(await pg.evaluate(()=>B().mode.key),'ray_of_frost');await pg.waitForTimeout(400);if(process.env.REVIEW_SHOT)await pg.screenshot({path:process.env.REVIEW_SHOT});
 const target=await pg.evaluate(()=>{Math.random=()=>.75;const t=B().units.find(v=>v.side==='foe');return {x:t.x,y:t.y,hp:t.hp,id:t.id};});
 const hud=await pg.locator(`.hud[data-tile="${target.x},${target.y}"]`).boundingBox();assert(hud);await pg.touchscreen.tap(hud.x+hud.width/2,hud.y+hud.height/2);assert(await pg.evaluate(()=>B().actionUsed));assert(await pg.evaluate(id=>B().units.find(v=>v.id===id).hp<86,target.id));
