@@ -159,6 +159,7 @@ function bindTokens(){
 
 function bind(){
   const $ = id => document.getElementById(id);
+  $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;render();});
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);

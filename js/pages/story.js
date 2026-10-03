@@ -4,6 +4,7 @@ const SCENES = {
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
   caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
+  townSupplier: {script:TOWN_SUPPLIER,bg:"shopfront",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},
   townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]}
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
@@ -149,9 +150,9 @@ function renderStory(){
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !(line.choice && !(state.caravan||{}).pick);
-  return `<section class="page fp-page">
+  return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
     <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${scene.bg==="road" || scene.bg==="town" ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
+      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
       ${actorsHTML}

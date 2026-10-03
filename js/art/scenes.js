@@ -68,3 +68,6 @@ function roadAmbushSVG(){
     ${gob(760,530,300,false,"scimitar")}
   </svg>`;
 }
+
+// 莉莉安娜店外代表圖，GPT 暫定；原商人素材演出送貨。
+function townShopFrontSVG(){return `<svg viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="1600" height="1100" fill="#aa94b1"/><g stroke="#302b32" stroke-width="14" stroke-linejoin="round"><path d="M360 400L800 150L1240 400V980H360Z" fill="#796679"/><path d="M360 400L800 150L1240 400" fill="none"/><path d="M700 980V500Q860 370 1020 500V980" fill="#342c3a"/><path d="M450 430H610V650H450Z" fill="#d4bd8c"/><path d="M580 300H900V420H580Z" fill="#c7abcf"/><path d="M0 980H1600V1100H0Z" fill="#b69a85"/></g><svg x="640" y="270" width="200" height="190" viewBox="0 0 100 100">${townSymbolSVG('potion').replace(/<svg[^>]*>|<\/svg>/g,'')}</svg></svg>`;}

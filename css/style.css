@@ -1064,3 +1064,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .rule-term{color:#c67822;text-decoration:underline dotted;text-underline-offset:3px;cursor:help}.rule-term:focus-visible{outline:2px solid var(--honey)}
 .game-bubble{position:fixed;z-index:10000;max-width:min(330px,calc(100vw - 16px));padding:12px 14px;border:3px solid #302b32;border-radius:14px;background:#fffaf0;color:#292330;box-shadow:0 5px 18px #0008;pointer-events:none;font-size:14px;line-height:1.6}
 .game-bubble p{margin:3px 0}.game-bubble small{color:#8d7562;font-size:11px}.game-bubble.thought b{color:#a55c37}
+/* 送貨進店的短演出，暫定代表物。 */
+.supplier-story .actor.merchant{height:45%;bottom:16%;left:49%;animation:supplier-walk 1s ease-out both}
+.supplier-story .actor.merchant.off{animation:none;opacity:0}
+@keyframes supplier-walk{from{transform:translateX(-140%) scale(.9)}to{transform:translateX(-50%) scale(.9)}}

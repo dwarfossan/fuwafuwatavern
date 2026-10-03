@@ -23,7 +23,7 @@ function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townP
 function bindTown(){
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',()=>openTownPlace(el.dataset.townPlace)));
  document.getElementById('townMap')?.addEventListener('click',()=>{state.page='map';state.mapSel='town';render();});
- document.getElementById('townStreet')?.addEventListener('click',()=>{state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
+ document.getElementById('townStreet')?.addEventListener('click',()=>{if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
  document.getElementById('townAction')?.addEventListener('click',()=>{
   const p=townPlace();if(p.id==='smith'||p.id==='items'){
    state.shopContext=p.id;state.page='shop';state.shopCat=shopCategories()[0];state.quip=p.line;render();

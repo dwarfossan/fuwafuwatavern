@@ -12,7 +12,7 @@ try{
   startBattle('ambush');const b=B();b.result='win';b.busy=false;
   b.units.filter(u=>u.side==='pc').forEach(u=>{u.slots=[0];u.pendingLearned=[];});
   b.units.find(u=>u.id==='fox').pendingLearned=[{key:'burning_hands',name:'燃燒之手',lv:1,from:'測試'}];
-  leaveBattleTo('caravan');state.caravan={pick:'wolf',ok:true};state.location='town';state.townFounded=true;state.page='town';render();
+  leaveBattleTo('caravan');state.caravan={pick:'wolf',ok:true};state.location='town';state.townFounded=true;state.supplierSeen=true;state.page='town';render();
  });
  assert.equal(await page.locator('[data-town-place]').count(),4);
  assert.equal(await page.locator('#board-floor').count(),0);
