@@ -145,16 +145,16 @@ const CRITTER_ANCHOR = {
   raccoon: {head:[51,27,1.18], neck:[70,95]}
 };
 // 四隻的外觀
-function critterLook(id, c){
+function critterLook(id, c, mood="normal"){
   const limb = id==="raccoon" ? "#5a3e2e" : c;   // 狸貓的手腳是深咖啡色
-  return {head: critterSide(id), headHurt: critterSide(id, true), headHappy: critterSide(id, false, true), body:c, skin:limb, feet:limb, belly:true, tail: tailSVG(id, c), anchor: CRITTER_ANCHOR[id],
+  return {head: critterSide(id, mood), headHurt: critterSide(id, true), headHappy: critterSide(id, false, true), body:c, skin:limb, feet:limb, belly:true, tail: tailSVG(id, c), anchor: CRITTER_ANCHOR[id],
     extra: id==="tiger" ? `<path d="M50 100 L58 102 M49 112 L57 112 M90 100 L82 102 M91 112 L83 112" stroke="#3b3a44" stroke-width="3" stroke-linecap="round"/>` : ""};
 }
 
 /* o: {id, color 或 look, main, off, armor, anim:{k, el}, face, down, prone, x, y, w, seed}
    down＝生命歸零（橫躺、半透明、X_X）；prone＝被推倒（橫躺、顏色正常） */
 function dollSVG(o){
-  const L = o.look || critterLook(o.id, o.color), c = L.skin, INK="#2a2630";
+  const L = o.look || critterLook(o.id, o.color, o.mood), c = L.skin, INK="#2a2630";
   const gear = armorArt(o.armor), anc = {...DEFAULT_ANCHOR, ...(L.anchor||{})};
   const main = o.main, off = o.off, h = main && HELD[main];
   const two = h && h.two && !off;

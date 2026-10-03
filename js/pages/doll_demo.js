@@ -10,7 +10,7 @@ function renderDollDemo(){
   const now = Date.now();
   const live = d.anim && now - d.anim.t < DOLL_DUR[d.anim.k] ? {k:d.anim.k, el:now-d.anim.t} : null;
   const who = d.who==="goblin" ? [0,1,2,3].map(i=>({look:MONSTER_LOOK.goblin})) : CRITTERS.map(c=>({id:c.id, color:c.color}));
-  const dolls = who.map((w,i)=>`<svg viewBox="-20 -10 180 170" width="200" height="190">${dollSVG({...w, main:d.main, off:d.off, armor:d.armor, anim:live, face:-1, down:d.down, x:0, y:0, w:140, seed:i})}</svg>`).join("");
+  const dolls = who.map((w,i)=>`<svg viewBox="-20 -10 180 170" width="200" height="190">${dollSVG({...w, main:d.main, off:d.off, armor:d.armor, mood:d.mood, anim:live, face:-1, down:d.down, x:0, y:0, w:140, seed:i})}</svg>`).join("");
   const chips = (list, cur, key, name) => list.map(v=>`<button class="chip ${v===cur?"on":""}" data-demo="${key}:${v??""}">${name(v)}</button>`).join("");
   return `<section class="page">
     <div class="head"><div><h2>紙娃娃動作測試</h2><p class="rule">簡單身體＋浮空的手，掛上裝備圖示，動作即時演出。</p></div></div>
@@ -18,6 +18,7 @@ function renderDollDemo(){
     <div class="demo-ctl">
       <div><b>動作</b>${DEMO_ACT.map(k=>`<button class="btn small" data-demo="anim:${k}">${ACT_NAME[k]}</button>`).join("")}
         <button class="btn small ghost" data-demo="down:">${d.down?"站起來":"倒下"}</button></div>
+      <div><b>表情（暫定）</b>${chips(SVG_CRITTER_MOODS,d.mood||"normal","mood",v=>({normal:"平常",happy:"開心",hurt:"受傷",angry:"生氣",surprised:"驚訝",nervous:"緊張"})[v])}</div>
       <div><b>角色</b>${chips(["party","goblin"], d.who||"party", "who", v=>v==="goblin"?"哥布林":"毛絨絨小隊")}</div>
       <div><b>主手</b>${chips(DEMO_MAIN, d.main, "main", GROUP_NAME)}</div>
       <div><b>副手</b>${chips(DEMO_OFF, d.off, "off", v=>v?GROUP_NAME(v):"空手")}</div>
