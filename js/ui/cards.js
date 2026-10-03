@@ -63,7 +63,7 @@ function itemCardHTML(it){
       return `<button class="md-sk" data-skinfo="${gid}:${i}:${it.id}">${skillIcon(gid,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
     <p class="dim md-hint">點技能看詳細說明</p>` : "";
   return `<div class="md-head">${g?iconSVG(g.id,34):""}<div><h3>${it.n}</h3><div class="dim">${it.en}・${it.cat}</div></div></div>
-    <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${skills}`;
+    <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${rulesHTML(v)}</dd>`).join("")}</dl>${skills}`;
 }
 
 // ---------- 技能卡 ----------
@@ -89,9 +89,9 @@ function skillCardHTML(groupId, idx, item, unit){
   if(s.tier) rows.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);
   if(s.srd) rows.push(["出處", "SRD 5.2"]);
   return `<div class="md-head">${skillIcon(groupId,s,im,44)}<div><h3>${s.name}</h3></div></div>
-    <p class="md-effect">${s.text}</p>
+    <p class="md-effect">${rulesHTML(s.text)}</p>
     ${unit && unit.slots && s.tier ? `<p class="md-cd">${unit.name}還有熟練格：${slotsText(unit)}</p>` : ""}
-    <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${rulesHTML(v)}</dd>`).join("")}</dl>
     ${item && state.modal && state.modal.back ? `<button class="btn small ghost" data-iteminfo="${item.id}">← 回到${item.n}</button>` : ""}`;
 }
 

@@ -72,11 +72,14 @@ for(const spot of [true, false]){
   ok('被動感知：察覺台詞時才出現、之後消失', sp.every(x=>x.row===x.shake), JSON.stringify(sp.map(x=>+x.row)));
   ok('被動感知：骰子都停在 10、成功 ❗ 失敗 ❓', spot ? sp.filter(x=>x.row).every(x=>x.dice.join()==='10,10,10,10' && x.ok===1 && x.fail===3) : sp.every(x=>!x.row));
   await pg.evaluate(()=>{ state.line = SCENES.ambush.script.length-1; render(); });
+  // 捕捉開場、開始第一回合以前的真實狀態；不等待 AI 詠唱後再猜開場有沒有躲著。
+  await pg.evaluate(()=>{const original=nextTurn;nextTurn=function(){
+    if(!window.smokeOpening){const sh=B().units.find(u=>u.type==='goblin_shaman');window.smokeOpening={hidden:!!has(sh,'hidden'),npc:B().units.filter(u=>u.side==='npc').length};}
+    return original();
+  };});
   await pg.click('#toBattle'); await pg.waitForTimeout(500);
-  const b = await pg.evaluate(()=>{ const sh=B().units.find(u=>u.type==='goblin_shaman');
-    return {hidden: !!sh.statuses.find(s=>s.k==='hidden'), acted: B().log.some(l=>l.t.includes(sh.name+'出手，現身了')), npc: B().units.filter(u=>u.side==='npc').length}; });
-  // 沒人察覺：躲著；先攻在前面的話牠開戰就從藏身處出手現形（躲著的回合不停頓），也算對
-  ok('薩滿：有人察覺就現形、沒人察覺就躲著', spot ? !b.hidden : (b.hidden || b.acted), JSON.stringify(b));
+  const b = await pg.evaluate(()=>window.smokeOpening);
+  ok('薩滿：有人察覺就現形、沒人察覺就躲著', b.hidden===!spot, JSON.stringify(b));
   ok('戰場上有商人（NPC）', b.npc === 1);
   ok('沒有錯誤', errs.length===0, errs.join(' / '));
   await pg.close();

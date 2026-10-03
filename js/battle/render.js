@@ -804,7 +804,7 @@ function skillBtn(u, sk, label){
   const locked = fromTwoHanded(u, sk) && inGrapple(u);
   const off = passive || !skillReady(u, sk) || !skillCanUse(u, sk) || locked;
   const src = sk.group.id==="shield" ? ITEMS.find(i=>i.type==="shield") : (u.weapon && groupOf(u.weapon)===sk.group) ? u.weapon : (u.focus && groupOf(u.focus)===sk.group) ? u.focus : null;
-  return `<div class="skill-row"><button class="skill ${b.mode&&b.mode.key===sk.key?"on":""}" data-skill="${sk.key}" ${off?"disabled":""}>
+  return `<div class="skill-row"><button class="skill ${b.mode&&b.mode.key===sk.key?"on":""}" data-skill="${sk.key}" data-skill-thought="${u.id}:${sk.def.name}" ${off?"disabled":""}>
     ${skillIcon(sk.group.id, sk.def, sk.impl, 24)}<span class="sk-n">${label||sk.def.name}</span><span class="sk-t">${locked ? (grappled(u) ? "被抓住" : "抓著人") : skillTag(u,sk)}</span></button>
     ${sk.synthetic?"":`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}:${src?src.id:""}:${u.id}" aria-label="${sk.def.name}的說明">ⓘ</button>`}</div>`;
 }
@@ -1053,7 +1053,7 @@ function infoHTML(v, b){
   const statusItems=[...v.statuses.map((x,i)=>{const sb=STATUS_BADGE[x.k];return {s:x,key:`s${i}`,icon:sb?.[0]||null,good:sb?.[1]||0,n:stTurns(x),label:statusLabel(v,x),desc:statusExplain(v,x)}}),...held.map((x,i)=>({s:null,key:`h${i}`,icon:"grab",good:1,n:null,label:`抓住${x.name}`,desc:`目前正抓住${x.name}；依擒抱規則限制對方移動。`}))];
   const shownStatus=[], plainStatus=[]; statusItems.forEach(x=>{if(!x.icon){if(!plainStatus.some(y=>y.label===x.label))plainStatus.push(x);return;}const prev=shownStatus.find(y=>y.icon===x.icon);if(prev){if(x.n!=null)prev.n=Math.max(prev.n||0,x.n);return;}shownStatus.push({...x});});
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges">${shownStatus.map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}${plainStatus.map(x=>`<button class="status-unit-badge plain ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}">${x.label}</button>`).join("")}</div>`:"";
-  const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${x.desc}</div>`:""})():"";
+  const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
   const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
@@ -1253,6 +1253,7 @@ function battleLayerKeys(){
   return {floor:boardTerrainKey(),marks,scene,ui,modal:battleDataKey([state.modal,state.modal?b.units:null]),camera:battleDataKey([b.critOn,b.def.w,b.def.h])};
 }
 function updateBattleUI(){
+  closeGameBubble();
   const ui=battleInterfaceHTML();
   Object.entries(ui).forEach(([k,html])=>{ document.querySelector(`[data-battle-ui="${k}"]`).innerHTML=html; });
 }

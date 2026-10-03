@@ -9,6 +9,7 @@ function autoHelpOnce(){
   state.modal={kind:"help", id:page};
 }
 function render(){
+  if(typeof closeGameBubble==="function")closeGameBubble();
   const app = document.getElementById("app");
   // 只有換頁（或換劇情場景）時才播淡入動畫，避免每次點擊都閃一下
   const key = state.page + ":" + state.scene;

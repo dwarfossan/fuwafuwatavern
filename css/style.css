@@ -1060,3 +1060,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes copy-pencil{to{transform:translateX(8px) rotate(-3deg)}}@keyframes copy-glow{50%{background:#f6dba6}}
 
 .rest-heads{position:sticky;top:0;z-index:2;background:#fffaf0}.rest-heads .tab{display:flex;flex-direction:column;gap:0;font-size:12px}.rest-box .note-entry{padding:6px 8px}.rest-box .note-entry small{font-size:10px}
+/* 規則文字變色、移入顯示；角色見解是另一種泡泡（外觀暫定）。 */
+.rule-term{color:#c67822;text-decoration:underline dotted;text-underline-offset:3px;cursor:help}.rule-term:focus-visible{outline:2px solid var(--honey)}
+.game-bubble{position:fixed;z-index:10000;max-width:min(330px,calc(100vw - 16px));padding:12px 14px;border:3px solid #302b32;border-radius:14px;background:#fffaf0;color:#292330;box-shadow:0 5px 18px #0008;pointer-events:none;font-size:14px;line-height:1.6}
+.game-bubble p{margin:3px 0}.game-bubble small{color:#8d7562;font-size:11px}.game-bubble.thought b{color:#a55c37}

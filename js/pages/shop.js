@@ -17,7 +17,7 @@ function renderShop(){
     else if(it.type==="consumable") spec = `${it.desc} · 戰鬥中用掉免費動作`;
     else if(it.type==="focus") spec = `${ABILITIES.find(a=>a.k===it.stat).n}施法 · ${it.spells}`;
     return `<div class="item ${why?"blocked":""}">
-      <div class="it-main"><button class="it-name" data-iteminfo="${it.id}" title="看詳細介紹">${it.n}<span class="it-i">ⓘ</span></button> <small>${it.en}</small><div class="it-spec">${spec}</div></div>
+      <div class="it-main"><button class="it-name" data-iteminfo="${it.id}" title="看詳細介紹">${it.n}<span class="it-i">ⓘ</span></button> <small>${it.en}</small><div class="it-spec">${rulesHTML(spec)}</div></div>
       <div class="it-side"><span class="it-cost">${money(it.cost)}</span><span class="it-wt">${it.wt} lb</span></div>
       <button class="btn small" data-buy="${it.id}" ${why?"disabled":""}>買</button>
       ${why?`<div class="it-why">${why}</div>`:""}

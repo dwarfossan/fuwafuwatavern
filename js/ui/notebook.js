@@ -1,7 +1,7 @@
 /* 狀態／休息共用小筆記，不另做一套技能列。抄寫演出暫定 GPT。 */
 function noteSkillRowHTML(n,u){
  const sk=learnedSkillByKey(n.key);
- return `<div class="note-skill-row"><div class="note-skill-main" data-skill-thought="${u.id}:${n.key}" tabindex="0">${sk?skillIcon(sk.group.id,sk.def,sk.impl,24):''}<span class="sk-n">${sk?.def.name||n.name}</span></div>${sk?`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}::${u.id}" aria-label="${n.name}的說明">ⓘ</button>`:''}</div>`;
+ return `<div class="note-skill-row"><div class="note-skill-main" data-skill-thought="${u.id}:${sk?.def.name||n.name}" tabindex="0">${sk?skillIcon(sk.group.id,sk.def,sk.impl,24):''}<span class="sk-n">${sk?.def.name||n.name}</span></div>${sk?`<button class="sk-info" data-skinfo="${sk.group.id}:${sk.idx}::${u.id}" aria-label="${n.name}的說明">ⓘ</button>`:''}</div>`;
 }
 function notebookPageHTML(u,b,rest=false){
  const learned=u.learned||[],total=notePages(u.id);b.notePages=b.notePages||{};
