@@ -64,6 +64,7 @@ node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休�
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試、返回探索及休息
+node tests/world-objects.mjs # 板條箱／寶箱、移入／長按氣泡、火藥桶負重與動作、九格友傷與連鎖
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
 node tests/explore-watch.mjs # 潛行自動顯示可見敵人範圍、移動保留、地板更新與遮擋
 node tests/explore-continuous.mjs # 連續座標、碰撞、踏步、陷阱／地面中斷與開戰就近佔位

@@ -150,3 +150,6 @@ function equipmentArtKey(it){
   if(!it)return null;
   return it.art || ({"短棒":"club","彎刀":"scimitar"})[it.base||it.n] || groupOf(it)?.id;
 }
+
+// 火藥桶原創手繪外觀暫定 GPT；地面與背包共用。
+ITEM_ART.powder_barrel=`<g stroke="#292330" stroke-width="5" stroke-linejoin="round"><path d="M28 25 Q14 62 28 101 Q60 119 92 101 Q106 62 92 25Z" fill="#9d7046"/><path d="M42 29 Q32 65 43 106 M60 29 V111 M78 29 Q88 65 77 106" fill="none" stroke-width="3"/><path d="M24 41 Q60 56 96 41 L98 51 Q60 68 22 51Z M22 82 Q60 97 98 82 L95 94 Q60 109 25 94Z" fill="#777b82"/><ellipse cx="60" cy="25" rx="32" ry="12" fill="#c49a62"/><path d="M34 24 H87 M48 16 L45 34 M74 16 L77 34" fill="none" stroke-width="3"/><path d="M60 58 l-13 19 h12 l-5 14 19-22 H62 l5-11Z" fill="#efc25b" stroke-width="3"/></g>`;

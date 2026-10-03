@@ -1,6 +1,6 @@
 /* 快速戰鬥測試場。純資料產生器，不改固定伏擊；所有隨機配置由 seed 決定。
    數量／疏密預設暫定（GPT），可從 options 調整。通路按現有八方向移動驗證。 */
-const RANDOM_MAP = {w:23,h:26,foes:4,bush:[18,42],tree:[12,28],crate:[4,10],wagon:[2,5],plateaus:2,chest:1,door:1,trap:2,water:8,poisonSwamp:3,oil:3};
+const RANDOM_MAP = {w:23,h:26,foes:4,bush:[18,42],tree:[12,28],crate:[4,10],wagon:[2,5],plateaus:2,powderBarrel:2,chest:1,door:1,trap:2,water:8,poisonSwamp:3,oil:3};
 function mapRng(seed){let s=seed>>>0;return ()=>{s=(s+0x6D2B79F5)>>>0;let t=Math.imul(s^(s>>>15),1|s);t^=t+Math.imul(t^(t>>>7),61|t);return ((t^(t>>>14))>>>0)/4294967296;};}
 function randomMapConnected(d){
   const solid=new Set(d.blocks.filter(q=>!["bush","trap","doorOpen","water","oil","poisonSwamp"].includes(q.kind)).map(q=>`${q.x},${q.y}`));
@@ -31,6 +31,8 @@ function generateRandomBattle(seed,options={}){
     for(let i=0;i<cfg.plateaus;i++){const x=int(1,cfg.w-7),y=int(1,cfg.h-7);d.elev.push({x0:x,y0:y,x1:x+4,y1:y+4,h:1},{x0:x+1,y0:y+1,x1:x+3,y1:y+3,h:2});}
     const starts=new Set([...d.party,...d.foes.map(q=>[q.x,q.y])].map(p=>p.join(','))),grass=d.blocks.filter(o=>o.kind==='bush'&&!starts.has(`${o.x},${o.y}`));
     for(let i=0;i<cfg.oil&&grass.length;i++){const o=grass.splice(int(0,grass.length-1),1)[0];d.blocks.push({kind:'oil',x:o.x,y:o.y,dc:13,found:false});}
+    // 最後配置火藥桶，保留既有種子的地形／油／出生配置。
+    for(let i=0;i<cfg.powderBarrel;i++){const [x,y]=pick(1,cfg.w-2,1,cfg.h-2);d.blocks.push({x,y,kind:"powderBarrel"});}
     if(randomMapConnected(d))return d;
   }
   throw Error("隨機地圖連通檢查失敗");

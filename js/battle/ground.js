@@ -4,8 +4,9 @@ const GROUND_RULES={fire:{ms:18000},ice:{ms:18000,dc:13},charged:{ms:6000},steam
 const groundAt=(x,y)=>B()?.groundEffects?.[`${mapCell(x)},${mapCell(y)}`];
 const GROUND_REACTIONS={bush:{火焰:'fire'},oil:{火焰:'fire'},water:{火焰:'steam',寒冷:'ice',閃電:'charged'},ice:{火焰:'steam'}};
 function groundReaction(x,y,type){const b=B(),o=b?.def.blocks.find(o=>o.x===x&&o.y===y),old=groundAt(x,y);return GROUND_REACTIONS[old?.kind==='ice'?'ice':o?.kind]?.[type];}
-const groundCanReact=(x,y,type)=>!!groundReaction(x,y,type);
+const groundCanReact=(x,y,type)=>!!groundReaction(x,y,type)||type==="火焰"&&B().def.blocks.some(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);
 function groundReact(x,y,type){
+ if(type==="火焰"){const barrel=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);if(barrel)return explodeBarrel(barrel,cur());}
  const b=B(),o=b.def.blocks.find(o=>o.x===x&&o.y===y),kind=groundReaction(x,y,type);
  if(!kind)return false;
  (b.groundEffects ||= {})[`${x},${y}`]={x,y,kind,left:GROUND_RULES[kind].ms};
@@ -63,6 +64,7 @@ function groundAdvance(ms,combat=false){
    for(const f of Object.values(b.groundEffects||{}))if(f.kind==='fire')for(const o of b.def.blocks)if(o.kind==='bush'&&Math.max(Math.abs(o.x-f.x),Math.abs(o.y-f.y))===1&&!groundAt(o.x,o.y))spread.push(o);
   }
  }
+ for(const o of [...b.def.blocks].filter(o=>o.kind==="powderBarrel"&&groundAt(o.x,o.y)?.kind==="fire")){if(explodeBarrel(o))changed=true;}
  for(const o of spread)if(!groundAt(o.x,o.y))groundReact(o.x,o.y,'火焰');
  if(changed){if(b.phase==="explore"&&!alive("pc").length){enterExploreCombat(null,true);b.manualCombat=false;}else if(b.phase==="combat")checkResult();refreshBattle();}
 }

@@ -16,6 +16,7 @@ function boardMarkState(){
   const myTurn = u && u.side==="pc" && !b.busy && !b.result;
   if(myTurn && !b.mode && b.moveMode && !(b.dazed && b.actionUsed)) moveSet = reachable(u, b.moveLeft);
   if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
+  else if(myTurn && b.mode && b.mode.key==="placeBarrel"){ range=1;for(let x=0;x<d.w;x++)for(let y=0;y<d.h;y++)if(placeableCell(worldActor(),x,y))tgtSet.add(`${x},${y}`); }
   else if(myTurn && b.mode && b.mode.key==="help"){ range = 1; helpList(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
   else if(myTurn && b.mode && b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item);
     if(it){ range = it.use.range; itemTargets(u, it).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); } }
@@ -44,9 +45,10 @@ function exploreAlertSVG(v,x,y){const a=B().phase==="explore"&&B().exploreMarks?
 function exploreDockHTML(){
  const b=B();if(b.exploreStopped)return dockWrap(exploreUnit(),b,"dk-pick",b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found,`<p>${EXPLORE_UI.stopped}</p>${b.exploreStopReason==="trap"?`<button class="mn-b" data-explore-cmd="resume">${EXPLORE_ACTION_TEXT.resume}</button>`:""}`);
  if(b.exploreRest)return dockWrap(exploreUnit(),b,"dk-rest",EXPLORE_COMBAT.rest,restChoiceHTML(b)+`<button class="mn-b" data-explore-cmd="rest">${EXPLORE_ACTION_TEXT.close}</button>`);
+ if(b.mode?.key==="placeBarrel")return dockWrap(exploreUnit(),b,"dk-pick",WORLD_OBJECT_TEXT.place,`<p>${WORLD_OBJECT_TEXT.placeHint}</p><button class="mn-b" data-explore-cmd="cancelPlace">${WORLD_OBJECT_TEXT.cancel}</button>`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
  if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
- return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
+ return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
@@ -160,7 +162,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
     things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
   Object.values(b.groundEffects||{}).forEach(f=>things.push({s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
-  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}">${svg}</g>`});});
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}>${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
@@ -191,7 +193,16 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 戰鬥台詞：頭上的氣泡框
   b.bubbles = (b.bubbles||[]).filter(x=>now < x.t + x.dur);
   b.bubbles.forEach(x=>{ const v = b.units.find(u=>u.id===x.id); if(v && !foeHid(v)) out.push(bubbleSVG(v, x, now)); });
+  out.push(worldObjectTipSVG());
   return out.join("");
+}
+
+function worldObjectTipSVG(){
+ const b=B(),key=b.objectTip;if(!key)return "";const [x,y]=key.split(",").map(Number),o=exploreObjectAt(x,y);if(!o)return "";
+ const z=camZoom(),p=iso(x,y),r=document.querySelector(".board-wrap")?.getBoundingClientRect(),w=300,lines=objectTipLines(o),h=42+lines.length*19;
+ const px=Math.max(-b.cam.x/z+6/z,Math.min(p.x-w/2/z,((r?.width||390)-b.cam.x-w-6)/z)),dock=document.querySelector(".bt-dock")?.getBoundingClientRect();
+ const dockLimit=dock&&r?(dock.top-r.top-b.cam.y-h-14)/z:Infinity,py=Math.max(-b.cam.y/z+6/z,Math.min(p.y-70-h/z,dockLimit));
+ return `<g class="world-object-tip" role="tooltip" pointer-events="none" transform="translate(${px} ${py}) scale(${1/z})"><path d="M140 ${h-2} l10 12 10-12" fill="#fff6df" stroke="#292330" stroke-width="3"/><rect width="${w}" height="${h}" rx="14" fill="#fff6df" stroke="#292330" stroke-width="3"/><text x="14" y="24" fill="#292330" font-size="15" font-weight="bold">${EXPLORE_OBJECTS[o.kind].name}</text>${lines.map((s,i)=>`<text x="14" y="${45+i*19}" fill="#292330" font-size="12">${s}</text>`).join("")}</g>`;
 }
 
 function boardSVG(){
@@ -311,17 +322,24 @@ function startPinch(){
 function initBoardDrag(){
   if(initBoardDrag.done) return; initBoardDrag.done = true;
   setInterval(()=>{ sweepFx(); refreshLogStrip(); }, 100);
+  let objectHold=null;const clearHold=()=>{clearTimeout(objectHold);objectHold=null;};
+  const tip=key=>{if(B()&&B().objectTip!==key){B().objectTip=key;refreshBattle();}};
+  window.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"&&!touches.size)tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);});
+  window.addEventListener("blur",()=>{clearHold();tip(null);});
   window.addEventListener("pointerdown", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
     if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut") || (e.pointerType==="mouse" && e.button!==0)) return;
     // 第一根手指放下＝前面的手指一定都離開了。畫面重畫時手指按著的元素會被換掉，
     // 手機（尤其 iPhone）之後的放開事件送不到 window，留下「幽靈手指」讓下一次單指拖曳變成縮放
     if(e.isPrimary && (touches.size || pinch || drag)){ touches.clear(); pinch = null; drag = null; document.body.classList.remove("board-dragging"); }
+    clearHold();tip(null);
     touches.set(e.pointerId, wrapXY(e));
     if(touches.size===2){ drag = null; startPinch(); return; }     // 第二根手指放下 → 改成縮放，不算點格子
     if(touches.size>2) return;
     const t = e.target.closest("[data-tile]");
     drag = {id:e.pointerId, sx:e.clientX, sy:e.clientY, c:{...(B().cam||{x:0,y:0})}, moved:false, unit:e.target.closest("[data-explore-body]")?.dataset.exploreBody, tile:t && t.dataset.tile};
+    const key=e.target.closest("[data-world-object]")?.dataset.worldObject,b=B(),d=drag;
+    if(e.pointerType!=="mouse"&&key)objectHold=setTimeout(()=>{if(B()===b&&drag===d&&!d.moved&&touches.size===1){d.held=true;tip(key);}},450);
   });
   window.addEventListener("pointermove", e=>{
     if(!touches.has(e.pointerId)) return;
@@ -337,7 +355,7 @@ function initBoardDrag(){
     }
     if(!drag || e.pointerId!==drag.id) return;
     const dx = e.clientX-drag.sx, dy = e.clientY-drag.sy;
-    if(!drag.moved && Math.hypot(dx,dy) > DRAG_TOL){ drag.moved = true; document.body.classList.add("board-dragging"); }
+    if(!drag.moved && Math.hypot(dx,dy) > DRAG_TOL){ clearHold();tip(null);drag.moved = true; document.body.classList.add("board-dragging"); }
     if(drag.moved){ B().cam = clampCam({x:drag.c.x+dx, y:drag.c.y+dy}); applyCam(); e.preventDefault(); }
   }, {passive:false});
   const up = e=>{
@@ -354,8 +372,8 @@ function initBoardDrag(){
       return;
     }
     if(!drag || e.pointerId!==drag.id) return;
-    const d = drag; drag = null; document.body.classList.remove("board-dragging");
-    if(e.type==="pointerup" && !d.moved && d.tile){
+    const d = drag;clearHold();if(d.held){tip(null);ghostUntil=Date.now()+400;} drag = null; document.body.classList.remove("board-dragging");
+    if(e.type==="pointerup" && !d.moved && !d.held && d.tile){
       if(e.pointerType!=="mouse") ghostUntil = Date.now() + 400;
       const [x,y] = d.tile.split(",").map(Number);
       if(B().phase==="explore" && d.unit){
@@ -526,10 +544,11 @@ function blockSVG(o){
     </g>`;
   }
   // 互動物件的手繪 SVG 暫定（GPT）；與既有場景一起排序。
-  if(o.kind==="chest")return `<g class="explore-chest">${box(o.opened?12:30,"#d2a459","#94633e","#744c32")}<path d="M${cx-4} ${cy-22} h8 v12 h-8Z" fill="${o.opened?"#777":"#e8c45b"}" stroke="#2a2630" stroke-width="2"/></g>`;
+  if(o.kind==="powderBarrel")return `<g class="powder-barrel" transform="translate(${cx-36} ${cy-66}) scale(.6)">${ITEM_ART.powder_barrel}</g>`;
+  if(o.kind==="chest")return `<g class="explore-chest" transform="translate(${cx} ${cy})" stroke="#292330" stroke-width="3" stroke-linejoin="round"><path d="M-50 -24 L0 -2 L50 -24 V5 L0 28 L-50 5Z" fill="#93613d"/><path d="M0 -2 V28 L50 5 V-24Z" fill="#734b32"/><path d="M-50 -24 L0 -46 L50 -24 L0 -2Z" fill="${o.opened?"#302830":"#b9894d"}"/><g transform="${o.opened?"translate(0 -34) rotate(-18)":""}"><path d="M-50 -24 Q-50 -58 -25 -66 L25 -44 Q50 -36 50 -24 L0 -2Z" fill="#c49652"/><path d="M-28 -45 Q-24 -62 -15 -61 L-7 -57 Q-18 -46 -17 -39 L32 -17 L22 -12Z M7 -56 L17 -51 Q39 -36 34 -18 L25 -14 Q28 -35 7 -42Z" fill="#a4a5a0"/></g><path d="M-27 -14 L-17 -10 V20 L-27 16Z M23 -12 L33 -17 V13 L23 18Z" fill="#a4a5a0"/><rect x="-6" y="-8" width="12" height="17" rx="2" fill="#e8c45b"/><circle cx="0" cy="-1" r="2" fill="#292330" stroke="none"/></g>`;
   if(o.kind==="door"||o.kind==="doorOpen")return `<g class="explore-door" transform="translate(${cx} ${cy})"><path d="M-38 5 V-100 H38 V5" fill="none" stroke="#2a2630" stroke-width="7"/><path d="${o.kind==="door"?"M-32 0 V-95 H32 V0Z":"M-32 0 V-95 L-55 -80 V15Z"}" fill="#98714e" stroke="#2a2630" stroke-width="3"/><circle cx="${o.kind==="door"?22:-47}" cy="-40" r="4" fill="#ebc965"/></g>`;
   if(o.kind==="trap")return `<g class="explore-trap"><ellipse cx="${cx}" cy="${cy}" rx="30" ry="15" fill="${o.disarmed?"#aaa":"#cf7d58"}" stroke="#2a2630" stroke-width="3"/><path d="M${cx-22} ${cy} l8 -12 l8 12 l8 -12 l8 12" fill="none" stroke="#2a2630" stroke-width="3"/></g>`;
-  if(o.kind==="crate") return box(24, "#c49a62", "#9a6a3e", "#7a5230");
+  if(o.kind==="crate") return `<g class="slatted-crate">${box(36,"#c49a62","#9a6a3e","#7a5230")}<g transform="translate(${cx} ${cy})" fill="none" stroke="#292330" stroke-width="3" stroke-linejoin="round"><path d="M-37 -47 L19 -15 M-19 -58 L37 -26 M-56 -24 L0 8 L56 -24 M-56 -12 L0 20 L56 -12"/><path d="M-49 -29 L-7 27 M7 -1 L49 -3" stroke-width="8"/><path d="M-49 -29 L-7 27 M7 -1 L49 -3" stroke="#c49a62" stroke-width="4"/></g></g>`;
   if(o.kind==="tree") return `<g class="tree" transform="translate(${cx} ${cy}) scale(${TREE_K}) translate(${-cx} ${-cy})">
     <ellipse cx="${cx}" cy="${cy+2}" rx="30" ry="13" fill="#000" opacity=".22"/>
     <path d="M${cx-9} ${cy} Q${cx-7} ${cy-40} ${cx-5} ${cy-62} L${cx+5} ${cy-62} Q${cx+7} ${cy-40} ${cx+9} ${cy} Z" fill="#7a5230" stroke="#2a2630" stroke-width="2.5"/>
@@ -849,7 +868,7 @@ function menuHTML(u, b){
   let body = "", title = "";
   if(lv==="root"){
     const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
-    const hasItems = u.items.length || u.spare.length;
+    const hasItems = u.items.length || u.spare.length || powderCount(u);
     body = mbtn("act","動作", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
            mbtn("move","走位", !canWalk() && !act) +
            mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "動作都用完了" : freeLeft() ? "免費動作" : "用掉動作") +
@@ -883,6 +902,7 @@ function menuHTML(u, b){
     const groups = [...new Set(u.items)];
     body = groups.map(it=>{ const noAct = it.use.action && !canAct();   // 點心要花動作（10-03）
       return `<button class="mn-b" data-item="${it.id}" ${noAct?"disabled":""}><span>${it.n} ×${u.items.filter(i=>i===it).length}</span><small>${noAct?"動作用完了":it.use.kind==="drink"?"喝或餵貼身隊友":it.use.kind==="eat"?"吃或餵貼身隊友（用掉動作）":`丟 ${it.use.range} 格內`}</small></button>`; }).join("") +
+           (powderCount(u)?`<button class="mn-b" data-placebarrel ${!canAct()?"disabled":""}><span>${WORLD_OBJECT_TEXT.place} ×${powderCount(u)}</span><small>${WORLD_OBJECT_TEXT.placeAction}</small></button>`:"")+
            u.spare.slice(0,1).map((w,i)=>`<button class="mn-b" data-swap="${i}"><span>切換配置：${w.n}${u.offhand2?"＋"+u.offhand2.n:""}</span><small>主手與副手一起切換</small></button>`).join("") +
            `<button class="mn-back" data-cmd="root">← 返回</button>`;
   } else if(lv==="skills"){
@@ -911,6 +931,7 @@ function confirmHTML(u, b){
 function aimHTML(u, b){
   const k = b.mode.key;
   const plain = (name, note) => dockWrap(u, b, "dk-pick dk-slim bt-aim", "", `<p class="aim-note"><b>${name}</b><br>${note}</p><button class="mn-back" data-aim="cancel">← 取消</button>`);
+  if(k==="placeBarrel")return plain(WORLD_OBJECT_TEXT.place,WORLD_OBJECT_TEXT.placeHint);
   if(k==="search") return plain("搜索", "點紅色格子裡的敵人");
   if(k==="help") return plain("協助", "點紅色格子裡的隊友");
   if(k==="item"){ const it = u.items.find(i=>i.id===b.mode.item); return plain(it ? it.n : "道具", "點紅色格子：敵人＝丟，貼身隊友＝交給他"); }
@@ -1105,7 +1126,7 @@ function infoHTML(v, b){
     const bagOpen=!!b.gearBagOpen;
     const bagIt=v.backpackEquip||null;
     const bag=`<div class="status-eqslot backpack ${bagOpen?"on":""}" data-gearslot="backpack"><small>背包</small>${bagIt?`<button class="status-eqitem status-bagbtn eq-tip" data-bagtoggle data-uid="${v.id}" data-gearitem="backpack" data-tip="${eqTip(bagIt)}" aria-label="${bagOpen?"收起":"打開"}背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button>`:`<span class="status-eqempty">＋</span>`}</div>`;
-    const bagDrawer=bagOpen?`<div class="status-bagdrawer gear-bag" data-gearbag><div class="gear-load"><div class="gear-load-head"><span>負重</span><b>${+load.toFixed(1)} / ${cap} lb</b></div><div class="gear-load-track"><div class="gear-load-fill" style="width:${loadPct}%"></div></div></div><div class="gear-bagitems">${(v.backpack||[]).map((it,i)=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-uid="${v.id}" data-gearitem="bag:${i}" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${g?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty bag-drop">背包是空的；可把裝備拖到這裡</span>`}</div></div>`:"";
+    const bagDrawer=bagOpen?`<div class="status-bagdrawer gear-bag" data-gearbag><div class="gear-load"><div class="gear-load-head"><span>負重</span><b>${+load.toFixed(1)} / ${cap} lb</b></div><div class="gear-load-track"><div class="gear-load-fill" style="width:${loadPct}%"></div></div></div><div class="gear-bagitems">${(v.backpack||[]).map((it,i)=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-uid="${v.id}" data-gearitem="bag:${i}" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${equipmentArtKey(it)?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty bag-drop">背包是空的；可把裝備拖到這裡</span>`}</div></div>`:"";
     statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
   } else {
     // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（介面沿用只顯示調整值，資料保存完整屬性值）；不顯示熟練格、燈號、小筆記
@@ -1230,6 +1251,7 @@ function battleInterfaceHTML(){
     else if(b.moveMode && !b.busy) dock = moveBarHTML(u, b);
     else dock = menuHTML(u, b);
     if(b.phase==="explore")dock=exploreDockHTML();
+    else if(b.worldObject&&!b.mode&&!b.moveMode){const o=b.worldObject;dock=dockWrap(u,b,"dk-pick",EXPLORE_OBJECTS.powderBarrel.name,`<button class="mn-b" data-worldcmd="pickup" ${!worldCanAct(u)||dist(u,o)>1?"disabled":""}>${WORLD_OBJECT_TEXT.pickup}<small>${WORLD_OBJECT_TEXT.carryAction}</small></button><button class="mn-back" data-worldcmd="close">← 返回</button>`);}
   }
   // 紀錄：指令列在最上層那一頁（或演出中）才出現；點進子選單、瞄準、移動、狀態卡打開時讓位，段數記著
   const deep = mine && !b.busy && (b.pendingMove || b.mode || b.moveMode || (b.menu && b.menu!=="root"));
@@ -1277,11 +1299,11 @@ function battleLayerKeys(){
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
   // svgMood 在 b.units 中，場景、先攻介面與狀態卡更新鍵均涵蓋表情。
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects]);
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
-  const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
+  const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks]):"none";
   const ui=battleDataKey([b,state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
-    ["def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
+    ["objectTip","def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
     +battleDataKey(b.units,["x","y","face","anim"])
     +(b.mode?units:"");
   return {floor:boardTerrainKey(),marks,scene,ui,modal:battleDataKey([state.modal,state.modal?b.units:null]),camera:battleDataKey([b.critOn,b.def.w,b.def.h])};
@@ -1346,6 +1368,8 @@ function initInfoZoom(){
 
 function bindBattle(){
   initBoardDrag(); initInfoZoom();
+  document.querySelectorAll("[data-placebarrel]").forEach(el=>battleListen(el,"click",beginBarrelPlacement));
+  document.querySelectorAll("[data-worldcmd]").forEach(el=>battleListen(el,"click",()=>worldInteract(el.dataset.worldcmd)));
   const b = B();
   if(b && !b.cam){ const ps = b.units.filter(v=>v.side==="pc"); centerCam(ps.reduce((a,v)=>a+v.x,0)/ps.length, ps.reduce((a,v)=>a+v.y,0)/ps.length - 2); }
   else if(b){ b.cam = clampCam(b.cam); applyCam(); }

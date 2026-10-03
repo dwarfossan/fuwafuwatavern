@@ -140,6 +140,7 @@ const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && mapCell(u.x)===m
 const TERRAIN = {
   poisonSwamp:{name:"毒沼",solid:false}, water:{name:"水面",solid:false}, oil:{name:"油",solid:false},
   chest: {name:"寶箱",solid:true,cover:.5},
+  powderBarrel: {name:"火藥桶",solid:true,cover:.5},
   door: {name:"門",solid:true,cover:.75},
   doorOpen: {name:"門",solid:false},
   trap: {name:"陷阱",solid:false},
@@ -546,6 +547,7 @@ function damageAfterResistance(t, n, type){
   return [...(t.resistances||[]),...itemResistances(t)].includes(type) ? Math.floor(n/2) : n;
 }
 function hurt(t, n, type, src){
+  if(t.worldObject){if(n>0&&!t.dead){t.dead=true;explodeBarrel(t.worldObject,src);}return;}
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）

@@ -63,7 +63,7 @@ function itemCardHTML(it){
     <div class="md-skills">${on.map(({s,i,gid})=>{ const im=(SKILL_IMPL[gid]||[])[i];
       return `<button class="md-sk" data-skinfo="${gid}:${i}:${it.id}">${skillIcon(gid,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
     <p class="dim md-hint">點技能看詳細說明</p>` : "";
-  return `<div class="md-head">${g?iconSVG(equipmentArtKey(it),34):""}<div><h3>${it.n}</h3><div class="dim">${it.en}・${it.cat}</div></div></div>
+  return `<div class="md-head">${g||it.placeable?iconSVG(equipmentArtKey(it),34):""}<div><h3>${it.n}</h3><div class="dim">${it.en}・${it.cat}</div></div></div>
     <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${rulesHTML(v)}</dd>`).join("")}</dl>${skills}`;
 }
 

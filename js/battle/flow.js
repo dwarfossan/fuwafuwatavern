@@ -30,7 +30,7 @@ function beginTurn(u){
   u._cleaved = false;
   b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = false;
   u.oaUsed = false;                         // 藉機攻擊每輪一次，輪到自己時恢復
-  b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;
+  b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;b.worldObject=null;b.objectTip=null;
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
   b.dazed = !!has(u,"dazed");
   let mv = u.speed;
@@ -251,12 +251,16 @@ function aimCast(){                                   // 對自己放的招，�
 }
 // 取消瞄準：回到選這招的那一層（道具 → 道具、推開／推倒 → 推撞、其他 → 動作）
 function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
+  if(k==="placeBarrel"){b.mode=null;b.menu=exploring()?null:"items";refreshBattle();return;}
   b.menu = k==="item" ? "items" : (k==="shove_push" || k==="shove_prone") ? "shove" : "act";
   b.mode = null; b.up = 0; b.tier = 0; b.tierOpen = false; sfx("back"); refreshBattle(); }
 
 // 瞄準模式下，這格能不能當目標
 function validTarget(u, sk, x, y){
-  const im = sk.impl, r = im.range ? im.range(u) : 0, t = unitAt(x,y), p = {x,y};
+  if(!sk)return null;
+  const im = sk.impl, r = im.range ? im.range(u) : 0, object=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);
+  if(object&&im.target==="enemy"&&dist(u,object)<=r&&(sk.def.basicAttack||(sk.idx===0&&HAS_BASIC(sk.group))||sk.def.groundElement))return barrelTarget(object);
+  const t = unitAt(x,y), p = {x,y};
   switch(im.target){
     case "enemy":  if(!t&&sk.def.groundElement&&dist(u,p)<=r&&groundCanReact(x,y,sk.def.dmg))return p;return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
     case "line":   return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
@@ -274,6 +278,7 @@ function clickTile(x, y){
   const myTurn = u.side==="pc" && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
   if(myTurn && b.mode){
+    if(b.mode.key==="placeBarrel"){placeBarrel(x,y);return;}
     if(b.mode.key==="search"){ const a = unitAt(x,y);
       if(a && searchTargets(u).includes(a)) doSearch(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="help"){ const a = helpTarget(u, x, y); if(a) doHelp(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
@@ -293,6 +298,7 @@ function clickTile(x, y){
     else { b.mode = null; b.up = 0; b.tier = 0; b.menu = "act"; refreshBattle(); }
     return;
   }
+  if(myTurn&&!b.moveMode&&!b.mode){const o=b.def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);if(o&&dist(u,o)<=1){b.worldObject=o;b.info=null;refreshBattle();return;}}
   // 指令列一直在右下角，點角色（包括自己）就是看狀態卡
   if(t){ b.info = b.info===t.id ? null : t.id; sfx(b.info ? "pop" : "back"); refreshBattle(); return; }
   if(myTurn && b.moveMode && reachable(u, b.moveLeft).has(`${x},${y}`)){ b.info = null; pcMove(x, y); return; }
