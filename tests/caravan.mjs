@@ -10,6 +10,7 @@ try{
  await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{B().units.filter(v=>v.side==='foe').forEach(v=>{v.dead=true;v.hp=0;});checkResult();});
  await pg.locator('#afterWin').click();

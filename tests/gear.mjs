@@ -9,6 +9,7 @@ try{
  const pg=await br.newPage({viewport:{width:390,height:844}});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>B()&&B().units.length,null,{timeout:60000});
  const r=await pg.evaluate(()=>{
   const I=n=>ITEMS.find(i=>i.n===n), out={};

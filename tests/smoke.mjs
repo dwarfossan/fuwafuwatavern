@@ -17,7 +17,9 @@ async function open(hash='', viewport={width:390, height:844}){   // 只做手�
   await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
-  await pg.goto(url + hash); await pg.waitForTimeout(800);
+  await pg.goto(url + hash);
+  if(hash==="#battle") await pg.evaluate(()=>startBattle("ambush")); // 原有規則用固定場景
+  await pg.waitForTimeout(800);
   return {pg, errs};
 }
 // 擲屬性（每隻擲骰＋自動分配）

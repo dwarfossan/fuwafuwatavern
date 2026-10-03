@@ -10,6 +10,7 @@ const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 await pg.addInitScript(()=>{window.setTimeout=()=>0;window.setInterval=()=>0;let s=42;Math.random=()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);});
 try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(v=>v.id==='fox');b.busy=false;b.tut=-1;b.focusReq=false;b.mode=null;b.moveMode=false;render();});
  const identity=await pg.evaluate(()=>{
   const ids=['board-floor','board-marks','board-scene'];
