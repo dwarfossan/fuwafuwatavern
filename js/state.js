@@ -21,7 +21,7 @@ const STARTER_NOTES = {
     {key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}
   ]
 };
-const starterNotes = id => (STARTER_NOTES[id]||[]).map(x=>({...x}));
+const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"darkvision",name:"黑暗視覺",innate:true,from:"天生",lv:1}];
 
 const state = {
   page:"cover",

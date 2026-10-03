@@ -70,7 +70,7 @@ function startBattle(id, retry=false, phase="combat"){
       accessories: inv.filter(it=>it.type==="accessory").slice(0,2),
       backpackEquip: bestBag(inv),
       backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.slice(2),...ar.slice(1),...ac.slice(2),...ge,...co]; })(),
-      speed:6, statuses:[], level:1, learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,3).map(x=>x.key))), down:false, face:-1, oaUsed:false
+      speed:6, statuses:[], level:1, learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{

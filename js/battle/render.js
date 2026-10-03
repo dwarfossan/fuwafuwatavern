@@ -1343,10 +1343,7 @@ function bindBattle(){
   document.querySelectorAll("[data-notepage]").forEach(el=>battleListen(el,"click", ()=>{ const [id,p]=el.dataset.notepage.split(":"); const b=B(); b.notePages=b.notePages||{}; b.notePages[id]=Math.max(1,+p||1); sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{
     const b=B(),u=b&&b.units.find(x=>x.id===b.info); if(!u)return;
-    u.activeSkills=u.activeSkills||[]; const k=el.dataset.noteskill, i=u.activeSkills.indexOf(k);
-    if(i>=0) u.activeSkills.splice(i,1);
-    else if(u.activeSkills.length<3) u.activeSkills.push(k);
-    else { sfx("bad"); return; }
+    if(!toggleCarriedSkill(u,el.dataset.noteskill)){sfx("bad");return;}
     sfx("pop"); refreshBattle();
   }));
   bindGearDrag();

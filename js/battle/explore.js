@@ -17,7 +17,7 @@ function exploreHide(){
  for(const u of pcs){if(!b.exploreSneak){reveal(u);continue;}if(isHid(u))continue;const why=hideBlock(u);if(why)blog(`${u.name}：${why}`);else tryHide(u);}
  exploreDetect();refreshBattle();
 }
-function exploreSight(a,t){return coverOf(a,t).v<.75;}
+function exploreSight(a,t){return canSeeInLight(a,t);}
 function exploreReveal(hiddenUnit,observer){panelStart(`${observer.name}【察覺】`);stealthRow(hiddenUnit,observer,true);panelEnd();obsMark(observer,"ok");reveal(hiddenUnit,"被察覺了，現身！");}
 function exploreDetect(){
  const b=B();if(!exploring())return;

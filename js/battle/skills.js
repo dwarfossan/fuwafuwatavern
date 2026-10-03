@@ -14,9 +14,33 @@ function learnedSkillByKey(key){
   const {g, idx} = f;
   return {key, group:g, idx, def:g.skills[idx], impl:(SKILL_IMPL[g.id]||[])[idx]};
 }
+// 所有筆記配置入口共用同一限制；activeSkills 保留舊欄位以相容快照。
+const CARRIED_SKILL_MAX=5,ACTIVE_SKILL_MAX=3;
+const isPassiveSkill = s => s?.def?.activation==='passive'||s?.impl?.passive===true;
+function carriedSkillKeys(u){
+ const keys=[],known=new Set((u.learned||[]).map(n=>n.key));let active=0;
+ for(const k of u.activeSkills||[]){if(keys.includes(k)||!known.has(k))continue;const s=learnedSkillByKey(k);if(!isPassiveSkill(s)&&active>=ACTIVE_SKILL_MAX)continue;if(keys.length>=CARRIED_SKILL_MAX)break;keys.push(k);if(!isPassiveSkill(s))active++;}
+ return keys;
+}
+function toggleCarriedSkill(u,key){
+ if(!(u.learned||[]).some(n=>n.key===key))return false;
+ const keys=carriedSkillKeys(u),i=keys.indexOf(key);
+ if(i>=0)keys.splice(i,1);else {if(keys.length>=CARRIED_SKILL_MAX||(!isPassiveSkill(learnedSkillByKey(key))&&keys.filter(k=>!isPassiveSkill(learnedSkillByKey(k))).length>=ACTIVE_SKILL_MAX))return false;keys.push(key);}
+ u.activeSkills=keys;return true;
+}
+function passiveSkills(u){return carriedSkillKeys(u).map(learnedSkillByKey).filter(isPassiveSkill);}
+const darkvisionRange=u=>Math.max(0,...passiveSkills(u).map(s=>s.def.darkvision||0));
+// 場景未指定光照時沿用明亮；不自訂日夜循環／火把半徑。
+function visionAt(u,t,light=B()?.def.lighting||"bright"){
+ if(coverOf(u,t).v>=.75)return "blocked";
+ const radius=darkvisionRange(u),night=radius>0&&dist(u,t)<=radius;
+ return light==="dark"?(night?"gray":"blind"):light==="dim"?(night?"bright":"dim"):"bright";
+}
+function canSeeInLight(u,t){return !["blind","blocked"].includes(visionAt(u,t));}
+
 function activeLearnedSkills(u){
   u.activeSkills=u.activeSkills||[];
-  return u.activeSkills.map(learnedSkillByKey).filter(Boolean);
+  return carriedSkillKeys(u).map(learnedSkillByKey).filter(s=>s&&!isPassiveSkill(s));
 }
 function unitSkills(u){
   const unarmed=SKILL_GROUPS.find(g=>g.id==="unarmed");
@@ -34,7 +58,7 @@ function unitSkills(u){
   // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
   [u.weapon, u.focus].forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
-  return out.filter((x,i,a)=>a.findIndex(y=>y.key===x.key)===i);
+  return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
 
 // 法器的免費基本攻擊：法杖打擊照原本 1d6；法書、法球以 1d4 作輕型鈍器。
@@ -140,6 +164,7 @@ function dashSpot(u, t, max){
 }
 
 const SKILL_IMPL = {
+  natural:[{passive:true}],
   sword: [
     basicAttack,
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"stance",{via:"parry", until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},

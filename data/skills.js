@@ -186,3 +186,9 @@ const dmgShown = t => DMG_SHOWN[t] || t;
 
 // 地面反應沿用法術傷害類型，沒有另外一套施法規則。
 Object.values(SKILL_GROUPS).forEach(g=>g.skills.forEach(s=>{if(["火焰箭","寒冷射線","電擊術"].includes(s.name))s.groundElement=true;}));
+
+// 主／被動以是否需要玩家施展分類；天生技能仍使用同一技能資料。
+SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"—",skills:[
+ {id:"darkvision",name:"黑暗視覺",activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"小筆記勾選後生效，占一個攜帶名額。12 格（60 呎）內黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
+]});
+SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));

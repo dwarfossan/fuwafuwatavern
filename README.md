@@ -55,6 +55,7 @@ node tests/sealed-goods.mjs # 封印付費／領取、十次保底、週自選�
 node tests/magic-shop.mjs   # 每日魔法現貨、保存、裝備效果與手機購買
 node tests/town-supplier.mjs # 首次離店送貨、商人貨源暗示與一次性事件
 node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸控與原技能說明
+node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
 node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休息與筆記
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話

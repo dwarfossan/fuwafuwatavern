@@ -2,7 +2,7 @@
 
 // 技能圖示：類別圖示 + 角標（數字＝要用幾階的熟練格、自＝自動觸發；普攻沒有角標）
 function tierOf(def, impl){
-  if(impl && impl.passive) return {tag:"自", label:"自動觸發", cls:"t-auto"};
+  if(def.activation==="passive" || impl && impl.passive) return {tag:"被", label:"被動・小筆記勾選生效", cls:"t-auto"};
   if(def.tier) return {tag:String(def.tier), label:`用一格${TIER_NAME[def.tier]}以上的熟練格${def.free?"・免費動作":""}`, cls:"t-sig"};
   return {tag:"", label:`不用熟練格・隨時可用${def.free?"・免費動作":""}`, cls:"t-basic"};
 }
@@ -81,7 +81,7 @@ function skillCardHTML(groupId, idx, item, unit){
     ["類型", skillType(g, s)],
     ["使用", t.label],
     ["目標", im && im.passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"],
-    ["距離", im && im.passive ? "—" : range],
+    ["距離", im && im.passive ? (s.darkvision?`${s.darkvision} 格（${s.darkvision*5} 呎）`:"—") : range],
     ["屬性", skillStatText(g, item)]
   ];
   if(s.components)rows.push(["聲勢材",componentsText(s.components)]);
