@@ -1088,3 +1088,12 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes explore-foot{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
 @keyframes explore-sway{0%,100%{transform:translateX(-1px)}50%{transform:translateX(1px)}}
 @media(prefers-reduced-motion:reduce){.act-walk .dl-foot-left,.act-walk .dl-foot-right,.act-walk .dl-bob{animation:none}}
+
+/* 關於／授權（10-04）：英文官方原句小字、網址可斷行 */
+.cover-about{margin-top:6px;font-size:13px;opacity:.85}
+.about p{margin:6px 0;line-height:1.55}
+.about section{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
+.about h4{margin:0 0 4px;color:var(--honey);font-size:15px}
+.about-en{font-size:12.5px;color:var(--dim);overflow-wrap:anywhere}
+.about-en a{color:var(--honey)}
+.about-zh{font-size:14px}

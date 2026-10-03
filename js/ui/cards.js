@@ -109,6 +109,7 @@ function closeDetailModal(){
   refreshGameUI();
   if(m?.kind==="character") document.querySelector(`[data-info="${m.id}"]`)?.focus({preventScroll:true});
   if(m?.kind==="help") document.querySelector(`[data-pagehelp="${m.id}"]`)?.focus({preventScroll:true});
+  if(m?.kind==="about") document.querySelector("[data-about]")?.focus({preventScroll:true});
 }
 function renderModal(){
   const m = state.modal; if(!m) return "";
@@ -118,6 +119,10 @@ function renderModal(){
   if(m.kind==="help"){
     const h=PAGE_UI.helpPages[m.id];
     body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
+  }
+  if(m.kind==="about"){
+    const link=t=>t.replace(/https:\/\/[^\s]+?(?=\.?(\s|$))/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+    body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p>${ABOUT.srd.map(x=>`<section><h4>${x.name}</h4><p class="about-en" lang="en">${link(x.en)}</p><p class="about-zh">${x.zh}</p></section>`).join("")}</div>`;
   }
   if(m.kind==="character"){
     const c=CRITTERS.find(x=>x.id===m.id);
@@ -138,6 +143,7 @@ function modalListen(el,type,fn){
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
+  document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));
   document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo}; refreshGameUI(); }));
   document.querySelectorAll("[data-skinfo]").forEach(el=>modalListen(el,"click", e=>{

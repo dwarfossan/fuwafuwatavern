@@ -54,3 +54,15 @@ const PAGE_UI = {
     map:{title:"怎麼看大地圖",text:"點地點看介紹。四隻的臉標出你們現在的位置。"}
   }
 };
+
+// 關於／授權（10-04）：SRD 5.1、5.2 的 CC-BY 4.0 出處標示，玩家在遊戲裡看得到。英文是官方原句，不要改字（見 docs/授權與安全.md）
+const ABOUT = {
+  title:"關於／授權",
+  intro:"《毛絨絨小隊》的規則以 SRD 為底，為了好玩改了一些。角色、世界觀、地圖、劇情、美術都是原創。",
+  srd:[
+    {name:"SRD 5.2", en:'This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.2（「SRD 5.2」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"},
+    {name:"SRD 5.1", en:'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.1（「SRD 5.1」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"}
+  ]
+};
