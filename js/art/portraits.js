@@ -20,7 +20,24 @@ Object.assign(PORTRAITS,{
 function npcFaceStyle(p,face){const i=Math.max(0,NPC_EXPRESSIONS.indexOf(face||p.def));return `background-position:${(i%4)*100/3}% ${Math.floor(i/4)*50}%`;}
 function npcPortraitHTML(id,face,head=false){const p=PORTRAITS[id],[w,h]=p.size,[x,y,fw,fh]=p.faceBox;
  const crop=head?p.head:[0,0,w,p.crop],cw=crop[2],ch=head?cw:crop[3];
- return `<div class="portrait npc-portrait ${head?"npc-head":"npc-half"}" data-portrait="${id}" style="aspect-ratio:${cw}/${ch}"><div class="pt-canvas" style="width:${w/cw*100}%;aspect-ratio:${w}/${h};left:${-crop[0]/cw*100}%;top:${-crop[1]/ch*100}%"><img class="pt-base" src="${p.base}" alt="${p.name}" draggable="false"><span class="pt-sheet" data-face="${face||p.def}" style="left:${x/w*100}%;top:${y/h*100}%;width:${fw/w*100}%;height:${fh/h*100}%;background-image:url('${p.sheet}');${p.veil?"clip-path:inset(40% 0 38% 0);":""}${npcFaceStyle(p,face)}"></span></div></div>`;
+ return `<div class="portrait npc-portrait ${head?"npc-head":"npc-half"}" data-portrait="${id}" data-load="loading" style="aspect-ratio:${cw}/${ch}"><div class="pt-canvas" style="width:${w/cw*100}%;aspect-ratio:${w}/${h};left:${-crop[0]/cw*100}%;top:${-crop[1]/ch*100}%"><img class="pt-base" src="${p.base}" alt="${p.name}" draggable="false" onload="npcPortraitLoaded(this)" onerror="npcPortraitFailed(this)"><span class="pt-sheet" data-face="${face||p.def}" style="left:${x/w*100}%;top:${y/h*100}%;width:${fw/w*100}%;height:${fh/h*100}%;background-image:url('${p.sheet}');${p.veil?"clip-path:inset(40% 0 38% 0);":""}${npcFaceStyle(p,face)}"></span><img class="pt-sheet-source" src="${p.sheet}" alt="" hidden onload="npcPortraitLoaded(this)" onerror="npcPortraitFailed(this)"></div><div class="pt-load" role="status"><span>正在載入${p.name}立繪…</span><button class="btn ghost" hidden onclick="retryNPCPortrait(this)">重試立繪</button></div></div>`;
+}
+// 底圖與表情都載入才顯示；網路失敗不再留下無提示的空背景。
+function npcPortraitLoaded(img){
+ const root=img.closest('.npc-portrait');if(!root)return;
+ const source=root.querySelector('.pt-sheet-source');
+ root.querySelector('.pt-sheet').style.backgroundImage=`url("${source.currentSrc||source.src}")`;
+ if([...root.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0))root.dataset.load='ready';
+}
+function npcPortraitFailed(img){
+ const root=img.closest('.npc-portrait');if(!root)return;
+ if(!img.dataset.retried){img.dataset.retried='1';const src=new URL(img.src);src.searchParams.set('retry',Date.now());img.src=src.href;return;}
+ root.dataset.load='error';root.querySelector('.pt-load span').textContent='立繪載入失敗';root.querySelector('.pt-load button').hidden=false;
+}
+function retryNPCPortrait(button){
+ const root=button.closest('.npc-portrait');root.dataset.load='loading';button.hidden=true;
+ root.querySelector('.pt-load span').textContent=`正在載入${PORTRAITS[root.dataset.portrait].name}立繪…`;
+ root.querySelectorAll('img').forEach(img=>{if(img.complete&&img.naturalWidth>0)return;delete img.dataset.retried;const src=new URL(img.src);src.searchParams.set('retry',Date.now());img.src=src.href;});
 }
 const faceSrc = (id, face) => { const p = PORTRAITS[id]; return p.faces ? p.faces + (p.list.includes(face) ? face : p.def) + ".webp" : ""; };
 function portraitHTML(id, face){

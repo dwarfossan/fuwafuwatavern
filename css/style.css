@@ -1102,3 +1102,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .town-interior{height:auto;background:linear-gradient(180deg,var(--venue),#241e29)}
 .quip-face .npc-portrait{position:relative;inset:auto;width:100%;height:100%;aspect-ratio:1}
 .actor:has(.npc-portrait){height:auto;bottom:0;width:100%;aspect-ratio:auto}
+
+/* NPC 圖片與表情共用載入狀態，避免未載完顯示空白／無臉。 */
+.npc-portrait .pt-sheet-source{display:none}
+.npc-portrait:not([data-load="ready"]) .pt-canvas{visibility:hidden}
+.npc-portrait .pt-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:16px;text-align:center;font-size:14px}
+.npc-portrait[data-load="ready"] .pt-load{display:none}
+.npc-portrait .pt-load button[hidden]{display:none}
