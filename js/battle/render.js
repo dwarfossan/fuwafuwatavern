@@ -31,10 +31,25 @@ function boardMarkState(){
   return {b,d,u,moveSet,tgtSet,areaSet,range};
 }
 
+// 探索偵測格屬地板層；警示記號屬場景最上方 HUD。外觀暫定（GPT）。
+function exploreWatchCells(){
+ const b=B(),out=new Set();if(b.phase!=="explore"||!b.exploreSneak)return out;
+ const e=b.units.find(u=>u.id===b.info&&u.side==="foe"&&!foeHid(u));if(!e)return out;
+ const range=ENEMIES[e.type].detectRange;
+ for(let x=0;x<b.def.w;x++)for(let y=0;y<b.def.h;y++)if(dist(e,{x,y})<=range&&exploreSight(e,{x,y}))out.add(`${x},${y}`);
+ return out;
+}
+function exploreAlertSVG(v,x,y){const a=B().phase==="explore"&&B().exploreMarks?.[v.id];return a?`<g class="explore-alert" data-alert="${a}"><circle cx="${x}" cy="${y}" r="16" fill="${a===2?"#e35b52":"#e8c057"}" stroke="#292330" stroke-width="3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="24" font-weight="bold" fill="#292330">!</text></g>`:"";}
+function exploreDockHTML(){
+ const b=B();if(b.exploreStopped)return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.found,`<p>${EXPLORE_UI.stopped}</p>`);
+ const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
+ return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}`);
+}
 function boardFloorHTML(){
   const d=B().def, out=[];
   const isRoad=(x,y)=>d.road.some(r=>r[0]===x&&r[1]===y);
-  const tileFill = (x,y) => { const road=isRoad(x,y), alt=(x+y)%2; return road ? (alt?"#d9c08e":"#d2b683") : (alt?"#8fb462":"#86ab5a"); };
+  const watch=exploreWatchCells();
+  const tileFill = (x,y) => { if(watch.has(`${x},${y}`))return "#cbb668"; const road=isRoad(x,y), alt=(x+y)%2; return road ? (alt?"#d9c08e":"#d2b683") : (alt?"#8fb462":"#86ab5a"); };
   const raised = [];
   for(let s=0;s<d.w+d.h-1;s++) for(let x=0;x<d.w;x++){ const y=s-x; if(y<0||y>=d.h) continue;
     if(hAt(x,y) > 0){ raised.push({x,y}); continue; }
@@ -96,7 +111,7 @@ function boardMarksHTML(ctx=boardMarkState()){
 }
 // 地板、標示各有獨立 DOM。標示的 paint server 只換格子的填色；
 // 場景以原生 SVG use 引用台地，保留山壁與角色的斜角前後遮擋。
-function boardTerrainKey(){ const d=B().def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])]]); }
+function boardTerrainKey(){ const b=B(),d=b.def; return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,b.phase==="explore"?b.info:null,b.phase==="explore"&&b.exploreSneak?b.units.filter(u=>u.id===b.info).map(u=>[u.x,u.y]):null]); }
 function updateBoardFloor(){
   const layer=document.getElementById("board-floor"); if(!layer) return;
   layer.innerHTML=boardFloorHTML();
@@ -674,7 +689,7 @@ const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺�
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g class="hud" data-tile="${v.x},${v.y}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}</g>`;
+  return `<g class="hud" data-tile="${v.x},${v.y}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
 }
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
@@ -1148,7 +1163,7 @@ function battleInterfaceHTML(){
   const b = B();
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const u = cur();
-  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}">
+  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg></div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
@@ -1188,14 +1203,15 @@ function battleInterfaceHTML(){
     else if(b.mode && !b.busy) dock = aimHTML(u, b);
     else if(b.moveMode && !b.busy) dock = moveBarHTML(u, b);
     else dock = menuHTML(u, b);
+    if(b.phase==="explore")dock=exploreDockHTML();
   }
   // 紀錄：指令列在最上層那一頁（或演出中）才出現；點進子選單、瞄準、移動、狀態卡打開時讓位，段數記著
   const deep = mine && !b.busy && (b.pendingMove || b.mode || b.moveMode || (b.menu && b.menu!=="root"));
   const logEl = b.result || deep || ov ? "" : b.logLv===2 ? logPanelHTML(b) : logStripHTML(b);
-  const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine?resHTML(u,b):""}</div>${logEl}</div>`;
+  const bottom = `<div class="bt-bottom">${dock?`<div class="bt-dockrow">${dock}</div>`:""}<div class="bt-resrow">${mine&&b.phase!=="explore"?resHTML(u,b):""}</div>${logEl}</div>`;
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {
-    head: `<div class="head"><div><h2>戰鬥：${b.def.name}</h2><p class="rule">第 ${b.round} 回合${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
+    head: `<div class="head"><div><h2>${b.phase==="explore"?EXPLORE_UI.title:"戰鬥"}：${b.def.name}</h2><p class="rule">${b.phase==="explore"?(b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group):`第 ${b.round} 回合`}${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
       <div class="sys-tools">
         <button class="snd ${SFX.isMuted()?"off":""}" id="sndToggle" aria-label="主音量" title="主音量">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${SFX.isMuted()?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg></button>
@@ -1204,7 +1220,7 @@ function battleInterfaceHTML(){
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>`,
     order: `<div class="order">${order}</div>`,
-    hud,
+    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?EXPLORE_UI.found:EXPLORE_UI.hint}</b></div>`:hud,
     tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
     overlays: `${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`
@@ -1233,7 +1249,7 @@ function battleLayerKeys(){
   const units=battleDataKey(b.units,["anim","face","notePages"]);
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles]);
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
   const ui=battleDataKey([b,state.inv,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
@@ -1316,6 +1332,8 @@ function bindBattle(){
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
     if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
+  document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
+  document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));
   document.querySelectorAll("[data-cmd]").forEach(el=>battleListen(el,"click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
   battleListen(document.getElementById("sndToggle"),"click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="volume"?null:"volume"; refreshBattle(); });
   battleListen(document.getElementById("gearToggle"),"click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="menu"?null:"menu"; refreshBattle(); });

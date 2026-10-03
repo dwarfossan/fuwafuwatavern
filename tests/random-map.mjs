@@ -7,7 +7,7 @@ const url='file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'.
 const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 try{
  await pg.addInitScript(()=>{window.__realTimeout=window.setTimeout;window.setTimeout=()=>0;window.setInterval=()=>0;});
- await pg.goto(url+'#battle?seed=123');
+ await pg.goto(url+'#battle?seed=123&phase=combat');
  const first=await pg.evaluate(()=>JSON.stringify(generateRandomBattle(123)));
  assert.equal(await pg.evaluate(()=>B().def.seed),123);
  assert.equal(first,await pg.evaluate(()=>JSON.stringify(generateRandomBattle(123))));

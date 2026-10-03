@@ -230,7 +230,7 @@ function bind(){
 }
 
 // 測試用：網址後面加 #battle 直接進戰鬥（自動擲屬性、自動分配、給一套預設裝備）
-function quickBattle(battleId="ambush"){
+function quickBattle(battleId="ambush",phase="combat"){
   // 香香是遊俠（隊伍的萬金油），穿中甲（大爺指定，也順便測中甲）；買不起或背不動才退回輕甲
   // 道具、備用武器是測試用（快速戰鬥每隻多給 50 gp 買道具，正式商店還是 100 gp）：
   // 玲玲藥水＋鍊金火、嬌嬌網子＋酸液、香香短劍（測換武器）＋網子＋藥水、默默鍊金火＋酸液
@@ -247,11 +247,11 @@ function quickBattle(battleId="ambush"){
     state.gold[c.id] = 150*GP; state.inv[c.id] = [];
     kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(it.id); } });
   });
-  state.page = "battle"; startBattle(battleId);
+  state.page = "battle"; startBattle(battleId,false,phase);
 }
 if(/^#battle(?:\?|$)/.test(location.hash)){
   const raw=new URLSearchParams(location.hash.split("?")[1]||"").get("seed");
   const seed=raw!==null && /^\d+$/.test(raw)?Number(raw)>>>0:crypto.getRandomValues(new Uint32Array(1))[0];
-  BATTLES.random=generateRandomBattle(seed); quickBattle("random");
+  BATTLES.random=generateRandomBattle(seed); quickBattle("random",new URLSearchParams(location.hash.split("?")[1]||"").get("phase")==="combat"?"combat":"explore");
 }
 else { if(location.hash==="#doll") state.page = "doll"; render(); }

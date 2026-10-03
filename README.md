@@ -52,6 +52,7 @@ node tests/area-hidden.mjs    # 範圍招波及躲著的（先現身再結算）
 node tests/guard.mjs          # 阻截敵我同一套：走進架式範圍挨一下、移動不能取消；躲著走的不會被阻截
 node tests/concentration.mjs  # 專注（同時一個、受傷豁免、倒下中斷）、狩印、點心、次元背包
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
+node tests/explore.mjs       # 探索同頁分層、群體／個體、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊
 node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
 ```

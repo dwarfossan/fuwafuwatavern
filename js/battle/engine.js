@@ -42,7 +42,7 @@ function leaveBattleTo(scene){
   state.page = "story"; state.scene = scene; state.line = 0; state.info = null; state.caravan = {};
   render(); window.scrollTo(0,0);
 }
-function startBattle(id, retry=false){
+function startBattle(id, retry=false, phase="combat"){
   if(!retry) snapBattle(id);
   const def = BATTLES[id];
   const units = [];
@@ -105,16 +105,16 @@ function startBattle(id, retry=false){
     if(hide >= HIDE_DC) u.statuses.push({k:"hidden", val: hide, roll}); });
   // 先攻：d20 + 敏捷調整值，高的先
   // NPC 不擲先攻，排在最後，輪到時直接跳過
-  units.forEach(u=> u.init = u.side==="npc" ? -Infinity : d20() + u.mods.DEX + Math.random()*.1);
+  units.forEach(u=> u.init = u.side==="npc" ? -Infinity : phase==="explore" ? 0 : d20() + u.mods.DEX + Math.random()*.1);
   units.sort((a,b)=>b.init-a.init);
   state.battle = {
-    id, def, units, turn:-1, round:0, log:[], mode:null, result:null,
+    id, def, phase, units, turn:-1, round:0, log:[], mode:null, result:null,
     tut: def.tutorial ? 0 : -1, busy:false
   };
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
-  blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u)).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
+  if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u)).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
   passivePocket();                                 // 開場看得到的敵人：先比一次被動感知
-  nextTurn();
+  if(phase==="explore")beginExplore();else nextTurn();
 }
 
 const B = () => state.battle;

@@ -2,6 +2,7 @@
 
 function nextTurn(){
   const b = B();
+  if(b.phase==="explore")return;
   if(checkResult()) return;
   do {
     b.turn++;
@@ -87,7 +88,8 @@ function reachable(u, max){
     if(c > best.get(`${x},${y}`)) continue;
     for(const [dx,dy] of DIRS){
       const nx=x+dx, ny=y+dy, k=`${nx},${ny}`;
-      if(blocked(nx,ny) || unitAt(nx,ny)) continue;
+      if(B().phase==="explore"&&B().exploreGoal&&B().exploreGoal.id!==u.id&&nx===B().exploreGoal.x&&ny===B().exploreGoal.y)continue;
+      if(blocked(nx,ny) || (unitAt(nx,ny) && !(bExploreHidden(unitAt(nx,ny))))) continue;
       const nc = c + stepCost(x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
       best.set(k, nc);
@@ -98,6 +100,7 @@ function reachable(u, max){
   paths.delete(start);
   return paths;
 }
+const bExploreHidden=u=>B().phase==="explore" && isHid(u) && u.side==="foe";
 // 路徑只走到花得起的地方（from：出發的位置，算爬升用）
 function trimPath(path, budget, drag=1, from){
   const out = []; let c = 0, prev = from;
@@ -113,8 +116,8 @@ function walk(u, path, done){
   if(path.length && u===cur()) b.movedThisTurn = true;
   let i = 0, oaDone = -1;
   const step = ()=>{
-    if(b.result || i>=path.length || u.dead || u.down){ done && done(); return; }
-    if(oaDone < i){
+    if(b.result || (b.phase==="explore"&&b.exploreStopped) || i>=path.length || u.dead || u.down){ done && done(); return; }
+    if(b.phase!=="explore" && oaDone < i){
       oaDone = i;
       const foes = oaTriggers(u, path[i]);
       if(foes.length){
@@ -130,8 +133,8 @@ function walk(u, path, done){
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(pickUp(u)){ b.pickedUp = true; }
-    checkGuards(u, prev);
-    checkExposure();
+    if(b.phase==="explore"){checkExposure();exploreDetect();}
+    else {checkGuards(u, prev);checkExposure();}
     refreshBattle();
     later(step, 140);
   };
@@ -256,6 +259,7 @@ function validTarget(u, sk, x, y){
 // 點格子：瞄準中 → 選目標；點到輪到的角色 → 開關指令選單；點到別隻 → 狀態卡；移動模式點藍格 → 走過去
 function clickTile(x, y){
   const b = B(); if(!b) return;
+  if(b.phase==="explore"){exploreClick(x,y);return;}
   const u = cur(), t0 = unitAt(x, y), t = t0 && foeHid(t0) ? null : t0;
   const myTurn = u.side==="pc" && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
