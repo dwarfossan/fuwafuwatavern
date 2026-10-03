@@ -1,0 +1,13 @@
+import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+const br=await chromium.launch();try{const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+const r=await pg.evaluate(()=>{startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox'),t=b.units.find(v=>v.side==='foe');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.menu='act';b.tut=-1;b.actionUsed=b.freeUsed=false;u.weapon=makeItem(ITEMS.find(i=>i.n==='霜雷法杖'));u.shield=false;u.focus=null;u.activeSkills=[];u.mods={STR:0,DEX:0,CON:0,INT:1,WIS:2,CHA:3};u.weapon.stat='WIS';t.hp=t.maxHp=100;t.statuses=[];t.down=t.dead=false;t.x=u.x+1;t.y=u.y;
+const out={anim:skillAnim(u,learnedSkillByKey("ray_of_frost"),t),skills:unitSkills(u).map(s=>s.key),stat:spellStat(u)},saved=Math.random;Math.random=()=>.75;
+SKILL_IMPL.elements[0].run(u,t);out.cold={hp:t.hp,slowed:!!has(t,'slowed'),of:has(t,'slowed')?.of};expire('start',u.id);out.expired=!has(t,'slowed');t.oaUsed=false;
+SKILL_IMPL.elements[1].run(u,t);out.shock={hp:t.hp,locked:!canOA(t),flag:t.shockNoOA};beginTurn(t);out.reset=!t.shockNoOA;
+Math.random=saved;b.turn=b.units.indexOf(u);b.busy=false;b.actionUsed=b.freeUsed=false;b.menu='act';refreshBattle();return out;});
+assert.deepEqual(r.skills,['arcane_staff_0','ray_of_frost','shocking_grasp']);assert.equal(r.stat,'CHA');assert.equal(r.anim,'cast');assert.deepEqual(r.cold,{hp:93,slowed:true,of:'fox'});assert(r.expired);assert.deepEqual(r.shock,{hp:86,locked:true,flag:true});assert(r.reset);
+await pg.locator('[data-skill="ray_of_frost"]').tap();assert.equal(await pg.evaluate(()=>B().mode.key),'ray_of_frost');await pg.waitForTimeout(400);if(process.env.REVIEW_SHOT)await pg.screenshot({path:process.env.REVIEW_SHOT});
+const target=await pg.evaluate(()=>{Math.random=()=>.75;const t=B().units.find(v=>v.side==='foe');return {x:t.x,y:t.y,hp:t.hp,id:t.id};});
+const hud=await pg.locator(`.hud[data-tile="${target.x},${target.y}"]`).boundingBox();assert(hud);await pg.touchscreen.tap(hud.x+hud.width/2,hud.y+hud.height/2);assert(await pg.evaluate(()=>B().actionUsed));assert(await pg.evaluate(id=>B().units.find(v=>v.id===id).hp<86,target.id));
+await pg.waitForTimeout(400);if(process.env.REVIEW_SHOT)await pg.screenshot({path:process.env.REVIEW_SHOT.replace('.png','-cast.png')});
+const card=await pg.evaluate(()=>itemCardHTML(cur().weapon));assert.match(card,/寒冷射線/);assert.match(card,/電擊術/);assert.doesNotMatch(card,/魔法飛彈/);assert.deepEqual(errors,[]);console.log('✓ 冷電法器、實例屬性、聲勢、傷害、緩速到期、禁止藉機攻擊到期、手機點選與卡片');}finally{await br.close();}

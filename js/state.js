@@ -1,27 +1,27 @@
 /* ======================== 狀態 ======================== */
 const STARTER_NOTES = {
   fox:[
-    {key:"arcane_staff_1",name:"魔法飛彈",innate:false,from:"起始技能",lv:1},
-    {key:"arcane_staff_2",name:"護盾術",innate:false,from:"起始技能",lv:1},
-    {key:"arcane_staff_3",name:"法師護甲",innate:false,from:"起始技能",lv:1}
+    {key:"magic_missile",name:"魔法飛彈",innate:false,from:"起始技能",lv:1},
+    {key:"shield_spell",name:"護盾術",innate:false,from:"起始技能",lv:1},
+    {key:"mage_armor",name:"法師護甲",innate:false,from:"起始技能",lv:1}
   ],
   tiger:[
-    {key:"axe_1",name:"破甲",innate:false,from:"起始技能",lv:1},
-    {key:"axe_2",name:"放血",innate:false,from:"起始技能",lv:1},
-    {key:"heavy_3",name:"衝撞",innate:false,from:"起始技能",lv:1}
+    {key:"sunder",name:"破甲",innate:false,from:"起始技能",lv:1},
+    {key:"bleed",name:"放血",innate:false,from:"起始技能",lv:1},
+    {key:"topple",name:"撞倒",innate:false,from:"起始技能",lv:1}
   ],
   wolf:[
-    {key:"bow_1",name:"瞄準射擊",innate:false,from:"起始技能",lv:1},
-    {key:"bow_3",name:"壓制射擊",innate:false,from:"起始技能",lv:1},
-    {key:"dagger_3",name:"扎腿",innate:false,from:"起始技能",lv:1}
+    {key:"aimed_shot",name:"瞄準射擊",innate:false,from:"起始技能",lv:1},
+    {key:"suppress",name:"壓制射擊",innate:false,from:"起始技能",lv:1},
+    {key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}
   ],
   raccoon:[
-    {key:"dagger_1",name:"偷襲",innate:false,from:"起始技能",lv:1},
-    {key:"dagger_2",name:"閃身刺",innate:false,from:"起始技能",lv:1},
-    {key:"thrown_3",name:"瞄腿",innate:false,from:"起始技能",lv:1}
+    {key:"sneak_attack",name:"偷襲",innate:false,from:"起始技能",lv:1},
+    {key:"dash_stab",name:"閃身刺",innate:false,from:"起始技能",lv:1},
+    {key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}
   ]
 };
-const starterNotes = id => (STARTER_NOTES[id]||[]).map(x=>({...x}));
+const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"darkvision",name:"黑暗視覺",innate:true,from:"天生",lv:1}];
 
 const state = {
   page:"cover",
@@ -34,7 +34,12 @@ const state = {
   line:0,     // 劇情目前台詞
   info:null,  // 正在查看的角色
   gold:{}, inv:{}, learned:{}, activeSkills:{}, proficiency:{}, shortRestsUsed:0, shopActive:0, shopCat:"簡易近戰", quip:"挑吧挑吧！",
+  focusItems:{}, focusSerial:0, shopFocusStock:{}, // 每件法器固定使用屬性與商店現貨
+  shopScroll:{}, shopBagOpen:false, // 商店分類各自保留商品捲動位置
   location:"tavern", // 大地圖：目前所在地
   mapSel:null,       // 大地圖：點選中的地點
   travel:null,       // 大地圖旅行中：{from, to, t, stop, alert}
+  magicItems:{},market:null, supplierSeen:false, townFounded:false, townPlace:null, townPanel:null, townRest:null, shopContext:null, restMessage:null,
+  retriesLeft:3,     // 輸掉後「重新挑戰」還剩幾次；長休回滿（大爺 10-02，RETRY_MAX 在 js/battle/engine.js）
+  battleSnap:null,   // 開戰前的存檔：重新挑戰時整個還原（血、熟練格、道具、筆記）
 };

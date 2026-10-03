@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>毛絨絨小隊</title>
+<style>
+/* 只做手機版（大爺 10-02）：電腦上把遊戲裝在 390 寬的框裡（index.html 寬螢幕時會自動轉來這裡） */
+html,body{height:100%;margin:0}
+body{background:#1f1a24;display:flex;justify-content:center;align-items:center}
+iframe{width:390px;height:min(844px,100vh);border:0;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 10px 40px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<iframe id="game" title="毛絨絨小隊" allow="autoplay"></iframe>
+<script>document.getElementById("game").src = "index.html" + location.hash;</script>
+</body>
+</html>

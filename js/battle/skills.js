@@ -2,19 +2,46 @@
    target：enemy 單一敵人／ally 單一隊友／self 自己／area 範圍（點格子）／cone 錐形（點方向）／line 直線（點敵人定方向）
    range(u)：可選目標的距離；run(u, 目標) 執行 */
 
-const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.n));
+const groupOf = item => SKILL_GROUPS.find(g=>g.weapons.includes(item.base||item.n) || g.weapons.includes(item.n));
 
 // 角色身上可用的技能（敵我一樣）：武器（沒武器也沒法器就徒手）＋法器＋盾牌
-// 只拿法器、法器又沒有不花點數的攻擊（例如治癒法書）：補一個徒手普攻，沒點數時還有東西能打
+// 只拿法器、法器又沒有不用格子的攻擊（例如治癒法書）：補一個徒手普攻，格子用完時還有東西能打
+// 招式代號（data/skills.js 的 id）→ 出處的組和第幾招。小筆記、敵人的 testSkill 都存代號
+const SKILL_BY_ID = {};
+SKILL_GROUPS.forEach(g=>g.skills.forEach((s,idx)=>{ if(s.id) SKILL_BY_ID[s.id] = {g, idx}; }));
 function learnedSkillByKey(key){
-  const m=/^([^:]+)_(\d+)$/.exec(key||""); if(!m)return null;
-  const g=SKILL_GROUPS.find(x=>x.id===m[1]), idx=+m[2];
-  if(!g || !g.skills[idx] || idx===0)return null;
-  return {key,group:g,idx,def:g.skills[idx],impl:(SKILL_IMPL[g.id]||[])[idx]};
+  if(/^(arcane_staff|healing_book)_cantrip$/.test(key))return focusCantripSkill(SKILL_GROUPS.find(g=>g.id===key.split("_cantrip")[0]));
+  const f = SKILL_BY_ID[key]; if(!f) return null;
+  const {g, idx} = f;
+  return {key, group:g, idx, def:g.skills[idx], impl:(SKILL_IMPL[g.id]||[])[idx]};
 }
+// 所有筆記配置入口共用同一限制；activeSkills 保留舊欄位以相容快照。
+const CARRIED_SKILL_MAX=5,ACTIVE_SKILL_MAX=3;
+const isPassiveSkill = s => s?.def?.activation==='passive'||s?.impl?.passive===true;
+function carriedSkillKeys(u){
+ const keys=[],known=new Set((u.learned||[]).map(n=>n.key));let active=0;
+ for(const k of u.activeSkills||[]){if(keys.includes(k)||!known.has(k))continue;const s=learnedSkillByKey(k);if(!isPassiveSkill(s)&&active>=ACTIVE_SKILL_MAX)continue;if(keys.length>=CARRIED_SKILL_MAX)break;keys.push(k);if(!isPassiveSkill(s))active++;}
+ return keys;
+}
+function toggleCarriedSkill(u,key){
+ if(!(u.learned||[]).some(n=>n.key===key))return false;
+ const keys=carriedSkillKeys(u),i=keys.indexOf(key);
+ if(i>=0)keys.splice(i,1);else {if(keys.length>=CARRIED_SKILL_MAX||(!isPassiveSkill(learnedSkillByKey(key))&&keys.filter(k=>!isPassiveSkill(learnedSkillByKey(k))).length>=ACTIVE_SKILL_MAX))return false;keys.push(key);}
+ u.activeSkills=keys;return true;
+}
+function passiveSkills(u){return carriedSkillKeys(u).map(learnedSkillByKey).filter(isPassiveSkill);}
+const darkvisionRange=u=>Math.max(0,...passiveSkills(u).map(s=>s.def.darkvision||0));
+// 場景未指定光照時沿用明亮；不自訂日夜循環／火把半徑。
+function visionAt(u,t,light=B()?.def.lighting||"bright"){
+ if(coverOf(u,t).v>=.75)return "blocked";
+ const radius=darkvisionRange(u),night=radius>0&&dist(u,t)<=radius;
+ return light==="dark"?(night?"gray":"blind"):light==="dim"?(night?"bright":"dim"):"bright";
+}
+function canSeeInLight(u,t){return !["blind","blocked"].includes(visionAt(u,t));}
+
 function activeLearnedSkills(u){
   u.activeSkills=u.activeSkills||[];
-  return u.activeSkills.map(learnedSkillByKey).filter(Boolean);
+  return carriedSkillKeys(u).map(learnedSkillByKey).filter(s=>s&&!isPassiveSkill(s));
 }
 function unitSkills(u){
   const unarmed=SKILL_GROUPS.find(g=>g.id==="unarmed");
@@ -26,31 +53,33 @@ function unitSkills(u){
     out.push({key:`${g.id}_0`,group:g,idx:0,def:basicDef(g,sk,u),impl});
     if(FOCUS_GROUPS.includes(g.id)){
       if(g.id!=="arcane_staff") out.push(focusStrikeSkill(g));
-      if(g.id==="arcane_staff" || g.id==="healing_book") out.push(focusCantripSkill(g));
+      if(!held.elementFocus && (g.id==="arcane_staff" || g.id==="healing_book")) out.push(focusCantripSkill(g));
     }
   }
+  // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
+  equippedMagic(u).forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
-  return out.filter((x,i,a)=>a.findIndex(y=>y.key===x.key)===i);
+  return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
 
 // 法器的免費基本攻擊：法杖打擊照原本 1d6；法書、法球以 1d4 作輕型鈍器。
 function focusStrikeSkill(g){
   const die=g.id==="arcane_staff"?"1d6":"1d4";
   return {key:`${g.id}_strike`,group:g,idx:0,synthetic:true,anim:"smash",
-    def:{name:"打擊",kind:"近戰",dmg:"物理",pts:0,req:"focus",basicAttack:true,
-      text:`用${g.name}近身敲擊：近戰攻擊，${die} + 力量調整值的物理傷害。`},
+    def:{name:"打擊",kind:"近戰",dmg:"物理",tier:0,req:"focus",basicAttack:true,
+      text:`造成 ${die} + 力量調整值物理傷害。`},
     impl:{target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods.STR+2});if(r.hit)hurt(t,dmgRoll(die,u.mods.STR,r.crit),"鈍擊",u);}}};
 }
 // 法杖用火焰箭、治癒法書用聖火術；火焰法球和薩滿圖騰本來就有火焰箭。
 function focusCantripSkill(g){
-  const sacred=g.id==="healing_book", stat=sacred?"WIS":"INT";
+  const sacred=g.id==="healing_book";
   const def=sacred
-    ? {name:"聖火術",kind:"豁免",dmg:"光耀",pts:0,req:"focus",srd:true,basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不花熟練點數。"}
-    : {name:"火焰箭",kind:"遠程",dmg:"火焰",pts:0,req:"focus",srd:true,basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不花熟練點數。"};
+    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"敏捷豁免；失敗受 1d8 光耀傷害。"}
+    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"命中造成 1d10 火焰傷害。"};
   const impl=sacred
-    ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,stat)))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
-    : {target:"enemy",range:()=>24,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[stat]+2,ranged:true});if(r.hit)hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);}};
-  return {key:`${g.id}_cantrip`,group:g,idx:0,synthetic:true,anim:"cast",def,impl};
+    ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
+    : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};
+  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def,impl};
 }
 
 // 基本攻擊名稱看武器；法器戲法另列為免費攻擊選項。
@@ -60,35 +89,57 @@ function basicDef(g, s, u){
   return {...s, name: basicName(g, item)};
 }
 const attackSkills = u => unitSkills(u).filter(s=>s.group.id!=="shield" && !(s.impl&&s.impl.passive) &&
-  (s.synthetic ? !!s.def.basicAttack : s.idx===0 && s.def.kind!=="輔助" && (s.def.pts||0)===0));
+  (!!s.def.basicAttack || (s.idx===0 && s.def.kind!=="輔助" && (s.def.tier||0)===0)));
 const attackSkill = u => attackSkills(u)[0] || null;
 
-// ---------- 熟練點數池（取代冷卻） ----------
-// 每個角色一個池：一級 2 點（之後照等級長，數字先暫訂 等級 + 1）；招式花 pts 點，普攻、戲法 0 點
-// 升環：多花點數，每多 1 點多一份效果；單招最多花「等級 + 1」點
+// ---------- 熟練格（2026-10-01 大爺：點數池改成一階、二階的格子） ----------
+// 每個角色照等級有一階、二階……的格子，全部用全施法者的表（SRD 5.2 法師表；我方、敵人都一樣，不分職業）
+// 每招用一格；def.tier＝這招要求的階（0＝普攻、戲法，不用格子）。一階用完可以拿高階的格子放
+// 升階：用比要求高的格子放，每高一階多一份升階效果（up 寫的；沒寫的攻擊招＝命中時多 1 顆武器骰）
+const SLOT_TABLE = [            // 等級 1～20：[一階, 二階, …九階]
+  [2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],
+  [4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],
+  [4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+const TIER_NAME = ["","一階","二階","三階","四階","五階","六階","七階","八階","九階"];   // 句子裡用（紀錄、說明）
+const ROMAN = ["","I","II","III","IV","V","VI","VII","VIII","IX"];                        // 燈號、技能分組、選階按鈕用（大爺 2026-10-01，參考索拉塔）
 const levelOf = u => u.level || 1;
-const poolMax = u => levelOf(u) + 1;
-const spendCap = u => levelOf(u) + 1;
-const baseCostOf = sk => sk.def.pts || 0;
+const slotMax = u => SLOT_TABLE[Math.min(20, Math.max(1, levelOf(u))) - 1].slice();
+const slotsOf = u => u.slots || (u.slots = slotMax(u));
+const slotsText = u => slotsOf(u).map((n,i)=>`${TIER_NAME[i+1]} ${n} 格`).join("、");
+const baseTierOf = sk => sk.def.tier || 0;
 const isPhysicalSkill = sk => skillDmg(sk.group, sk.def)==="物理";
-// 嬌嬌特性：造成物理傷害的技能，熟練點總消耗減半（向上取整）。
-const finalSkillCost = (u, sk, raw) => u && u.id==="tiger" && isPhysicalSkill(sk) ? Math.ceil(raw/2) : raw;
-const costOf = (u, sk) => finalSkillCost(u, sk, baseCostOf(sk));
-const canUp = sk => baseCostOf(sk) > 0 && !sk.def.noUp;
-// 升環仍受「單招最多等級+1點」的原始投入限制；嬌嬌結算時再折半。
-const maxUp = (u, sk) => {
-  if(!canUp(sk)) return 0;
-  let best=0, rawCap=spendCap(u);
-  for(let up=0;baseCostOf(sk)+up<=rawCap;up++) if(finalSkillCost(u,sk,baseCostOf(sk)+up)<=u.pts) best=up;
-  return best;
-};
-function skillReady(u, sk){ return (u.pts ?? poolMax(u)) >= costOf(u,sk); }
+const canUp = sk => baseTierOf(sk) > 0 && !sk.def.noUp;
+// 嬌嬌特性：造成物理傷害的招式免費升一階（用一階格子，效果算二階）
+const freeUp = (u, sk) => u && u.id==="tiger" && canUp(sk) && isPhysicalSkill(sk) ? 1 : 0;
+// 這招現在拿得出哪幾階的格子（由低到高）；不用格子的招回傳 [0]
+function tiersFor(u, sk){
+  const base = baseTierOf(sk); if(!base) return [0];
+  const s = slotsOf(u), r = [];
+  for(let t=base; t<=s.length; t++) if(s[t-1] > 0) r.push(t);
+  return r;
+}
+const lowestTier = (u, sk) => tiersFor(u, sk)[0];
+// 用第 tier 階的格子放，效果升了幾階
+const upOf = (u, sk, tier) => canUp(sk) && tier ? Math.max(0, tier - baseTierOf(sk)) + freeUp(u, sk) : 0;
+function skillReady(u, sk){ return tiersFor(u, sk).length > 0 || remarkFree(u, sk); }
+// 狩印正在專注、標記的目標已經倒下：改標不花格子
+const remarkFree = (u, sk) => sk.key==="hunters_mark" && (concOf(u)||{}).key==="hunters_mark"
+  && !B().units.some(v=>!v.dead && !v.down && v.statuses.some(s=>s.k==="marked" && s.src===u.id));
 const upNow = () => (B() && B().up) || 0;
-function spendPts(u, sk, up){ const raw=baseCostOf(sk)+(canUp(sk)?up:0), n=finalSkillCost(u,sk,raw); if(n) u.pts=Math.max(0,u.pts-n); if(u.side==="pc") state.proficiency[u.id]=u.pts; return n; }
+function spendSlot(u, sk, tier){
+  if(!tier) return 0;
+  const s = slotsOf(u); if(s[tier-1] > 0) s[tier-1]--;
+  if(u.side==="pc") state.proficiency[u.id] = s.slice();
+  return tier;
+}
 
 const meleeOrRange = u => isRanged(u) ? rangeOf(u) : reachOf(u);
 const thrownRange = u => Math.max(reachOf(u), rangeOf(u));
 const enemiesOf = u => B().units.filter(x=>hostile(x,u) && !x.down && !x.dead && !isHid(x));   // 躲著的看不到
+// 範圍招（大爺 10-02）：打的是一塊地方，不是指定某一隻，躲在裡面的也會被波及。被波及的先現身再結算
+// （豁免、傷害都會攤在骰子面板上，藏不住）。要指定目標的招（多投、災禍術、橫掃專精）還是用 enemiesOf
+const caught = (u, es) => es.filter(x=>hostile(x,u) && !x.down && !x.dead).map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
+const inArea = (u, at) => caught(u, B().units.filter(at));   // at：哪些格子算在範圍裡
 const alliesOf  = u => B().units.filter(x=>x.side===u.side && !x.dead);
 const stat = u => weaponStat(u);
 
@@ -97,10 +148,12 @@ const basicAttack = {target:"enemy", range:u=>meleeOrRange(u), run:(u,t)=>weapon
 // 攻擊一次，命中而且目標還站著就套效果
 function hitThen(u, t, o, fx){ const r = weaponAttack(u, t, o||{}); if(r.hit && !t.dead && !t.down) fx(r); return r; }
 // 常用效果（敵我通用，說明不寫武器名稱）
+// 目標自己選豁免：取調整值比較高的那個
+const bestOfSave = (t, a, b) => (t.mods[a]||0) >= (t.mods[b]||0) ? a : b;
 const fxProne  = (u, t, stat, save, up=0) => { if(!saveRoll(t, save, dcOf(u, stat) + up)){ knockProne(t); blog(`　${t.name}倒地！`, "skill"); } };
-const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, n:up}); blog(`　${t.name}下回合移動 −${2+up} 格`, "skill"); };
-const fxHamper = t => { addStatus(t, "hampered", {}); blog(`　${t.name}下次攻擊有劣勢`, "skill"); };
-const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat) + up)){ addStatus(t, "dazed", {until:"end", of:t.id}); blog(`　${t.name}被震暈了！下回合只能移動或行動二選一`, "skill"); } };
+const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, left:up}); blog(`　${t.name}${up?`接下來 ${1+up} 回合`:"下回合"}移動 −2 格`, "skill"); };
+const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　削弱：${t.name}下次攻擊有劣勢`, "skill"); };
+const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat))){ addStatus(t, "dazed", {until:"end", of:t.id, left:up}); blog(`　${t.name}被震暈了！${up?`接下來 ${1+up} 回合`:"下回合"}只能移動或行動二選一`, "skill"); } };
 const standStill = {can:u=>!B().movedThisTurn, why:"這回合已經移動過了"};
 // 近身類的「靠過去」：2 格內、目標身旁的空位（花費照地形算），找最近的
 function dashSpot(u, t, max){
@@ -112,91 +165,97 @@ function dashSpot(u, t, max){
 }
 
 const SKILL_IMPL = {
+  natural:[{passive:true}],
   sword: [
     basicAttack,
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"parry",{until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{hitMod:-2}); if(!t.dead && !t.down) weaponAttack(u,t,{hitMod:-2}); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
-      const ox = t.x, oy = t.y, n = 1 + upNow(); push(u, t, n);
-      if(t.x===ox && t.y===oy){ blog(`　${t.name}後面被擋住，推不動。`); return; }
-      blog(`　${t.name}被逼退！`, "skill");
-      if(!victimsOf(u).length && !has(u,"grappled") && dist(u,{x:ox,y:oy})===1 && !unitAt(ox,oy)){ u.x = ox; u.y = oy; faceTo(u, t); }
-    })}
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"stance",{via:"parry", until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},
+    // 連擊（連斬＋連打合併）：攻擊兩次，第二下不加屬性
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); if(!t.dead && !t.down) weaponAttack(u,t,{noMod:true}); }}
   ],
   heavy: [
     basicAttack,
-    {target:"self", run:u=>{ const es = enemiesOf(u).filter(e=>dist(e,u)===1); if(!es.length) blog("　身邊沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
+    // 橫掃（＋回掃）：攻擊範圍內每個敵人，有觸及的打得到 2 格外
+    {target:"self", run:u=>{ const es = inArea(u, e=>dist(e,u)<=reachOf(u)); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
     {target:"enemy", range:u=>reachOf(u), ...standStill, run:(u,t)=>{ B().moveLeft = 0; weaponAttack(u,t,{extraDice:1}); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxProne(u,t,"STR","STR",upNow()))}
+    // 撞倒（衝撞＋絆倒）：目標自己選力量或敏捷豁免（取他比較好的那個，照 D&D 推撞）
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxProne(u,t,weaponStat(u),bestOfSave(t,"STR","DEX")))}
   ],
   axe: [
     basicAttack,
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"acDown",{until:"end", of:u.id, n:upNow()}); blog(`　破甲：${t.name} AC −${2+upNow()}`,"skill"); })},
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"acDown",{until:"end", of:u.id, left:upNow()}); blog(`　破甲：${t.name} AC −2${upNow()?`（${1+upNow()} 輪）`:""}`,"skill"); })},
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"bleed",{n:2+upNow(), src:u.id}); blog(`　${t.name}開始流血（接下來 ${2+upNow()} 次回合開始各 1d4）`,"skill"); })},
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
-      if(t.shield){ addStatus(t,"shieldBroken",{until:"start", of:u.id}); blog(`　${t.name}的盾被劈開，AC −2`,"skill"); } else blog(`　${t.name}沒有拿盾。`); })}
+      if(t.shield){ addStatus(t,"acDown",{via:"cleave", shield:true, until:"start", of:u.id}); blog(`　${t.name}的盾被劈開，AC −2`,"skill"); } else blog(`　${t.name}沒有拿盾。`); })}
   ],
   mace: [
     basicAttack,
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxDaze(u,t,"STR",upNow()))},
-    {target:"self", run:u=>{ const r = 1 + upNow(), es = enemiesOf(u).filter(e=>dist(e,u)<=r); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>fxProne(u,e,"STR","DEX")); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ const ox=t.x, oy=t.y; push(u,t,1+upNow());
-      blog(t.x===ox && t.y===oy ? `　${t.name}後面被擋住，擊不退。` : `　${t.name}被擊退！`, "skill"); })}
+    {target:"self", run:u=>{ const up = upNow(), es = inArea(u, e=>dist(e,u)<=1); if(!es.length) blog("　範圍內沒有敵人。");
+      es.forEach(e=>{ if(saveRoll(e, "DEX", dcOf(u, "STR"))) return; knockProne(e); blog(`　${e.name}倒地！`, "skill");
+        if(up && weaponDie(u)){ let n = 0; for(let i=0;i<up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); } }); }},
+    // 擊退（重敲＋逼退）：推開，推得動就跟上一步
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
+      const ox = t.x, oy = t.y; push(u, t, 1);
+      if(t.x===ox && t.y===oy){ blog(`　${t.name}後面被擋住，推不動。`); return; }
+      blog(`　${t.name}被擊退！`, "skill");
+      if(!victimsOf(u).length && !grappled(u) && dist(u,{x:ox,y:oy})===1 && !unitAt(ox,oy)){ u.x = ox; u.y = oy; faceTo(u, t); }
+    })}
   ],
   polearm: [
     basicAttack,
-    {target:"self", run:u=>{ addStatus(u,"guard",{until:"start", of:u.id, up:upNow()}); blog(`　${u.name}架起武器，阻截走進攻擊範圍的敵人`,"skill"); }},
-    {target:"self", run:u=>{ const es = enemiesOf(u).filter(e=>dist(e,u)<=reachOf(u)); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxProne(u,t,weaponStat(u),"DEX",upNow()))}
+    {target:"self", run:u=>{ addStatus(u,"stance",{via:"guard", until:"start", of:u.id, up:upNow()}); blog(`　${u.name}架起武器，阻截走進攻擊範圍的敵人`,"skill"); }}
   ],
   dagger: [
     // 有「投擲」屬性的武器可以丟出去（超出觸及就算遠程）
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown: dist(u,t)>reachOf(u)})},
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ const ally = alliesOf(u).some(p=>p!==u && !p.down && dist(p,t)===1);
       if(ally) blog("　隊友在旁邊牽制，偷襲！","skill"); weaponAttack(u,t,{bonusDmgDice: ally?`${2+upNow()}d6`:null}); }},
-    {target:"enemy", range:u=>reachOf(u)+2+upNow(), run:(u,t)=>{
+    {target:"enemy", range:u=>reachOf(u)+2, run:(u,t)=>{
       if(dist(u,t) > reachOf(u)){
-        const spot = dashSpot(u, t, 2+upNow());
+        const spot = dashSpot(u, t, 2);
         if(!spot){ blog("　找不到空位閃過去。"); return; }
         u.x = spot.x; u.y = spot.y; faceTo(u, t); u.anim = {k:"hop", t:Date.now()}; checkExposure();
         blog(`　${u.name}一閃，到了${t.name}身旁！`, "skill");
       }
       weaponAttack(u,t,{}); }},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxSlow(u,t,upNow()))}
+    // 扎腿（＋瞄腿）：近戰或遠程都行
+    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{thrown:dist(u,t)>reachOf(u)},()=>fxSlow(u,t,upNow()))}
   ],
   bow: [
     basicAttack,
     {target:"enemy", range:u=>rangeOf(u), ...standStill, run:(u,t)=>{ B().moveLeft=0; weaponAttack(u,t,{hitMod:2, extraDice:1}); }},
-    {target:"area", range:u=>rangeOf(u), radius:1, run:(u,c)=>{ const es = enemiesOf(u).filter(e=>dist(e,c)<=1+upNow()); if(!es.length) blog("　箭雨落空了。");
-      es.forEach(e=>{ if(!saveRoll(e,"DEX",dcOf(u,"DEX"))) hurt(e, dmgRoll(weaponDie(u),0,false), dmgType(u), u); }); }},
+    {target:"area", range:u=>rangeOf(u), radius:1, run:(u,c)=>{ const up = upNow(), es = inArea(u, e=>dist(e,c)<=1); if(!es.length) blog("　箭雨落空了。");
+      es.forEach(e=>{ if(saveRoll(e,"DEX",dcOf(u,"DEX"))) return; let n = 0; for(let i=0;i<=up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); }); }},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxHamper(t))}
   ],
   crossbow: [
     basicAttack,
-    {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ lineUnits(u,t,rangeOf(u)).filter(e=>hostile(e,u) && !isHid(e)).forEach(e=>weaponAttack(u,e,{})); }},
-    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"pinned",{until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
+    {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ caught(u, lineUnits(u,t,rangeOf(u))).forEach(e=>weaponAttack(u,e,{})); }},
+    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"slowed",{via:"pin", stop:true, until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
     {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>weaponAttack(u,t,{pointBlank:true})}
   ],
+  firearm: [ basicAttack ],   // 火槍類只有普攻（10-03）
   // 投擲類：射程用武器的投擲／彈藥射程；超出觸及就算遠程攻擊（貼身投有劣勢）
   thrown: [
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown:dist(u,t)>reachOf(u)})},
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>{ weaponAttack(u,t,{thrown:dist(u,t)>reachOf(u)});
       const others = enemiesOf(u).filter(e=>e!==t && dist(e,u)<=thrownRange(u)).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0, 1+upNow());
       others.forEach(other=>{ blog(`　再投向${other.name}`,"skill"); weaponAttack(u,other,{thrown:dist(u,other)>reachOf(u)}); }); }},
-    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{adv:true, thrown:dist(u,t)>reachOf(u)},()=>fxHamper(t))},
-    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{thrown:dist(u,t)>reachOf(u)},()=>fxSlow(u,t,upNow()))}
+    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{adv:true, thrown:dist(u,t)>reachOf(u)},()=>fxHamper(t))}
   ],
   unarmed: [
     {target:"enemy", range:()=>1, run:(u,t)=>weaponAttack(u,t,{})},
-    {target:"enemy", range:()=>1, can:(u)=>enemiesOf(u).some(e=>e.statuses.some(s=>s.k==="grappled"&&s.src===u.id)), why:"要先擒抱住敵人",
-     run:(u,t)=>{ if(!t.statuses.some(s=>s.k==="grappled"&&s.src===u.id)){ blog("　沒有抓住這個目標。"); return; }
-       push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>s.k!=="grappled"); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }},
-    {target:"enemy", range:()=>1, run:(u,t)=>hitThen(u,t,{},()=>fxDaze(u,t,"STR",upNow()))},
-    {target:"enemy", range:()=>1, run:(u,t)=>{ weaponAttack(u,t,{}); for(let i=0; i<1+upNow() && !t.dead && !t.down; i++) weaponAttack(u,t,{noMod:true}); }}
+    {target:"enemy", range:()=>1, can:(u)=>enemiesOf(u).some(e=>e.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)), why:"要先擒抱住敵人",
+     run:(u,t)=>{ if(!t.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)){ blog("　沒有抓住這個目標。"); return; }
+       push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>!(s.k==="restrained"&&s.via==="grapple")); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }}
   ],
   shield: [
-    // 舉盾護友（免費動作）：指定貼身隊友，到你下回合開始前，打他的第一次攻擊劣勢（見 attackRoll）
-    {target:"ally", notSelf:true, range:()=>1, run:(u,t)=>{ addStatus(t,"guarded",{by:u.id, until:"start", of:u.id}); blog(`　${u.name}舉盾護著${t.name}`,"skill"); }}
+    // 守護（原舉盾護友，大爺 10-01 定、10-02 做）：用一格、免費動作；所有貼身隊友各自被打的第一次攻擊劣勢，
+    // 到你下回合開始；升階每高一階多 1 輪（每輪各擋一次）。守護的人要還在旁邊（見 attackRoll）
+    {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>p!==u && !p.down && dist(p,u)===1), up = upNow();
+      if(!ps.length){ blog("　旁邊沒有隊友。"); return; }
+      ps.forEach(p=>addStatus(p,"dodge",{via:"guard", once:true, by:u.id, until:"start", of:u.id, left:up}));
+      blog(`　${u.name}舉盾守護${ps.map(p=>p.name).join("、")}${up?`（${1+up} 輪）`:""}`,"skill"); }}
   ],
   arcane_staff: [
     // 敲：法杖當長棍用，近戰 1d6 + 力量
@@ -211,25 +270,37 @@ const SKILL_IMPL = {
     {target:"self", can:u=>!u.armor || u.armor.cloth, why:"穿著輕甲以上時不能用", run:u=>{ addStatus(u,"mageArmor",{until:"battle"}); blog(`　法師護甲：${u.name}的 AC 變成 ${acOfUnit(u)}`,"skill"); }}
   ],
   healing_book: [
-    {target:"ally", range:()=>6, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods.WIS))},   // 感知是負的也至少補 1（不會補成扣血）
-    {target:"ally", range:()=>1, run:(u,t)=>heal(t, Math.max(1, rollDice(`${2*(1+upNow())}d8`).total + u.mods.WIS))},
+    {target:"ally", range:()=>6, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods[spellStat(u)]))},   // 感知是負的也至少補 1（不會補成扣血）
+    {target:"ally", range:()=>1, run:(u,t)=>heal(t, Math.max(1, rollDice(`${2*(1+upNow())}d8`).total + u.mods[spellStat(u)]))},
     {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>!p.down && dist(p,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
-      ps.forEach(p=>addStatus(p,"blessed",{until:"battle"})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4`,"skill"); }}
+      startConc(u, "bless", "祝福術");
+      ps.forEach(p=>addStatus(p,"blessed",{src:u.id})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4（${u.name}專注中）`,"skill"); }}
   ],
   flame_orb: [
-    {target:"enemy", range:()=>24, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.CHA+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
-    {target:"cone", range:()=>1, run:(u,c)=>{ const es = coneUnits(u,c,3).filter(e=>hostile(e,u)); if(!es.length) blog("　火焰沒燒到任何敵人。");
-      es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,"CHA")) ? Math.floor(n/2) : n, "火焰", u); }); }},
+    {target:"enemy", range:()=>24, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
+    {target:"cone", range:()=>1, run:(u,c)=>{ coneTiles(u,c,3).forEach(p=>groundReact(p.x,p.y,"火焰"));const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
+      es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,spellStat(u)),u) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
   ],
+  // 狩獵者（非凡長弓的特性，大爺 10-03）：狩印＝SRD 獵人印記。免費動作、專注；標記 18 格內看得到的敵人，
+  // 打中他多 1d6 力場；標記的目標倒下後可以免費改標下一個（skillReady／doSkill 的 remarkFree）
+  hunter: [
+    {target:"enemy", range:()=>18, run:(u,t)=>{ startConc(u, "hunters_mark", "狩印"); addStatus(t, "marked", {src:u.id});
+      fxFloat(t, POP_TEXT.mark, "dmg"); blog(`　${t.name}被打上狩印：${u.name}打中他時多 1d6 力場傷害（專注中）`, "skill"); }}
+  ],
+  elements: [
+    {target:"enemy",range:()=>12,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"寒冷");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){groundReact(t.x,t.y,"寒冷");hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"寒冷",u);if(!t.dead&&!t.down)addStatus(t,"slowed",{until:"start",of:u.id,src:u.id});}}},
+    {target:"enemy",range:()=>1,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"閃電");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2});if(r.hit){groundReact(t.x,t.y,"閃電");hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"閃電",u);if(!t.dead&&!t.down){t.shockNoOA=true;blog(`　${t.name}在下回合開始前不能藉機攻擊。`,"skill");}}}}
+  ],
   shaman_totem: [
-    {target:"enemy", range:()=>12, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.WIS+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
-    {target:"ally", range:()=>12, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods.WIS))},
+    {target:"enemy", range:()=>12, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
+    {target:"ally", range:()=>12, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods[spellStat(u)]))},
     // 災禍術：自動挑 6 格內最近、看得到的 3 個敵人
     {target:"self", run:u=>{ const ts = enemiesOf(u).filter(e=>dist(e,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
       if(!ts.length) blog("　6 格內沒有看得到的敵人。");
-      ts.forEach(p=>{ if(!saveRoll(p,"CHA",dcOf(u,"WIS"))){ addStatus(p,"bane",{src:u.id}); fxFloat(p,POP_TEXT.bane,"dmg"); fxHit(p,"spark");
-        blog(`　${p.name}被詛咒了：攻擊和豁免 −1d4，直到${u.name}倒下`,"skill"); } }); }}
+      else startConc(u, "bane", "災禍術");
+      ts.forEach(p=>{ if(!saveRoll(p,"CHA",dcOf(u,spellStat(u)))){ addStatus(p,"bane",{src:u.id}); fxFloat(p,POP_TEXT.bane,"dmg"); fxHit(p,"spark");
+        blog(`　${p.name}被詛咒了：攻擊和豁免 −1d4，直到${u.name}倒下或專注中斷`,"skill"); } }); }}
   ]
 };
 

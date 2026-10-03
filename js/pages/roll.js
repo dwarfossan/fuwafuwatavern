@@ -15,7 +15,7 @@ function renderRoll(){
 
   const tabs = CRITTERS.map((x,i)=>`
     <button class="tab" role="tab" aria-selected="${i===state.active}" data-tab="${i}">
-      ${critterSVG(x.id)}<span>${x.name}</span>${done(x.id)?'<span class="done">✓</span>':''}
+      ${critterHead(x.id)}<span>${x.name}</span>${done(x.id)?'<span class="done">✓</span>':''}
     </button>`).join("");
 
   // 籌碼盤：還沒分配的數值
@@ -25,7 +25,7 @@ function renderRoll(){
   } else {
     const used = new Set(Object.values(slot).filter(v=>v!==null && v!==undefined));
     const free = sets.map((_,i)=>i).filter(i=>!used.has(i)).sort((a,b)=>scoreOf(sets[b])-scoreOf(sets[a]));
-    tray = free.length ? free.map(i=>chipHTML(id,i," pop")).join("") : `<p class="tray-empty">全部分配完成</p>`;
+    tray = free.length ? free.map(i=>chipHTML(id,i,state.chipPop?" pop":"")).join("") : `<p class="tray-empty">全部分配完成</p>`;
   }
 
   // 六個屬性格子
@@ -51,12 +51,11 @@ function renderRoll(){
   return `<section class="page">
     <div class="head"><div>
       <h2>替小動物擲屬性</h2>
-      <p class="rule">擲出 6 組 4d6，每組取最高的三顆相加，變成 6 個數字。把數字拖到屬性格子裡（或先點數字、再點格子），也可以按「自動分配」。格子裡的數字可以拖回籌碼盤或拖到別格互換。綠色標籤是背景加成，創角時屬性上限 20。</p>
-    </div></div>
+    </div>${pageHelpHTML("roll")}</div>
     <div class="tabs" role="tablist">${tabs}</div>
     <div class="sheet">
       <div class="sheet-top">
-        ${critterSVG(id)}
+        ${critterHead(id)}
         <div><h3>${c.name}</h3><div class="cls">${c.kind} · ${c.tags.join("、")}</div></div>
         <div class="sheet-actions">
           ${sets?`<button class="btn ghost" id="autoAssign">自動分配</button>`:""}
@@ -79,5 +78,7 @@ function renderRoll(){
 
 const WHO = id => id==="narr" ? {name:"", color:"var(--dim)"} :
                   id==="dwarf" ? {name:"矮人大爺", color:"var(--ale)"} :
-                  id==="merchant" ? {name:"？？？", color:"#c9b7a6"} :
+                  id==="kam" ? {name:"卡姆", color:"#e8574a"} :   // 紅髮（10-03，顏色暫定）
+                  id==="merchant" ? {name:state.scene==="ambush" ? "？？？" : "商人", color:"#c9b7a6"} :   // 伏擊時只聽到聲音
+                  id==="all" ? {name:"四小隻", color:"#f0c987"} :   // 四隻一起說（10-02，顏色暫定）
                   (c => ({name:c.name, color:c.color}))(CRITTERS.find(c=>c.id===id));

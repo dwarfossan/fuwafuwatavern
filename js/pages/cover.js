@@ -5,8 +5,9 @@ function renderCover(){
       <div class="eyebrow">軟呼呼酒館</div>
       <h1>毛絨絨小隊</h1>
     </div>
-    <p class="sub">矮人大爺的小酒館裡，四隻小動物正準備第一次冒險。<br>先替牠們擲出屬性，再聽聽今晚的故事。</p>
-    <div class="row-critters">${CRITTERS.map(c=>critterSVG(c.id)).join("")}</div>
+    <p class="sub">${PAGE_UI.coverIntro}<br>${PAGE_UI.coverNext}</p>
+    <img class="cover-party" src="assets/portraits/party_heads.webp" width="1100" height="396" alt="玲玲、嬌嬌、香香、默默">
     <button class="btn" id="start">推開酒館大門</button>
+    <button class="btn small ghost cover-about" data-about>關於／授權</button>
       </section>`;
 }

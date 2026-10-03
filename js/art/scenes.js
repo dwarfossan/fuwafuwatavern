@@ -1,4 +1,19 @@
 /* 第一人稱場景背景（從四隻的眼睛看出去） */
+// 城門代表圖（GPT 暫定）：正式素材日後替換，重要部分留在手機中央。
+function townGateSVG(){
+  return `<svg viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="1600" height="1100" fill="#b8d4d8"/>
+    <path d="M0 590 Q400 390 800 550 T1600 500 V1100 H0Z" fill="#7f986b"/>
+    <g stroke="#302b32" stroke-width="12" stroke-linejoin="round">
+      <path d="M240 390H1360V920H240Z" fill="#baa890"/>
+      <path d="M530 920V460 Q800 180 1070 460V920" fill="#625449"/>
+      <path d="M620 920V490 Q800 280 980 490V920" fill="#e1c699"/>
+      <path d="M360 390V240H520V390M1080 390V240H1240V390" fill="#baa890"/>
+      <path d="M540 1100L700 730H900L1060 1100" fill="#cfb38a"/>
+      <path d="M670 600H780V735H670ZM840 540H940V735H840Z" fill="#e2b98a"/>
+      <path d="M650 600L725 520L800 600M820 540L890 475L960 540" fill="#a45d50"/>
+    </g></svg>`;
+}
 function roadAmbushSVG(){
   const INK = "#2a2630";
   // 巢狀 <svg> 不支援 transform，左右翻轉要包在 <g> 裡
@@ -35,18 +50,24 @@ function roadAmbushSVG(){
       <rect x="640" y="800" width="70" height="56" fill="#b0834f" stroke="${INK}" stroke-width="4"/><path d="M640 828 L710 828 M675 800 L675 856" stroke="#6e4a32" stroke-width="4"/>
       <ellipse cx="340" cy="850" rx="48" ry="30" fill="#e8d6b0" stroke="${INK}" stroke-width="4"/><circle cx="374" cy="846" r="6" fill="#d8733a"/><circle cx="386" cy="860" r="6" fill="#e0766e"/><circle cx="364" cy="866" r="6" fill="#d8733a"/>
     </g>
-    <!-- 路邊的草叢（哥布林薩滿躲在裡面；被動察覺有人過的話，劇情裡會晃） -->
-    <g class="story-bush">
+    <!-- 路邊的草叢（哥布林薩滿躲在裡面；被動察覺有人過的話，劇情裡會晃）
+         10-02 照大爺的參考圖：縮小、放到右邊（原本在 x 80～320，手機只看得到中間 x 360～1240，會被切掉）
+         外層 g 負責位置，內層 .story-bush 給 CSS 晃動用（CSS 的 transform 會蓋掉 SVG 的 transform 屬性） -->
+    <g transform="translate(910 17)"><g class="story-bush">
       <ellipse cx="200" cy="668" rx="120" ry="16" fill="#000" opacity=".18"/>
       <circle cx="140" cy="630" r="46" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
       <circle cx="262" cy="634" r="44" fill="#4f7d42" stroke="${INK}" stroke-width="5"/>
       <circle cx="200" cy="608" r="58" fill="#5a8a48" stroke="${INK}" stroke-width="5"/>
       <path d="M100 664 L300 664" stroke="#4f7d42" stroke-width="10"/>
       <circle cx="180" cy="590" r="14" fill="#7aa864"/><circle cx="252" cy="620" r="9" fill="#7aa864"/><circle cx="128" cy="618" r="8" fill="#7aa864"/>
-    </g>
-    <!-- 三隻哥布林：弓手（後方）、短棒、彎刀（跟戰鬥裡的裝備一致） -->
-    ${gob(1000,470,230,true,"bow")}
+    </g></g>
+    <!-- 三隻哥布林：弓手（後方）、短棒、彎刀（跟戰鬥裡的裝備一致）
+         10-02 照大爺的參考圖：弓手移到兩隻中間的後方（先畫，被前面兩隻擋住一點） -->
+    ${gob(730,425,180,true,"bow")}
     ${gob(530,500,250,false,"club")}
     ${gob(760,530,300,false,"scimitar")}
   </svg>`;
 }
+
+// 莉莉安娜店外代表圖，GPT 暫定；原商人素材演出送貨。
+function townShopFrontSVG(){return `<svg viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="1600" height="1100" fill="#aa94b1"/><g stroke="#302b32" stroke-width="14" stroke-linejoin="round"><path d="M360 400L800 150L1240 400V980H360Z" fill="#796679"/><path d="M360 400L800 150L1240 400" fill="none"/><path d="M700 980V500Q860 370 1020 500V980" fill="#342c3a"/><path d="M450 430H610V650H450Z" fill="#d4bd8c"/><path d="M580 300H900V420H580Z" fill="#c7abcf"/><path d="M0 980H1600V1100H0Z" fill="#b69a85"/></g><svg x="640" y="270" width="200" height="190" viewBox="0 0 100 100">${townSymbolSVG('potion').replace(/<svg[^>]*>|<\/svg>/g,'')}</svg></svg>`;}

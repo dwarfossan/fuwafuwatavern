@@ -23,8 +23,8 @@ const MASTERY_TEXT = {
 const TERM_TEXT = {
   "優勢":"擲兩顆 d20 取高的。", "劣勢":"擲兩顆 d20 取低的。",
   "豁免":"被法術或特殊效果影響時，擲 d20 + 屬性調整值，大於等於 DC 就成功抵抗。",
-  "熟練點數":"每個角色一個點數池（一級 2 點）。普攻不花點數，其他招式花點數；休息才會回來。",
-  "升環":"用招式時多花熟練點數，每多 1 點效果強一級；一招最多花「等級 + 1」點。",
+  "熟練格":"每個角色照等級有一階、二階……的格子（一級：一階 2 格）。普攻、戲法不用格子，其他招式每用一次用掉一格；休息才會回來。",
+  "升階":"用比招式要求高的格子放，每高一階效果強一份。一階用完也可以拿高階的格子放。",
   // 技能類型：判定方式・傷害
   "近戰":"擲攻擊骰對目標 AC，打貼身（或觸及範圍內）的目標。", "遠程":"擲攻擊骰對目標 AC，打遠處的目標；貼身射擊有劣勢。",
   "輔助":"不打人：補血、加防、擺架式、幫隊友。",
@@ -38,5 +38,31 @@ const TERM_TEXT = {
 const POP_TEXT = {
   miss:"MISS",          // 沒打中、豁免成功沒被抓住／沒被打掉、躲開道具
   crit:"CRITICAL!",     // 爆擊的大字
-  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!"
+  victory:"VICTORY",    // 勝利標題（大爺 10-02）
+  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!", mark:"MARKED", yum:"YUM!",   // mark：狩印；yum：吃點心（10-03）
+  teleport:"TELEPORT"   // 死亡豁免失敗三次，被卡姆傳送回酒館（暫定字）
+};
+
+// 手機頁面的說明泡泡；集中放資料，之後可翻譯。
+const PAGE_UI = {
+  coverIntro:"矮人大爺的酒館裡，四隻小動物要第一次去冒險。",
+  coverNext:"先替她們擲出屬性，再聽聽她們的冒險計畫。",
+  help:"說明", close:"關閉", tutorial:"教學",
+  helpPages:{
+    roll:{title:"怎麼分配屬性",text:"擲出 6 組 4d6，每組取最高的三顆相加，變成 6 個數字。把數字拖到屬性格子裡（或先點數字、再點格子），也可以按「自動分配」。格子裡的數字可以拖回籌碼盤或拖到別格互換。綠色標籤是背景加成，創角時屬性上限 20。"},
+    shop:{title:"怎麼挑裝備",text:"每隻 100 gp。重甲有力量需求；「重型」武器近戰要力量 13、遠程要敏捷 13；負重上限是力量值 × 15 磅。點分類或在商品區左右滑切換，上下滑看商品；點「裝備」查看或退貨。"},
+    map:{title:"怎麼看大地圖",text:"點地點看介紹。四隻的臉標出你們現在的位置。"}
+  }
+};
+
+// 關於／授權（10-04）：SRD 5.1、5.2 的 CC-BY 4.0 出處標示，玩家在遊戲裡看得到。英文是官方原句，不要改字（見 docs/授權與安全.md）
+const ABOUT = {
+  title:"關於／授權",
+  intro:"《毛絨絨小隊》的規則以 SRD 為底，為了好玩改了一些。角色、世界觀、地圖、劇情、美術都是原創。",
+  srd:[
+    {name:"SRD 5.2", en:'This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.2（「SRD 5.2」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"},
+    {name:"SRD 5.1", en:'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.',
+     zh:"本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.1（「SRD 5.1」）的內容，以 Creative Commons 姓名標示 4.0 國際授權條款授權。"}
+  ]
 };
