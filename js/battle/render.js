@@ -153,6 +153,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   raised.forEach(({x,y})=>{
     things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
+  Object.values(b.groundEffects||{}).forEach(f=>things.push({s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
   d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : 0), svg:`<g data-tile="${o.x},${o.y}">${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
@@ -483,6 +484,8 @@ function projSVG(pj, now){
 
 function blockSVG(o){
   if(o.kind==="trap"&&!o.found)return "";
+  if(o.kind==="water")return `<polygon points="${diamond(o.x,o.y)}" fill="#6da8b9" stroke="#2a2630" stroke-width="2"/>`;
+  if(o.kind==="oil")return o.found?`<polygon points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
     `<polygon points="${cx},${cy-TH/2-h} ${cx+TW/2-8},${cy-h} ${cx},${cy+TH/2-h} ${cx-TW/2+8},${cy-h}" fill="${top}" stroke="#2a2630" stroke-width="2"/>
@@ -1258,7 +1261,7 @@ function battleLayerKeys(){
   const units=battleDataKey(b.units,["anim","face","notePages"]);
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks]);
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units]):"none";
   const ui=battleDataKey([b,state.inv,state.focusItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],

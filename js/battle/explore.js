@@ -3,7 +3,7 @@ const exploring=()=>B()?.phase==="explore";
 const exploreParty=()=>CRITTERS.map(c=>B().units.find(u=>u.id===c.id)).filter(u=>u&&!u.dead&&!u.down);
 const exploreUnit=()=>B().units.find(u=>u.id===(B().exploreSolo||B().leader)&&!u.dead&&!u.down)||exploreParty()[0]||B().units.find(u=>u.side==="pc");
 function beginExplore(){
- const b=B();b.explorationMap=true;b.phase="explore";b.flowEpoch=(b.flowEpoch||0)+1;b.exploreStopReason=null;b.exploreObject=null;b.exploreRest=false;b.leader=b.leader||"fox";if(!exploreParty().some(u=>u.id===b.leader))b.leader=exploreParty()[0]?.id||"fox";b.exploreSolo=null;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
+ const b=B();b.explorationMap=true;b.phase="explore";b.groundClockAt=Date.now();b.flowEpoch=(b.flowEpoch||0)+1;b.exploreStopReason=null;b.exploreObject=null;b.exploreRest=false;b.leader=b.leader||"fox";if(!exploreParty().some(u=>u.id===b.leader))b.leader=exploreParty()[0]?.id||"fox";b.exploreSolo=null;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
  b.turn=b.units.findIndex(u=>u.id===b.leader);b.busy=false;b.mode=null;b.moveMode=false;b.menu=null;b.tut=-1;b.result=null;b.round=0;
  exploreTraps();exploreDetect();refreshBattle();
 }
@@ -35,8 +35,10 @@ function explorePath(u,x,y){return reachable(u,10000).get(`${x},${y}`);}
 function exploreMove(x,y,done){
  const b=B(),u=exploreUnit();if(!exploring()||b.busy||b.exploreStopped||!u||u.down||u.dead||blocked(x,y))return;
  const path=explorePath(u,x,y);if(!path){blog(EXPLORE_UI.noPath);refreshBattle();return;}
+ if(has(u,"paralyzed"))return;
+ if(has(u,"prone")){u.statuses=u.statuses.filter(s=>s.k!=="prone");blog(`${u.name}爬起來。`);}
  const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1;
- b.busy=true;b.info=null;b.exploreSteps=0;b.exploreGoal={x,y,id:u.id};
+ b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;b.exploreGoal={x,y,id:u.id};
  const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);let i=0;
  function step(){
   if(B()!==b||!exploring()||b.exploreMoveId!==moveId)return;
@@ -49,7 +51,7 @@ function exploreMove(x,y,done){
    if(b.exploreMoveId!==moveId)return;
    if(b.exploreStopped){b.busy=false;refreshBattle();return;}
    let n=0;function follow(){if(b.exploreMoveId!==moveId)return;if(b.exploreStopped||n>=followers.length){b.exploreSteps++;if(!touches.size&&!onScreen(u))centerCam(u.x,u.y-1,true);refreshBattle();later(step,140);return;}
-    const f=followers[n],target=old[n++],fp=explorePath(f,target.x,target.y);if(fp?.length)walk(f,[fp[0]],follow);else follow();}
+    const f=followers[n],target=old[n++];if(has(f,"paralyzed")||has(f,"prone")){follow();return;}const fp=explorePath(f,target.x,target.y);if(fp?.length)walk(f,[fp[0]],follow);else follow();}
    follow();
   });
  }

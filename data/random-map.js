@@ -1,9 +1,9 @@
 /* 快速戰鬥測試場。純資料產生器，不改固定伏擊；所有隨機配置由 seed 決定。
    數量／疏密預設暫定（GPT），可從 options 調整。通路按現有八方向移動驗證。 */
-const RANDOM_MAP = {w:23,h:26,foes:4,bush:[18,42],tree:[12,28],crate:[4,10],wagon:[2,5],plateaus:2,chest:1,door:1,trap:2};
+const RANDOM_MAP = {w:23,h:26,foes:4,bush:[18,42],tree:[12,28],crate:[4,10],wagon:[2,5],plateaus:2,chest:1,door:1,trap:2,water:8};
 function mapRng(seed){let s=seed>>>0;return ()=>{s=(s+0x6D2B79F5)>>>0;let t=Math.imul(s^(s>>>15),1|s);t^=t+Math.imul(t^(t>>>7),61|t);return ((t^(t>>>14))>>>0)/4294967296;};}
 function randomMapConnected(d){
-  const solid=new Set(d.blocks.filter(q=>!["bush","trap","doorOpen"].includes(q.kind)).map(q=>`${q.x},${q.y}`));
+  const solid=new Set(d.blocks.filter(q=>!["bush","trap","doorOpen","water","oil"].includes(q.kind)).map(q=>`${q.x},${q.y}`));
   const points=[...d.party,...d.foes.map(q=>[q.x,q.y])];
   if(points.some(([x,y])=>solid.has(`${x},${y}`)))return false;
   const seen=new Set([points[0].join(',')]),open=[points[0]];
@@ -27,7 +27,7 @@ function generateRandomBattle(seed,options={}){
     const row=int(10,15);d.road=roadRow([row,row+1],cfg.w);
     for(const kind of ["bush","tree","crate","wagon"]){const range=cfg[kind],count=Array.isArray(range)?int(...range):range;
       for(let i=0;i<count;i++){const [x,y]=pick(1,cfg.w-2,1,cfg.h-2);d.blocks.push({x,y,kind});}}
-    for(const kind of ["chest","door","trap"])for(let i=0;i<cfg[kind];i++){const [x,y]=pick(1,cfg.w-2,1,cfg.h-2);d.blocks.push({x,y,kind,...(kind==="chest"?{locked:true,contents:[]}:{})});}
+    for(const kind of ["chest","door","trap","water"])for(let i=0;i<cfg[kind];i++){const [x,y]=pick(1,cfg.w-2,1,cfg.h-2);d.blocks.push({x,y,kind,...(kind==="chest"?{locked:true,contents:[]}:{})});}
     for(let i=0;i<cfg.plateaus;i++){const x=int(1,cfg.w-7),y=int(1,cfg.h-7);d.elev.push({x0:x,y0:y,x1:x+4,y1:y+4,h:1},{x0:x+1,y0:y+1,x1:x+3,y1:y+3,h:2});}
     if(randomMapConnected(d))return d;
   }

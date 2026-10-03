@@ -183,3 +183,6 @@ const basicNames = g => [...new Set(g.weapons.map(n=>basicName(g, (typeof ITEMS!
 // 傷害種類給玩家看的名字：物理三種合併成物理；力場、光耀算法術；元素照寫
 const DMG_SHOWN = {"揮砍":"物理", "穿刺":"物理", "鈍擊":"物理", "流血":"物理", "力場":"法術", "光耀":"法術"};
 const dmgShown = t => DMG_SHOWN[t] || t;
+
+// 地面反應沿用法術傷害類型，沒有另外一套施法規則。
+Object.values(SKILL_GROUPS).forEach(g=>g.skills.forEach(s=>{if(["火焰箭","寒冷射線","電擊術"].includes(s.name))s.groundElement=true;}));

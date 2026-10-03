@@ -130,6 +130,7 @@ const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && u.x===x && u.y==
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
+  water:{name:"水面",solid:false}, oil:{name:"油",solid:false},
   chest: {name:"寶箱",solid:true,cover:.5},
   door: {name:"門",solid:true,cover:.75},
   doorOpen: {name:"門",solid:false},
@@ -178,6 +179,7 @@ function coverOf(a, t){
     const v = unitAt(x,y);
     if(v && v!==t && v.side!==a.side && !v.down && best.v < .5 && g + 1 > z) best = {v:.5, by:v.name};
   }
+  for(let i=1;i<=n;i++){const x=Math.round(a.x+(t.x-a.x)*i/n),y=Math.round(a.y+(t.y-a.y)*i/n);if(groundAt(x,y)?.kind==="steam"&&best.v<.5)best={v:.5,by:"蒸氣"};}
   return best;
 }
 const coverAC = c => c.v>=.75 ? 5 : c.v>=.5 ? 2 : 0;
@@ -419,10 +421,10 @@ const spellStat = u => [u.weapon,u.focus].find(it=>it&&it.type==="focus")?.stat 
 const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 
 // ---------- 攻擊與傷害 ----------
-function saveRoll(t, stat, dc){
+function saveRoll(t, stat, dc, source=null){
   const frz = stat==="DEX" && !!has(t,"frozen");      // 凍結：敏捷豁免有劣勢
   const r1 = d20(), r2 = frz ? d20() : null;
-  let r = frz ? Math.min(r1, r2) : r1, bonus = t.mods[stat]||0, extra = 0;
+  let r = frz ? Math.min(r1, r2) : r1, bonus = (t.mods[stat]||0)+(stat==="DEX"&&source?coverAC(coverOf(source,t)):0), extra = 0;
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   if(has(t,"blessed")) extra = rollDice("1d4").total;
   const bane = baned(t) ? rollDice("1d4").total : 0;

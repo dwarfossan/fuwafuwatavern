@@ -6,7 +6,7 @@ function nextTurn(){
   if(checkResult()) return;
   do {
     b.turn++;
-    if(b.turn >= b.units.length){b.turn=0;b.round++;exploreReinforcements();}
+    if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();}
   } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 倒下的四小隻照樣輪到：擲死亡豁免
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
@@ -83,6 +83,7 @@ function checkResult(){
 const DIRS = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
 // 從 u 出發、花費 max 格移動以內能到的格子：Map("x,y" → 路徑)，路徑.cost＝要花的移動（草叢一格算 2）
 function reachable(u, max){
+  groundKnown(u);
   const drag = victimsOf(u).length ? 2 : 1;          // 拖著被抓住的人：每格花費加倍
   const start = `${u.x},${u.y}`, best = new Map([[start, 0]]), paths = new Map([[start, []]]);
   const open = [[0, u.x, u.y]];
@@ -93,7 +94,7 @@ function reachable(u, max){
     for(const [dx,dy] of DIRS){
       const nx=x+dx, ny=y+dy, k=`${nx},${ny}`;
       if(B().phase==="explore"&&B().exploreGoal&&B().exploreGoal.id!==u.id&&nx===B().exploreGoal.x&&ny===B().exploreGoal.y)continue;
-      if(blocked(nx,ny) || (unitAt(nx,ny) && !(bExploreHidden(unitAt(nx,ny))))) continue;
+      if(groundAvoid(u,nx,ny)||blocked(nx,ny) || (unitAt(nx,ny) && !(bExploreHidden(unitAt(nx,ny))))) continue;
       const nc = c + stepCost(x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
       best.set(k, nc);
@@ -118,9 +119,9 @@ function trimPath(path, budget, drag=1, from){
 function walk(u, path, done){
   const b = B();
   if(path.length && u===cur()) b.movedThisTurn = true;
-  let i = 0, oaDone = -1;
+  let i = 0, oaDone = -1;const groundMove={iceTried:false};
   const step = ()=>{
-    if(b.result || (b.phase==="explore"&&b.exploreStopped) || i>=path.length || u.dead || u.down){ done && done(); return; }
+    if(b.result || (b.phase==="explore"&&b.exploreStopped) || i>=path.length || u.dead || u.down){ done && done(i); return; }
     if(b.phase!=="explore" && oaDone < i){
       oaDone = i;
       const foes = oaTriggers(u, path[i]);
@@ -136,6 +137,7 @@ function walk(u, path, done){
     dragged.forEach(v=>{ const vp = {x:v.x, y:v.y}; v.x = prev.x; v.y = prev.y; faceTo(v, u); });
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
+    if(!groundEnter(u,groundMove)){refreshBattle();done?.(i);return;}
     if(pickUp(u)){ b.pickedUp = true; }
     if(b.phase==="explore"){checkExposure();exploreTraps(u);exploreDetect();}
     else {checkGuards(u, prev);checkExposure();}
@@ -192,10 +194,11 @@ function pcMove(x, y){
                 drag: victimsOf(u).map(v=>({v, x:v.x, y:v.y}))};
   b.busy = true; b.moveLeft -= path.cost; b.movedThisTurn = true; b.moveMode = false; b.moveRolled = false; b.pickedUp = false;
   if(b.dazed) b.actionUsed = true;          // 震暈：移動後就不能行動
-  walk(u, path, ()=>{
+  walk(u, path, (walked)=>{
+    if(walked<path.length){let prev=walked?path[walked-1]:snap;for(const p of path.slice(walked)){b.moveLeft+=stepCost(prev.x,prev.y,p.x,p.y)*(snap.drag.length?2:1);prev=p;}}
     b.busy = false;
     if(u.down || u.dead || b.result){ refreshBattle(); return; }
-    if(b.moveRolled || b.pickedUp){ if(b.moveRolled) blog(`　途中挨打了，這次移動不能取消。`); b.menu = "root"; b.pickedUp = false; }
+    if(b.moveRolled || b.pickedUp){ if(b.moveRolled) blog(`　途中發生狀況，這次移動不能取消。`); b.menu = "root"; b.pickedUp = false; }
     else b.pendingMove = snap;
     refreshBattle();
   });
@@ -252,7 +255,7 @@ function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
 function validTarget(u, sk, x, y){
   const im = sk.impl, r = im.range ? im.range(u) : 0, t = unitAt(x,y), p = {x,y};
   switch(im.target){
-    case "enemy":  return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
+    case "enemy":  if(!t&&sk.def.groundElement&&dist(u,p)<=r&&groundCanReact(x,y,sk.def.dmg))return p;return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
     case "line":   return t && hostile(t,u) && !t.down && !isHid(t) && dist(u,t)<=r ? t : null;
     case "ally":   return t && t.side===u.side && !t.dead && dist(u,t)<=r && !(im.notSelf && t===u) ? t : null;
     case "area":   return !blocked(x,y) && dist(u,p)<=r ? p : null;

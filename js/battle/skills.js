@@ -50,10 +50,10 @@ function focusCantripSkill(g){
   const sacred=g.id==="healing_book";
   const def=sacred
     ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
-    : {name:"火焰箭",kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
+    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,req:"focus",srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
-    : {target:"enemy",range:()=>24,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit)hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);}};
+    : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};
   return {key:`${g.id}_cantrip`,group:g,idx:0,synthetic:true,anim:"cast",def,impl};
 }
 
@@ -251,9 +251,9 @@ const SKILL_IMPL = {
       ps.forEach(p=>addStatus(p,"blessed",{src:u.id})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4（${u.name}專注中）`,"skill"); }}
   ],
   flame_orb: [
-    {target:"enemy", range:()=>24, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
-    {target:"cone", range:()=>1, run:(u,c)=>{ const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
-      es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,spellStat(u))) ? Math.floor(n/2) : n, "火焰", u); }); }},
+    {target:"enemy", range:()=>24, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
+    {target:"cone", range:()=>1, run:(u,c)=>{ coneTiles(u,c,3).forEach(p=>groundReact(p.x,p.y,"火焰"));const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
+      es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,spellStat(u)),u) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
   ],
   // 狩獵者（非凡長弓的特性，大爺 10-03）：狩印＝SRD 獵人印記。免費動作、專注；標記 18 格內看得到的敵人，
@@ -263,11 +263,11 @@ const SKILL_IMPL = {
       fxFloat(t, POP_TEXT.mark, "dmg"); blog(`　${t.name}被打上狩印：${u.name}打中他時多 1d6 力場傷害（專注中）`, "skill"); }}
   ],
   elements: [
-    {target:"enemy",range:()=>12,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"寒冷",u);if(!t.dead&&!t.down)addStatus(t,"slowed",{until:"start",of:u.id,src:u.id});}}},
-    {target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2});if(r.hit){hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"閃電",u);if(!t.dead&&!t.down){t.shockNoOA=true;blog(`　${t.name}在下回合開始前不能藉機攻擊。`,"skill");}}}}
+    {target:"enemy",range:()=>12,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"寒冷");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){groundReact(t.x,t.y,"寒冷");hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"寒冷",u);if(!t.dead&&!t.down)addStatus(t,"slowed",{until:"start",of:u.id,src:u.id});}}},
+    {target:"enemy",range:()=>1,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"閃電");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2});if(r.hit){groundReact(t.x,t.y,"閃電");hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"閃電",u);if(!t.dead&&!t.down){t.shockNoOA=true;blog(`　${t.name}在下回合開始前不能藉機攻擊。`,"skill");}}}}
   ],
   shaman_totem: [
-    {target:"enemy", range:()=>12, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2, ranged:true}); if(r.hit) hurt(t, dmgRoll("1d10",0,r.crit), "火焰", u); }},
+    {target:"enemy", range:()=>12, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
     {target:"ally", range:()=>12, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods[spellStat(u)]))},
     // 災禍術：自動挑 6 格內最近、看得到的 3 個敵人
     {target:"self", run:u=>{ const ts = enemiesOf(u).filter(e=>dist(e,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
