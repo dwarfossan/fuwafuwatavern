@@ -43,6 +43,7 @@ fetch(`https://api.github.com/repos/${REPO}/commits/${BRANCH}?t=${Date.now()}`, 
     info.innerHTML = `<div class="msg"></div><div class="meta">${when}・${sha.slice(0,7)}</div>`;
     info.querySelector(".msg").textContent = msg;
     links.innerHTML = `<a class="btn main" href="${base}#battle">快速戰鬥</a>
+                       <a class="btn ghost" href="${base}#town">直達城鎮</a>
                        <a class="btn ghost" href="${base}">從頭玩</a>`;
   })
   .catch(e => {
