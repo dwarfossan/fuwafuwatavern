@@ -1072,3 +1072,16 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 /* 封印奇物：圖形暫定，使用商店商品捲動區和原詳細框。 */
 .seal-panel{padding:14px;border:1px solid #725982;border-radius:14px;background:#2c2234;margin-bottom:14px}.seal-panel h3,.seal-panel h4{margin:8px 0}.seal-panel p{margin:8px 0;line-height:1.5}.seal-question{float:right;width:48px;height:54px;border:2px solid #bfa0d7;border-radius:9px;background:#493452;color:#f3d591;font-size:32px;cursor:pointer}.seal-small{font-size:12px;color:#c8bdce}.seal-prize{margin-top:12px;padding-top:10px;border-top:1px solid #68556f}.seal-prize small{margin-left:8px;color:#c4b4c9}.seal-speaker{display:flex;align-items:center;gap:12px;margin:12px 0}.seal-speaker svg,.seal-speaker .critter-head{width:64px;height:64px}.seal-speaker img{width:64px;height:64px;object-fit:contain}.seal-pending{margin-top:12px;padding:10px;background:#403142;border-radius:10px}
+
+/* 狀態／地面演出（10-03 GPT，外觀暫定）；純CSS動作，不重畫地板。 */
+.status-body-fx{pointer-events:none}
+.status-electric,.ground-electric{animation:status-electric .8s steps(2,end) infinite}
+.status-poison-bubble{animation:status-poison 1.6s ease-out infinite}
+.status-drip{animation:status-drip 1.4s ease-in-out infinite}
+.ground-flame{transform-box:fill-box;transform-origin:50% 100%;animation:burn-f .8s ease-in-out infinite alternate}
+.ground-steam{animation:ground-steam 2.4s ease-in-out infinite}
+@keyframes status-electric{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes status-poison{0%{transform:translateY(2px);opacity:.9}100%{transform:translateY(-18px);opacity:0}}
+@keyframes status-drip{0%,100%{opacity:.85}50%{opacity:.45}}
+@keyframes ground-steam{0%,100%{opacity:.85}50%{opacity:.55}}
+@media(prefers-reduced-motion:reduce){.status-electric,.ground-electric,.status-poison-bubble,.status-drip,.ground-flame,.ground-steam{animation:none}}

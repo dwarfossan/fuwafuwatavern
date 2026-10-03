@@ -80,14 +80,16 @@ function groundAvoid(u,x,y){
  if(u.side!=='foe')return false;const f=groundAt(x,y)||B().def.blocks.find(o=>o.x===x&&o.y===y&&o.kind==='poisonSwamp');if(!f||f.kind==='steam'||!u.knownGround?.includes(`${x},${y}`))return false;
  return !(f.kind==='fire'&&u.damageImmunities?.includes('火焰'));
 }
+// 地面美術暫定GPT：大形狀＋少量動畫，仍在原場景層。
 function groundEffectSVG(f){
  const p=iso(f.x,f.y),cx=p.x,cy=p.y+TH/2,ink='#2a2630';
- const colors={fire:'#f49d43',ice:'#9ddde9',charged:'#8bc6d9',steam:'#dedde2'};
- let art=`<polygon points="${diamond(f.x,f.y)}" fill="${colors[f.kind]}" opacity=".7" stroke="${ink}" stroke-width="2"/>`;
- if(f.kind==='fire')art+=`<path d="M${cx-18} ${cy+6} Q${cx-32} ${cy-7} ${cx-9} ${cy-26} L${cx-7} ${cy-9} L${cx+5} ${cy-36} Q${cx+34} ${cy-6} ${cx+17} ${cy+7} Z" fill="#ee6945" stroke="${ink}" stroke-width="3"/>`;
- if(f.kind==='ice')art+=`<path d="M${cx-30} ${cy} L${cx+24} ${cy-8} M${cx-15} ${cy+8} L${cx+10} ${cy-5}" stroke="white" stroke-width="4"/>`;
- if(f.kind==='charged')art+=`<path d="M${cx+8} ${cy-19} L${cx-12} ${cy+1} L${cx+3} ${cy+1} L${cx-8} ${cy+18}" fill="none" stroke="#fff49b" stroke-width="5"/>`;
- if(f.kind==='steam')art+=`<path d="M${cx-24} ${cy+3} C${cx-52} ${cy-13} ${cx-15} ${cy-25} ${cx-7} ${cy-18} C${cx-7} ${cy-42} ${cx+28} ${cy-41} ${cx+25} ${cy-19} C${cx+57} ${cy-20} ${cx+48} ${cy+8} ${cx+21} ${cy+6} Z" fill="#dedde2" opacity=".75" stroke="${ink}" stroke-width="2"/>`;
+ const colors={fire:'#d89446',ice:'#a9dce6',charged:'#78b7cd',steam:'#c9cbd3'};
+ let art=`<polygon points="${diamond(f.x,f.y)}" fill="${colors[f.kind]}" opacity=".72" stroke="${ink}" stroke-width="2"/>`;
+ const flame=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><g class="ground-flame"><path d="M0 -31Q-4 -14 -11 -19Q-26 0 -11 10Q11 21 20 2Q22 -8 9 -20L6 -8Z" fill="#ee7540" stroke="${ink}" stroke-width="3"/><path d="M0 -8Q-11 4 -4 9Q8 16 10 5L4 -2L3 3Z" fill="#ffe080"/></g></g>`;
+ if(f.kind==='fire')art+=flame(cx-19,cy+3,.75)+flame(cx+15,cy-3,1);
+ if(f.kind==='ice')art+=`<path d="M${cx-38} ${cy+2}L${cx-5} ${cy-12}L${cx+12} ${cy-2}L${cx+39} ${cy-10}M${cx-5} ${cy-12}L${cx-12} ${cy+12}" stroke="#5f9bb9" stroke-width="3" fill="none"/><path d="M${cx-27} ${cy-3}L${cx-9} ${cy-9}" stroke="#fff" stroke-width="3"/>`;
+ if(f.kind==='charged')art+=`<g class="ground-electric"><path d="M${cx+9} ${cy-19}L${cx-12} ${cy+1}H${cx+3}L${cx-8} ${cy+18}" fill="none" stroke="${ink}" stroke-width="8" stroke-linejoin="round"/><path d="M${cx+9} ${cy-19}L${cx-12} ${cy+1}H${cx+3}L${cx-8} ${cy+18}" fill="none" stroke="#fff49b" stroke-width="4" stroke-linejoin="round"/></g>`;
+ if(f.kind==='steam')art+=`<g class="ground-steam" transform="translate(${cx} ${cy})"><path d="M-35 3Q-53 -10 -34 -21Q-19 -28 -10 -18Q-10 -40 10 -37Q30 -36 27 -18Q53 -20 48 -1Q44 12 24 8L-24 10Z" fill="#f0edf0" opacity=".8" stroke="${ink}" stroke-width="2"/><path d="M-20 -10Q-12 -17 -5 -9M13 -22Q24 -27 27 -16" fill="none" stroke="#b7bac7" stroke-width="3"/></g>`;
  return `<g class="ground-effect" data-ground="${f.kind}" data-tile="${f.x},${f.y}">${art}</g>`;
 }
 

@@ -598,10 +598,10 @@ const ST_ICON = {
   shieldStar:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/><path d="M10 6.2l1.1 2.4 2.5.3-1.9 1.7.5 2.5L10 11.9l-2.2 1.2.5-2.5-1.9-1.7 2.5-.3z" fill="#3f7a3a"/>`,
   snow:`<path d="M10 2.5v15M3.5 6.2l13 7.6M3.5 13.8l13-7.6" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/><path d="M8 3.8l2 1.8 2-1.8M8 16.2l2-1.8 2 1.8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
   bolt:`<path d="M11.5 2.5L5 11h4.2L8 17.5 15 8.6h-4.3z" fill="#fff"/>`,
-  bubble:`<circle cx="8" cy="12.5" r="4.2" fill="#fff"/><circle cx="13.6" cy="7.4" r="2.6" fill="#fff"/><circle cx="8.6" cy="4.4" r="1.6" fill="#fff"/><circle cx="6.8" cy="11.4" r="1.2" fill="#a33c32"/>`,
+  bubble:`<path d="M6 3H12M7 3V8L3 14Q2 17 6 17H14Q18 17 17 14L11 8V3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 13H15L16 15H4Z" fill="#fff"/><circle cx="16" cy="6" r="2" fill="#fff"/>`,
   hand:`<path d="M10 3.5v13M3.5 10h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
   target:`<circle cx="10" cy="10" r="5.6" stroke="#fff" stroke-width="1.9" fill="none"/><circle cx="10" cy="10" r="1.7" fill="#fff"/><path d="M10 2v3.2M10 14.8V18M2 10h3.2M14.8 10H18" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>`,
-  focus:`<circle cx="10" cy="10" r="7" stroke="#fff" stroke-width="1.6" fill="none" stroke-dasharray="3 2.2"/><circle cx="10" cy="10" r="3.6" fill="#fff"/>`,
+  focus:`<path d="M2 10Q10 1 18 10Q10 19 2 10Z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="#fff"/>`,
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
 const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
@@ -676,9 +676,21 @@ function burnFX(v, cx, cy){
   if(v.dead || !has(v,"burning")) return "";
   const low = v.down || has(v,"prone"), ys = low ? [-18,-26,-14] : [-44,-78,-30], xs = [-22, 8, 24];
   const flame = (x,y,s,d) => `<g transform="translate(${cx+x} ${cy+y}) scale(${s})"><g class="burn-f" style="animation-delay:${d}ms">
-    <path d="M0 -22c3 7 11 10 11 19a11 11 0 0 1-22 0c0-5 3-8 5-11 .6 3.5 2.4 5.4 4.4 6C-1.7 -12 -1.2 -17 0 -22z" fill="#f2703a" opacity=".92"/>
+    <path d="M0 -22c3 7 11 10 11 19a11 11 0 0 1-22 0c0-5 3-8 5-11 .6 3.5 2.4 5.4 4.4 6C-1.7 -12 -1.2 -17 0 -22z" fill="#f2703a" stroke="#2a2630" stroke-width="2" opacity=".92"/>
     <path d="M0 -10c1.6 3.5 5.5 5 5.5 9a5.5 5.5 0 0 1-11 0c0-2.4 1.4-3.8 2.6-5.3.3 1.6 1 2.5 2 2.8-.3-2.2-.2-4.3.9-6.5z" fill="#ffd36a"/></g></g>`;
   return `<g class="fx-burn">${flame(xs[0],ys[0],.9,0)}${flame(xs[1],ys[1],.75,180)}${flame(xs[2],ys[2],1,90)}</g>`;
+}
+// 狀態身上演出：外觀暫定GPT。只讀statuses，放原場景層；不畫角色外框。
+function statusBodyFX(v,cx,cy){
+  if(v.dead)return "";
+  const low=v.down||has(v,"prone"), base=low?-12:-26, ink="#2a2630",out=[];
+  const path=(d,fill,stroke=ink,w=2.5)=>`<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if(has(v,"frozen"))out.push(`<g data-body-status="frozen">${path("M-31 6L-29 -23L-19 -35L-9 -21L-8 7Z","#a7e6ed")}${path("M13 8L15 -30L26 -42L36 -20L34 10Z","#8ac4df")}<path d="M-25 -16L-17 -24M20 -20L27 -31" stroke="#f5ffff" stroke-width="3"/></g>`);
+  if(has(v,"paralyzed"))out.push(`<g data-body-status="paralyzed" class="status-electric">${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#292330",7)}${path(`M-32 ${base-40}l-9 19h12l-9 19`,"none","#fff29c",3)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#292330",7)}${path(`M34 ${base-25}l-8 18h12l-10 20`,"none","#fff29c",3)}</g>`);
+  if(has(v,"poisoned"))out.push(`<g data-body-status="poisoned">${[[-26,4,6,0],[25,-10,5,250],[15,8,4,500]].map(([x,y,r,d])=>`<g transform="translate(${x} ${y+base})"><circle class="status-poison-bubble" r="${r}" fill="#a5ce64" stroke="${ink}" stroke-width="2" style="animation-delay:${-d}ms"/></g>`).join("")}</g>`);
+  if(has(v,"bleed"))out.push(`<g data-body-status="bleed" class="status-drip">${path("M-19 -17Q-31 0 -20 2Q-9 0 -19 -17Z","#c34e4a")}${path("M19 -9Q11 3 19 4Q27 3 19 -9Z","#c34e4a")}</g>`);
+  if(has(v,"restrained"))out.push(`<g data-body-status="restrained" transform="translate(0 ${base})">${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none",ink,5)}${path("M-22 -21L22 19M-22 -1L2 21M-2 -21L22 1M22 -21L-22 19M22 -1L-2 21M2 -21L-22 1","none","#dac69a",2)}</g>`);
+  return out.length?`<g class="status-body-fx" transform="translate(${cx} ${cy})">${out.join("")}</g>`:"";
 }
 // 火焰護盾：腳下一圈火光、身體外圍一層淡淡的火焰光暈（不掛圖示）
 function fireShieldFX(v, cx, cy){
@@ -713,7 +725,7 @@ function tokenSVG(v, active){
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}
-    ${burnFX(v, cx, cy)}${fireShieldFX(v, cx, cy)}
+    ${burnFX(v, cx, cy)}${statusBodyFX(v,cx,cy)}${fireShieldFX(v, cx, cy)}
   </g>`;
 }
 // 棋子旁的裝備圖示：武器類別、法器、盾
