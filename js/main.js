@@ -203,15 +203,15 @@ function bind(){
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop") bindShop();
   document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>{
-    const id = CRITTERS[state.shopActive].id, it = ITEMS.find(i=>i.id===b.dataset.buy);
+    const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
     if(blockReason(id,it)) return;
-    state.gold[id] -= it.cost; state.inv[id].push(it.id);
+    state.gold[id] -= it.cost; state.inv[id].push(makeItem(it).id); if(it.baseId)delete state.shopFocusStock[it.baseId];
     state.quip = pick(DWARF_QUIPS.buy); render();
   }));
   document.querySelectorAll("[data-sell]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id;
     const [x] = state.inv[id].splice(+b.dataset.sell,1);
-    state.gold[id] += ITEMS.find(i=>i.id===x).cost;
+    state.gold[id] += itemById(x).cost;
     state.quip = pick(DWARF_QUIPS.sell); render();
   }));
   // 滑到被擋的按鈕上時，大爺吐槽一句
@@ -245,7 +245,7 @@ function quickBattle(battleId="ambush",phase="combat"){
     order.forEach((k,n)=> state.slot[c.id][k] = hi[n]);
     syncRolls(c.id);
     state.gold[c.id] = 150*GP; state.inv[c.id] = [];
-    kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(it.id); } });
+    kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(makeItem(it).id); } });
   });
   state.page = "battle"; startBattle(battleId,false,phase);
 }

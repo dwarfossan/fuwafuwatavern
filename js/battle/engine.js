@@ -22,7 +22,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout"];
+const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -69,7 +69,8 @@ function startBattle(id, retry=false, phase="combat"){
     });
   });
   def.foes.forEach((f,i)=>{
-    const e = ENEMIES[f.type], inv = (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean);
+    const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(makeItem);
+    if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
       id:"foe"+i, side:"foe", squad:f.squad, type:f.type, name:e.name+"ABCD"[i], look:e.look,
@@ -80,6 +81,8 @@ function startBattle(id, retry=false, phase="combat"){
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
     });
   });
+  if(!retry){
+    for(const k of ["focusItems","focusSerial"])state.battleSnap.data[k]=JSON.parse(JSON.stringify(state[k]??null)); }
   // NPC：站在戰場上、不參與先攻、不行動（行為之後跟劇情一起定）
   (def.npcs||[]).forEach((n,i)=>{
     const d = NPCS[n.type];
@@ -412,6 +415,7 @@ function rangeOf(u){        // 遠程或投擲的射程（格）
   return r ? Math.floor(+r.split(" ")[1].split("/")[0]/5) : 0;
 }
 const isRanged = u => !!(u.weapon && (u.weapon.props||[]).some(p=>p.startsWith("彈藥")));
+const spellStat = u => [u.weapon,u.focus].find(it=>it&&it.type==="focus")?.stat || "INT";
 const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 
 // ---------- 攻擊與傷害 ----------

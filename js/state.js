@@ -34,6 +34,7 @@ const state = {
   line:0,     // 劇情目前台詞
   info:null,  // 正在查看的角色
   gold:{}, inv:{}, learned:{}, activeSkills:{}, proficiency:{}, shortRestsUsed:0, shopActive:0, shopCat:"簡易近戰", quip:"挑吧挑吧！",
+  focusItems:{}, focusSerial:0, shopFocusStock:{}, // 每件法器固定施法屬性與商店現貨
   shopScroll:{}, shopBagOpen:false, // 商店分類各自保留商品捲動位置
   location:"tavern", // 大地圖：目前所在地
   mapSel:null,       // 大地圖：點選中的地點

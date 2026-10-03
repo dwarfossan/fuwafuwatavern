@@ -7,7 +7,7 @@
      沒有大招這種突然很特別的招式（大爺決定）；說明和實作都不寫死武器名稱，只看武器屬性（投擲、觸及、靈巧……），以後好替換
    - 盾牌 1 招（守護，免費動作）；護甲只給被動數值，不給主動技能
    - 升階效果只有三種：多傷害、多目標、多持續時間；範圍招的範圍固定，不能靠升階變大（大爺 2026-10-01、10-02 再確認）
-   - 法器分法杖／法書／法球，每件綁定一組 3 個法術，以主題命名（施法屬性：法杖智力、法書感知、法球魅力）
+   - 法器分法杖／法書／法球，每件綁定一組 3 個法術，以主題命名（施法屬性：每件生成時智力／感知／魅力隨機擇一並固定）
    共通數字：命中 = d20 + 屬性調整值 + 2 ≥ 目標 AC；豁免 DC = 8 + 2 + 屬性調整值；
              生命值（1 級）= 8 + 體質調整值；地圖 1 格 = 5 呎
    tier：這招要求的熟練格階數（0 = 普攻、戲法，不用格子；其他都是 1＝一階）。每個角色照等級有一階、二階……的格子
@@ -123,8 +123,8 @@ const SKILL_GROUPS = [
   {id:"healing_book", name:"治癒法書", stat:"感知",
    weapons:["治癒法書"],
    skills:[
-    {id:"healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：6 格內一名隊友恢復 1d4 + 感知調整值的生命值。"},
-    {id:"cure_wounds", name:"治療傷口", req:"focus", kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"碰觸一名隊友，恢復 2d8 + 感知調整值的生命值。"},
+    {id:"healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：6 格內一名隊友恢復 1d4 + 法器施法屬性調整值的生命值。"},
+    {id:"cure_wounds", name:"治療傷口", req:"focus", kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"碰觸一名隊友，恢復 2d8 + 法器施法屬性調整值的生命值。"},
     {id:"bless", name:"祝福術", req:"focus", kind:"輔助",   tier:1, srd:true, conc:true, up:"每高一階多 1 名隊友。", text:"專注：最多 3 名隊友的攻擊和豁免多擲 1d4 加上去，直到你的專注中斷。"}]},
 
   {id:"flame_orb", name:"火焰法球", stat:"魅力",
@@ -139,7 +139,7 @@ const SKILL_GROUPS = [
    weapons:["薩滿圖騰"],
    skills:[
     {name:"火焰箭", req:"focus", kind:"遠程", dmg:"火焰",   tier:0,   srd:true, text:"12 格內遠程法術攻擊，1d10 火焰傷害。"},
-    {id:"totem_healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：12 格內一名同伴恢復 1d4 + 感知調整值的生命值。"},
+    {id:"totem_healing_word", name:"治癒真言", req:"focus", kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"免費動作：12 格內一名同伴恢復 1d4 + 法器施法屬性調整值的生命值。"},
     {id:"bane", name:"災禍術", req:"focus", kind:"豁免", dmg:"",   tier:1, srd:true, up:"每高一階多 1 個目標。", conc:true, text:"專注：6 格內最多 3 個看得到的敵人做魅力豁免，失敗的話攻擊和豁免 −1d4，直到你倒下或專注中斷。"}]},
 
   // 狩獵者：不是武器類別，是某些裝備附帶的特性（item.grants）。非凡長弓（大爺 10-03）

@@ -56,6 +56,7 @@ node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
 node tests/explore.mjs       # 探索同頁分層、群體／個體、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊
+node tests/focus-instance.mjs # 法器逐件固定隨機屬性、現貨、裝備卡與重試
 node tests/resistance.mjs    # 抗性／傷害免疫、取整、原始類型、面板、專注、資料覆寫
 node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
 ```

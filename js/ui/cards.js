@@ -108,7 +108,7 @@ function closeDetailModal(){
 function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
-  if(m.kind==="item") body = itemCardHTML(ITEMS.find(i=>i.id===m.id));
+  if(m.kind==="item") body = itemCardHTML(itemById(m.id));
   if(m.kind==="help"){
     const h=PAGE_UI.helpPages[m.id];
     body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
@@ -119,7 +119,7 @@ function renderModal(){
   }
   if(m.kind==="skill"){
     const unit = m.unit && state.battle ? state.battle.units.find(v=>v.id===m.unit) : null;
-    body = skillCardHTML(m.group, m.idx, m.item ? ITEMS.find(i=>i.id===m.item) : null, unit);
+    body = skillCardHTML(m.group, m.idx, m.item ? itemById(m.item) : null, unit);
   }
   return `<div class="modal-back" data-close="1"><div class="modal ${["help","character"].includes(m.kind)?"page-bubble":""}" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;

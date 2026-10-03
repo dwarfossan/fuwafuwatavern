@@ -18,7 +18,24 @@ function money(cp){
   return [g?`${g} gp`:"", s?`${s} sp`:"", c?`${c} cp`:""].filter(Boolean).join(" ") || "0 gp";
 }
 const scoreK = (id,k) => finalScore(id,k);
-const invItems = id => state.inv[id].map(x=>ITEMS.find(i=>i.id===x));
+// 每件法器有自己的識別與施法屬性；模板仍供規格／測試查詢。
+const itemById = id => (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
+function makeItem(it){
+  if(!it || it.type!=="focus" || it.baseId) return it;
+  state.focusItems=state.focusItems||{};
+  const id="focus-instance-"+(state.focusSerial=(state.focusSerial||0)+1);
+  return state.focusItems[id]={...it,id,baseId:it.id,stat:pick(["INT","WIS","CHA"])};
+}
+function shopItem(it){
+  if(it.type!=="focus")return it;
+  state.shopFocusStock=state.shopFocusStock||{};
+  return itemById(state.shopFocusStock[it.id]) || (state.shopFocusStock[it.id]=makeItem(it).id,itemById(state.shopFocusStock[it.id]));
+}
+const invItems = id => (state.inv[id]||[]).map((x,i)=>{
+  const it=itemById(x),made=makeItem(it);
+  if(made!==it)state.inv[id][i]=made.id;
+  return made;
+});
 const weightOf = id => invItems(id).reduce((s,i)=>s+i.wt,0);
 // 有沒有帶某樣東西：單項本身，或身上任何套組的內容物有它（大爺 10-03：套組視同符合單項物品的條件）
 const hasGear = (list, name) => (list||[]).some(it=>it && (it.n===name || (it.contains||[]).includes(name)));

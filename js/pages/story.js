@@ -24,7 +24,7 @@ function caravanPick(id, roll=d20()){   // roll：測試可以指定
   CRITTERS.forEach(x=>{
     state.gold[x.id] = (state.gold[x.id]||0) + Math.round(r.gold * GP / CRITTERS.length);
     state.inv[x.id] = state.inv[x.id] || [];
-    [...((r.items||{}).all||[]), ...((r.items||{})[x.id]||[])].forEach(n=>{ const it = ITEMS.find(i=>i.n===n); if(it) state.inv[x.id].push(it.id); });
+    [...((r.items||{}).all||[]), ...((r.items||{})[x.id]||[])].forEach(n=>{ const it = ITEMS.find(i=>i.n===n); if(it) state.inv[x.id].push(makeItem(it).id); });
   });
   sfx(ok ? "win" : "miss");
   state.line++; render();
