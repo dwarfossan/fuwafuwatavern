@@ -67,15 +67,15 @@ function focusStrikeSkill(g){
   const die=g.id==="arcane_staff"?"1d6":"1d4";
   return {key:`${g.id}_strike`,group:g,idx:0,synthetic:true,anim:"smash",
     def:{name:"打擊",kind:"近戰",dmg:"物理",tier:0,req:"focus",basicAttack:true,
-      text:`用${g.name}近身敲擊：近戰攻擊，${die} + 力量調整值的物理傷害。`},
+      text:`造成 ${die} + 力量調整值物理傷害。`},
     impl:{target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods.STR+2});if(r.hit)hurt(t,dmgRoll(die,u.mods.STR,r.crit),"鈍擊",u);}}};
 }
 // 法杖用火焰箭、治癒法書用聖火術；火焰法球和薩滿圖騰本來就有火焰箭。
 function focusCantripSkill(g){
   const sacred=g.id==="healing_book";
   const def=sacred
-    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"12 格內一名敵人做敏捷豁免，失敗受 1d8 光耀傷害。戲法，不用熟練格。"}
-    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"24 格內遠程法術攻擊，命中造成 1d10 火焰傷害。戲法，不用熟練格。"};
+    ? {name:"聖火術",kind:"豁免",dmg:"光耀",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"敏捷豁免；失敗受 1d8 光耀傷害。"}
+    : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"命中造成 1d10 火焰傷害。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};

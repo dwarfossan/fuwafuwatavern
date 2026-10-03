@@ -84,6 +84,8 @@ function skillCardHTML(groupId, idx, item, unit){
     ["距離", im && im.passive ? (s.darkvision?`${s.darkvision} 格（${s.darkvision*5} 呎）`:"—") : range],
     ["屬性", s.components ? "智力／感知／魅力取最高" : skillStatText(g, item)]
   ];
+  if(s.areaText)rows.push(["範圍",s.areaText]);
+  if(s.conc)rows.push(["專注","維持至專注中斷"]);
   if(s.components)rows.push(["聲勢材",componentsText(s.components)]);
   if(s.req) rows.push(["施展條件", reqText(s.req)]);
   if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; rows.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }

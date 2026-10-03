@@ -44,11 +44,11 @@ let n = 0;
 for(const g of SKILL_GROUPS){
   out.push(`## ${g.name}\n`);
   out.push(`${g.id==="shield" ? "裝備" : "武器"}：${g.weapons.length ? g.weapons.join("、") : "（沒拿武器）"}｜屬性：${g.skills.some(s=>s.components)?"智力／感知／魅力最高者（法器打擊用力量）":g.stat}\n`);
-  out.push(`| 技能 | 主／被動 | 類型 | 熟練格 | 施展條件 | 聲勢材 | 效果 | 升階 |\n|---|---|---|---|---|---|---|---|`);
+  out.push(`| 技能 | 主／被動 | 類型 | 熟練格 | 施展條件 | 聲勢材 | 範圍／專注 | 效果 | 升階 |\n|---|---|---|---|---|---|---|---|---|`);
   g.skills.forEach((s, i)=>{
     const name = i===0 && HAS_BASIC(g) && !s.tier && s.kind!=="輔助" ? basicNames(g) : s.name;   // 基本攻擊照武器取名（盾牌第一招不是攻擊）
     const cost = TIER[s.tier||0] + (s.free ? "・免費動作" : "");
-    out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${s.activation==='passive'?'被動':'主動'} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(componentsText(s.components))} | ${cell(s.text)} | ${cell(upText(s))} |`);
+    out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${s.activation==='passive'?'被動':'主動'} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(componentsText(s.components))} | ${cell([s.areaText,s.conc?"專注至中斷":""].filter(Boolean).join("；")||"—")} | ${cell(s.text)} | ${cell(upText(s))} |`);
     n++;
   });
   out.push("");
