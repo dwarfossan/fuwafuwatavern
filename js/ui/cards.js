@@ -151,6 +151,17 @@ function modalListen(el,type,fn){
 }
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
+  document.querySelectorAll(".character-status-card [data-switchset]").forEach(el=>modalListen(el,"click",e=>{
+    e.stopPropagation();
+    const id=state.modal?.id,live=progressionUnits(id)[0];
+    if(live){switchWeaponSet(live,2);syncBattleBag(live);}
+    else {
+      const load=state.startingGear?.[id];if(!load)return;
+      [load.main,load.second]=[load.second,load.main];
+      [load.off,load.secondOff]=[load.secondOff,load.off];
+    }
+    sfx("pop");refreshGameUI();
+  }));
   document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
     e.stopPropagation();
     if(levelUp(el.dataset.levelup))refreshGameUI();

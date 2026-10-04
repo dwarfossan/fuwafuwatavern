@@ -104,7 +104,7 @@ function startBattle(id, retry=false, phase="combat"){
     const saved=state.startingGear?.[u.id];if(!saved)return;
     const pool=invItems(u.id).slice(), take=key=>{const id=saved[key],i=pool.findIndex(it=>it.id===id&&!equipmentRequirement(it,k=>abilityScore(u,k)));return i<0?null:pool.splice(i,1)[0];};
     u.weapon=take("main");const off=take("off");u.shield=off?.type==="shield";u.offhand=u.shield?null:off;
-    u.spare=[take("second")].filter(Boolean);u.offhand2=null;u.armor=take("armor");u.backpackEquip=take("bag");u.backpack=pool;u.focus=null;
+    u.spare=[take("second")].filter(Boolean);u.offhand2=take("secondOff");u.armor=take("armor");u.backpackEquip=take("bag");u.backpack=pool;u.focus=null;
   });
   units.filter(u=>u.side==="pc").forEach(u=>{ u.born = u.weapon ? u.weapon.n : null; syncBattleBag(u); });
   units.forEach(u=>{

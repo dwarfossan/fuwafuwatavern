@@ -110,7 +110,7 @@ function critterStatusUnit(id){
   if(saved){
     const take=key=>{const i=pool.findIndex(it=>it.id===saved[key]&&!equipmentRequirement(it,k=>abilityScore(id,k)));return i<0?null:pool.splice(i,1)[0];};
     unit.weapon=take("main");const off=take("off");unit.shield=off?.type==="shield";unit.offhand=unit.shield?null:off;
-    unit.spare=[take("second")].filter(Boolean);unit.armor=take("armor");unit.backpackEquip=take("bag");unit.backpack=pool;
+    unit.spare=[take("second")].filter(Boolean);unit.offhand2=take("secondOff");unit.armor=take("armor");unit.backpackEquip=take("bag");unit.backpack=pool;
   }else{
     const equipped=[unit.weapon,...unit.spare,unit.armor,...unit.accessories,unit.backpackEquip].filter(Boolean);
     unit.backpack=inv.filter(it=>!equipped.includes(it)&&it.type!=="shield");

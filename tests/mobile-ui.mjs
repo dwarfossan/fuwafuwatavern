@@ -38,6 +38,15 @@ try{
   if(process.env.MOBILE_SCREENSHOTS){await pg.waitForTimeout(250);await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/character.png'});}
   await pg.getByRole('button',{name:'關閉',exact:true}).click();assert.equal(await pg.evaluate(()=>state.line),line);
   assert.equal(await pg.evaluate(()=>state.info),null);ok('開頭頭像改用完整狀態卡，關閉不推進劇情、不移動底部');
+  await pg.evaluate(()=>{grantStarterGear();render();});
+  await pg.locator('[data-info="fox"]').click();
+  assert.equal(await pg.locator('[role="dialog"] [data-switchset]').count(),1);
+  assert.match(await pg.locator('[role="dialog"] .status-eqslot.main [data-tip]').getAttribute('data-tip'),/奧術法杖/);
+  await pg.locator('[role="dialog"] [data-switchset]').click();
+  assert.match(await pg.locator('[role="dialog"] .status-eqslot.main [data-tip]').getAttribute('data-tip'),/輕弩/);
+  await pg.getByRole('button',{name:'關閉',exact:true}).click();
+  assert.equal(await pg.evaluate(()=>{startBattle('ambush',false,'explore');const n=B().units.find(u=>u.id==='fox').weapon.n;state.battle=null;state.page='story';render();return n;}),'輕弩');
+  ok('開頭狀態卡可切換武器，配置會延續到戰鬥');
   for(const id of ['tiger','wolf','raccoon']){
     await pg.locator(`[data-info="${id}"]`).click();
     assert.equal(await pg.locator('[role="dialog"] .gear-info.status-view').count(),1);
