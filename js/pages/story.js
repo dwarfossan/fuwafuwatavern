@@ -92,9 +92,17 @@ function showSpot(on){
 
 /* 酒館舞台上的人（10-03 改新畫風立繪）：台詞的 on 指定誰站在舞台上（預設大爺）；
    face 是站在台上那位這句的表情，沒寫就用預設（PORTRAITS[id].def） */
-// 四小隻卡片的表情（10-03）：說話的那隻用 mood，其他用 moods 指定，沒寫就平常臉（抱抱時開心臉）
-const HUG_MOOD = {fox:"content", tiger:"happy", wolf:"smile", raccoon:"happy"};
-const critterMood = (id, line) => (line.moods && line.moods[id]) || ((line.who===id || line.who==="all") && line.mood) || (line.hug ? HUG_MOOD[id] : "normal");
+// 只在自己的台詞（或全體合聲）換表情；由劇本回溯，局部更新與整頁重畫一致。
+function critterMood(id, line){
+  const script = state.page==="story" && line.who ? SCENES[state.scene]?.script : null;
+  const lines = script ? script.slice(0,state.line+1) : [line];
+  let mood = "normal";
+  for(const spoken of lines){
+    if(spoken.who===id || spoken.who==="all")
+      mood = spoken.mood || spoken.moods?.[id] || "normal";
+  }
+  return mood;
+}
 const stageActors = () => { const sc = SCENES[state.scene]; return sc.actors || (sc.bg==="tavern" ? ["dwarf", "kam"] : []); };   // 沒寫 actors：酒館＝大爺、卡姆，其他場景沒人
 const onStage = line => line.on || stageActors()[0];
 const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;

@@ -63,6 +63,7 @@ node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手�
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
 node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
 node tests/starter-gear.mjs
+node tests/story-moods.mjs    # 逐句觸控：僅說話者換表情、合聲、旁白／抱抱保留與重畫一致
 node tests/free-attacks.mjs
 node tests/liliana-art.mjs
 node tests/town-npc-art.mjs   # 正式開場贈裝、100金保留、兩套配置與雙匕首、彈藥、不重複發放

@@ -1,6 +1,7 @@
 /* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ kam（卡姆）/ 小動物 id / all（四小隻一起說，四張卡一起亮）
    on＝這句誰站在酒館舞台上（預設大爺）；face＝台上那位的表情（assets/faces/README.md 的檔名，香香 10-03 配的，暫定）
-   mood＝說話那隻小動物的表情；moods＝{角色:表情} 指定其他隻（沒寫的平常臉，抱抱時是開心臉）。10-03 香香配的，暫定 */
+   mood＝說話那隻小動物的表情；moods 僅取說話者自己的設定，all 合聲時取各隻設定。
+   其他隻保留上次自己台詞的表情；旁白／抱抱不換臉，場景開始為平常臉。 */
 const STARTER_GEAR = {
  fox:{main:"奧術法杖",second:"輕弩",armor:"法袍",ammo:"矢匣"},
  tiger:{main:"長劍",off:"盾牌",second:"手弩",armor:"鏈甲衫",ammo:"矢匣"},

@@ -19,7 +19,7 @@ try{
  const fl=await pg.evaluate(()=>SCENES.caravan.script.findIndex(l=>l.who==='fox'&&l.mood));
  while(await pg.evaluate(f=>state.line<f,fl)) await pg.locator('#stage').click();
  const heads=await pg.evaluate(()=>[...document.querySelectorAll('.pf .c-head')].map(i=>i.getAttribute('src')));
- assert.equal(heads.length,4);assert(heads[0].endsWith('fox/'+(await pg.evaluate(f=>SCENES.caravan.script[f].mood,fl))+'.webp'));assert(heads[1].endsWith('tiger/normal.webp'));
+ assert.equal(heads.length,4);assert(heads[0].endsWith('fox/'+(await pg.evaluate(f=>SCENES.caravan.script[f].mood,fl))+'.webp'));assert(heads[1].endsWith('tiger/happy.webp'),'玲玲發言時嬌嬌保留之前自己台詞的開心臉');
  ok('劇情卡片用新頭像，說話的那隻換表情（10-03）');
  while(await pg.evaluate(()=>!SCENES.caravan.script[state.line].choice)) await pg.locator('#stage').click();
  const line=await pg.evaluate(()=>state.line);
