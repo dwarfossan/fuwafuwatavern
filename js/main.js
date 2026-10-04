@@ -286,12 +286,13 @@ function quickBattle(battleId="ambush",phase="combat"){
       const notes=state.learned[c.id] ? state.learned[c.id].map(x=>({...x})) : starterNotes(c.id);
       if(!notes.some(x=>x.key==="counterattack")) notes.push({key:"counterattack",name:"反擊",innate:false,from:"測試戰鬥",lv:1});
       state.learned[c.id]=notes;
-      const carried=state.activeSkills[c.id] ? state.activeSkills[c.id].slice() : notes.slice(0,5).map(x=>x.key);
-      if(!carried.includes("counterattack")){
-        const passiveAt=carried.findIndex(k=>learnedSkillByKey(k)?.def.activation==="passive");
-        if(passiveAt>=0) carried[passiveAt]="counterattack";
-        else if(carried.length<5) carried.push("counterattack");
+      let carried=state.activeSkills[c.id] ? state.activeSkills[c.id].slice() : notes.filter(x=>x.key!=="counterattack").slice(0,4).map(x=>x.key);
+      carried=carried.filter((k,i,a)=>k!=="counterattack"&&a.indexOf(k)===i);
+      if(carried.length>=5){
+        const replaceAt=carried.findIndex(k=>!isPassiveSkill(learnedSkillByKey(k)));
+        carried.splice(replaceAt>=0?replaceAt:carried.length-1,1);
       }
+      carried.push("counterattack");
       state.activeSkills[c.id]=carried;
     }
   });
