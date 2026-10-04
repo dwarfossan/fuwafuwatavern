@@ -154,7 +154,8 @@ function patchBattleHTML(el,html,svg=false){
   let nodes;
   if(svg){const doc=new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${html}</svg>`,"image/svg+xml");nodes=[...doc.documentElement.childNodes];}
   else{const t=document.createElement("template");t.innerHTML=html;nodes=[...t.content.childNodes];}
-  const shell=document.createElement(svg?"g":"div");
+  const shell=svg?document.createElementNS("http://www.w3.org/2000/svg",el.tagName):document.createElement(el.tagName);
+  [...el.attributes].forEach(a=>shell.setAttribute(a.name,a.value));
   nodes.forEach(n=>shell.appendChild(document.importNode(n,true)));
   patchBattleNode(el,shell);
 }
