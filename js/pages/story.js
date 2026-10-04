@@ -65,12 +65,12 @@ function spotRowHTML(){
   if(hit){
     const [i, x] = hit, foe = ENEMIES[BATTLES[sc.battle].foes[i].type], m = abilityMods(foe).DEX;
     const flick = [0,1,2].map(()=>1 + Math.floor(Math.random()*20));
-    title = `${foe.name}潛行 ${dieFace(20, x.roll, 0, DICE_TUMBLE, flick, false)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span><b>${x.hide}</b>${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
+    title = `${foe.name}潛行 ${dieFace(20, x.roll, 0, DICE_TUMBLE, flick, false)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span><span class="spot-equals">＝</span><b class="${x.spotted.length?"res-miss":"res-hit"}">${x.hide}</b>${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
   }
   return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">${title}</span>${CRITTERS.map(c=>{
     const m = modOf(finalScore(c.id,"WIS")), ok = who.includes(c.id);
     return `<div class="spot-cell">${dieFace(20, 10, 0, 0, [], false, null, true)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span>
-      <span class="dp-total ${ok?"res-hit":"res-miss"}"><b>${10+m}</b></span></div>`;
+      <span class="spot-equals">＝</span><span class="dp-total ${ok?"res-hit":"res-miss"}"><b>${10+m}</b></span></div>`;
   }).join("")}</div>`;
 }
 function showSpot(on){
