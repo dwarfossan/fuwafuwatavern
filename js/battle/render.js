@@ -922,9 +922,9 @@ function skillBtn(u, sk, label){
 // 點進去就原地換成那一層，最底下「← 返回」；瞄準列、移動確認、移動中也在同一個位置
 const dockWrap = (u, b, cls, title, body) => `<div class="bt-ov bt-menu bt-dock ${cls}${b.busy?" busy":""}" style="--c:${u.color}">
     ${title?`<div class="mn-head"><b>${u.name} · ${title}</b></div>`:""}<div class="mn-list">${body}</div></div>`;
-function menuHTML(u, b){
-  const act = canAct(), back = `<button class="mn-back" data-cmd="${["skills","shove"].includes(b.menu)?"act":"root"}">← 返回</button>`;
-  const lv = b.menu || "root";
+function menuHTML(u, b, level=null){
+  const lv = level || b.menu || "root";
+  const act = canAct(), back = `<button class="mn-back" data-cmd="${["skills","shove"].includes(lv)?"act":"root"}">← 返回</button>`;
   let body = "", title = "";
   if(lv==="root"){
     const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
@@ -978,6 +978,17 @@ function menuHTML(u, b){
     }).join("")}</div>` + back;
   }
   return dockWrap(u, b, `dk-${lv}`, title, body);
+}
+const NORMAL_MENUS=["root","move","act","shove","items","skills"];
+function stableMenuHTML(u,b){
+  return `<div class="bt-menu-stack" data-menu-stack>${NORMAL_MENUS.map(lv=>`<div data-menu-page="${lv}">${menuHTML(u,b,lv)}</div>`).join("")}</div>`;
+}
+function syncBattleMenuPage(){
+  const b=B();if(!b)return;
+  const lv=b.menu||"root";
+  document.querySelectorAll("[data-menu-page]").forEach(el=>{el.hidden=el.dataset.menuPage!==lv;});
+  const log=document.querySelector(".bt-bottom .bt-logstrip,.bt-bottom .bt-logpanel");
+  if(log)log.hidden=!!(b.menu&&b.menu!=="root");
 }
 // 移動中（藍色格子）：指令列換成剩幾格＋返回；做得跟指令列一樣窄，不擋住底下的格子
 function moveBarHTML(u, b){
@@ -1171,7 +1182,7 @@ function battleInterfaceHTML(){
     if(b.pendingMove && !b.busy) dock = confirmHTML(u, b);
     else if(b.mode && !b.busy) dock = aimHTML(u, b);
     else if(b.moveMode && !b.busy) dock = moveBarHTML(u, b);
-    else dock = menuHTML(u, b);
+    else dock = stableMenuHTML(u, b);
     if(b.phase==="explore")dock=exploreDockHTML();
     else if(b.worldObject&&!b.mode&&!b.moveMode){const o=b.worldObject;dock=dockWrap(u,b,"dk-pick",EXPLORE_OBJECTS.powderBarrel.name,`<button class="mn-b" data-worldcmd="pickup" ${!worldCanAct(u)||dist(u,o)>1?"disabled":""}>${WORLD_OBJECT_TEXT.pickup}<small>${WORLD_OBJECT_TEXT.carryAction}</small></button><button class="mn-back" data-worldcmd="close">← 返回</button>`);}
   }
@@ -1202,6 +1213,7 @@ function renderBattle(){
   if(!B()) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const ui=battleInterfaceHTML();
   updateBattleUI.html=ui;
+  queueMicrotask(syncBattleMenuPage);
   return `<section class="page battle">${["head","order","hud","tutorial","dice"].map(k=>battleUISlot(k,ui[k])).join("")}<div class="board-wrap">${boardSVG()}${battleUISlot("overlays",ui.overlays)}</div></section>`;
 }
 // 比較資料依賴，不比較產生出的 HTML；每次更新完整的指定層。
@@ -1241,6 +1253,7 @@ function updateBattleUI(){
     if(el && prev[k]!==html)patchBattleHTML(el,html);
   });
   updateBattleUI.html=ui;
+  syncBattleMenuPage();
 }
 // 探索連續移動時保留既有 SVG DOM；動畫幀只搬角色／HUD 自己的 <g>。
 // 靜態地形、物件與其餘 scene 不因小數座標每幀改變而 innerHTML 重建。
