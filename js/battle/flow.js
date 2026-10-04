@@ -501,7 +501,8 @@ function battleCmd(c){
   if(!b || b.busy || b.result || u.side!=="pc") return;
   if(b.tut===0) b.tut = 1;
   switch(c){
-    case "move": case "act": case "root": case "skills": b.menu = c; b.moveMode = false; break;
+    case "move": case "act": case "root": case "skills":
+      b.menu=c;b.moveMode=false;syncBattleMenuPage();return;
     case "status":
       if(b.info===u.id) b.info=null;
       else { b.info=u.id; b.infoPage="status"; }
@@ -531,9 +532,9 @@ function battleCmd(c){
     case "grapple": case "shove_push": case "shove_prone": case "disarm":
       if(!canAct() || !GEN_ACT[c].targets(u).length || (c==="grapple" && !freeHand(u))) return;
       b.menu = null; b.mode = {key:c}; break;
-    case "shove": b.menu = "shove"; break;
+    case "shove": b.menu="shove";syncBattleMenuPage();return;
     case "escape": if(!canAct() || !grappled(u)) return; doEscape(u); return;
-    case "items": if(!canFree()) return; b.menu = "items"; break;
+    case "items": if(!canFree())return;b.menu="items";syncBattleMenuPage();return;
     case "douse": if(!canAct() || !has(u,"burning")) return; doDouse(u); return;
     case "unnet": if(!canAct() || !hasVia(u,"restrained","net")) return; doUnnet(u); return;
   }
