@@ -1139,7 +1139,19 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 莉莉安娜：原全身圖等比放大，舞台裁成半身；眼部定位為原圖座標。暫定。 */
 .actor.liliana{width:132%;height:auto;aspect-ratio:1024/1536;top:1%;bottom:auto}
 .liliana-eyes{position:absolute;left:39.55%;top:4.23%;width:18.03%;height:12.02%;overflow:hidden;clip-path:polygon(11% 44%,48% 44%,48% 62%,55% 62%,55% 38%,96% 38%,96% 57%,55% 57%,55% 65%,11% 65%)}
-.portrait .liliana-eyes img{width:400%;height:300%;left:calc(mod(var(--face),4) * -100%);top:calc(round(down,var(--face) / 4) * -100%);max-width:none}
+.portrait .npc-face-sheet img{width:400%;height:300%;left:calc(mod(var(--face),4) * -100%);top:calc(round(down,var(--face) / 4) * -100%);max-width:none}
 
 .quip-face.liliana-icon .portrait{width:400%;aspect-ratio:1024/1536;height:auto;left:-150%;top:-15%}
 .seal-speaker .liliana-icon .pt-base{width:100%;height:100%;object-fit:fill}
+
+/* 三位店主沿用原圖：全身等比显示，舞台裁成半身；五官定位暫定。 */
+.actor.mira,.actor.ada{width:132%;height:auto;aspect-ratio:926/1698;top:-4%;bottom:auto}
+.actor.brun{width:132%;height:auto;aspect-ratio:1001/1572;top:-19%;bottom:auto}
+.mira-features{position:absolute;left:39.42%;top:13.43%;width:23.85%;height:13.01%;overflow:hidden}
+.ada-features{position:absolute;left:36.18%;top:10.6%;width:21.11%;height:11.51%;overflow:hidden}
+.brun-features{position:absolute;left:43.16%;top:20.36%;width:19.89%;height:12.67%;overflow:hidden}
+.quip-face.mira-icon .portrait{width:400%;height:auto;aspect-ratio:926/1698;left:-163%;top:-97%}
+.quip-face.ada-icon .portrait{width:450%;height:auto;aspect-ratio:926/1698;left:-164%;top:-100%}
+.quip-face.brun-icon .portrait{width:400%;height:auto;aspect-ratio:1001/1572;left:-173%;top:-136%}
+
+.actor.ada{top:-8%}

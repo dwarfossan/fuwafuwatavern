@@ -23,9 +23,9 @@ try{
  await shot('town-street.png');
  for(const id of ['inn','smith','guild','items']){
   await page.locator(`[data-town-place="${id}"]`).tap();
-  assert.equal(await page.locator('.town-page .portrait').count(),id==='items'?1:0);assert.equal(await page.locator('.town-interior').count(),0);
+  assert.equal(await page.locator('.town-page .portrait').count(),1);assert.equal(await page.locator('.town-interior').count(),0);
   assert.equal(await page.locator('#board-floor').count(),0);
-  assert.equal(await page.locator('.npc-space').count(),id==='items'?0:1);
+  assert.equal(await page.locator('.npc-space').count(),0);
   assert.equal(await page.locator('.party .pf').count(),4);
   const layout=await page.evaluate(()=>{const a=document.querySelector('.stage').getBoundingClientRect(),p=document.querySelector('.party').getBoundingClientRect(),d=document.querySelector('.dialog').getBoundingClientRect();return {width:a.width,height:a.height,gap:p.top-a.bottom,partyWidth:p.width,order:d.bottom<=p.top};});
   assert(layout.order);delete layout.order;assert.deepEqual(layout,opening);

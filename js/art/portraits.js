@@ -1,7 +1,13 @@
 /* 新畫風立繪（大爺 10-03：大爺改用新圖，舊的 SVG 刪掉）
    無臉底圖＋表情臉兩張 <img> 疊在同一個位置（兩張一樣大，不用算座標，見 docs/現況.md 新畫風素材）
    表情檔名見 assets/faces/README.md；def＝沒指定表情時用的 */
+const NPC_FACE_NAMES=["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"];
+const TOWN_PORTRAIT={inn:"mira",smith:"brun",guild:"ada",items:"liliana"};
 const PORTRAITS = {
+  mira:{base:"assets/portraits/mira_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/mira/sheet.png"},
+  ada:{base:"assets/portraits/ada_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/ada/sheet.png"},
+  brun:{base:"assets/portraits/brun_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/brun/sheet.png"},
+
   liliana:{base:"assets/portraits/liliana_noface.png",faces:null,def:"smile",list:["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"],sheet:"assets/faces/liliana/sheet.png"},
   dwarf: {base:"assets/portraits/dwarf_noface.webp", faces:"assets/faces/dwarf/", def:"smile",
           list:["annoyed","smile","grin","gritted","sad","surprised","smirk","shy"]},
@@ -12,12 +18,12 @@ const PORTRAITS = {
 };
 const faceSrc = (id, face) => { const p = PORTRAITS[id]; return p.faces ? p.faces + (p.list.includes(face) ? face : p.def) + ".webp" : ""; };
 function portraitHTML(id, face){
-  if(id==="liliana")return `<div class="portrait" data-portrait="liliana"><img class="pt-base" src="${PORTRAITS[id].base}" alt=""><div class="liliana-eyes" data-face="${face||"smile"}" style="--face:${Math.max(0,PORTRAITS[id].list.indexOf(face||"smile"))}"><img src="${PORTRAITS[id].sheet}" alt=""></div></div>`;
+  if(PORTRAITS[id].sheet)return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt=""><div class="npc-face-sheet ${id==='liliana'?'liliana-eyes':id+'-features'}" data-face="${face||"smile"}" style="--face:${Math.max(0,PORTRAITS[id].list.indexOf(face||"smile"))}"><img src="${PORTRAITS[id].sheet}" alt=""></div></div>`;
   return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt="">${PORTRAITS[id].faces ? `<img class="pt-face" src="${faceSrc(id, face)}" alt="">` : ""}</div>`;
 }
 // 換表情：只換臉那張的 src，底圖不動
 function setPortraitFace(root, face){
-  const eyes=root?.querySelector(".liliana-eyes");if(eyes){const i=Math.max(0,PORTRAITS.liliana.list.indexOf(face));eyes.dataset.face=PORTRAITS.liliana.list[i];eyes.style.setProperty("--face",i);return;}
+  const eyes=root?.querySelector(".npc-face-sheet");if(eyes){const id=eyes.closest(".portrait").dataset.portrait;const i=Math.max(0,PORTRAITS[id].list.indexOf(face));eyes.dataset.face=PORTRAITS[id].list[i];eyes.style.setProperty("--face",i);return;}
   const img = root?.querySelector(".pt-face"), id = root?.querySelector(".portrait")?.dataset.portrait || root?.dataset.portrait;
   if(!img || !id) return;
   const src = faceSrc(id, face);

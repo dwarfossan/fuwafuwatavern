@@ -82,3 +82,7 @@
 ## liliana/ 莉莉安娜
 
 sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、laugh、smirk、angry、annoyed、sad、surprised、shy、confused、serious、sly（命名暫定GPT）。只顯示眼部，眉毛與面紗沿用底圖；原圖1024×1536、表情表1448×1086，定位見CSS .liliana-eyes。舞台只裁切顯示半身，不改原PNG。
+
+## mira/、ada/、brun/
+
+米拉、艾妲、布隆均使用大爺原始4欄3列sheet.png，表情順序同liliana（名稱暫定GPT）。各自五官定位見CSS .mira-features／.ada-features／.brun-features，原PNG不改畫；舞台等比裁成半身。
