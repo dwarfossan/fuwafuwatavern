@@ -130,7 +130,7 @@ function updateBoardFloor(){
 function updateBoardMarks(){
   const layer=document.getElementById("board-marks"); if(layer) layer.innerHTML=boardMarksHTML();
 }
-// 物件、棋子、當前腳下光與演出共用排序；移動時只更新此層。
+// 物件、棋子、當前腳下光與演出共用排序；一般事件才重建此層。探索連續移動保留 DOM，只搬角色 transform。
 function updateBoardScene(){
   const layer=document.getElementById("board-scene"); if(layer) layer.innerHTML=boardSceneHTML();
 }
