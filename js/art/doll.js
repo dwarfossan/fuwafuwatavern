@@ -160,7 +160,7 @@ function dollSVG(o){
   const gear = armorArt(o.armor), anc = {...DEFAULT_ANCHOR, ...(L.anchor||{})};
   const main = o.main, off = o.off, h = main && HELD[main];
   const two = h && h.two && !off;
-  const now = Date.now();
+  const now = Date.now(), level = leveling(o), cheer = o.cheer || level;
   // 主手：武器跟著手一起轉
   let arm;
   if(main && h){
@@ -181,7 +181,8 @@ function dollSVG(o){
   const flip = (o.face||1) < 0 ? `transform="translate(140 0) scale(-1 1)"` : "";
   const bob = -((now + (o.seed||0)*237) % 1600);
   const H = o.w*150/140;
-  return `<svg class="doll ${o.down?"dl-down":o.prone?"dl-prone":o.cheer?"dl-cheer":""}" x="${o.x}" y="${o.y}" width="${o.w}" height="${H}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true">
+  return `<svg class="doll ${o.down?"dl-down":o.prone?"dl-prone":cheer?"dl-cheer":""}" x="${o.x}" y="${o.y}" width="${o.w}" height="${H}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true">
+    ${level?`<g class="dl-level-aura" style="--level-delay:${-(now-o.levelUpAt)}ms"><ellipse cx="70" cy="136" rx="42" ry="12"/><path d="M28 136 Q22 118 32 104 M112 136 Q118 118 108 104"/><path class="level-front" d="M29 133 Q70 160 111 133"/></g>`:""}
     <g ${flip}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--b:${bob}ms;--walk:${-(now%360)}ms">
       <ellipse class="dl-foot-left" cx="60" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <ellipse class="dl-foot-right" cx="80" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
@@ -194,7 +195,7 @@ function dollSVG(o){
         ${gear.body||""}
         ${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}
         ${L.head.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}
-        ${o.cheer && L.headHappy ? `<g>${L.headHappy.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
+        ${cheer && L.headHappy ? `<g>${L.headHappy.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
         ${gear.head ? `<g transform="translate(32 6) scale(.76)"><g transform="translate(${anc.head[0]} ${anc.head[1]}) scale(${anc.head[2]})">${gear.head}</g></g>` : ""}
         ${L.headHurt && o.down ? `<g>${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` :
           L.headHurt && o.anim && o.anim.k==="hurt" ? `<g class="dl-xeyes" data-exp="${now - o.anim.el + DOLL_DUR.hurt}">${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}

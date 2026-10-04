@@ -64,7 +64,8 @@ node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取�
 node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
 node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休息與筆記
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
-node tests/xp.mjs            # 經驗：SRD 門檻、打怪平分、商隊完成升等級 2、升級加血與熟練格、探索戰也給
+node tests/xp.mjs            # 經驗：SRD 門檻、打怪平分、商隊完成達升級門檻、升級加血與熟練格、探索戰也給
+node tests/level-up.mjs      # 手動升級：戰鬥鎖定、探索／城鎮／劇情點擊、資料同步、歡呼光暈到期移除
 node tests/info-bars.mjs     # 狀態卡生命／經驗／壓力三條、頭像列壓力小條
 node tests/about.mjs         # 關於／授權：封面與戰場主選單都打得開，SRD 5.1、5.2 官方原句完整
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮

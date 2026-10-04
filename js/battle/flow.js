@@ -75,10 +75,9 @@ function awardBattleXP(){
   const total = got.reduce((a,u)=>a+((ENEMIES[u.type]||{}).xp||0),0); got.forEach(u=>u.xpGiven=true);
   const pcs = b.units.filter(u=>u.side==="pc"), each = Math.floor(total / pcs.length);
   if(!each) return;
-  const ups = gainXP(pcs.map(u=>u.id), each);
+  gainXP(pcs.map(u=>u.id), each);
   pcs.forEach(u=>u.xp = critterXP(u.id));
   blog(`打倒的敵人共 ${total} 經驗，每隻獲得 ${each} 經驗。`, "skill");
-  ups.forEach(x=>blog(`${pcs.find(u=>u.id===x.id).name}升到等級 ${x.to}！`, "kill"));
 }
 function checkResult(){
   const b = B();

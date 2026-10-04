@@ -219,11 +219,11 @@ const CARAVAN_RESULT = {
           {who:"merchant", text:"……謝禮減半！", mark:"anger"},
           {who:"narr", text:"四小隻各分到 12 金幣 5 銀幣。"}]}
 };
-const CARAVAN_XP = 250;   // 商隊護送完成每隻給的經驗（大爺 10-04 定打完商隊就等級 2；數字暫定）
+const CARAVAN_XP = 250;   // 商隊護送完成每隻給的經驗（大爺 10-04 定商隊後可手動升到等級 2；數字暫定）
 const CARAVAN_OUTRO = [
   {who:"merchant", text:"我也要去城鎮。順路的話，一起走吧！", mark:"note"},
   {who:"fox",      text:"有人帶路，正好。", mood:"content"},
-  {who:"narr",     text:"護送完成！四小隻升到等級 2。"},   // 系統提示（香香 10-04，文字暫定）
+  {who:"narr",     text:"經驗夠了，可以升級！"},   // 系統提示（香香 10-04，文字暫定）
   {who:"narr",     text:"四小隻跟在馬車旁邊，繼續往城鎮出發。"}
 ];
 

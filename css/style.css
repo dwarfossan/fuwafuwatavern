@@ -1102,3 +1102,15 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .battle .order{padding-bottom:5px}
 .ord-stress{position:absolute;left:3px;right:3px;bottom:-6px;height:5px;border-radius:3px;background:#1f1a24;border:1px solid rgba(0,0,0,.6);line-height:0;overflow:hidden}
 .ord-stress i{display:block;height:100%;background:#9b7fd0}
+
+/* 手動升級：等待時只亮 Lv；光暈僅出現在實際升級。外觀暫定 GPT。 */
+.level-button{font:inherit;font-weight:bold;border:1px solid transparent;background:transparent;color:inherit;border-radius:8px;padding:2px 7px;cursor:pointer}
+.level-button:disabled{opacity:1;cursor:default}
+.level-button.ready{color:#91601a;border-color:#e9bc4e;animation:level-ready 1.2s ease-in-out infinite alternate}
+@keyframes level-ready{to{color:#ba7819;box-shadow:0 0 12px #efc34c;background:#fff2c2}}
+.level-message{font-size:12px;color:var(--bad)}
+.dl-level-aura{fill:none;stroke:#ffda63;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 5px #efbf32);animation:level-aura 2400ms ease-out both;animation-delay:var(--level-delay)}
+.dl-level-aura ellipse{fill:#ffe68a;fill-opacity:.12;stroke-width:3}
+@keyframes level-aura{0%{opacity:0}15%,65%{opacity:.85}100%{opacity:0}}
+.progression-card{text-align:center}.progression-card .inf-bars{text-align:left}
+.town-party{display:flex;justify-content:center;gap:12px;margin:10px 0}.town-party button{display:flex;flex-direction:column;align-items:center;border:0;background:transparent;color:inherit}.town-party svg,.town-party img{width:48px;height:48px}

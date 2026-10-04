@@ -84,6 +84,7 @@ const SFX = (()=>{
     poof:      t=>{ noise(t, {dur:.4, gain:.35, f0:1600, f1:200, kind:"lowpass"}); tone(t, {type:"sine", f0:420, f1:80, dur:.35, gain:.18}); },
     down:      t=>notes(t, [[523,0],[440,.16],[349,.32,.4]], {type:"triangle", dur:.24, gain:.15}),
     // 其他
+    level_up: t=>notes(t, [[523,0,.2],[659,.12,.2],[784,.24,.2],[1047,.4,.65]], {type:"triangle", gain:.12}),
     heal:      t=>notes(t, [[523,0],[659,.07],[784,.14],[1047,.21,.4]], {type:"sine", dur:.3, gain:.12}),
     help:      t=>notes(t, [[784,0],[1047,.08,.25]], {type:"triangle", dur:.18, gain:.1}),
     step:      t=>{ tone(t, {type:"sine", f0:180+Math.random()*60, dur:.05, gain:.1}); noise(t, {dur:.03, gain:.04, f0:700, kind:"lowpass"}); },

@@ -111,6 +111,14 @@ function closeDetailModal(){
   if(m?.kind==="help") document.querySelector(`[data-pagehelp="${m.id}"]`)?.focus({preventScroll:true});
   if(m?.kind==="about") document.querySelector("[data-about]")?.focus({preventScroll:true});
 }
+function levelButtonHTML(id){
+  const ready=canLevelUp(id);
+  return `<button class="level-button ${ready?"ready":""}" data-levelup="${id}" aria-label="${ready?"升級":"等級"}" ${ready?"":"disabled"}>Lv.${critterLevel(id)}</button><span class="level-message" data-level-message="${id}" role="status"></span>`;
+}
+function progressionCardHTML(id){
+  const u=progressionUnits(id)[0];if(!u)return "";
+  return `<div class="progression-card"><h3>${levelButtonHTML(id)}</h3><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:u.id,color:u.color,mood:u.svgMood,...dollGear(u),levelUpAt:u.levelUpAt,down:u.down,prone:!u.down&&!!has(u,"prone"),face:1,x:0,y:0,w:140,seed:u.id.length*3})}</svg>${infoBarsHTML(u,u.hp/u.maxHp)}</div>`;
+}
 function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
@@ -126,7 +134,7 @@ function renderModal(){
   }
   if(m.kind==="character"){
     const c=CRITTERS.find(x=>x.id===m.id);
-    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterHead(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p></div>`;
+    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterHead(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p>${progressionCardHTML(c.id)}</div>`;
   }
   if(m.kind==="skill"){
     const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
@@ -142,6 +150,11 @@ function modalListen(el,type,fn){
 }
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
+  document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
+    e.stopPropagation();
+    if(levelUp(el.dataset.levelup))refreshGameUI();
+    else if(canLevelUp(el.dataset.levelup))document.querySelector(`[data-level-message="${el.dataset.levelup}"]`).textContent="打完再升級";
+  }));
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
   document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));

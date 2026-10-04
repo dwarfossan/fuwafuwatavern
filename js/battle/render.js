@@ -145,7 +145,7 @@ function syncBoardCamera(){
 // 約好在開始那一刻再更新一次場景層，不然要等到下一次有人重畫才看得到（多半已經演完了）
 let sceneWake=null;
 function wakeSceneAt(b){
-  const now=Date.now(), times=[...b.units.flatMap(v=>[v.anim?.t,...v.statuses.map(s=>s.visualAt)]),
+  const now=Date.now(), times=[...b.units.flatMap(v=>[v.anim?.t,v.levelUpAt? v.levelUpAt+LEVEL_UP_DURATION:0,...v.statuses.map(s=>s.visualAt)]),
     ...Object.values(b.groundEffects||{}).map(f=>f.visualAt),...(b.fx||[]).map(f=>f.t),...(b.proj||[]).flatMap(p=>[p.t,p.t+p.dur])];
   const next=Math.min(...times.filter(t=>t>now));
   clearTimeout(sceneWake); sceneWake=null;
@@ -600,7 +600,7 @@ function unitDoll(v, active){
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el} : null;   // el < 0：還在擲骰，動作還沒開始
   const look = v.side!=="pc" ? MONSTER_LOOK[v.look] : null;
-  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
+  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});
 }
 // 頭上的狀態小圖示：壞的紅底、好的綠底，最多五個；大小見 overlayK（跟著地圖縮放，有最小尺寸）
@@ -1126,7 +1126,7 @@ function infoHTML(v, b){
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges">${shownStatus.map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}${plainStatus.map(x=>`<button class="status-unit-badge plain ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}">${x.label}</button>`).join("")}</div>`:"";
   const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
-  const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,mood:v.svgMood,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
+  const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,mood:v.svgMood,levelUpAt:v.levelUpAt,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
   const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
   const notes=v.side==="pc"?notebookPageHTML(v,b):"";
@@ -1162,7 +1162,7 @@ function infoHTML(v, b){
   const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
   return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
-    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　Lv.${v.level||1}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}） · `:""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　${levelButtonHTML(v.id)}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}） · `:""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
     ${infoBarsHTML(v, pct)}
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
     ${v.side==="pc"?slotGridHTML(v):""}
@@ -1316,14 +1316,14 @@ function battleLayerKeys(){
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
   // svgMood 在 b.units 中，場景、先攻介面與狀態卡更新鍵均涵蓋表情。
-  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
+  const scene=battleDataKey([b.turn,b.result,camZoom(),b.units,b.units.map(animPhase),b.units.map(leveling),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.turn,b.phase,b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks,b.groundEffects]):"none";
-  const ui=battleDataKey([b,state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
+  const ui=battleDataKey([b,state.xp,state.level,b.units.map(leveling),state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
     ["objectTip","def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])
     +battleDataKey(b.units,["x","y","face","anim"])
     +(b.mode?units:"");
-  return {floor:boardTerrainKey(),marks,scene,ui,modal:battleDataKey([state.modal,state.modal?b.units:null]),camera:battleDataKey([b.critOn,b.def.w,b.def.h])};
+  return {floor:boardTerrainKey(),marks,scene,ui,modal:battleDataKey([state.modal,state.modal?b.units:null,state.modal?b.units.map(leveling):null]),camera:battleDataKey([b.critOn,b.def.w,b.def.h])};
 }
 function updateBattleUI(){
   closeGameBubble();

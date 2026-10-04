@@ -89,15 +89,32 @@ const critterLevel = id => Math.min(LEVEL_MAX, Math.max(1, (state.level||{})[id]
 const critterXP = id => (state.xp||{})[id] || 0;
 const xpNeed = lv => XP_NEXT[Math.min(LEVEL_MAX-1, lv)];
 const maxHpAt = (lv, con) => Math.max(1, 8 + con) + (lv-1) * Math.max(1, 5 + con);
-// 給每隻 n 點經驗；回傳升了級的 [{id, from, to}]
-function gainXP(ids, n){
-  state.xp = state.xp || {}; state.level = state.level || {};
-  const ups = [];
-  ids.forEach(id=>{
-    state.xp[id] = critterXP(id) + n;
-    const from = critterLevel(id); let lv = from;
-    while(lv < LEVEL_MAX && state.xp[id] >= XP_NEXT[lv]) lv++;
-    if(lv > from){ state.level[id] = lv; ups.push({id, from, to:lv}); }
+// 經驗保留累積，達標由玩家在戰鬥外逐級確認。
+const LEVEL_UP_DURATION = 2400; // 演出長度暫定 GPT
+const leveling = u => !!u.levelUpAt && Date.now()-u.levelUpAt < LEVEL_UP_DURATION;
+const canLevelUp = id => critterLevel(id)<LEVEL_MAX && critterXP(id)>=xpNeed(critterLevel(id));
+const progressionUnits = id => [...new Set([state.battle,state.townRest].flatMap(b=>(b?.units||[]).filter(u=>u.side==="pc"&&u.id===id)))];
+function gainXP(ids,n){
+  state.xp=state.xp||{};
+  ids.forEach(id=>{state.xp[id]=critterXP(id)+n;progressionUnits(id).forEach(u=>u.xp=critterXP(id));});
+}
+function levelUp(id){
+  const b=state.battle;
+  if(b && !b.result && b.phase!=="explore") return false;
+  if(!canLevelUp(id)) return false;
+  const from=critterLevel(id), to=from+1, at=Date.now(), units=progressionUnits(id);
+  const oldMax=SLOT_TABLE[from-1], newMax=SLOT_TABLE[to-1];
+  const grow=slots=>newMax.map((n,i)=>Math.min(n,(slots?.[i]||0)+n-(oldMax[i]||0)));
+  state.proficiency=state.proficiency||{};
+  state.proficiency[id]=grow(units[0]?.slots||state.proficiency[id]||oldMax);
+  state.level=state.level||{};state.level[id]=to;
+  units.forEach(u=>{
+    const max=maxHpAt(to,u.mods.CON), delta=max-u.maxHp;
+    u.slots=grow(u.slots||oldMax);u.level=to;u.xp=critterXP(id);
+    if(u.hp>0&&!u.dead&&!u.gone)u.hp=Math.min(max,u.hp+delta);
+    u.maxHp=max;u.levelUpAt=at;
   });
-  return ups;
+  sfx("level_up");
+  setTimeout(()=>{if(progressionUnits(id).some(u=>u.levelUpAt===at))refreshGameUI();},LEVEL_UP_DURATION+20);
+  return true;
 }
