@@ -625,12 +625,15 @@ function smokeSVG(x, y, face, el){
 function fxSVG(kind, x, y, el){
   const st = `style="animation-delay:${-el}ms"`;
   const g = inner => `<g class="fx fx-${kind}" transform="translate(${x} ${y})"><g ${st}>${inner}</g></g>`;
-  if(kind==="slash")  return g(`<path d="M-30 -26 Q4 -40 28 14" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M-26 -22 Q2 -32 22 8" fill="none" stroke="#f2b441" stroke-width="3" stroke-linecap="round"/>`);
-  if(kind==="pierce") return g(`<path d="M-34 10 L30 -10" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M-34 -2 L14 -14 M-30 20 L18 4" stroke="#f6e9d8" stroke-width="2.5" stroke-linecap="round"/><path d="M26 -18 L38 -12 L28 -2 Z" fill="#fff"/>`);
+  // 物理命中：漫畫手繪衝擊面。白色實心會蓋住角色／背景，黑線勾邊，黃橘只做局部力量層。
+  const impact = (outer, inner) => g(`<path d="${outer}" fill="#fff" stroke="#2a2630" stroke-width="3.2" stroke-linejoin="round"/><path d="${inner}" fill="none" stroke="#f2b441" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`);
+  if(kind==="slash")  return impact("M-48 35 Q-7 -50 54 -42 Q16 -24 -20 45 Q7 14 43 -2 Q10 22 -48 35 Z","M-35 28 Q-3 -31 39 -31 M-20 34 Q5 -7 29 -15");
+  if(kind==="pierce") return impact("M-55 4 L20 -9 L12 -23 L55 -5 L22 7 L33 22 L-55 4 Z","M-42 3 L31 -4 M22 -13 L42 -5 L25 4");
+  if(kind==="burst")  return impact("M-10 -48 L1 -27 L19 -51 L22 -25 L48 -38 L32 -15 L58 -8 L34 3 L54 22 L28 18 L34 47 L12 27 L-2 54 L-9 29 L-34 47 L-27 20 L-57 25 L-34 5 L-56 -10 L-29 -14 L-42 -40 L-17 -26 Z","M-6 -31 L1 -18 L13 -33 M29 -22 L19 -10 L36 -6 M28 15 L17 13 L21 30 M-18 27 L-14 14 L-31 17 M-30 -11 L-17 -10 L-24 -25");
   if(kind==="fire")   return g(`<circle r="22" fill="#f2b441" opacity=".85"/><path d="M0 -30 Q18 -8 8 14 Q0 4 -8 14 Q-18 -8 0 -30 Z" fill="#e0584a"/><circle r="8" fill="#fff4b0"/>`);
   if(kind==="spark")  return g(`<path d="M0 -26 L6 -6 L26 0 L6 6 L0 26 L-6 6 L-26 0 L-6 -6 Z" fill="#b9a0ff" stroke="#fff" stroke-width="2"/><circle r="5" fill="#fff"/>`);
   if(kind==="heal")   return g(`<path d="M-6 -20 H6 V-6 H20 V6 H6 V20 H-6 V6 H-20 V-6 H-6 Z" fill="#9be08a" stroke="#fff" stroke-width="2"/><circle cx="-22" cy="-16" r="3" fill="#fff"/><circle cx="20" cy="-22" r="2.5" fill="#fff"/>`);
-  return g(`<path d="M0 -28 L7 -9 L27 -12 L12 2 L22 20 L3 11 L-9 26 L-8 6 L-27 0 L-9 -8 Z" fill="#fff4b0" stroke="#f2b441" stroke-width="2.5"/>`);
+  return impact("M-10 -48 L1 -27 L19 -51 L22 -25 L48 -38 L32 -15 L58 -8 L34 3 L54 22 L28 18 L34 47 L12 27 L-2 54 L-9 29 L-34 47 L-27 20 L-57 25 L-34 5 L-56 -10 L-29 -14 L-42 -40 L-17 -26 Z","M-6 -31 L1 -18 L13 -33 M29 -22 L19 -10 L36 -6 M28 15 L17 13 L21 30 M-18 27 L-14 14 L-31 17 M-30 -11 L-17 -10 L-24 -25");
 }
 
 function unitDoll(v, active){
