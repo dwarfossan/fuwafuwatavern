@@ -26,6 +26,7 @@ const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"da
 const state = {
   page:"cover",
   active:0,
+  initialHpDice:{}, // 每隻初始生命1d10，創角重擲時更新
   rolls:{},   // rolls[id][KEY] = 分配到該屬性的那組骰子 [d,d,d,d]（由 slot 同步而來）
   sets:{},    // sets[id] = 擲出的 6 組骰子 [[d,d,d,d]×6]
   slot:{},    // slot[id][KEY] = 分配到的組別索引

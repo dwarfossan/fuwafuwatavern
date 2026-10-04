@@ -88,7 +88,11 @@ const LEVEL_MAX = 20;
 const critterLevel = id => Math.min(LEVEL_MAX, Math.max(1, (state.level||{})[id] || 1));
 const critterXP = id => (state.xp||{})[id] || 0;
 const xpNeed = lv => XP_NEXT[Math.min(LEVEL_MAX-1, lv)];
-const maxHpAt = (lv, con) => Math.max(1, 8 + con) + (lv-1) * Math.max(1, 5 + con);
+const initialHpDie = id => {
+  state.initialHpDice ||= {};
+  return state.initialHpDice[id] ??= 1 + Math.floor(Math.random()*10);
+};
+const maxHpAt = (lv, con, id) => Math.max(1, initialHpDie(id) + con) + (lv-1) * Math.max(1, 5 + con);
 // 經驗保留累積，達標由玩家在戰鬥外逐級確認。
 const LEVEL_UP_DURATION = 2400; // 演出長度暫定 GPT
 const leveling = u => !!u.levelUpAt && Date.now()-u.levelUpAt < LEVEL_UP_DURATION;
@@ -99,7 +103,7 @@ function critterStatusUnit(id){
   const live=progressionUnits(id)[0];if(live)return live;
   const c=CRITTERS.find(x=>x.id===id);if(!c)return null;
   const inv=invItems(id).slice(),usable=it=>!equipmentRequirement(it,k=>abilityScore(id,k));
-  const scores=abilityScores(id),mods=abilityMods({scores}),lv=critterLevel(id),hp=maxHpAt(lv,mods.CON);
+  const scores=abilityScores(id),mods=abilityMods({scores}),lv=critterLevel(id),hp=maxHpAt(lv,mods.CON,id);
   const unit={id,side:"pc",name:c.name,color:c.color,hp,maxHp:hp,scores,mods,level:lv,xp:critterXP(id),stress:0,
     weapon:inv.find(it=>(it.type==="weapon"||it.type==="focus")&&usable(it))||null,
     spare:inv.filter(it=>(it.type==="weapon"||it.type==="focus")&&usable(it)).slice(1,2),offhand:null,offhand2:null,
@@ -133,7 +137,7 @@ function levelUp(id){
   state.proficiency[id]=grow(units[0]?.slots||state.proficiency[id]||oldMax);
   state.level=state.level||{};state.level[id]=to;
   units.forEach(u=>{
-    const max=maxHpAt(to,u.mods.CON), delta=max-u.maxHp;
+    const max=maxHpAt(to,u.mods.CON,u.id), delta=max-u.maxHp;
     u.slots=grow(u.slots||oldMax);u.level=to;u.xp=critterXP(id);
     if(u.hp>0&&!u.dead&&!u.gone)u.hp=Math.min(max,u.hp+delta);
     u.maxHp=max;u.levelUpAt=at;

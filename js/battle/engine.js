@@ -1,5 +1,5 @@
 /* ======================== 戰鬥引擎：規則與流程（不碰畫面） ========================
-   命中 = d20 + 屬性調整值 + 2 ≥ AC；豁免 DC = 8 + 2 + 屬性調整值；1 級生命值 = 8 + 體質調整值
+   命中 = d20 + 屬性調整值 + 2 ≥ AC；豁免 DC = 8 + 2 + 屬性調整值；1 級生命值 = 保存的 1d10 + 體質調整值（最低1）
    距離用切比雪夫距離（斜走也算 1 格） */
 
 // ---------- 骰子 ----------
@@ -56,7 +56,7 @@ function startBattle(id, retry=false, phase="combat"){
     const inv = invItems(c.id);
     const usable = it=>!equipmentRequirement(it,k=>abilityScore(c.id,k));
     const scores = abilityScores(c.id), mods = abilityMods({scores});
-    const lv = critterLevel(c.id), hp = maxHpAt(lv, mods.CON);   // 每升一級 +5＋體質（大爺 10-04）
+    const lv = critterLevel(c.id), hp = maxHpAt(lv, mods.CON, c.id);   // 每升一級 +5＋體質（大爺 10-04）
     units.push({
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),

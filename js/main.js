@@ -90,6 +90,7 @@ function syncRolls(id){
 // 擲 6 組 4d6（取高三），再由玩家分配
 function rollAll(){
   const c = CRITTERS[state.active];
+  state.initialHpDice[c.id] = 1 + Math.floor(Math.random()*10);
   state.sets[c.id] = ABILITIES.map(()=>roll4());
   state.slot[c.id] = {};
   state.sel = null;
@@ -269,7 +270,8 @@ function quickBattle(battleId="ambush",phase="combat"){
   const kit = {fox:["背包","奧術法杖","輕弩","矢匣","法袍","+1 薩滿袍","治療藥水","鍊金火"], tiger:["背包","戰斧","輕弩","矢匣","盾牌","鏈甲","鏈甲衫","網子","酸液瓶"], wolf:["背包","短弓","箭袋","鏈甲衫","鑲釘皮甲","短劍","網子","治療藥水"], raccoon:["背包","短弓","箭袋","鑲釘皮甲","破布衣","鍊金火","酸液瓶"]};
   CRITTERS.forEach((c,i)=>{
     state.active = i;
-    state.sets[c.id] = ABILITIES.map(()=>roll4()); state.slot[c.id] = {};
+    state.initialHpDice[c.id] = 1 + Math.floor(Math.random()*10);
+  state.sets[c.id] = ABILITIES.map(()=>roll4()); state.slot[c.id] = {};
     const order = Object.keys(c.bg).sort((a,b)=>c.bg[b]-c.bg[a]); ABILITIES.forEach(a=>{ if(!order.includes(a.k)) order.push(a.k); });
     const hi = state.sets[c.id].map((_,j)=>j).sort((a,b)=>scoreOf(state.sets[c.id][b])-scoreOf(state.sets[c.id][a]));
     order.forEach((k,n)=> state.slot[c.id][k] = hi[n]);
