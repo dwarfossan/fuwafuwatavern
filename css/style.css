@@ -489,7 +489,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .cov-tag{pointer-events:none}
 .cov-tag text{fill:#ffd9d2;font-size:18px;font-weight:700;font-family:var(--font-body)}
 .board .tile:hover{filter:brightness(1.15)}
-.board .token{cursor:pointer}
+.board .token{cursor:pointer;transition:none} /* 戰場 SVG token 不繼承創角籌碼的 transform transition；探索角色與 HUD 必須逐幀同步 */
 
 .board .token.down > ellipse{opacity:.4}
 .board .gob{transform-box:fill-box;transform-origin:50% 100%}
