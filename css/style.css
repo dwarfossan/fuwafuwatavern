@@ -256,27 +256,28 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 /* 劇情裡的被動感知（2026-10-01 大爺）：至少一隻察覺到才出現；對話框底部、對齊下面四張卡片
    骰子停在 10（被動不擲骰）＋感知＝總和，成功綠、失敗灰；卡片上跳跟戰鬥一樣的 ❗／❓ 泡泡，成功的卡片抖一下 */
-.spot-row{position:absolute;left:3%;right:3%;bottom:calc(4% + 24px);display:grid;grid-template-columns:repeat(4,1fr);gap:6px 8px;pointer-events:none;z-index:2}
+.spot-row{position:absolute;left:3%;right:3%;bottom:calc(4% + 24px);display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;pointer-events:none;z-index:2}
 .spot-row .spot-title{grid-column:1/-1;justify-self:center;max-width:100%;font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--honey);
-  background:rgba(24,19,28,.94);border:1px solid var(--plank-2);border-radius:999px;padding:0 10px;
+  padding:4px 0;
   display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px;white-space:normal}
+.spot-title .dp-die{flex-shrink:0}
 .spot-title .dp-die svg{width:20px;height:20px}
 .spot-title .dp-die small{display:none}
 .spot-title b{font-size:14px;color:var(--fur)}
 .spot-cell{display:flex;align-items:center;justify-content:center;gap:2px;--land:0ms}
 .spot-cell .dp-total{min-width:2.2em}
 .spot-cell .dp-total b{font-size:20px;-webkit-text-stroke:2.5px #1f1a24}
-.dialog.with-spot{padding-bottom:90px}
+.dialog.with-spot{padding-bottom:102px}
 .dialog.with-spot .hint{bottom:6px}   /* 提示留在骰子列下方，避免與台詞重疊 */
 @media (max-width:520px){   /* 手機：一格只有 80 像素寬，骰子和數字縮小才放得下 */
-  .spot-row{gap:6px 2px}
+  .spot-row{gap:10px 2px}
   .spot-cell{gap:0}
   .spot-cell .dp-die svg{width:22px;height:22px}
   .spot-cell .dp-die small{display:none}
   .spot-cell .dp-mod{font-size:12px;margin:0 1px}
   .spot-cell .dp-total{min-width:1.6em;margin-left:1px}
   .spot-cell .dp-total b{font-size:16px;-webkit-text-stroke:2px #1f1a24}
-  .dialog.with-spot{padding-bottom:86px}
+  .dialog.with-spot{padding-bottom:98px}
 }
 .pf{position:relative}
 .c-head{display:block;object-fit:contain;user-select:none}   /* 四小隻新畫風頭像（10-03） */
