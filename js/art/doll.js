@@ -187,7 +187,7 @@ function dollSVG(o){
       <ellipse class="dl-foot-left" cx="60" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <ellipse class="dl-foot-right" cx="80" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <g class="dl-bob">
-        ${o.backpack?`<g class="dl-backpack" transform="translate(42 74) scale(.42)">${ITEM_RAW.backpack}</g>`:""}
+        <g class="dl-backpack" transform="translate(42 74) scale(.42)">${o.backpack?ITEM_RAW.backpack:""}</g>
         ${L.tail}
         <path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>
         ${L.belly?`<ellipse cx="70" cy="113" rx="13" ry="14" fill="#fbf4ee" opacity=".85"/>`:""}
