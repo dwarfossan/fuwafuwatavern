@@ -17,7 +17,7 @@ try{
   const layers=ids.map(id=>document.getElementById(id));
   const children=layers.map(e=>e.firstElementChild);const ui=document.querySelector('[data-battle-ui="head"]').firstElementChild;
   B().moveMode=true;updateBoardMarks();
-  const marksOnly=layers[0].firstElementChild===children[0]&&layers[2].firstElementChild===children[2]&&document.querySelector('[data-battle-ui="head"]').firstElementChild===ui&&layers[1].firstElementChild!==children[1];
+  const marksOnly=layers[0].firstElementChild===children[0]&&layers[2].firstElementChild===children[2]&&document.querySelector('[data-battle-ui="head"]').firstElementChild===ui&&layers[1].firstElementChild===children[1];
   const mark=layers[1].firstElementChild;updateBoardFloor();
   const floorOnly=layers[1].firstElementChild===mark&&layers[2].firstElementChild===children[2];
   const floor=layers[0].firstElementChild,wrap=document.querySelector('.board-wrap'),board=document.querySelector('.board');render();
@@ -43,6 +43,12 @@ try{
     &&document.querySelector('[data-battle-ui="dice"]').firstElementChild===dice;
  });
  assert(aimStable);console.log('✓ 選攻擊不重建場景與未變 UI');
+ const uiMorph=await pg.evaluate(()=>{
+  const b=B(), hud=document.querySelector('[data-battle-ui="hud"]'), hudChild=hud.firstElementChild, marks=document.getElementById('board-marks').firstElementChild, scene=document.getElementById('board-scene').firstElementChild;
+  b.menu=b.menu==='root'?'skills':'root';refreshBattle();
+  return {hud:hud.firstElementChild===hudChild,marks:document.getElementById('board-marks').firstElementChild===marks,scene:document.getElementById('board-scene').firstElementChild===scene};
+ });
+ assert(uiMorph.hud&&uiMorph.marks&&uiMorph.scene);console.log('✓ 玩家 UI 切換就地更新，不拔 layer DOM');
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
  for(const [x,y,moving] of [[10,15,false],[10,15,true],[2,21,false],[2,21,true]]){
