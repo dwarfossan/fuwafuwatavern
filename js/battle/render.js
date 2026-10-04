@@ -170,7 +170,7 @@ function updateBoardMarks(){
 }
 // 物件、棋子、當前腳下光與演出共用排序；一般事件才重建此層。探索連續移動保留 DOM，只搬角色 transform。
 function updateBoardScene(){
-  const layer=document.getElementById("board-scene"); if(layer) layer.innerHTML=boardSceneHTML();
+  const layer=document.getElementById("board-scene"); if(layer) patchBattleHTML(layer,boardSceneHTML(),true);
 }
 function syncBoardCamera(){
   const svg=document.querySelector(".board"), b=B(); if(!svg) return;
