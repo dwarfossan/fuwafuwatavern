@@ -27,6 +27,22 @@ try{
   return {marksOnly,floorOnly,retained,terrain};
  });
  for(const [k,v] of Object.entries(identity)){assert(v,k);console.log('✓ '+k);}
+ // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
+ const aimStable=await pg.evaluate(()=>{
+  const b=B(),u=cur(),sk=unitSkills(u).find(s=>s.impl&&!s.impl.passive&&s.impl.target);
+  if(!sk)return false;
+  b.mode=null;b.menu='skills';refreshBattle();
+  const scene=document.getElementById('board-scene').firstElementChild;
+  const head=document.querySelector('[data-battle-ui="head"]').firstElementChild;
+  const order=document.querySelector('[data-battle-ui="order"]').firstElementChild;
+  const dice=document.querySelector('[data-battle-ui="dice"]').firstElementChild;
+  chooseSkill(sk.key);
+  return document.getElementById('board-scene').firstElementChild===scene
+    &&document.querySelector('[data-battle-ui="head"]').firstElementChild===head
+    &&document.querySelector('[data-battle-ui="order"]').firstElementChild===order
+    &&document.querySelector('[data-battle-ui="dice"]').firstElementChild===dice;
+ });
+ assert(aimStable);console.log('✓ 選攻擊不重建場景與未變 UI');
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
  for(const [x,y,moving] of [[10,15,false],[10,15,true],[2,21,false],[2,21,true]]){
