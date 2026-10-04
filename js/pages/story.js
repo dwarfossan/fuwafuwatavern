@@ -45,8 +45,7 @@ function dialogInner(line, who, done){
     extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
       return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
   if(line.roll){ const c = state.caravan;
-    extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${dieFace(20, c.roll, 0, DICE_TUMBLE, c.flick, false)}<span class="dp-mod">${c.mod>=0?"+":"−"}${Math.abs(c.mod)}</span>
-      <span class="dp-total ${c.ok?"res-hit":"res-miss"}"><b>${c.total}</b></span><span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
+    extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
   return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice?"":"▼ 點一下繼續"}</span>`;
 }
 const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"毛毛們"} : WHO(line.who);
@@ -65,12 +64,11 @@ function spotRowHTML(){
   if(hit){
     const [i, x] = hit, foe = ENEMIES[BATTLES[sc.battle].foes[i].type], m = abilityMods(foe).DEX;
     const flick = [0,1,2].map(()=>1 + Math.floor(Math.random()*20));
-    title = `${foe.name}潛行 ${dieFace(20, x.roll, 0, DICE_TUMBLE, flick, false)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span><span class="spot-equals">＝</span><b class="${x.spotted.length?"res-miss":"res-hit"}">${x.hide}</b>${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
+    title = `${foe.name}潛行 ${diceFormulaHTML({dice:dieFace(20,x.roll,0,DICE_TUMBLE,flick,false),base:x.roll,total:x.hide,result:x.spotted.length?"miss":"hide",land:DICE_TUMBLE})}${x.hide < HIDE_DC ? "（沒躲好）" : ""}　被動感知`;
   }
   return `<div class="spot-row" aria-label="被動感知"><span class="spot-title">${title}</span>${CRITTERS.map(c=>{
     const m = modOf(finalScore(c.id,"WIS")), ok = who.includes(c.id);
-    return `<div class="spot-cell">${dieFace(20, 10, 0, 0, [], false, null, true)}<span class="dp-mod">${m>=0?"+":"−"}${Math.abs(m)}</span>
-      <span class="spot-equals">＝</span><span class="dp-total ${ok?"res-hit":"res-miss"}"><b>${10+m}</b></span></div>`;
+    return `<div class="spot-cell">${diceFormulaHTML({dice:dieFace(20,10,0,0,[],false,null,true),base:10,total:10+m,result:ok?"hit":"miss"})}</div>`;
   }).join("")}</div>`;
 }
 function showSpot(on){

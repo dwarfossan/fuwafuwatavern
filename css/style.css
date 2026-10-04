@@ -264,7 +264,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .spot-title .dp-die svg{width:20px;height:20px}
 .spot-title .dp-die small{display:none}
 .spot-title b{font-size:14px}
-.spot-equals{font-size:12px;color:var(--dim)}
+.dice-equals{font-size:12px;color:var(--dim);opacity:0;animation:dp-pop .18s ease-out both;animation-delay:var(--land)}
+.spot-title .dp-total{min-width:0;margin-left:0}
+.spot-title .dp-total b{font-size:14px;-webkit-text-stroke:0}
+.spot-row .dp-total{flex-shrink:0}
 .spot-cell{display:flex;align-items:center;justify-content:center;gap:2px;--land:0ms}
 .spot-cell .dp-total{min-width:2.2em}
 .spot-cell .dp-total b{font-size:20px;-webkit-text-stroke:2.5px #1f1a24}

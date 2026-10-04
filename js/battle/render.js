@@ -672,6 +672,12 @@ function dieFace(sides, v, start, land, flick, drop, tint, still){
     <text class="dp-n" y="4.5" text-anchor="middle" style="animation-delay:${land}ms">${v}</text></g></svg><small>d${sides}</small></span>`;
 }
 const DMG_TINT = {"毒素":"#7fd0a0", "物理":"#f6e9d8", "法術":"#c9b5ff", "特殊":"#ffd36a", "火焰":"#f2903a", "強酸":"#a8e07a"};
+// 所有劇情／探索／戰鬥骰子共用：骰面＋調整值＝結算，結果色只在此選擇。
+function diceFormulaHTML({dice, base, total, result, label="", land=0, tint, half=false}){
+  const colors={hit:"#9be08a",found:"#9be08a",miss:"#b9a9b5",fumble:"#ff8a7a",crit:"#ffd36a",save:"#8fd0f0",fail:"#ff8a7a",hide:"#8fd0f0"};
+  const mod=total-base, adjustment=`${mod>=0?"+":"−"}${Math.abs(mod)}`;
+  return `${dice}<span class="dp-mod" style="--land:${land}ms">${adjustment}</span><span class="dice-equals" style="--land:${land}ms">＝</span><span class="dp-total" style="--land:${land+40}ms;color:${colors[result]||tint||"#f6e9d8"}"><b>${total}</b>${label?`<small>${label}</small>`:""}</span>`;
+}
 function dicePanelHTML(b){
   const p = b.panel, now = Date.now();
   if(!p || !p.rows.length || b.panelHidden) return "";
@@ -688,15 +694,12 @@ function dicePanelHTML(b){
       const ds = r.t + DMG_OFF - now, dl = ds + DICE_TUMBLE, shown = dmgShown(r.type||""), tint = DMG_TINT[shown] || "#f6e9d8";
       const sum = r.faces.reduce((a,f)=>a+f.v, 0), mod = (r.dmg||0) - sum;
       const half = r.kind==="save" && r.res==="save" && mod < 0;          // 豁免成功傷害減半
-      dmg = `<div class="dp-dmg">${r.faces.slice(0,6).map(f=>dieFace(f.sides, f.v, ds, dl, r.flick, false, tint)).join("")}
-        ${mod && !half ? `<span class="dp-mod" style="--land:${dl}ms">${mod>0?"+":"−"}${Math.abs(mod)}</span>` : ""}
-        <span class="dp-total" style="--land:${dl + 60}ms;color:${tint}"><b>${r.dmg||0}</b><small>${half ? "減半" : shown}</small></span></div>`;
+      dmg = `<div class="dp-dmg">${diceFormulaHTML({dice:r.faces.slice(0,6).map(f=>dieFace(f.sides,f.v,ds,dl,r.flick,false,tint)).join(""),base:sum,total:r.dmg||0,land:dl+20,tint,half,label:half?"減半":shown})}</div>`;
     }
     return `<div class="dp-row">
       ${p.rows.length > 1 || r.kind==="save" ? `<span class="dp-tg">${r.tname.slice(pre.length)}</span>` : ""}
-      <div class="dp-atk">${d20}<span class="dp-total res-${r.res}" style="--land:${land + 40}ms"><b>${r.total}</b><small>${RES_TEXT[r.res]}</small></span></div>
-      ${dmg}${r.vs ? `<div class="dp-dmg dp-vs"><span class="dp-vs-n">${r.vs.name}</span>${dieFace(20, 10, r.t - now, land, r.flick, false, null, true)}
-        <span class="dp-total res-${r.vs.res}" style="--land:${land + 40}ms"><b>${r.vs.n}</b><small>${RES_TEXT[r.vs.res]}</small></span></div>` : ""}</div>`;
+      <div class="dp-atk">${diceFormulaHTML({dice:d20,base:r.used,total:r.total,result:r.res==="hide"&&r.vs?.res==="found"?"miss":r.res,land,label:RES_TEXT[r.res]})}</div>
+      ${dmg}${r.vs ? `<div class="dp-dmg dp-vs"><span class="dp-vs-n">${r.vs.name}</span>${diceFormulaHTML({dice:dieFace(20,10,r.t-now,land,r.flick,false,null,true),base:10,total:r.vs.n,result:r.vs.res,land,label:RES_TEXT[r.vs.res]})}</div>` : ""}</div>`;
   }).join("");
   // 三列以上（例如偷襲：潛行、被動、攻擊）每列變矮，整塊塞進戰場上緣到螢幕頂端之間，標題不會被擠出畫面（大爺 10-02 選 a）
   // 「還有 N 個」也搬到標題列，不多佔一行
