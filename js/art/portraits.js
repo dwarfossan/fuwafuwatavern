@@ -31,9 +31,9 @@ function setPortraitFace(root, face){
   const src = faceSrc(id, face);
   if(!img.getAttribute("src").endsWith(src)) img.setAttribute("src", src);
 }
-// 先把所有臉載進來，換表情時才不會閃一下空白
+// 開場角色先預載表情；城鎮 NPC 由 portraitHTML 的圖片在出現時才載入。
 (function preloadPortraits(){ if(typeof Image==="undefined") return;
-  Object.keys(PORTRAITS).forEach(id=>{ const p = PORTRAITS[id]; [p.base, ...(p.sheet?[p.sheet]:(p.list||[]).map(f=>p.faces+f+".webp"))].forEach(s=>{ const i = new Image(); i.src = s; }); }); })();
+  Object.keys(PORTRAITS).filter(id=>!Object.values(TOWN_PORTRAIT).includes(id)).forEach(id=>{ const p = PORTRAITS[id]; [p.base, ...(p.sheet?[p.sheet]:(p.list||[]).map(f=>p.faces+f+".webp"))].forEach(s=>{ const i = new Image(); i.src = s; }); }); })();
 
 /* 四小隻的頭（大爺 10-03 給的新畫風，210×210，assets/faces/<id>/）：劇情卡片、擲屬性、商店、角色介紹用；戰場、大地圖維持 SVG
    表情檔名見 assets/faces/README.md；沒有的表情退回 normal */
