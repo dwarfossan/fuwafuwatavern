@@ -990,19 +990,7 @@ function syncWeaponSet(u){
     if(isTwoHand(u.spare&&u.spare[0])) u.offhand2=null;
   }
 }
-function switchWeaponSet(u,set){
-  if(!u||u.side!=="pc")return;
-  if(set===2 && equipmentRequirement(u.spare?.[0],k=>abilityScore(u,k)))return;
-  u.activeSet=set===2?2:1;
-  // 戰鬥實際使用欄位永遠指向目前配置；切組不消耗任何動作。
-  if(u.activeSet===2){
-    const a=u.weapon, b=u.spare&&u.spare[0]||null;
-    u.weapon=b; u.spare[0]=a;
-    const sh=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, next=u.offhand2; u.shield=next?.type==="shield";u.offhand=u.shield?null:next;u.offhand2=sh;
-    u.activeSet=1; // 交換後目前組仍以 UI 的配置Ⅰ代表
-  }
-  syncWeaponSet(u);
-}
+function switchWeaponSet(u,set){ return StatusCard.switchUnit(u,set); }
 function equipItemAt(u, from, to){
   if(!u || u.side!=="pc") return false;
   u.backpack=u.backpack||[]; u.spare=u.spare||[]; u.accessories=u.accessories||[];
@@ -1068,7 +1056,7 @@ function equipItemAt(u, from, to){
   if((to==="weapon1"||from==="weapon1") && isTwoHand(u.weapon) && (u.shield||u.offhand)){u.backpack.push(u.shield?shieldObj():u.offhand);u.shield=false;u.offhand=null;}
   if((to==="weapon2"||from==="weapon2") && isTwoHand(u.spare[0]) && u.offhand2){u.backpack.push(u.offhand2);u.offhand2=null;}
   syncBattleBag(u);
-  blog(`${u.name}整理了裝備`,"skill");
+  if(state.page==="battle" && B())blog(`${u.name}整理了裝備`,"skill");
   return true;
 }
 function bindGearDrag(){
@@ -1077,7 +1065,7 @@ function bindGearDrag(){
   // 長按前手指移動超過門檻就當成捲動，交給瀏覽器捲清單。滑鼠、裝備格照舊一按住就能拖
   const LONG_PRESS=300, SCROLL_TOL=8;
   document.querySelectorAll("[data-gearitem]").forEach(el=>{
-    battleListen(el,"pointerdown",e=>{
+    modalListen(el,"pointerdown",e=>{
       if(e.button!==undefined&&e.button!==0)return;
       const needHold=e.pointerType==="touch"&&!!el.closest(".gear-bagitems");
       let armed=!needHold, timer=null;
@@ -1113,9 +1101,9 @@ function bindGearDrag(){
         // 單純點擊裝備圖示不是拖曳。只有真的移動到拖曳門檻後才執行換裝，
         // 否則像背包圖示的 click 會在 pointerup 時被 render() 吃掉，導致背包無法打開。
         if(didDrag&&t&&d){
-          const b=B(),u=b&&b.units.find(x=>x.id===d.uid);
+          const b=StatusCard.context(d.uid),u=critterStatusUnit(d.uid);
           const to=t.dataset.gearslot||"bag";
-          if(equipItemAt(u,d.from,to)){ b.info=u.id; refreshBattle(); }
+          if(equipItemAt(u,d.from,to)){ b.info=u.id; refreshGameUI(); }
         }
       };
       if(needHold) timer=setTimeout(()=>{ armed=true; lift(); },LONG_PRESS);
@@ -1124,58 +1112,6 @@ function bindGearDrag(){
     });
   });
 }
-function infoHTML(v, b, embedded=false){
-  const pct=v.hp/v.maxHp, held=embedded?[]:victimsOf(v);
-  const statusItems=[...v.statuses.map((x,i)=>{const sb=STATUS_BADGE[x.k];return {s:x,key:`s${i}`,icon:sb?.[0]||null,good:sb?.[1]||0,n:stTurns(x),label:statusLabel(v,x),desc:statusExplain(v,x)}}),...held.map((x,i)=>({s:null,key:`h${i}`,icon:"grab",good:1,n:null,label:`抓住${x.name}`,desc:`目前正抓住${x.name}；依擒抱規則限制對方移動。`}))];
-  const shownStatus=[], plainStatus=[]; statusItems.forEach(x=>{if(!x.icon){if(!plainStatus.some(y=>y.label===x.label))plainStatus.push(x);return;}const prev=shownStatus.find(y=>y.icon===x.icon);if(prev){if(x.n!=null)prev.n=Math.max(prev.n||0,x.n);return;}shownStatus.push({...x});});
-  const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges">${shownStatus.map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}${plainStatus.map(x=>`<button class="status-unit-badge plain ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}">${x.label}</button>`).join("")}</div>`:"";
-  const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
-  // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
-  const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,mood:v.svgMood,levelUpAt:v.levelUpAt,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
-  const page=v.side==="pc"?(b.infoPage||"status"):"status";
-  const tabs=v.side==="pc"&&!embedded?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
-  const notes=v.side==="pc"&&!embedded?notebookPageHTML(v,b):"";
-  let statusPage="";
-  const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
-  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
-  const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
-  if(v.side==="pc"){
-    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=abilityScore(v,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
-    const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:v.offhand||null;
-    const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
-    const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
-    const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=abilityScore(v,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
-    const bagOpen=!embedded&&!!b.gearBagOpen;
-    const bagIt=v.backpackEquip||null;
-    const bag=`<div class="status-eqslot backpack ${bagOpen?"on":""}" data-gearslot="backpack"><small>背包</small>${bagIt?`<button class="status-eqitem status-bagbtn eq-tip" data-bagtoggle data-uid="${v.id}" data-gearitem="backpack" data-tip="${eqTip(bagIt)}" aria-label="${bagOpen?"收起":"打開"}背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button>`:`<span class="status-eqempty">＋</span>`}</div>`;
-    const bagDrawer=bagOpen?`<div class="status-bagdrawer gear-bag" data-gearbag><div class="gear-load"><div class="gear-load-head"><span>負重</span><b>${+load.toFixed(1)} / ${cap} lb</b></div><div class="gear-load-track"><div class="gear-load-fill" style="width:${loadPct}%"></div></div></div><div class="gear-bagitems">${(v.backpack||[]).map((it,i)=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-uid="${v.id}" data-gearitem="bag:${i}" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${equipmentArtKey(it)?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty bag-drop">背包是空的；可把裝備拖到這裡</span>`}</div></div>`:"";
-    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
-  } else {
-    // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（介面沿用只顯示調整值，資料保存完整屬性值）；不顯示熟練格、燈號、小筆記
-    // 背包：看穿（被動感知、搜索）或打倒之後才打得開（大爺 10-02）
-    const big=`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:sideColor(v),look:MONSTER_LOOK[v.look],...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`;
-    const roSlot=(it,label,cls)=>`<div class="status-eqslot ro ${cls}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:""}</div>`;
-    const known=pocketKnown(v), bagOpen=known && !!b.gearBagOpen, items=v.backpack||[];
-    const bag=known
-      ? `<div class="status-eqslot backpack ro ${bagOpen?"on":""}"><small>背包</small><button class="status-eqitem status-bagbtn" data-bagtoggle aria-label="${bagOpen?"收起":"打開"}${v.name}的背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button></div>`
-      : `<div class="status-eqslot backpack ro locked" title="還沒看穿牠身上帶了什麼"><small>背包</small><span class="status-eqempty">？</span></div>`;
-    const drawer=`<div class="status-bagdrawer gear-bag"><div class="gear-bagitems">${items.map(it=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${g?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty">身上沒帶東西</span>`}</div></div>`;
-    const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const m=v.mods[a.k]||0;return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${m>=0?"+":""}${m}</b></div></div>`}).join("")}</div>`;
-    const main=v.weapon||v.focus||null;
-    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${big}</div>${bag}${roSlot(v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${roSlot(v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${roSlot(v.armor,"身體","armor")}${roSlot(main,"主手","main")}${isTwoHand(main)?`<div class="status-eqslot ro off locked"><small>副手</small><span class="gear-empty">雙手</span></div>`:roSlot(v.shield?{n:"盾牌",type:"shield",id:"shield"}:null,"副手","off")}</div>${bagOpen?drawer:abilities}</div>`;
-  }
-  const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
-  return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
-    ${embedded?"":`<button class="inf-x" data-closeinfo aria-label="關閉">✕</button>`}
-    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　${levelButtonHTML(v.id)}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}） · `:""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
-    ${infoBarsHTML(v, pct)}
-    ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
-    ${v.side==="pc"?slotGridHTML(v,b):""}
-    ${v.oaUsed&&!v.down&&!v.dead?`<div class="inf-g dim">這輪已經藉機攻擊過了</div>`:""}
-    ${tabs}${pageBody}
-  </div>`;
-}
-
 // ---------- 戰鬥紀錄 ----------
 // 把紀錄整理成「事件」：一行開頭（誰做了什麼）＋底下細節裡的短結果（命中、8 點穿刺、倒地……）
 function logEvents(log){
@@ -1262,7 +1198,7 @@ function battleInterfaceHTML(){
       <button class="btn ghost" id="toTavern">傳送回酒館</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);
-    if(iv) ov += infoHTML(iv, b);
+    if(iv) ov += StatusCard.render(iv, b);
   }
   // 右下角指令列：我方回合一直在（演出中變淡、不能按）；敵人回合收起來不擋畫面
   let dock = "";
@@ -1404,7 +1340,6 @@ function bindBattle(){
   document.querySelectorAll("[data-swap]").forEach(el=>battleListen(el,"click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-sltoggle]").forEach(el=>battleListen(el,"click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); refreshBattle(); }));
-  document.querySelectorAll("[data-cardslt]").forEach(el=>battleListen(el,"click", e=>{ e.stopPropagation(); const b=B(); b.cardSlotsOpen=!b.cardSlotsOpen; sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
     if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
@@ -1417,17 +1352,13 @@ function bindBattle(){
   battleListen(document.getElementById("masterVolume"),"input", e=>{ SFX.setVolume(+e.target.value/100); const n=document.getElementById("volNum"); if(n)n.textContent=`${e.target.value}%`; document.getElementById("sndToggle")?.classList.toggle("off",+e.target.value===0); });
   document.querySelectorAll("[data-sys]").forEach(el=>battleListen(el,"click",()=>{ const a=el.dataset.sys; b.sysPop=null; if(a==="continue"){refreshBattle();return;} if(a==="party"){const p=b.units.find(x=>x.side==="pc"); if(p){b.info=p.id;b.infoPage="status";} refreshBattle();return;} if(a==="about"){state.modal={kind:"about"};refreshBattle();return;} if(a==="title"){state.page="cover";refreshBattle();window.scrollTo(0,0);} }));
   battleListen(document.querySelector("[data-closeinfo]"),"click", ()=>{ B().info = null; refreshBattle(); });
-  document.querySelectorAll("[data-infopage]").forEach(el=>battleListen(el,"click", ()=>{ B().infoPage=el.dataset.infopage; sfx("pop"); refreshBattle(); }));
-  battleListen(document.querySelector("[data-bagtoggle]"),"click", e=>{ e.stopPropagation(); const b=B(); b.gearBagOpen=!b.gearBagOpen; sfx("pop"); refreshBattle(); });
-  battleListen(document.querySelector("[data-switchset]"),"click", e=>{ e.stopPropagation(); const b=B(),u=b.units.find(x=>x.id===b.info); if(u){switchWeaponSet(u,2); syncBattleBag(u); sfx("pop"); refreshBattle();} });
-  document.querySelectorAll("[data-statustip]").forEach(el=>battleListen(el,"click", ()=>{ const b=B(),k=el.dataset.statustip; b.statusTip=b.statusTip===k?null:k; sfx("pop"); refreshBattle(); }));
+  StatusCard.bind(document);
   document.querySelectorAll("[data-notepage]").forEach(el=>battleListen(el,"click", ()=>{ const [id,p]=el.dataset.notepage.split(":"); const b=B(); b.notePages=b.notePages||{}; b.notePages[id]=Math.max(1,+p||1); sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{
     const b=B(),u=b&&b.units.find(x=>x.id===b.info); if(!u)return;
     if(!toggleCarriedSkill(u,el.dataset.noteskill)){sfx("bad");return;}
     sfx("pop"); refreshBattle();
   }));
-  bindGearDrag();
   document.querySelectorAll("[data-teach]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.teach.split(":"); const u=B().units.find(x=>x.id===id); if(u){learnFromLingling(u,key);refreshBattle();} }));
   document.querySelectorAll("[data-erase]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.erase.split(":"); const u=B().units.find(x=>x.id===id); if(u&&eraseNote(u,key)){syncLearnedState();refreshBattle();} }));
   if(b.exploreRest)bindRestNotebook(b);

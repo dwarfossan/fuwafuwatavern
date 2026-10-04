@@ -1,0 +1,25 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('js/ui/status-card.js','utf8');
+const render=fs.readFileSync('js/battle/render.js','utf8');
+const weaponFns=render.slice(render.indexOf('function isTwoHand('),render.indexOf('function equipItemAt('));
+const inventory=[{id:'a',n:'劍',type:'weapon',props:[]},{id:'b',n:'弓',type:'weapon',props:[]},{id:'s',n:'盾牌',type:'shield'},{id:'r',type:'armor'},{id:'bag',type:'gear'}];
+const state={startingGear:{},battle:null,townRest:null};
+const ctx={state,invItems:()=>inventory,equipmentRequirement:()=>false,abilityScore:()=>16,bestBag:()=>inventory[4]};
+ctx.syncBattleBag=u=>{u.items=(u.backpack||[]).filter(i=>i.type==='consumable');vm.runInContext('StatusCard',ctx).saveGear(u);};
+vm.createContext(ctx);vm.runInContext(source+weaponFns,ctx);const card=vm.runInContext('StatusCard',ctx);
+ctx.critterStatusUnit=id=>state.battle?.units.find(u=>u.id===id)||state.townRest?.units.find(u=>u.id===id)||{id,side:'pc',...card.readGear(id)};
+assert.equal(card.readGear('fox').weapon.id,'a');assert(card.switchWeapon('fox'));
+assert.equal(state.startingGear.fox.main,'b');assert.equal(state.startingGear.fox.second,'a');assert.equal(state.startingGear.fox.secondOff,'s');
+assert.equal(card.readGear('fox').weapon.id,'b','劇情重開卡保存切換');
+const u={id:'fox',side:'pc',...card.readGear('fox')};
+state.battle={phase:'explore',units:[u],freeUsed:1,actionUsed:true};assert(card.switchWeapon('fox'));assert.equal(u.weapon.id,'a');assert.equal(u.shield,true);assert.equal(state.startingGear.fox.off,'s');
+state.battle.phase='combat';assert(card.switchWeapon('fox'));assert.equal(u.weapon.id,'b');assert.equal(state.battle.freeUsed,1);assert.equal(state.battle.actionUsed,true);
+state.townRest=state.battle;state.battle=null;assert(card.switchWeapon('fox'));assert.equal(u.weapon.id,'a');
+state.townRest=null;assert.equal(card.readGear('fox').weapon.id,'a','離開戰場後配置一致');
+ctx.equipmentRequirement=it=>it?.id==='b'?'限制':false;assert.equal(card.switchWeapon('fox'),false);assert.equal(state.startingGear.fox.main,'a');
+assert.equal((render.match(/function infoHTML/g)||[]).length,0);
+for(const file of ['js/ui/cards.js','js/battle/render.js']){const text=fs.readFileSync(file,'utf8');assert(text.includes('StatusCard.render('));assert(text.includes('StatusCard.bind(document)'));}
+for(const file of ['js/rules.js','js/battle/engine.js'])assert(fs.readFileSync(file,'utf8').includes('StatusCard.readGear('));
+console.log('PASS：共用狀態卡；劇情→探索→戰鬥→城鎮→劇情武器／盾牌配置持續一致；裝備限制及動作資源保留。');

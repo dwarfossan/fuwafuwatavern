@@ -624,6 +624,7 @@ function syncBattleBag(u){
   u.backpack=u.backpack||[];
   // 「道具」不是第二個背包，只是同一背包中可在戰鬥使用的消耗品檢視。
   u.items=u.backpack.filter(it=>it.type==="consumable");
+  StatusCard.saveGear(u);
 }
 function itemTargets(u, it){
   const k = it.use.kind;
@@ -700,11 +701,7 @@ function useItem(u, it, t){
 function swapWeapon(u, i){
   const w=u.spare&&u.spare[i];
   if(!w || equipmentRequirement(w,k=>abilityScore(u,k)))return;
-  const old=u.weapon, oldOff=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, nextOff=u.offhand2||null;
-  u.weapon=w; u.spare[i]=old;
-  u.shield=nextOff?.type==="shield";u.offhand=u.shield?null:nextOff;
-  u.offhand2=oldOff;
-  if(isTwoHand(u.weapon) && u.shield){u.offhand2={n:"盾牌",type:"shield",_shield:true};u.shield=false;}
+  if(!StatusCard.switchUnit(u,2))return;
   blog(`${u.name}切換了武器組：${u.weapon.n}${u.shield?"＋盾牌":""}`,"skill");
   refreshBattle();
 }

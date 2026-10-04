@@ -53,24 +53,12 @@ function startBattle(id, retry=false, phase="combat"){
   const def = BATTLES[id];
   const units = [];
   CRITTERS.forEach((c,i)=>{
-    const inv = invItems(c.id);
-    const usable = it=>!equipmentRequirement(it,k=>abilityScore(c.id,k));
     const scores = abilityScores(c.id), mods = abilityMods({scores});
     const lv = critterLevel(c.id), hp = maxHpAt(lv, mods.CON, c.id);   // 每升一級 +5＋體質（大爺 10-04）
     units.push({
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
-      weapon: inv.find(it=>(it.type==="weapon" || it.type==="focus") && usable(it)) || null,
-      spare:  inv.filter(it=>(it.type==="weapon" || it.type==="focus") && usable(it)).slice(1,2),
-      items:  [],
-      focus:  null,
-      shield: inv.some(it=>it.type==="shield"),
-      offhand2: null,
-      activeSet: 1,
-      armor:  inv.find(it=>it.type==="armor" && usable(it)) || null,
-      accessories: inv.filter(it=>it.type==="accessory").slice(0,2),
-      backpackEquip: bestBag(inv),
-      backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.filter(it=>!usable(it)),...ws.filter(usable).slice(2),...ar.filter(it=>!usable(it)),...ar.filter(usable).slice(1),...ac.slice(2),...ge,...co]; })(),
+      ...StatusCard.readGear(c.id),items:[],
       speed:6, statuses:[], learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
@@ -99,12 +87,6 @@ function startBattle(id, retry=false, phase="combat"){
       weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpack:[], backpackEquip:null,
       speed:d.speed, statuses:[], level:1, down:false, face:n.face||1, oaUsed:false, slots:[0]
     });
-  });
-  units.filter(u=>u.side==="pc").forEach(u=>{
-    const saved=state.startingGear?.[u.id];if(!saved)return;
-    const pool=invItems(u.id).slice(), take=key=>{const id=saved[key],i=pool.findIndex(it=>it.id===id&&!equipmentRequirement(it,k=>abilityScore(u,k)));return i<0?null:pool.splice(i,1)[0];};
-    u.weapon=take("main");const off=take("off");u.shield=off?.type==="shield";u.offhand=u.shield?null:off;
-    u.spare=[take("second")].filter(Boolean);u.offhand2=take("secondOff");u.armor=take("armor");u.backpackEquip=take("bag");u.backpack=pool;u.focus=null;
   });
   units.filter(u=>u.side==="pc").forEach(u=>{ u.born = u.weapon ? u.weapon.n : null; syncBattleBag(u); });
   units.forEach(u=>{

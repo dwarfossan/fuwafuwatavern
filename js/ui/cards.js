@@ -134,8 +134,8 @@ function renderModal(){
     body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p>${ABOUT.srd.map(x=>`<p class="about-en" lang="en">${link(x.en)}</p>`).join("")}</div>`;
   }
   if(m.kind==="character"){
-    const u=critterStatusUnit(m.id),ctx={phase:"explore",infoPage:"status",gearBagOpen:false,statusTip:null,cardSlotsOpen:false};
-    body=u?infoHTML(u,ctx,true):"";
+    const u=critterStatusUnit(m.id),ctx=StatusCard.context(m.id);
+    body=u?StatusCard.render(u,ctx,true):"";
   }
   if(m.kind==="skill"){
     const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
@@ -151,17 +151,7 @@ function modalListen(el,type,fn){
 }
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
-  document.querySelectorAll(".character-status-card [data-switchset]").forEach(el=>modalListen(el,"click",e=>{
-    e.stopPropagation();
-    const id=state.modal?.id,live=progressionUnits(id)[0];
-    if(live){switchWeaponSet(live,2);syncBattleBag(live);}
-    else {
-      const load=state.startingGear?.[id];if(!load)return;
-      [load.main,load.second]=[load.second,load.main];
-      [load.off,load.secondOff]=[load.secondOff,load.off];
-    }
-    sfx("pop");refreshGameUI();
-  }));
+  StatusCard.bind(document);
   document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
     e.stopPropagation();
     if(levelUp(el.dataset.levelup))refreshGameUI();

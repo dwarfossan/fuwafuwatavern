@@ -69,7 +69,7 @@ function grantStarterGear(){
    const it=makeItem(ITEMS.find(i=>i.n===name),false);
    state.inv[c.id].push(it.id);load[slot]=it.id;
   }
-  state.startingGear[c.id]=load;
+  StatusCard.setGear(c.id,load);
   if(state.gold[c.id]===undefined)state.gold[c.id]=100*GP;
  });state.starterGranted=true;
 }
