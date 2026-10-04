@@ -517,7 +517,23 @@ function attackRoll(a, t, o={}){
   blog(`　d20=${r}${advTxt}${fmtN(bonus)}${bless?` +祝福${bless}`:""}${bane?` −災禍${bane}`:""} = ${total} ${total>=ac?"≥":"<"} AC ${ac} → ${r===20?"爆擊！":hit?"命中":r===1?"大失手":"沒打中"}`, hit?"hit":"miss",
        r===20 ? "爆擊！" : hit ? "命中" : r===1 ? "大失手" : "沒中");
   if(sneak) reveal(a, "出手，現身了！");
+  if(!hit) triggerCounterattack(t, a);
   return {hit, crit: r===20};
+}
+
+// 被動反擊：任何需要擲攻擊骰的敵方攻擊未命中，都能觸發一次正常攻擊。
+// 反擊本身仍走 attackRoll，所以能和其他攻擊型技能互動，也能在失手時觸發對方的反擊。
+function triggerCounterattack(t, a){
+  if(!t || !a || t.dead || t.down || t.surprised || a.dead || a.down || !hostile(t,a)) return;
+  if(!passiveSkills(t).some(s=>s.key==="counterattack")) return;
+  const w=t.weapon;
+  if(w && w.type!=="weapon") return;
+  const range=w ? (isRanged(t)?rangeOf(t):reachOf(t)) : 1;
+  if(dist(t,a)>range) return;
+  if(w && ammoKind(w) && !hasAmmoFor(t)) return;
+  blog(`　${t.name}抓住失手的空檔，反擊！`, "skill");
+  faceTo(t,a);
+  weaponAttack(t,a,{});
 }
 
 // 擲傷害：dice 可加倍（爆擊）
