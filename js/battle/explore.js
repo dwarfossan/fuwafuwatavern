@@ -21,7 +21,7 @@ function exploreSight(a,t){return canSeeInLight(a,t);}
 function exploreReveal(hiddenUnit,observer){panelStart(`${observer.name}【察覺】`);stealthRow(hiddenUnit,observer,true);panelEnd();obsMark(observer,"ok");reveal(hiddenUnit,"被察覺了，現身！");}
 function exploreDetect(){
  const b=B();if(!exploring())return;
- const pcs=exploreParty(),foes=b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down);b.exploreMarks={};[...pcs,...foes].forEach(u=>groundDetect(u));
+ const pcs=[exploreUnit()].filter(Boolean),foes=b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down);b.exploreMarks={};[...pcs,...foes].forEach(u=>groundDetect(u));
  b.exploreAwareness=Object.fromEntries([...pcs,...foes].map(u=>[u.id,(u.side==="pc"?foes:pcs).filter(t=>exploreAware(u,t)).map(t=>t.id)]));
  // 我方也用同一條遮擋檢查；察覺範圍沿用移動格數、比較被動感知。
  for(const p of pcs)for(const e of foes)if(isHid(e)&&dist(p,e)<=senseRange(p)&&exploreSight(p,e)&&passivePer(p)>=has(e,"hidden").val)exploreReveal(e,p);
@@ -108,7 +108,7 @@ function exploreMove(x,y,done){
  }
  requestAnimationFrame(frame);
 }
-function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.mode?.key==="placeBarrel"){placeBarrel(Math.round(x),Math.round(y));return;}const o=exploreObjectAt(Math.round(x),Math.round(y));if(o){exploreApproach(o);return;}const t=unitAt(x,y);
+function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.mode?.key==="placeBarrel"){placeBarrel(Math.round(x),Math.round(y));return;}const o=exploreObjectAt(Math.round(x),Math.round(y));if(o){exploreApproach(o);return;}const t=b.units.find(v=>!(v.side==="pc"&&v!==exploreUnit())&&!v.dead&&!v.fled&&mapCell(v.x)===mapCell(x)&&mapCell(v.y)===mapCell(y));
  if(t&&!foeHid(t)){b.info=b.info===t.id?null:t.id;refreshBattle();return;}exploreMove(x,y);
 }
 function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
@@ -120,7 +120,7 @@ function exploreApproach(o){
  b.turn=b.units.indexOf(leader);b.exploreObject=null;
  const open=()=>{if(B()===b&&!b.exploreStopped&&dist(leader,o)<=1){b.exploreObject=o;b.info=null;refreshBattle();}};
  if(dist(leader,o)<=1){open();return;}
- const paths=reachable(leader,10000),candidates=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const x=o.x+dx,y=o.y+dy,p=paths.get(`${x},${y}`);if(p&&!unitAt(x,y)&&!blocked(x,y))candidates.push({x,y,n:p.length});}
+ const paths=reachable(leader,10000),candidates=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const x=o.x+dx,y=o.y+dy,p=paths.get(`${x},${y}`),occupied=b.units.some(v=>v!==leader&&!v.dead&&!v.fled&&!(v.side==="pc"&&v!==exploreUnit())&&mapCell(v.x)===x&&mapCell(v.y)===y);if(p&&!occupied&&!blocked(x,y))candidates.push({x,y,n:p.length});}
  candidates.sort((a,b)=>a.n-b.n);const t=candidates[0];if(t)exploreMove(t.x,t.y,open);else{blog(EXPLORE_UI.noPath);refreshBattle();}
 }
 function exploreTraps(u){
