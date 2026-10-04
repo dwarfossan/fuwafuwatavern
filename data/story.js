@@ -98,7 +98,7 @@ const FAREWELL = [
   // 以下台詞已經大爺10-04定稿；不提武器，因為玩家買的裝備不一定跟圖一樣
   // 梗：圖上默默頂著的寶箱是大爺的，出門的時候摸走的（大爺 10-03）
   {who:"narr",  text:"酒館的大門被推開，四個毛球衝進午後的陽光裡。", art:"party", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
-  {who:"tiger", text:"出發——！今天要打倒十隻怪！", mood:"fierce", art:"party", face:"smile", moods:{fox:"happy",tiger:"fierce",wolf:"smile",raccoon:"happy"}},
+  {who:"tiger", text:"出發——！今天要打倒十隻怪物！", mood:"fierce", art:"party", face:"smile", moods:{fox:"happy",tiger:"fierce",wolf:"smile",raccoon:"happy"}},
   {who:"fox",   text:"話說回來，剛才那個屁，到底是誰放的？", mood:"confused", art:"party", face:"smile", moods:{fox:"confused",tiger:"happy",wolf:"sigh",raccoon:"normal"}},
   {who:"tiger", text:"大爺自己都推出來了啊！", mood:"happy", art:"party", face:"smile", moods:{fox:"confused",tiger:"happy",wolf:"sigh",raccoon:"normal"}},
   {who:"wolf",  text:"……推到一半，就把我們趕出來了。", mood:"sigh", art:"party", face:"smile", moods:{fox:"confused",tiger:"happy",wolf:"sigh",raccoon:"normal"}},
