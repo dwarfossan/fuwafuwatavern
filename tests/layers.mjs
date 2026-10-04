@@ -55,6 +55,15 @@ try{
   return {scene:document.getElementById('board-scene').firstElementChild===scene,token:document.querySelector(`.token[data-moving-unit="${u.id}"]`)===token};
  });
  assert(sceneMorph.scene&&sceneMorph.token);console.log('✓ 角色狀態變更就地更新，不拔 scene／角色 DOM');
+ const dedicated=await pg.evaluate(()=>{
+  const b=B(),u=cur();b.menu="root";refreshBattle();
+  const scene=document.getElementById("board-scene").firstElementChild,token=document.querySelector(`.token[data-moving-unit="${u.id}"]`),stack=document.querySelector("[data-menu-stack]"),skills=document.querySelector('[data-menu-page="skills"]'),items=document.querySelector('[data-menu-page="items"]');
+  battleCmd("act");battleCmd("skills");const skillOpen=skills&&!skills.hidden&&stack===document.querySelector("[data-menu-stack]");
+  battleCmd("act");battleCmd("root");battleCmd("items");const itemOpen=items&&!items.hidden&&stack===document.querySelector("[data-menu-stack]");
+  return {skillOpen,itemOpen,scene:scene===document.getElementById("board-scene").firstElementChild,token:token===document.querySelector(`.token[data-moving-unit="${u.id}"]`)};
+ });
+ assert(dedicated.skillOpen&&dedicated.itemOpen&&dedicated.scene&&dedicated.token);console.log('✓ 技能／道具固定 dock 專用切換，不進通用 renderer');
+
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
  for(const [x,y,moving] of [[10,15,false],[10,15,true],[2,21,false],[2,21,true]]){
