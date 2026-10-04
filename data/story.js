@@ -65,6 +65,7 @@ const FAREWELL = [
   {who:"kam",   text:"換做是老大倒在外面就無所謂了。但等我先把帳算完——你昨天打破的三個杯子、上個月讓客人賒的酒錢、還有偷藏在吧檯底下那箱……", on:"kam", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"resigned",raccoon:"sly"}},
   {who:"dwarf", text:"好了好了！毛毛們在看！", face:"gritted", moods:{fox:"awkward",tiger:"blank",wolf:"resigned",raccoon:"sly"}},
   // 以下是原本的送別（表情 face 是香香 10-03 配的，暫定）
+  {who:"narr", text:"毛毛們收下卡姆的詛咒，把最後幾樣東西塞進背包，正準備出發。", face:"smile"},
   {who:"dwarf", text:"要出發啦？等等等等，大爺還沒講完！", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
   {who:"dwarf", text:"水袋裝滿了沒？口糧帶夠了沒？晚上睡覺記得輪流守夜！", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
   {who:"dwarf", text:"玲玲，路上別什麼東西都撿起來研究，有些會咬人。", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
