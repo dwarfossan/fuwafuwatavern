@@ -30,14 +30,19 @@ try{
   const nav=await pg.locator('.fp-page>.nav').boundingBox();
   const line=await pg.evaluate(()=>state.line);
   await pg.locator('[data-info="fox"]').click();
-  assert((await pg.locator('[role="dialog"]').innerText()).includes('愛研究'));
+  assert.equal(await pg.locator('[role="dialog"] .gear-info.status-view').count(),1);
+  assert.match(await pg.locator('[role="dialog"]').innerText(),/玲玲　Lv\.1[\s\S]*生命[\s\S]*經驗[\s\S]*壓力[\s\S]*主手[\s\S]*力量/);
+  assert.equal(await pg.locator('[role="dialog"] .info-top').count(),0);
   const navAfter=await pg.locator('.fp-page>.nav').boundingBox();assert(Math.abs(nav.y-navAfter.y)<0.5,`${nav.y} → ${navAfter.y}`);   // 10-03：允許小於 0.5px 的次像素誤差（頭像圖片載入時會差 0.006px）
   assert(navAfter.y+navAfter.height<=844);
   if(process.env.MOBILE_SCREENSHOTS){await pg.waitForTimeout(250);await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/character.png'});}
   await pg.getByRole('button',{name:'關閉',exact:true}).click();assert.equal(await pg.evaluate(()=>state.line),line);
-  assert.equal(await pg.evaluate(()=>state.info),null);ok('角色介紹覆蓋顯示，關閉不推進劇情、不移動底部');
-  await pg.locator('[data-info="tiger"]').click();await pg.keyboard.press('Escape');
-  assert.equal(await pg.locator('[role="dialog"]').count(),0);ok('角色泡泡 Escape 可關閉');
+  assert.equal(await pg.evaluate(()=>state.info),null);ok('開頭頭像改用完整狀態卡，關閉不推進劇情、不移動底部');
+  for(const id of ['tiger','wolf','raccoon']){
+    await pg.locator(`[data-info="${id}"]`).click();
+    assert.equal(await pg.locator('[role="dialog"] .gear-info.status-view').count(),1);
+    await pg.keyboard.press('Escape');assert.equal(await pg.locator('[role="dialog"]').count(),0);
+  }ok('四隻開頭狀態卡都能開啟，Escape 可關閉');
   await pg.evaluate(()=>{state.line=SCENES.prologue.script.length-1;updateStoryLine();});
   await pg.locator('#toShop').click();await pg.locator('[data-pagehelp="shop"]').click();
   assert((await pg.locator('[role="dialog"]').innerText()).includes('負重'));

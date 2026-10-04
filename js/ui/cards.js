@@ -134,14 +134,14 @@ function renderModal(){
     body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p>${ABOUT.srd.map(x=>`<p class="about-en" lang="en">${link(x.en)}</p>`).join("")}</div>`;
   }
   if(m.kind==="character"){
-    const c=CRITTERS.find(x=>x.id===m.id);
-    body=`<div class="info" style="--c:${c.color}"><div class="info-top">${critterHead(c.id)}<div><h4>${c.name}</h4><div class="cls">${c.kind}</div><div class="tags">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div></div></div><p>${c.intro}</p>${progressionCardHTML(c.id)}</div>`;
+    const u=critterStatusUnit(m.id),ctx={phase:"explore",infoPage:"status",gearBagOpen:false,statusTip:null,cardSlotsOpen:false};
+    body=u?infoHTML(u,ctx,true):"";
   }
   if(m.kind==="skill"){
     const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
     body = skillCardHTML(m.group, m.idx, m.item ? itemById(m.item) : null, unit);
   }
-  return `<div class="modal-back" data-close="1"><div class="modal ${["help","character"].includes(m.kind)?"page-bubble":""}" role="dialog" aria-modal="true">
+  return `<div class="modal-back" data-close="1"><div class="modal ${m.kind==="help"?"page-bubble":""} ${m.kind==="character"?"character-status-modal":""}" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;
 }
 const modalEvents=new WeakMap();

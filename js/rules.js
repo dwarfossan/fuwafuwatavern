@@ -94,6 +94,30 @@ const LEVEL_UP_DURATION = 2400; // 演出長度暫定 GPT
 const leveling = u => !!u.levelUpAt && Date.now()-u.levelUpAt < LEVEL_UP_DURATION;
 const canLevelUp = id => critterLevel(id)<LEVEL_MAX && critterXP(id)>=xpNeed(critterLevel(id));
 const progressionUnits = id => [...new Set([state.battle,state.townRest].flatMap(b=>(b?.units||[]).filter(u=>u.side==="pc"&&u.id===id)))];
+// 劇情／城鎮沒有當前戰場時，也用現有屬性與背包組出同一張狀態卡。
+function critterStatusUnit(id){
+  const live=progressionUnits(id)[0];if(live)return live;
+  const c=CRITTERS.find(x=>x.id===id);if(!c)return null;
+  const inv=invItems(id).slice(),usable=it=>!equipmentRequirement(it,k=>abilityScore(id,k));
+  const scores=abilityScores(id),mods=abilityMods({scores}),lv=critterLevel(id),hp=maxHpAt(lv,mods.CON);
+  const unit={id,side:"pc",name:c.name,color:c.color,hp,maxHp:hp,scores,mods,level:lv,xp:critterXP(id),stress:0,
+    weapon:inv.find(it=>(it.type==="weapon"||it.type==="focus")&&usable(it))||null,
+    spare:inv.filter(it=>(it.type==="weapon"||it.type==="focus")&&usable(it)).slice(1,2),offhand:null,offhand2:null,
+    shield:inv.some(it=>it.type==="shield"),armor:inv.find(it=>it.type==="armor"&&usable(it))||null,
+    accessories:inv.filter(it=>it.type==="accessory").slice(0,2),backpackEquip:bestBag(inv),backpack:[],
+    speed:6,statuses:[],learned:(state.learned[id]||starterNotes(id)).map(x=>({...x})),activeSkills:(state.activeSkills[id]||[]).slice(),down:false,face:-1,oaUsed:false};
+  const saved=state.startingGear?.[id],pool=inv.slice();
+  if(saved){
+    const take=key=>{const i=pool.findIndex(it=>it.id===saved[key]&&!equipmentRequirement(it,k=>abilityScore(id,k)));return i<0?null:pool.splice(i,1)[0];};
+    unit.weapon=take("main");const off=take("off");unit.shield=off?.type==="shield";unit.offhand=unit.shield?null:off;
+    unit.spare=[take("second")].filter(Boolean);unit.armor=take("armor");unit.backpackEquip=take("bag");unit.backpack=pool;
+  }else{
+    const equipped=[unit.weapon,...unit.spare,unit.armor,...unit.accessories,unit.backpackEquip].filter(Boolean);
+    unit.backpack=inv.filter(it=>!equipped.includes(it)&&it.type!=="shield");
+  }
+  unit.slots=slotMax(unit).map((m,i)=>Math.min(m,Array.isArray(state.proficiency[id])?(state.proficiency[id][i]??m):m));
+  return unit;
+}
 function gainXP(ids,n){
   state.xp=state.xp||{};
   ids.forEach(id=>{state.xp[id]=critterXP(id)+n;progressionUnits(id).forEach(u=>u.xp=critterXP(id));});

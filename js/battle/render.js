@@ -833,7 +833,7 @@ function infoBarsHTML(v, pct){
 }
 // 燈號：動作、剩餘移動（只有輪到的那隻有）；探索不分回合，不顯示（10-04 修 移動 undefined）
 function econHTML(u, b, pts=true){
-  if(!(b && u===cur()) || b.phase==="explore") return "";
+  if(!b || b.phase==="explore" || u!==cur()) return "";
   return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${!freeLeft()?"used":""}" title="免費動作（每回合兩次）">免費 ${freeRemaining()}/2</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
 }
 // 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
@@ -850,8 +850,8 @@ function ptsHTML(u){
 // 狀態卡裡的熟練格（大爺 10-02）：跟戰場上一樣收合，平常只看 I；點下面的細條展開 II 以上
 // 戰場上往上長（上面是地圖），卡片裡往上長會撞到標題，所以改成往下展開、把底下的內容推下去
 // 開關存在 B().cardSlotsOpen（在戰鬥資料裡，分層更新才看得到它變了）
-function slotGridHTML(u){
-  const max = slotMax(u), s = slotsOf(u), open = !!B().cardSlotsOpen && max.length > 1;
+function slotGridHTML(u,b=B()){
+  const max = slotMax(u), s = slotsOf(u), open = !!b?.cardSlotsOpen && max.length > 1;
   const row = i => { const m = max[i], n = Math.min(m, s[i]||0);
     return `<span class="sl-r" title="熟練格・${TIER_NAME[i+1]} ${n}/${m}"><em>${ROMAN[i+1]}</em><b>${"●".repeat(n)}<i>${"○".repeat(Math.max(0, m-n))}</i></b></span>`; };
   const rows = open ? max.map((_,i)=>row(i)).join("") : row(0);
@@ -1121,8 +1121,8 @@ function bindGearDrag(){
     });
   });
 }
-function infoHTML(v, b){
-  const pct=v.hp/v.maxHp, held=victimsOf(v);
+function infoHTML(v, b, embedded=false){
+  const pct=v.hp/v.maxHp, held=embedded?[]:victimsOf(v);
   const statusItems=[...v.statuses.map((x,i)=>{const sb=STATUS_BADGE[x.k];return {s:x,key:`s${i}`,icon:sb?.[0]||null,good:sb?.[1]||0,n:stTurns(x),label:statusLabel(v,x),desc:statusExplain(v,x)}}),...held.map((x,i)=>({s:null,key:`h${i}`,icon:"grab",good:1,n:null,label:`抓住${x.name}`,desc:`目前正抓住${x.name}；依擒抱規則限制對方移動。`}))];
   const shownStatus=[], plainStatus=[]; statusItems.forEach(x=>{if(!x.icon){if(!plainStatus.some(y=>y.label===x.label))plainStatus.push(x);return;}const prev=shownStatus.find(y=>y.icon===x.icon);if(prev){if(x.n!=null)prev.n=Math.max(prev.n||0,x.n);return;}shownStatus.push({...x});});
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges">${shownStatus.map(x=>`<button class="status-unit-badge ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}"><svg viewBox="0 0 20 20">${ST_ICON[x.icon]||""}</svg>${x.n!=null?`<span class="turns">${x.n}</span>`:""}</button>`).join("")}${plainStatus.map(x=>`<button class="status-unit-badge plain ${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}">${x.label}</button>`).join("")}</div>`:"";
@@ -1130,8 +1130,8 @@ function infoHTML(v, b){
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
   const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,mood:v.svgMood,levelUpAt:v.levelUpAt,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
-  const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
-  const notes=v.side==="pc"?notebookPageHTML(v,b):"";
+  const tabs=v.side==="pc"&&!embedded?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
+  const notes=v.side==="pc"&&!embedded?notebookPageHTML(v,b):"";
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
@@ -1142,11 +1142,11 @@ function infoHTML(v, b){
     const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
     const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
     const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=abilityScore(v,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
-    const bagOpen=!!b.gearBagOpen;
+    const bagOpen=!embedded&&!!b.gearBagOpen;
     const bagIt=v.backpackEquip||null;
     const bag=`<div class="status-eqslot backpack ${bagOpen?"on":""}" data-gearslot="backpack"><small>背包</small>${bagIt?`<button class="status-eqitem status-bagbtn eq-tip" data-bagtoggle data-uid="${v.id}" data-gearitem="backpack" data-tip="${eqTip(bagIt)}" aria-label="${bagOpen?"收起":"打開"}背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button>`:`<span class="status-eqempty">＋</span>`}</div>`;
     const bagDrawer=bagOpen?`<div class="status-bagdrawer gear-bag" data-gearbag><div class="gear-load"><div class="gear-load-head"><span>負重</span><b>${+load.toFixed(1)} / ${cap} lb</b></div><div class="gear-load-track"><div class="gear-load-fill" style="width:${loadPct}%"></div></div></div><div class="gear-bagitems">${(v.backpack||[]).map((it,i)=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-uid="${v.id}" data-gearitem="bag:${i}" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${equipmentArtKey(it)?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty bag-drop">背包是空的；可把裝備拖到這裡</span>`}</div></div>`:"";
-    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
+    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${doll}</div>${bag}${eqSlot("acc1",v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${eqSlot("acc2",v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${eqSlot("armor",v.armor,"身體","armor")}${eqSlot("weapon1",v.weapon,"主手","main",embedded?"":`<button class="status-switch" data-switchset title="切換武器配置" aria-label="切換武器配置">↻</button>`)}${isTwoHand(v.weapon)?`<div class="status-eqslot off locked" data-gearslot="offhand1"><small>副手</small><span class="gear-empty">雙手</span></div>`:eqSlot("offhand1",sh1,"副手","off")}</div>${bagOpen?bagDrawer:abilities}</div>`;   // 背包打開時換掉六圍那塊（大爺 2026-10-01）
   } else {
     // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（介面沿用只顯示調整值，資料保存完整屬性值）；不顯示熟練格、燈號、小筆記
     // 背包：看穿（被動感知、搜索）或打倒之後才打得開（大爺 10-02）
@@ -1162,12 +1162,12 @@ function infoHTML(v, b){
     statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${big}</div>${bag}${roSlot(v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${roSlot(v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${roSlot(v.armor,"身體","armor")}${roSlot(main,"主手","main")}${isTwoHand(main)?`<div class="status-eqslot ro off locked"><small>副手</small><span class="gear-empty">雙手</span></div>`:roSlot(v.shield?{n:"盾牌",type:"shield",id:"shield"}:null,"副手","off")}</div>${bagOpen?drawer:abilities}</div>`;
   }
   const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
-  return `<div class="bt-ov bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
-    <button class="inf-x" data-closeinfo aria-label="關閉">✕</button>
+  return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
+    ${embedded?"":`<button class="inf-x" data-closeinfo aria-label="關閉">✕</button>`}
     <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　${levelButtonHTML(v.id)}`:""}</h3><div class="dim">${v.gone==="teleport"?"被傳送回酒館":v.dead?"已被打倒":v.down?`倒下了（死亡豁免失敗 ${v.dsFail||0}/${DS_MAX}） · `:""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
     ${infoBarsHTML(v, pct)}
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
-    ${v.side==="pc"?slotGridHTML(v):""}
+    ${v.side==="pc"?slotGridHTML(v,b):""}
     ${v.oaUsed&&!v.down&&!v.dead?`<div class="inf-g dim">這輪已經藉機攻擊過了</div>`:""}
     ${tabs}${pageBody}
   </div>`;
