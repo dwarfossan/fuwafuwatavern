@@ -109,7 +109,7 @@ const FAREWELL = [
   {who:"raccoon", text:"……出門的時候，順手。", mood:"happy", art:"party", face:"smile", moods:{fox:"surprised",tiger:"happy",wolf:"resigned",raccoon:"happy"}},
   {who:"narr",  text:"身後，酒館的門「砰」地一聲被撞開。", art:"party", face:"annoyed", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"caught"}},
   {who:"dwarf", text:"默默——！大爺的寶箱——！", art:"party", face:"annoyed", mark:"anger", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"caught"}},
-  {who:"all",   text:"快跑——！", art:"party", face:"annoyed", moods:{fox:"surprised",tiger:"happy",wolf:"sigh",raccoon:"happy"}, marks:{fox:"shake",tiger:"shake",wolf:"shake",raccoon:"shake"}}
+  {who:"all",   text:"快跑——！", art:"party", face:"annoyed", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}, marks:{fox:"note",tiger:"note",wolf:"note",raccoon:"note"}}
 ];
 /* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
 const STORY_ART = {party:"assets/portraits/party.webp"};
