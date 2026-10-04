@@ -15,6 +15,11 @@ assert(eq.switchUnit(u,2));assert.equal(u.weapon.id,'bow');assert.equal(u.shield
 assert(eq.takeHeld(u,bow));assert(!state.inv.fox.includes(bow.id));assert.equal(eq.read('fox').weapon,null);
 assert(eq.equipHeld(u,bow));assert(state.inv.fox.includes(bow.id));assert.equal(eq.read('fox').weapon.id,'bow');
 assert(eq.move(u,'weapon1','bag'));assert.equal(eq.read('fox').weapon,null);assert(eq.read('fox').backpack.includes(bow));
+// 盾牌不再以臨時物件進背包：拖下及雙手武器自動收起後，都保留正式 inventory id。
+eq.set('fox',{main:'sword',second:'bow',focus:'focus',off:'shield',armor:null,bag:'bag',accessories:[]});u={id:'fox',side:'pc',...eq.read('fox')};state.battle={units:[u]};state.page='battle';
+assert(eq.move(u,'offhand1','bag'));assert.equal(u.backpack.at(-1).id,'shield');assert.equal(eq.read('fox').shield,false);
+assert(eq.move(u,`bag:${u.backpack.findIndex(it=>it.id==='shield')}`,'offhand1'));assert.equal(u.shield,true);assert.equal(state.startingGear.fox.off,'shield');
+assert(eq.move(u,'weapon2','weapon1'));assert.equal(u.weapon.id,'bow');assert.equal(u.backpack.at(-1).id,'shield');assert.equal(eq.read('fox').shield,false);
 state.battle=null;state.page='story';eq.set('fox',{main:'sword',second:'bow',focus:'focus',off:'shield',armor:null,bag:'bag',accessories:[]});restored=eq.read('fox');assert.equal(restored.focus.id,'focus');
 delete state.startingGear.fox;state.inv.fox=['sword','sword','sword','bag'];restored=eq.read('fox');assert.equal(restored.backpack.filter(i=>i.id==='sword').length,1,'同類物品逐件分配，沒有吞掉第三件');
 for(const file of ['js/main.js','js/magic-shop.js','js/sealed-goods.js'])assert(fs.readFileSync(file,'utf8').includes('Equipment.refresh('));
