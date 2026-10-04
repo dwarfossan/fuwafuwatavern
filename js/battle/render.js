@@ -129,13 +129,12 @@ function battleNodeKey(n){
   return n.id?`#${n.id}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
-    n.dataset?.skill?`skill:${n.dataset.skill}`:
-    n.dataset?.tile?`tile:${n.dataset.tile}:${n.tagName}`:"";
+    n.dataset?.skill?`skill:${n.dataset.skill}`:"";
 }
 function patchBattleNode(dst,src){
-  if(dst.nodeType!==src.nodeType || (dst.nodeType===1&&dst.tagName!==src.tagName)){dst.replaceWith(src.cloneNode(true));return;}
-  if(dst.nodeType===3){if(dst.nodeValue!==src.nodeValue)dst.nodeValue=src.nodeValue;return;}
-  if(dst.nodeType!==1)return;
+  if(dst.nodeType!==src.nodeType || (dst.nodeType===1&&dst.tagName!==src.tagName)){const n=src.cloneNode(true);dst.replaceWith(n);return n;}
+  if(dst.nodeType===3){if(dst.nodeValue!==src.nodeValue)dst.nodeValue=src.nodeValue;return dst;}
+  if(dst.nodeType!==1)return dst;
   [...dst.attributes].forEach(a=>{if(!src.hasAttribute(a.name))dst.removeAttribute(a.name);});
   [...src.attributes].forEach(a=>{if(dst.getAttribute(a.name)!==a.value)dst.setAttribute(a.name,a.value);});
   const old=[...dst.childNodes], fresh=[...src.childNodes], keyed=new Map(old.map(n=>[battleNodeKey(n),n]).filter(([k])=>k));
@@ -145,9 +144,10 @@ function patchBattleNode(dst,src){
     if(!have)have=cursor;
     if(!have){dst.appendChild(want.cloneNode(true));cursor=null;continue;}
     if(have!==cursor)dst.insertBefore(have,cursor);
-    patchBattleNode(have,want); cursor=have.nextSibling;
+    have=patchBattleNode(have,want); cursor=have.nextSibling;
   }
   while(cursor){const next=cursor.nextSibling;cursor.remove();cursor=next;}
+  return dst;
 }
 function patchBattleHTML(el,html,svg=false){
   if(!el)return;
