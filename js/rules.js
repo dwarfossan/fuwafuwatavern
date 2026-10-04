@@ -79,3 +79,25 @@ function blockReason(id, it){
   if(weightOf(id) + it.wt > capOf(id)) return `揹不動（上限 ${capOf(id)} 磅）`;
   return null;
 }
+
+// ---------- 經驗與升級（大爺 10-04） ----------
+// 打倒敵人照 SRD 挑戰等級給經驗（ENEMIES[].xp），四小隻平分；劇情完成另外給一筆（商隊護送 CARAVAN_XP）
+// 門檻照 SRD 5.2 升級表；不分職業，每升一級生命 +5＋體質（d8 平均，至少 +1）
+const XP_NEXT = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+const LEVEL_MAX = 20;
+const critterLevel = id => Math.min(LEVEL_MAX, Math.max(1, (state.level||{})[id] || 1));
+const critterXP = id => (state.xp||{})[id] || 0;
+const xpNeed = lv => XP_NEXT[Math.min(LEVEL_MAX-1, lv)];
+const maxHpAt = (lv, con) => Math.max(1, 8 + con) + (lv-1) * Math.max(1, 5 + con);
+// 給每隻 n 點經驗；回傳升了級的 [{id, from, to}]
+function gainXP(ids, n){
+  state.xp = state.xp || {}; state.level = state.level || {};
+  const ups = [];
+  ids.forEach(id=>{
+    state.xp[id] = critterXP(id) + n;
+    const from = critterLevel(id); let lv = from;
+    while(lv < LEVEL_MAX && state.xp[id] >= XP_NEXT[lv]) lv++;
+    if(lv > from){ state.level[id] = lv; ups.push({id, from, to:lv}); }
+  });
+  return ups;
+}

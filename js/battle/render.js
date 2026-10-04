@@ -818,16 +818,15 @@ const TUTORIAL = [
 ];
 
 // 狀態卡的三條（大爺 10-04）：名稱｜條｜數字，三條一樣長、左邊對齊。敵人只有生命
-// 經驗、壓力還沒有規則，現在只顯示（都是 0）；經驗門檻暫時照 SRD 5.2 升級表
+// 經驗門檻照 SRD 5.2 升級表（XP_NEXT 在 js/rules.js）；壓力還沒有規則，現在都是 0
 const STRESS_MAX = 100;
-const XP_NEXT = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 const stressOf = v => Math.max(0, Math.min(STRESS_MAX, v.stress||0));
 function infoBarsHTML(v, pct){
   const row=(k,label,w,col,num)=>`<span class="ib-l">${label}</span><span class="ib-bar ib-${k}"><i style="width:${Math.max(0,Math.min(100,w*100))}%;background:${col}"></i></span><span class="ib-n">${num}</span>`;
   const gone = v.gone==="teleport" || v.dead;
   let h = row("hp","生命",gone?0:pct,pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)",`${Math.max(0,v.hp)}/${v.maxHp}`);
   if(v.side==="pc"){
-    const lv=v.level||1, need=XP_NEXT[lv]||XP_NEXT[XP_NEXT.length-1], xp=v.xp||0;
+    const lv=v.level||1, need=xpNeed(lv), xp=v.xp||0;
     h += row("xp","經驗",xp/need,"#7fb8e0",`${xp}/${need}`) + row("stress","壓力",stressOf(v)/STRESS_MAX,"#9b7fd0",`${stressOf(v)}/${STRESS_MAX}`);
   }
   return `<div class="inf-bars">${h}</div>`;

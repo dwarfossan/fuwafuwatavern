@@ -68,12 +68,24 @@ function endTurn(){
   nextTurn();
 }
 
+// 打倒的敵人照 SRD 給經驗、四小隻平分；同一隻只算一次（大爺 10-04）
+function awardBattleXP(){
+  const b = B(); if(!b) return;
+  const got = b.units.filter(u=>u.side==="foe" && u.dead && !u.xpGiven);
+  const total = got.reduce((a,u)=>a+((ENEMIES[u.type]||{}).xp||0),0); got.forEach(u=>u.xpGiven=true);
+  const pcs = b.units.filter(u=>u.side==="pc"), each = Math.floor(total / pcs.length);
+  if(!each) return;
+  const ups = gainXP(pcs.map(u=>u.id), each);
+  pcs.forEach(u=>u.xp = critterXP(u.id));
+  blog(`打倒的敵人共 ${total} 經驗，每隻獲得 ${each} 經驗。`, "skill");
+  ups.forEach(x=>blog(`${pcs.find(u=>u.id===x.id).name}升到等級 ${x.to}！`, "kill"));
+}
 function checkResult(){
   const b = B();
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
   if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead)){b.result="lose";blog("四隻都被卡姆傳送回酒館了……","kill");refreshBattle();return true;}
   if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); sfx("win", 900); refreshBattle(); return true; }
+  if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
   return false;
 }

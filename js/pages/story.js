@@ -33,6 +33,8 @@ function caravanPick(id, roll=d20()){   // roll：測試可以指定
     state.inv[x.id] = state.inv[x.id] || [];
     [...((r.items||{}).all||[]), ...((r.items||{})[x.id]||[])].forEach(n=>{ const it = ITEMS.find(i=>i.n===n); if(it) state.inv[x.id].push(makeItem(it).id); });
   });
+  // 護送完成的經驗（大爺 10-04：打完商隊就等級 2）：每隻 CARAVAN_XP，不夠升級門檻的補到門檻
+  CRITTERS.forEach(x=>gainXP([x.id], Math.max(CARAVAN_XP, XP_NEXT[1] - critterXP(x.id))));
   sfx(ok ? "win" : "miss");
   state.line++; render();
 }

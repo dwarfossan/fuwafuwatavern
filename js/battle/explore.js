@@ -178,7 +178,7 @@ function exploreReinforcements(){
  // 只在新一輪開始重排；保留原本單位的先攻，不重擲。
  b.units.sort((a,c)=>c.init-a.init);
 }
-function finishExploreCombat(){const b=B();if(!b.explorationMap)return;syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
+function finishExploreCombat(){const b=B();if(!b.explorationMap)return;awardBattleXP();syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
 
 // 手動戰棋只是回合模式；被看到或主動攻擊才把敵方小隊加入先攻。
 function engageExploreSquad(target,attacker=null){

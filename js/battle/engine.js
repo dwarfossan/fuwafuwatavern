@@ -22,7 +22,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
+const SNAP_KEYS = ["xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -56,10 +56,10 @@ function startBattle(id, retry=false, phase="combat"){
     const inv = invItems(c.id);
     const usable = it=>!equipmentRequirement(it,k=>abilityScore(c.id,k));
     const scores = abilityScores(c.id), mods = abilityMods({scores});
-    const hp = Math.max(1, 8 + mods.CON);
+    const lv = critterLevel(c.id), hp = maxHpAt(lv, mods.CON);   // 每升一級 +5＋體質（大爺 10-04）
     units.push({
       id:c.id, side:"pc", name:c.name, color:c.color,
-      x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods,
+      x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
       weapon: inv.find(it=>(it.type==="weapon" || it.type==="focus") && usable(it)) || null,
       spare:  inv.filter(it=>(it.type==="weapon" || it.type==="focus") && usable(it)).slice(1,2),
       items:  [],
@@ -71,7 +71,7 @@ function startBattle(id, retry=false, phase="combat"){
       accessories: inv.filter(it=>it.type==="accessory").slice(0,2),
       backpackEquip: bestBag(inv),
       backpack: (()=>{ const bb=bestBag(inv), ws=inv.filter(it=>it.type==="weapon"||it.type==="focus"), ar=inv.filter(it=>it.type==="armor"), ac=inv.filter(it=>it.type==="accessory"), co=inv.filter(it=>it.type==="consumable"), ge=inv.filter(it=>it.type==="gear" && it!==bb); return [...ws.filter(it=>!usable(it)),...ws.filter(usable).slice(2),...ar.filter(it=>!usable(it)),...ar.filter(usable).slice(1),...ac.slice(2),...ge,...co]; })(),
-      speed:6, statuses:[], level:1, learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
+      speed:6, statuses:[], learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{
