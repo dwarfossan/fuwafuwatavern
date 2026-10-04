@@ -130,15 +130,8 @@ function updateStoryLine(){
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
 }
 
-function renderStory(){
-  const scene = SCENES[state.scene];
-  const SCRIPT_ = scene.script;
-  const line = SCRIPT_[state.line];
-  const who = WHO(line.who);
-  const last = state.line === SCRIPT_.length-1;
-
+function storyPartyHTML(line={}){
   const party = CRITTERS.map(c=>{
-    const r = state.rolls[c.id];
     const minis = ABILITIES.map(a=>{
       const m = modOf(finalScore(c.id,a.k));
       return `<span class="${m>=2?"hi":m<0?"lo":""}">${a.n[0]}${fmt(m)}</span>`;
@@ -149,6 +142,15 @@ function renderStory(){
       <span class="pf-mods">${minis}</span>
     </button>`;
   }).join("");
+  return `<div class="party ${line.hug?"cheer":""}" aria-label="隊伍">${party}</div>`;
+}
+
+function renderStory(){
+  const scene = SCENES[state.scene];
+  const SCRIPT_ = scene.script;
+  const line = SCRIPT_[state.line];
+  const who = WHO(line.who);
+  const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !(line.choice && !(state.caravan||{}).pick);
@@ -164,7 +166,7 @@ function renderStory(){
       <div class="story-mark" aria-hidden="true">${markHTML(line)}</div>
       <div class="dialog ${line.who==="narr"?"narr":""}">${dialogInner(line, who, last)}</div>
     </div>
-    <div class="party ${line.hug?"cheer":""}" aria-label="隊伍">${party}</div>
+    ${storyPartyHTML(line)}
     <div class="nav">
       ${scene.back ? `<button class="btn ghost" id="${scene.back[0]}">${scene.back[1]}</button>` : `<span></span>`}
       <span class="progress">${state.line+1} / ${SCRIPT_.length}</span>

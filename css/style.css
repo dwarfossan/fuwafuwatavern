@@ -1114,3 +1114,13 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes level-aura{0%{opacity:0}15%,65%{opacity:.85}100%{opacity:0}}
 .progression-card{text-align:center}.progression-card .inf-bars{text-align:left}
 .town-party{display:flex;justify-content:center;gap:12px;margin:10px 0}.town-party button{display:flex;flex-direction:column;align-items:center;border:0;background:transparent;color:inherit}.town-party svg,.town-party img{width:48px;height:48px}
+
+/* 城鎮對話沿用開場舞台及隊伍卡，NPC區域先留空（10-04）。 */
+.town-conversation{display:block;min-height:0}
+.town-conversation .stage{cursor:default}
+.town-conversation .npc-space{position:absolute;inset:0 0 30%;pointer-events:none}
+.town-conversation .town-dialog{margin:0}
+.town-conversation>small{display:block;margin:8px 0}
+.town-conversation>.btn{width:100%}
+.town-conversation .town-rest,.town-conversation .town-panel{margin-top:12px}
+.town-conversation .nav{margin-top:14px}

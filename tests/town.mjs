@@ -8,6 +8,9 @@ try{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"map":1,"shop":1}'));
  await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await page.evaluate(()=>{state.modal=null;state.page='story';state.scene='prologue';state.line=0;render();});
+ const opening=await page.evaluate(()=>{const a=document.querySelector('.stage').getBoundingClientRect(),p=document.querySelector('.party').getBoundingClientRect();return {width:a.width,height:a.height,gap:p.top-a.bottom,partyWidth:p.width};});
+ await shot('opening-layout.png');
  await page.evaluate(()=>{
   startBattle('ambush');const b=B();b.result='win';b.busy=false;
   b.units.filter(u=>u.side==='pc').forEach(u=>{u.slots=[0];u.pendingLearned=[];});
@@ -22,6 +25,11 @@ try{
   await page.locator(`[data-town-place="${id}"]`).tap();
   assert.equal(await page.locator('.town-page .portrait').count(),0);assert.equal(await page.locator('.town-interior').count(),0);
   assert.equal(await page.locator('#board-floor').count(),0);
+  assert.equal(await page.locator('.npc-space').count(),1);
+  assert.equal(await page.locator('.party .pf').count(),4);
+  const layout=await page.evaluate(()=>{const a=document.querySelector('.stage').getBoundingClientRect(),p=document.querySelector('.party').getBoundingClientRect(),d=document.querySelector('.dialog').getBoundingClientRect();return {width:a.width,height:a.height,gap:p.top-a.bottom,partyWidth:p.width,order:d.bottom<=p.top};});
+  assert(layout.order);delete layout.order;assert.deepEqual(layout,opening);
+  await page.locator('.party [data-info="fox"]').tap();assert.equal(await page.locator('.modal').count(),1);await page.locator('.md-x').tap();
   await shot(`town-${id}.png`);
   if(id==='inn'){
    await page.locator('#townAction').tap();
