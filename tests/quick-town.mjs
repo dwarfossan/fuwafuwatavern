@@ -5,7 +5,7 @@ const br=await chromium.launch();try{
  await p.goto('file://'+path.resolve('index.html')+'#town');
  assert.equal(await p.locator('[data-town-place]').count(),4);assert.equal(await p.locator('#board-floor').count(),0);
  assert(await p.evaluate(()=>state.battle===null&&state.location==='town'&&state.townFounded&&state.townRest.units.filter(u=>u.side==='pc').length===4&&CRITTERS.every(c=>state.rolls[c.id]&&state.inv[c.id].length)));
- await p.locator('[data-town-place="items"]').tap();assert.equal(await p.locator('.town-page .portrait').count(),0);await p.locator('#townAction').tap();assert.equal(await p.evaluate(()=>state.shopContext),'items');await p.evaluate(()=>leaveTownShop());
+ await p.locator('[data-town-place="items"]').tap();assert.equal(await p.locator('.town-page .portrait[data-portrait="liliana"]').count(),1);await p.locator('#townAction').tap();assert.equal(await p.evaluate(()=>state.shopContext),'items');await p.evaluate(()=>leaveTownShop());
  await p.locator('#townStreet').tap();assert.equal(await p.evaluate(()=>state.scene),'townSupplier');await p.evaluate(()=>{state.supplierSeen=true;state.page='town';state.townPlace=null;render();});
  await p.locator('[data-town-place="inn"]').tap();await p.locator('#townAction').tap();assert.equal(await p.locator('#longRest').count(),1);await p.locator('#longRest').tap();assert.equal(await p.evaluate(()=>state.page),'town');
  await p.waitForTimeout(1000);assert.equal(await p.evaluate(()=>B()),null);assert.deepEqual(errors,[]);

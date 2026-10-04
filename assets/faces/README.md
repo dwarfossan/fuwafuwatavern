@@ -78,3 +78,7 @@
 | `surprised.webp` | 驚訝 |
 | `smirk.webp` | 奸笑 |
 | `shy.webp` | 害羞 |
+
+## liliana/ 莉莉安娜
+
+sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、laugh、smirk、angry、annoyed、sad、surprised、shy、confused、serious、sly（命名暫定GPT）。只顯示眼部，眉毛與面紗沿用底圖；原圖1024×1536、表情表1448×1086，定位見CSS .liliana-eyes。舞台只裁切顯示半身，不改原PNG。

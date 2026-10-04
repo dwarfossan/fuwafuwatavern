@@ -1135,3 +1135,11 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 卡姆施下傳送詛咒：只在印記台詞閃紅光，下一句移除。 */
 .party.curse-flash .pf{animation:story-curse .9s ease-out both}
 @keyframes story-curse{0%,100%{box-shadow:none}35%{box-shadow:0 0 18px 5px #ff4444,inset 0 0 12px #ff444488;filter:brightness(1.35)}}
+
+/* 莉莉安娜：原全身圖等比放大，舞台裁成半身；眼部定位為原圖座標。暫定。 */
+.actor.liliana{width:132%;height:auto;aspect-ratio:1024/1536;top:1%;bottom:auto}
+.liliana-eyes{position:absolute;left:39.55%;top:4.23%;width:18.03%;height:12.02%;overflow:hidden;clip-path:polygon(11% 44%,48% 44%,48% 62%,55% 62%,55% 38%,96% 38%,96% 57%,55% 57%,55% 65%,11% 65%)}
+.portrait .liliana-eyes img{width:400%;height:300%;left:calc(mod(var(--face),4) * -100%);top:calc(round(down,var(--face) / 4) * -100%);max-width:none}
+
+.quip-face.liliana-icon .portrait{width:400%;aspect-ratio:1024/1536;height:auto;left:-150%;top:-15%}
+.seal-speaker .liliana-icon .pt-base{width:100%;height:100%;object-fit:fill}
