@@ -59,7 +59,7 @@ function itemCardHTML(it){
   const g = groupOf(it);
   const on = g ? (it.elementFocus?g.skills.slice(0,1):g.skills).map((s,i)=>({s,i,gid:g.id})) : [];
   if(it.elementFocus)(it.grants||[]).forEach(key=>{const f=SKILL_BY_ID[key];if(f)on.push({s:f.g.skills[f.idx],i:f.idx,gid:f.g.id});});
-  const skills = g ? `<h4 class="md-sub">${on.length===1?"給的技能":`給的${["","一","兩","三","四","五"][on.length]||on.length}個技能`}</h4>
+  const skills = g && it.type!=="weapon" ? `<h4 class="md-sub">${on.length===1?"給的技能":`給的${["","一","兩","三","四","五"][on.length]||on.length}個技能`}</h4>
     <div class="md-skills">${on.map(({s,i,gid})=>{ const im=(SKILL_IMPL[gid]||[])[i];
       return `<button class="md-sk" data-skinfo="${gid}:${i}:${it.id}">${skillIcon(gid,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
     <p class="dim md-hint">點技能看詳細說明</p>` : "";
