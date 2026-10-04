@@ -54,16 +54,23 @@ function exploreMove(x,y,done){
  if(x!==gx||y!==gy)route.push({x,y});else if(!route.length)route.push({x,y});
  const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1,epoch=b.flowEpoch;
  const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);
- // 只在開始走路前建立一次 walking 外觀；進入連續動畫後保留這批 DOM。
+ // walking 直接切既有紙娃娃 class；開始走路也不重建 scene。
  b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;
  [u,...followers].forEach(v=>{if(!v.dead&&!v.down&&!has(v,"paralyzed")&&!has(v,"prone"))v.exploreWalking=true;});
- refreshBattle();
+ syncExploreWalking([u,...followers]);
  b.exploreGoal={x:gx,y:gy,id:u.id};
  let index=0,last=performance.now(),segment=null;
  const valid=()=>B()===b&&exploring()&&b.flowEpoch===epoch&&b.exploreMoveId===moveId;
- function stop(ok=false){[u,...followers].forEach(v=>delete v.exploreWalking);b.busy=false;b.exploreGoal=null;refreshBattle();if(ok)done?.();}
+ function stop(ok=false){
+  [u,...followers].forEach(v=>delete v.exploreWalking);
+  syncExploreUnitTransforms();syncExploreWalking([u,...followers]);
+  b.busy=false;b.exploreGoal=null;
+  // 先把 renderer 的基準同步到目前狀態；停止 walking 本身不需要重建 scene。
+  refreshBattle.keys=battleLayerKeys();
+  if(ok)done?.();
+ }
  function frame(now){
-  if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);if(B()===b)refreshBattle();return;}
+  if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);if(B()===b){syncExploreUnitTransforms();syncExploreWalking([u,...followers]);refreshBattle.keys=battleLayerKeys();}return;}
   if(b.exploreStopped||u.dead||u.down){stop();return;}
   const dt=Math.min(.035,(now-last)/1000);last=now;
   if(!segment){
@@ -91,7 +98,7 @@ function exploreMove(x,y,done){
    }
   }
   // 視野與距離直接讀連續座標，跨格以外也可能進入偵測範圍。
-  exploreDetect();if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);refreshBattle();return;}
+  exploreDetect();if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);syncExploreUnitTransforms();syncExploreWalking([u,...followers]);refreshBattle.keys=battleLayerKeys();return;}
   const lead=segment[0],leaderDone=Math.hypot(lead.target.x-u.x,lead.target.y-u.y)<.00001;
   if(!moved&&remaining&&!leaderDone){blog(EXPLORE_UI.blocked);stop();return;}
   if(leaderDone)segment=null;
