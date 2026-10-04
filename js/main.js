@@ -286,7 +286,8 @@ function quickTown(){
   state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
   state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
 }
-if(location.hash==="#town")quickTown();
+if(location.hash==="#ambush")quickBattle("ambush","combat");
+else if(location.hash==="#town")quickTown();
 else if(/^#battle(?:\?|$)/.test(location.hash)){
   const raw=new URLSearchParams(location.hash.split("?")[1]||"").get("seed");
   const seed=raw!==null && /^\d+$/.test(raw)?Number(raw)>>>0:crypto.getRandomValues(new Uint32Array(1))[0];
