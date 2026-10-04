@@ -48,7 +48,7 @@ function exploreDockHTML(){
  if(b.mode?.key==="placeBarrel")return dockWrap(exploreUnit(),b,"dk-pick",WORLD_OBJECT_TEXT.place,`<p>${WORLD_OBJECT_TEXT.placeHint}</p><button class="mn-b" data-explore-cmd="cancelPlace">${WORLD_OBJECT_TEXT.cancel}</button>`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
  if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
- return dockWrap(exploreUnit(),b,"dk-pick",b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group,`${button("gather",EXPLORE_UI.gather)}${b.exploreSolo?button("leader",EXPLORE_UI.leader):""}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
+ return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
@@ -1239,7 +1239,7 @@ function battleInterfaceHTML(){
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="about">關於／授權</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>`,
     order: `<div class="order">${order}</div>`,
-    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${exploreParty().filter(isHid).length}/${exploreParty().length}`:""}</b></div>`:hud,
+    hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${isHid(exploreUnit())?1:0}/1`:""}</b></div>`:hud,
     tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
     overlays: `${bottom}${ov}${b.critOn ? `<div class="crit-fx"><div class="crit-flash"></div><div class="crit-txt">${POP_TEXT.crit}</div></div>` : ""}`
