@@ -23,6 +23,10 @@ const Equipment={
     const itemId=(it,slot)=>it?.type==="shield"?(it.id&&inv.some(x=>x.id===it.id)?it.id:shieldId(slot)):it?.id||null;
     this.set(u.id,{main:itemId(u.weapon,"main"),focus:itemId(u.focus,"focus"),second:itemId(u.spare?.[0],"second"),off:u.shield?shieldId("off"):itemId(u.offhand,"off"),secondOff:itemId(u.offhand2,"secondOff"),armor:itemId(u.armor,"armor"),bag:itemId(u.backpackEquip,"bag"),accessories:(u.accessories||[]).map(x=>x.id)});
   },
+  shieldItem(u,slot="off"){
+    const inv=invItems(u.id),saved=state.startingGear?.[u.id];
+    return inv.find(it=>it.id===saved?.[slot]&&it.type==="shield") || inv.find(it=>it.type==="shield") || null;
+  },
   normalise(u){
   u.activeSet=u.activeSet===2?2:1;
   if(u.activeSet===1){
@@ -50,7 +54,7 @@ const Equipment={
   if(u.activeSet===2){
     const a=u.weapon, b=u.spare&&u.spare[0]||null;
     u.weapon=b; u.spare[0]=a;
-    const sh=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, next=u.offhand2; u.shield=next?.type==="shield";u.offhand=u.shield?null:next;u.offhand2=sh;
+    const sh=u.shield?this.shieldItem(u,"off"):u.offhand||null, next=u.offhand2; u.shield=next?.type==="shield";u.offhand=u.shield?null:next;u.offhand2=sh;
     u.activeSet=1; // 交換後目前組仍以 UI 的配置Ⅰ代表
   }
   this.normalise(u);
@@ -64,11 +68,11 @@ const Equipment={
   move(u,from,to){
   if(!u || u.side!=="pc") return false;
   u.backpack=u.backpack||[]; u.spare=u.spare||[]; u.accessories=u.accessories||[];
-  const shieldObj=()=>({n:"盾牌",type:"shield",_shield:true});
+  const shieldObj=slot=>this.shieldItem(u,slot);
   const get=slot=>{
     if(slot==="weapon1")return u.weapon||null;
     if(slot==="weapon2")return u.spare[0]||null;
-    if(slot==="offhand1")return u.shield?shieldObj():u.offhand||null;
+    if(slot==="offhand1")return u.shield?shieldObj("off"):u.offhand||null;
     if(slot==="offhand2")return u.offhand2||null;
     if(slot==="armor")return u.armor||null;
     if(slot==="acc1")return u.accessories[0]||null;
@@ -123,7 +127,7 @@ const Equipment={
     if(displaced){ if(from.startsWith("bag:"))put("bag",displaced); else put(from,displaced); }
   }
   // 雙手武器獨佔整組；裝上時該組副手自動收回背包。
-  if((to==="weapon1"||from==="weapon1") && isTwoHand(u.weapon) && (u.shield||u.offhand)){u.backpack.push(u.shield?shieldObj():u.offhand);u.shield=false;u.offhand=null;}
+  if((to==="weapon1"||from==="weapon1") && isTwoHand(u.weapon) && (u.shield||u.offhand)){const off=u.shield?shieldObj("off"):u.offhand;if(off)u.backpack.push(off);u.shield=false;u.offhand=null;}
   if((to==="weapon2"||from==="weapon2") && isTwoHand(u.spare[0]) && u.offhand2){u.backpack.push(u.offhand2);u.offhand2=null;}
   syncBattleBag(u);
   if(state.page==="battle" && B())blog(`${u.name}整理了裝備`,"skill");
