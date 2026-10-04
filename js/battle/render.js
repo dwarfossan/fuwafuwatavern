@@ -1211,6 +1211,16 @@ function syncExploreUnitTransforms(){
     });
   }
 }
+// walking 只是既有紙娃娃的 CSS 動畫狀態；開始／停止都不重建 scene。
+function syncExploreWalking(units){
+  for(const v of units){
+    document.querySelectorAll(`.token[data-moving-unit="${v.id}"] .dl-act`).forEach(el=>{
+      el.classList.toggle("act-walk",!!v.exploreWalking);
+      if(v.exploreWalking)el.style.setProperty("--walk",`${-(performance.now()%360)}ms`);
+      else el.style.removeProperty("--walk");
+    });
+  }
+}
 function refreshBattle(){
   if(state.page!=="battle" || !B() || !document.getElementById("board-floor") || refreshBattle.battle!==B()) { render(); return; }
   const b=B();
