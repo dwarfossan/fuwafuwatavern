@@ -1163,6 +1163,7 @@ function battleUISlot(k,html){ return `<div data-battle-ui="${k}" style="display
 function renderBattle(){
   if(!B()) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   const ui=battleInterfaceHTML();
+  updateBattleUI.html=ui;
   return `<section class="page battle">${["head","order","hud","tutorial","dice"].map(k=>battleUISlot(k,ui[k])).join("")}<div class="board-wrap">${boardSVG()}${battleUISlot("overlays",ui.overlays)}</div></section>`;
 }
 // 比較資料依賴，不比較產生出的 HTML；每次更新完整的指定層。
@@ -1195,7 +1196,13 @@ function battleLayerKeys(){
 function updateBattleUI(){
   closeGameBubble();
   const ui=battleInterfaceHTML();
-  Object.entries(ui).forEach(([k,html])=>{ document.querySelector(`[data-battle-ui="${k}"]`).innerHTML=html; });
+  // mode／選目標常只改指令列或提示；不要因其中一塊改變就把全部 UI DOM 拔掉重建。
+  const prev=updateBattleUI.html||{};
+  Object.entries(ui).forEach(([k,html])=>{
+    const el=document.querySelector(`[data-battle-ui="${k}"]`);
+    if(el && prev[k]!==html)el.innerHTML=html;
+  });
+  updateBattleUI.html=ui;
 }
 // 探索連續移動時保留既有 SVG DOM；動畫幀只搬角色／HUD 自己的 <g>。
 // 靜態地形、物件與其餘 scene 不因小數座標每幀改變而 innerHTML 重建。
