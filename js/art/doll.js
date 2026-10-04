@@ -192,11 +192,11 @@ function dollSVG(o){
         <path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>
         ${L.belly?`<ellipse cx="70" cy="113" rx="13" ry="14" fill="#fbf4ee" opacity=".85"/>`:""}
         ${L.extra||""}
-        ${gear.body||""}
-        ${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}
+        <g class="dl-gear-body">${gear.body||""}</g>
+        <g class="dl-gear-neck">${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}</g>
         ${L.head.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}
         ${cheer && L.headHappy ? `<g>${L.headHappy.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
-        ${gear.head ? `<g transform="translate(32 6) scale(.76)"><g transform="translate(${anc.head[0]} ${anc.head[1]}) scale(${anc.head[2]})">${gear.head}</g></g>` : ""}
+        <g class="dl-gear-head">${gear.head ? `<g transform="translate(32 6) scale(.76)"><g transform="translate(${anc.head[0]} ${anc.head[1]}) scale(${anc.head[2]})">${gear.head}</g></g>` : ""}</g>
         ${L.headHurt && o.down ? `<g>${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` :
           L.headHurt && o.anim && o.anim.k==="hurt" ? `<g class="dl-xeyes" data-exp="${now - o.anim.el + DOLL_DUR.hurt}">${L.headHurt.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
         <g class="dl-off">${offHand}<circle class="dl-glow" cx="40" cy="96" r="18" fill="${glow}"/></g>
