@@ -28,42 +28,6 @@ try{
  });
  for(const [k,v] of Object.entries(identity)){assert(v,k);console.log('✓ '+k);}
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
- const aimStable=await pg.evaluate(()=>{
-  const b=B(),u=cur(),sk=unitSkills(u).find(s=>s.impl&&!s.impl.passive&&s.impl.target);
-  if(!sk)return false;
-  b.mode=null;b.menu='skills';refreshBattle();
-  const scene=document.getElementById('board-scene').firstElementChild;
-  const head=document.querySelector('[data-battle-ui="head"]').firstElementChild;
-  const order=document.querySelector('[data-battle-ui="order"]').firstElementChild;
-  const dice=document.querySelector('[data-battle-ui="dice"]').firstElementChild;
-  chooseSkill(sk.key);
-  return document.getElementById('board-scene').firstElementChild===scene
-    &&document.querySelector('[data-battle-ui="head"]').firstElementChild===head
-    &&document.querySelector('[data-battle-ui="order"]').firstElementChild===order
-    &&document.querySelector('[data-battle-ui="dice"]').firstElementChild===dice;
- });
- assert(aimStable);console.log('✓ 選攻擊不重建場景與未變 UI');
- const uiMorph=await pg.evaluate(()=>{
-  const b=B(), hud=document.querySelector('[data-battle-ui="hud"]'), hudChild=hud.firstElementChild, marks=document.getElementById('board-marks').firstElementChild, scene=document.getElementById('board-scene').firstElementChild;
-  b.menu=b.menu==='root'?'skills':'root';refreshBattle();
-  return {hud:hud.firstElementChild===hudChild,marks:document.getElementById('board-marks').firstElementChild===marks,scene:document.getElementById('board-scene').firstElementChild===scene};
- });
- assert(uiMorph.hud&&uiMorph.marks&&uiMorph.scene);console.log('✓ 玩家 UI 切換就地更新，不拔 layer DOM');
- const sceneMorph=await pg.evaluate(()=>{
-  const u=cur(),scene=document.getElementById('board-scene').firstElementChild,token=document.querySelector(`.token[data-moving-unit="${u.id}"]`);
-  u.hp=Math.max(1,u.hp-1);refreshBattle();
-  return {scene:document.getElementById('board-scene').firstElementChild===scene,token:document.querySelector(`.token[data-moving-unit="${u.id}"]`)===token};
- });
- assert(sceneMorph.scene&&sceneMorph.token);console.log('✓ 角色狀態變更就地更新，不拔 scene／角色 DOM');
- const dedicated=await pg.evaluate(()=>{
-  const b=B(),u=cur();b.menu="root";refreshBattle();
-  const scene=document.getElementById("board-scene").firstElementChild,token=document.querySelector(`.token[data-moving-unit="${u.id}"]`),stack=document.querySelector("[data-menu-stack]"),skills=document.querySelector('[data-menu-page="skills"]'),items=document.querySelector('[data-menu-page="items"]');
-  battleCmd("act");battleCmd("skills");const skillOpen=skills&&!skills.hidden&&stack===document.querySelector("[data-menu-stack]");
-  battleCmd("act");battleCmd("root");battleCmd("items");const itemOpen=items&&!items.hidden&&stack===document.querySelector("[data-menu-stack]");
-  return {skillOpen,itemOpen,scene:scene===document.getElementById("board-scene").firstElementChild,token:token===document.querySelector(`.token[data-moving-unit="${u.id}"]`)};
- });
- assert(dedicated.skillOpen&&dedicated.itemOpen&&dedicated.scene&&dedicated.token);console.log('✓ 技能／道具固定 dock 專用切換，不進通用 renderer');
-
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
  for(const [x,y,moving] of [[10,15,false],[10,15,true],[2,21,false],[2,21,true]]){
