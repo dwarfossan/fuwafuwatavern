@@ -279,7 +279,10 @@ function quickBattle(battleId="ambush",phase="combat"){
     state.gold[c.id] = 150*GP; state.inv[c.id] = [];
     kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(makeItem(it).id); } });
   });
-  state.page = "battle"; startBattle(battleId,false,phase);
+  if(phase==="story"){
+    scoutBattle(battleId);
+    state.page="story"; state.scene=battleId; state.line=0; state.info=null; render();
+  }else{ state.page = "battle"; startBattle(battleId,false,phase); }
 }
 // 快速城鎮驗收：沿用快速場的四隻屬性／裝備，保存旅店筆記資料，收掉戰場。
 function quickTown(){
@@ -288,7 +291,7 @@ function quickTown(){
   state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
   state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
 }
-if(location.hash==="#ambush")quickBattle("ambush","combat");
+if(location.hash==="#ambush")quickBattle("ambush","story");
 else if(location.hash==="#town")quickTown();
 else if(/^#battle(?:\?|$)/.test(location.hash)){
   const raw=new URLSearchParams(location.hash.split("?")[1]||"").get("seed");
