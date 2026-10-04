@@ -326,6 +326,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .scene-bg.bush-shake .story-bush{animation:bush-shake .9s ease-in-out infinite}
 @keyframes bush-shake{0%,100%{transform:rotate(0)}15%{transform:rotate(-3deg) scaleY(.98)}30%{transform:rotate(2.5deg)}45%{transform:rotate(-1.5deg)}60%{transform:rotate(0)}}
 .scene-bg > svg{width:100%;height:100%;display:block}
+.scene-bg > img{width:100%;height:100%;display:block;object-fit:cover}
 
 /* 大地圖 */
 .wrap.map-screen{height:100vh;height:100dvh;padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 12px);overflow:hidden}
