@@ -750,7 +750,7 @@ const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺�
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g class="hud" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
+  return `<g class="hud" data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
 }
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
@@ -759,7 +759,7 @@ function tokenSVG(v, active){
   const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
+  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}
@@ -1197,8 +1197,24 @@ function updateBattleUI(){
   const ui=battleInterfaceHTML();
   Object.entries(ui).forEach(([k,html])=>{ document.querySelector(`[data-battle-ui="${k}"]`).innerHTML=html; });
 }
+// 探索連續移動時保留既有 SVG DOM；動畫幀只搬角色／HUD 自己的 <g>。
+// 靜態地形、物件與其餘 scene 不因小數座標每幀改變而 innerHTML 重建。
+function syncExploreUnitTransforms(){
+  const b=B();if(!b||b.phase!=="explore")return;
+  for(const v of b.units){
+    if(v.x===undefined||v.y===undefined)continue;
+    document.querySelectorAll(`[data-moving-unit="${v.id}"]`).forEach(el=>{
+      const rx=Number(el.dataset.renderX),ry=Number(el.dataset.renderY);
+      if(!Number.isFinite(rx)||!Number.isFinite(ry))return;
+      const from=iso(rx,ry),to=iso(v.x,v.y);
+      el.setAttribute("transform",`translate(${to.x-from.x} ${to.y-from.y})`);
+    });
+  }
+}
 function refreshBattle(){
   if(state.page!=="battle" || !B() || !document.getElementById("board-floor") || refreshBattle.battle!==B()) { render(); return; }
+  const b=B();
+  if(b.phase==="explore"&&b.busy&&b.exploreGoal){syncExploreUnitTransforms();return;}
   updateBattleFrame();
 }
 function updateBattleFrame(){
