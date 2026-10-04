@@ -83,7 +83,7 @@ function skillCardHTML(groupId, idx, item, unit){
     ["使用", t.label+(s.turnLimit?"・每回合一次":"")],
     ["目標", im && im.passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"],
     ["距離", im && im.passive ? (s.darkvision?`${s.darkvision} 格（${s.darkvision*5} 呎）`:"—") : range],
-    ["屬性", s.components ? "智力／感知／魅力取最高" : skillStatText(g, item)]
+    ["屬性", s.statText || (s.components ? "智力／感知／魅力取最高" : skillStatText(g, item))]
   ];
   if(s.areaText)rows.push(["範圍",s.areaText]);
   if(s.conc)rows.push(["專注","維持至專注中斷"]);
