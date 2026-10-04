@@ -11,7 +11,7 @@ function nextTurn(){
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
-  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=true;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
+  if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=2;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
   // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
   if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
@@ -28,7 +28,7 @@ function beginTurn(u){
   u.shockNoOA=false;
   expire("start", u.id);
   u._cleaved = false;
-  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = false;
+  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;
   u.oaUsed = false;                         // 藉機攻擊每輪一次，輪到自己時恢復
   b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;b.worldObject=null;b.objectTip=null;
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
@@ -318,10 +318,18 @@ function clickTile(x, y){
 
 // ---------- 指令選單 ----------
 const canAct = () => { const b = B(); return !b.actionUsed && !(b.dazed && b.movedThisTurn); };
-// 免費動作：每回合一次；免費動作能做的事，主動作也能做（免費用過了就改扣主動作）
-const canFree = () => !B().freeUsed || canAct();
-const freeLeft = () => !B().freeUsed;                                  // 免費那格還在
-function spendFree(u){ if(!B().freeUsed) B().freeUsed = true; else useAction(u); }
+// 免費動作：每回合兩次；免費動作能做的事，主動作也能做（免費用過了就改扣主動作）
+const freeRemaining=()=>Math.max(0,2-(Number(B().freeUsed)||0));
+const freeLeft = () => freeRemaining()>0;
+const canFree = () => freeLeft() || canAct();
+function spendFree(u){ if(freeLeft()) B().freeUsed=(Number(B().freeUsed)||0)+1; else useAction(u); }
+function turnLimitProblem(u,sk){
+ if(!sk.def.turnLimit)return "";
+ if(sk.def.turnLimit==="offhand" && (!u.offhand || u.offhand.type!=="weapon"))return "沒有副手武器";
+ if(sk.def.turnLimit==="offhand" && u.offhandAttackUsed)return "本回合已用副手攻擊";
+ if(sk.def.turnLimit==="focusCantrip" && u.focusCantripUsed)return "本回合已用法器戲法";
+ return freeLeft()?"":"免費動作用完了";
+}
 const reqText = r => (Array.isArray(r) ? r : [r]).map(x=>REQ_TEXT[x]||x).join("或");
 const REQ_TEXT = {
   meleeWeapon:"近戰武器", blade:"有刃近戰武器", meleeOrUnarmed:"近戰武器或徒手", twoHandMelee:"雙手近戰武器",
@@ -388,7 +396,7 @@ function componentProblem(u, sk){
   }
   return "";
 }
-const skillCanUse = (u, sk) => skillReqMet(u, sk) && !componentProblem(u,sk) && (sk.def.components || hasAmmoFor(u)) && (sk.def.free ? canFree() : canAct());
+const skillCanUse = (u, sk) => skillReqMet(u, sk) && !componentProblem(u,sk) && !turnLimitProblem(u,sk) && (sk.def.components || hasAmmoFor(skillWeaponView(u,sk))) && (sk.def.free ? canFree() : canAct());
 const canWalk = () => { const b = B(); return b.moveLeft > 0 && !(b.dazed && b.actionUsed); };
 function useAction(u){ const b = B(); b.actionUsed = true; if(b.dazed) b.moveLeft = 0; if(u.side==="pc" && b.tut>=0 && b.tut<2) b.tut = 2; }
 // ---------- 被動觀察／學習 ----------
@@ -717,14 +725,15 @@ function doUnnet(u){
 }
 // 靈巧脫逃（哥布林的天生能力，免費動作）：撤離或躲藏
 const nimble = u => (u.innate||[]).includes("nimble") && freeLeft() && u===cur();   // 只用免費那格，主動作留著出手
-function nimbleDisengage(u){ if(!nimble(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); B().freeUsed = true; addStatus(u, "disengage", {until:"end", of:u.id}); blog(`${u.name}靈巧脫逃：撤離！`, "skill"); return true; }
-function nimbleHide(u){ if(!nimble(u) || u.dead || u.down || hideBlock(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); B().freeUsed = true; blog(`${u.name}靈巧脫逃：躲起來！`, "skill"); tryHide(u); return true; }
+function nimbleDisengage(u){ if(!nimble(u) || !freeLeft()) return false; observeInnate(u,"nimble","靈巧脫逃"); spendFree(u); addStatus(u, "disengage", {until:"end", of:u.id}); blog(`${u.name}靈巧脫逃：撤離！`, "skill"); return true; }
+function nimbleHide(u){ if(!nimble(u) || !freeLeft() || u.dead || u.down || hideBlock(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); spendFree(u); blog(`${u.name}靈巧脫逃：躲起來！`, "skill"); tryHide(u); return true; }
 
 // 招式的動作：照「出處」那組的動作；但學來的招用不同類的武器做時（例如拿弓用扎腿），改用手上武器的動作，
 // 這樣遠程才會射出箭、近戰才會揮出去
 const RANGED_GROUPS = ["bow","crossbow","thrown","firearm"];
 // 拿火槍、手槍時，射擊動作換成開槍（子彈＋槍口白煙＋槍聲，10-03）
 function skillAnim(u, sk, t){
+  if(sk.def.turnLimit==="offhand")return animFor(sk.group.id,0);
   const k = skillAnimBase(u, sk, t), cg = u.weapon ? groupOf(u.weapon) : null;
   return k==="shoot" && cg && cg.id==="firearm" ? "fire" : k;
 }
@@ -741,7 +750,7 @@ function skillAnimBase(u, sk, t){
 }
 function doSkill(u, sk, t){
   const b = B();
-  const problem=componentProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
+  const problem=componentProblem(u,sk)||turnLimitProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
   if(b.explorationMap&&u.side==="pc"&&sk.def.kind!=="輔助"){const targets=Array.isArray(t)?t:sk.impl.target==="cone"?coneUnits(u,t,3):sk.impl.target==="area"?b.units.filter(v=>dist(v,t)<=(sk.impl.radius||1)):sk.impl.target==="line"?lineUnits(u,t,sk.impl.range(u)):[t];targets.forEach(v=>{if(v?.side==="foe")engageExploreSquad(v,u);});}
   if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
@@ -757,8 +766,8 @@ function doSkill(u, sk, t){
   const k = skillAnim(u, sk, t0);
   // 會擲骰的招（攻擊、豁免）先讓骰子滾完，角色才出招；輔助不擲骰，照舊馬上動
   const lead = sk.def.kind!=="輔助" && !sk.impl.multi ? DICE_LEAD : 0;
-  u.anim = {k, t:Date.now() + lead}; animSfx(k, lead);
-  const hitAt = b.impact = launch(u, t, k, lead);
+  u.anim = {k, hand:sk.def.turnLimit==="offhand"?"off":null, t:Date.now() + lead}; animSfx(k, lead);
+  const hitAt = b.impact = launch(skillWeaponView(u,sk), t, k, lead);
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
@@ -767,6 +776,8 @@ function doSkill(u, sk, t){
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身
   b.impact = 0;
+  if(sk.def.turnLimit==="offhand")u.offhandAttackUsed=true;
+  if(sk.def.turnLimit==="focusCantrip")u.focusCantripUsed=true;
   if(sk.def.free) spendFree(u); else useAction(u);
   b.mode = null;
   if(checkResult()) return;
@@ -791,7 +802,7 @@ const settle = ms => Math.max(ms, (B().impactEnd||0) - Date.now() + 600);
 // ---------- 敵人挑招（跟我方同一套技能，照手上的武器、法器） ----------
 // 範圍招（橫掃、震地、回掃）：身邊有兩個以上看得到的敵人才用
 const AOE_SELF = {cleave:u=>reachOf(u), quake:u=>1};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
-const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && (s.def.components || hasAmmoFor(e)) && !componentProblem(e,s) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
+const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && (s.def.components || hasAmmoFor(skillWeaponView(e,s))) && !componentProblem(e,s) && !turnLimitProblem(e,s) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
 // 對 t 能用的攻擊招：要用格子的招式還有格子就用（六成機率），不然普攻；回傳 {sk, t}
 // 不升階（一律用最低階的格子）；之後頭目會省格子，再加判斷
 function foePick(e, t){
@@ -876,7 +887,7 @@ function aiTurn(e){
   // 免費動作：有用得上的免費招式就先用，再回來做這回合的主動作
   // 免費那格用過了、同伴快倒（剩四分之一）→ 用主動作再補一次
   { const f = foeFreePick(e);
-    if(f && (!b.freeUsed || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
+    if(f && (freeLeft() || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
   if(!canAct()){ refreshBattle(); later(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
   const trapTarget=enemyTrapTarget(e);if(trapTarget&&placeEnemyTrap(e,trapTarget)){later(endTurn,settle(900));return;}
   // 學習系統測試：每隻哥布林先使用一項「既有技能表」裡的招式一次。

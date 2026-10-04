@@ -615,7 +615,7 @@ const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (
 const inGrapple = u => !!grappled(u) || victimsOf(u).length > 0;
 const twoHandLocked = u => holdsTwoHanded(u) && inGrapple(u);
 // 這招是不是雙手武器給的
-const fromTwoHanded = (u, sk) => !!(!sk.def.components && u.weapon && holdsTwoHanded(u) && groupOf(u.weapon)===sk.group);
+const fromTwoHanded = (u, sk) => !!(sk.def.turnLimit!=="offhand" && !sk.def.components && u.weapon && holdsTwoHanded(u) && groupOf(u.weapon)===sk.group);
 function releaseGrapple(t, why){
   const g = grapplerOf(t);
   t.statuses = t.statuses.filter(s=>!(s.k==="restrained" && s.via==="grapple"));
@@ -781,29 +781,30 @@ function fall(t, levels){
 
 // 一次標準武器攻擊（敵我通用）。o: {adv, dis, hitMod, extraDice, noMod, mastery, double, autoCrit, bonusDmgDice, pointBlank, counter}
 function weaponAttack(a, t, o={}){
-  const stat = weaponStat(a), mod = a.mods[stat];
-  const ranged = isRanged(a) || (o.thrown===true);
-  const ak = ammoKind(a.weapon), loaded = a.loadedAmmo;
-  if(ak && !hasAmmoFor(a)){ blog(`${a.name}沒有可用的彈藥！`, "miss"); return {hit:false, crit:false, noAmmo:true}; }
+  const w=o.weapon||a.weapon, view={...a,weapon:w};
+  const stat = weaponStat(view), mod = a.mods[stat];
+  const ranged = isRanged(view) || (o.thrown===true);
+  const ak = ammoKind(w), loaded = a.loadedAmmo;
+  if(ak && !hasAmmoFor(view)){ blog(`${a.name}沒有可用的彈藥！`, "miss"); return {hit:false, crit:false, noAmmo:true}; }
   if(ak && loaded && loaded.ammoFor===ak){
     // 特殊彈藥一旦射出，不論命中與否都消耗。具體附加效果由該道具資料之後接入。
     a.loadedAmmo=null; dropItem(a, loaded); blog(`　${a.name}使用${loaded.n}`, "skill");
   }
-  const res = attackRoll(a, t, {bonus: mod + 2 + ((o.hitMod||0)+(a.weapon?.hitBonus||0)), adv:o.adv, dis:o.dis, ranged, pointBlank:o.pointBlank});
-  const die = weaponDie(a) || "1d1";
-  const m = a.weapon ? a.weapon.mastery.split(" ")[0] : null;
+  const res = attackRoll(a, t, {bonus: mod + 2 + ((o.hitMod||0)+(w?.hitBonus||0)), adv:o.adv, dis:o.dis, ranged, pointBlank:o.pointBlank});
+  const die = weaponDie(view) || "1d1";
+  const m = w ? w.mastery.split(" ")[0] : null;
   if(res.hit){
     const crit = res.crit || o.autoCrit || o.double;
     // 通用升階：施放中的人（不含反擊）每高一階多 1 顆武器骰
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
-    let n = a.weapon ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
+    let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
-    hurt(t, n, dmgType(a), a);
-    const extra=a.weapon?.extraDamage;if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
+    hurt(t, n, dmgType(view), a);
+    const extra=w?.extraDamage;if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
     if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
   } else if(o.mastery && m==="擦傷" && mod>0){
-    blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(a), a);
+    blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(view), a);
   }
   // 架開反擊：擺好架式的人被近戰打空，立刻反擊一次（反擊本身不會再觸發反擊）
   if(!res.hit && !ranged && !o.counter && !t.surprised && hasVia(t,"stance","parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){

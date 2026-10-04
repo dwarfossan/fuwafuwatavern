@@ -50,14 +50,17 @@ function unitSkills(u){
   const out=[];
   if(g){
     const sk=g.skills[0], impl=(SKILL_IMPL[g.id]||[])[0];
-    out.push({key:`${g.id}_0`,group:g,idx:0,def:basicDef(g,sk,u),impl});
+    let def=basicDef(g,sk,u);
+    if(held?.type==="focus" && def.components && (def.tier||0)===0)def={...def,free:true,turnLimit:"focusCantrip"};
+    out.push({key:`${g.id}_0`,group:g,idx:0,def,impl});
     if(FOCUS_GROUPS.includes(g.id)){
       if(g.id!=="arcane_staff") out.push(focusStrikeSkill(g));
       if(!held.elementFocus && (g.id==="arcane_staff" || g.id==="healing_book")) out.push(focusCantripSkill(g));
     }
   }
   // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
-  equippedMagic(u).forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(s); }));
+  equippedMagic(u).forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(it.type==="focus" && s.def.components && (s.def.tier||0)===0 ? {...s,def:{...s.def,free:true,turnLimit:"focusCantrip"}} : s); }));
+  const off=offhandAttackSkill(u);if(off)out.push(off);
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
   return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
@@ -79,9 +82,16 @@ function focusCantripSkill(g){
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};
-  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def,impl};
+  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def:{...def,free:true,turnLimit:"focusCantrip"},impl};
 }
 
+// 副手按該武器的既有命中、傷害與彈藥規則結算，不交換角色實際裝備。
+const skillWeaponView=(u,sk)=>sk.def.turnLimit==="offhand"?{...u,weapon:u.offhand,shield:false}:u;
+function offhandAttackSkill(u){
+ const w=u.offhand,g=w&&groupOf(w);if(!g||w.type!=="weapon")return null;
+ return {key:"offhand_attack",group:g,idx:0,synthetic:true,def:{name:`副手攻擊：${w.n}`,kind:isRanged({...u,weapon:w})?"遠程":"近戰",tier:0,free:true,turnLimit:"offhand",basicAttack:true,text:"使用副手武器攻擊，每回合一次，耗一個免費動作。"},
+ impl:{target:"enemy",range:u=>meleeOrRange({...u,weapon:u.offhand,shield:false}),run:(u,t)=>weaponAttack(u,t,{weapon:u.offhand,mastery:true})}};
+}
 // 基本攻擊名稱看武器；法器戲法另列為免費攻擊選項。
 function basicDef(g, s, u){
   if(!HAS_BASIC(g) || g.id==="shield") return s;

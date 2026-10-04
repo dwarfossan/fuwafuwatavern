@@ -42,7 +42,7 @@ try{
    const rnd=Math.random; Math.random=()=>0.999; clickTile(e.x,e.y); Math.random=rnd;
    await new Promise(r=>setTimeout(r,900));
    return {enabled, marked, known:pocketKnown(e), free:b.freeUsed, action:b.actionUsed, res:b.panel?.rows?.[0]?.res, label:b.panel?.label}; });
- assert(s.enabled);assert(s.marked);assert(s.known);assert.equal(s.free,true);assert.equal(s.action,false);assert.equal(s.res,'found');
+ assert(s.enabled);assert(s.marked);assert(s.known);assert.equal(s.free,1);assert.equal(s.action,false);assert.equal(s.res,'found');
  ok(`搜索：用掉免費動作、不用動作，面板「${s.label}」FOUND`);
 
  // 看穿後背包打得開，看到箭袋

@@ -598,7 +598,7 @@ function fxSVG(kind, x, y, el){
 function unitDoll(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
-  const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el} : null;   // el < 0：還在擲骰，動作還沒開始
+  const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
   const look = v.side!=="pc" ? MONSTER_LOOK[v.look] : null;
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});
@@ -834,7 +834,7 @@ function infoBarsHTML(v, pct){
 // 燈號：動作、剩餘移動（只有輪到的那隻有）；探索不分回合，不顯示（10-04 修 移動 undefined）
 function econHTML(u, b, pts=true){
   if(!(b && u===cur()) || b.phase==="explore") return "";
-  return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${b.freeUsed?"used":""}" title="免費動作（每回合一次）">免費</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
+  return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${!freeLeft()?"used":""}" title="免費動作（每回合兩次）">免費 ${freeRemaining()}/2</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
 }
 // 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
 // I 那一排留在燈號列裡；II 以上平常收成 I 上面一條隱藏條，點了才往上展開（絕對定位往上長，不會把燈號列撐高）
@@ -863,6 +863,8 @@ const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}
 function skillTag(u, sk){
   if(sk.impl && sk.impl.passive) return "自動";
   if(componentProblem(u,sk))return componentProblem(u,sk);
+  if(turnLimitProblem(u,sk))return turnLimitProblem(u,sk);
+  if(sk.def.turnLimit)return "免費動作 · 每回合一次";
   if(!skillReady(u, sk)) return "格子用完";
   return sk.def.free ? (B() && u===cur() && !freeLeft() ? "用動作" : "免費動作") : "";
 }

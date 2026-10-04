@@ -177,7 +177,7 @@ function dollSVG(o){
     else offHand = handSVG(40,106,c);
   }
   const glow = GLOW[off] || GLOW[main] || "#f2b441";
-  const act = o.walking ? "act-walk" : o.anim ? `act-${o.anim.k}` : "";
+  const act = o.walking ? "act-walk" : o.anim ? `act-${o.anim.k}${o.anim.hand==="off"?" offhand-attack":""}` : "";
   const flip = (o.face||1) < 0 ? `transform="translate(140 0) scale(-1 1)"` : "";
   const bob = -((now + (o.seed||0)*237) % 1600);
   const H = o.w*150/140;

@@ -50,7 +50,7 @@ function itemCardHTML(it){
     rows.push(["說明", "裝備附帶技能不用學；施放仍需聲勢材。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
-    rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉免費動作（每回合一次）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
+    rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉一個免費動作（每回合共兩個）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
   } else {
     rows.push(["說明", it.desc || "冒險用品，目前沒有戰鬥效果。"]);   // 套組、彈袋、箭袋等有寫 desc 的照寫（10-03）
   }
@@ -73,13 +73,14 @@ function skillCardHTML(groupId, idx, item, unit){
   let s = extra?.def || g.skills[idx];
   if(idx===0 && HAS_BASIC(g) && g.id!=="shield")        // 基本攻擊名稱看武器；沒指定武器（技能總表）就列出這組可能的名稱
     s = {...s, name: g.id==="arcane_staff" || g.id==="unarmed" ? "打擊" : item && item.type==="weapon" ? basicName(g, item) : basicNames(g)};
+  if(item?.type==="focus" && s.components && (s.tier||0)===0)s={...s,free:true,turnLimit:"focusCantrip"};
   const t = tierOf(s, im);
   const u = probeUnit(item, unit);
   let range = "—";
   if(im && im.range){ const r = im.range(u); range = r<=1 ? "貼身（1 格）" : `${r} 格（${r*5} 呎）`; }
   const rows = [
     ["類型", skillType(g, s)],
-    ["使用", t.label],
+    ["使用", t.label+(s.turnLimit?"・每回合一次":"")],
     ["目標", im && im.passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"],
     ["距離", im && im.passive ? (s.darkvision?`${s.darkvision} 格（${s.darkvision*5} 呎）`:"—") : range],
     ["屬性", s.components ? "智力／感知／魅力取最高" : skillStatText(g, item)]

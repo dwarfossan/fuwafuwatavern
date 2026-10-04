@@ -1124,3 +1124,10 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .town-conversation>.btn{width:100%}
 .town-conversation .town-rest,.town-conversation .town-panel{margin-top:12px}
 .town-conversation .nav{margin-top:14px}
+
+/* 副手攻擊只揮副手，沿用既有揮擊動畫。 */
+.doll .offhand-attack .dl-arm{animation:none}
+.doll .offhand-attack .dl-off{transform-origin:40px 106px;animation:arm-slash .55s ease-out both;animation-delay:var(--d)}
+
+.doll .offhand-attack.act-thrust .dl-off{animation-name:arm-thrust;animation-duration:.52s}
+.doll .offhand-attack.act-shoot .dl-off{animation-name:arm-shoot;animation-duration:.68s}
