@@ -1131,3 +1131,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 .doll .offhand-attack.act-thrust .dl-off{animation-name:arm-thrust;animation-duration:.52s}
 .doll .offhand-attack.act-shoot .dl-off{animation-name:arm-shoot;animation-duration:.68s}
+
+/* 卡姆施下傳送詛咒：只在印記台詞閃紅光，下一句移除。 */
+.party.curse-flash .pf{animation:story-curse .9s ease-out both}
+@keyframes story-curse{0%,100%{box-shadow:none}35%{box-shadow:0 0 18px 5px #ff4444,inset 0 0 12px #ff444488;filter:brightness(1.35)}}

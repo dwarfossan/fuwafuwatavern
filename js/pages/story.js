@@ -49,6 +49,7 @@ function dialogInner(line, who, done){
       <span class="dp-total ${c.ok?"res-hit":"res-miss"}"><b>${c.total}</b></span><span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
   return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice?"":"▼ 點一下繼續"}</span>`;
 }
+const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"毛毛們"} : WHO(line.who);
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
 /* 劇情裡的被動感知演出（大爺 2026-10-01）
    只在察覺台詞（line.shake）時出現，而且 ambushScript 只有至少一隻察覺到才會插入那幾句，所以全失敗時什麼都不顯示（不劇透）
@@ -99,7 +100,7 @@ const onStage = line => line.on || stageActors()[0];
 const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
 
 function updateStoryLine(){
-  const scene = SCENES[state.scene], line = scene.script[state.line], who = WHO(line.who);
+  const scene = SCENES[state.scene], line = scene.script[state.line], who = storyWho(line);
   const last = state.line === scene.script.length-1, stage = document.getElementById("stage");
   if(!stage) return render();
   if(line.grantStarter)grantStarterGear();
@@ -118,6 +119,7 @@ function updateStoryLine(){
   }
   const party = document.querySelector(".fp-page .party");
   party?.classList.toggle("cheer", !!line.hug);
+  party?.classList.toggle("curse-flash", !!line.curse);
   party?.querySelectorAll("[data-info]").forEach(el=>{ el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all");
     const img = el.querySelector(".c-head"), src = critterFaceSrc(el.dataset.info, critterMood(el.dataset.info, line));
     if(img && img.getAttribute("src")!==src) img.setAttribute("src", src); });
@@ -143,14 +145,14 @@ function storyPartyHTML(line={}){
       <span class="pf-mods">${minis}</span>
     </button>`;
   }).join("");
-  return `<div class="party ${line.hug?"cheer":""}" aria-label="隊伍">${party}</div>`;
+  return `<div class="party ${line.hug?"cheer":""} ${line.curse?"curse-flash":""}" aria-label="隊伍">${party}</div>`;
 }
 
 function renderStory(){
   const scene = SCENES[state.scene];
   const SCRIPT_ = scene.script;
   const line = SCRIPT_[state.line];
-  const who = WHO(line.who);
+  const who = storyWho(line);
   if(line.grantStarter)grantStarterGear();
   const last = state.line === SCRIPT_.length-1;
 

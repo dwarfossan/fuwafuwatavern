@@ -18,12 +18,12 @@ const SCRIPT = [
   {who:"dwarf", text:"可惜酒館走不開，這趟大爺沒辦法陪你們去。", face:"sad"},
   {who:"dwarf", text:"出門在外，你們四個要好好照顧彼此，聽到沒？誰受傷了，其他三個就一起扛回來。", face:"smile"},
   {who:"raccoon", text:"……嗯。（用力點頭）", mood:"happy"},
-  {who:"dwarf", text:"先把慣用的傢伙拿好。那邊的裝備送你們，出門可別空著手！", face:"smile", draft:"GPT"},
-  {who:"narr", text:"四小隻各自挑好武器與護甲，背上小背包，也把弓箭和弩矢收妥。", grantStarter:true, draft:"GPT"},
-  {who:"fox", text:"法杖，還有備用的輕弩。都檢查好了。", mood:"smug", draft:"GPT"},
-  {who:"tiger", text:"長劍跟盾牌！手弩也帶上！", mood:"happy", draft:"GPT"},
-  {who:"wolf", text:"彎刀、短弓。箭袋沒有漏掉。", mood:"smile", draft:"GPT"},
-  {who:"raccoon", text:"……兩把匕首。還有弓。", mood:"sly", draft:"GPT"},
+  {who:"dwarf", text:"先把慣用的傢伙拿好。那邊的裝備送你們，出門可別空著手！", face:"smile"},
+  {who:"narr", text:"四小隻各自挑好武器與護甲，背上小背包，也把弓箭和弩矢收妥。", grantStarter:true},
+  {who:"fox", text:"法杖，還有備用的輕弩。都檢查好了。", mood:"smug"},
+  {who:"tiger", text:"長劍跟盾牌！手弩也帶上！", mood:"happy"},
+  {who:"wolf", text:"彎刀、短弓。箭袋沒有漏掉。", mood:"smile"},
+  {who:"raccoon", text:"……兩把匕首。還有弓。", mood:"sly"},
   {who:"dwarf", text:"來！一人一百金幣，拿去！", face:"grin"},
   {who:"tiger", text:"哇！大爺好大方！", mood:"happy", face:"grin"},
   {who:"dwarf", text:"然後——（喀嚓）", face:"smirk"},
@@ -32,10 +32,10 @@ const SCRIPT = [
   {who:"fox",   text:"……這機關是什麼時候裝的？", mood:"confused"},
   {who:"raccoon", text:"……酒館裡，不只一面。（盯著另一面牆）", mood:"sly"},
   {who:"wolf",  text:"大爺，你等這一刻多久了？", mood:"sigh", face:"smirk"},
-  {who:"dwarf", text:"慣用的裝備送你們了。這面牆的，想添購或換裝就自己挑，大爺賣你們。", face:"smirk", draft:"GPT"},
+  {who:"dwarf", text:"慣用的裝備送你們了。這面牆的，想添購或換裝就自己挑，大爺賣你們。", face:"smirk"},
   {who:"fox",   text:"……等一下。所以你給我們一百金幣，是要我們拿去買你的東西？", mood:"surprised", face:"surprised"},
   {who:"wolf",  text:"錢在桌上繞了一圈，又回到大爺口袋了。", mood:"resigned", face:"sad"},
-  {who:"raccoon", text:"……算了一下，大爺一毛都沒花。", mood:"sly", face:"sad"},
+  {who:"raccoon", text:"……算了一下，買完還是大爺賺。", mood:"sly", face:"sad"},
   {who:"dwarf", text:"咳！這、這叫理財教育！挑不挑？不挑就還來！", face:"gritted"},
   {who:"tiger", text:"挑！當然挑！", mood:"happy"},
   {who:"dwarf", text:"記住啊，太重的甲穿不動、太大的傢伙揮不起來，量力而為！", face:"smile"}
@@ -45,24 +45,24 @@ const SCRIPT = [
    放屁那段是說謊者邏輯題（大爺 10-02）：四句裡只有一句是假的，答案只有大爺一個解
    （是大爺→只有嬌嬌說謊；換成任何一隻都會有兩個說謊）。改指控前要重新驗算 */
 const FAREWELL = [
-  // 卡姆登場（大爺 10-03：拿完裝備後她走過來，嫌太危險，施傳送詛咒＝全體陣亡就傳回酒館）
-  // on:"kam"＝舞台上換卡姆；台詞和表情都是香香的草稿，大爺改完才算數
-  {who:"narr",  text:"四小隻正對著新裝備比來比去，一個紅髮的身影端著托盤走了過來。", on:"kam", face:"smile"},
-  {who:"kam",   text:"……要出門？", on:"kam", face:"smile"},
+  // 卡姆登場（大爺 10-03：拿完裝備後她走過來，嫌太危險，施傳送詛咒＝全體陣亡就傳回酒館；消耗運氣僅為劇情設定）
+  // on:"kam"＝舞台上換卡姆；台詞已經大爺10-04定稿，表情配合台詞
+  {who:"narr",  text:"毛毛們正對著新裝備比來比去，一個紅髮的身影端著托盤走了過來。", on:"kam", face:"smile"},
+  {who:"kam",   text:"嗯?毛毛們要出門？", on:"kam", face:"smile"},
   {who:"tiger", text:"嗯！我們要去森林探險！", mood:"happy", on:"kam", face:"surprised"},
-  {who:"kam",   text:"……太危險了。", on:"kam", face:"sad"},
+  {who:"kam",   text:"什麼？太危險了。", on:"kam", face:"surprised"},
   {who:"fox",   text:"我們有裝備了，而且有四個。", mood:"smug", on:"kam", face:"sad"},
   {who:"kam",   text:"還是太危險。……手伸出來。", on:"kam", face:"smile"},
-  {who:"narr",  text:"卡姆在四隻的手心各點了一下。紅光一閃，手背上浮出一個小小的龍角印記。", on:"kam", face:"smile"},
+  {who:"narr",  text:"卡姆在四隻的手心各點了一下。紅光一閃，手背上浮出一個小小的龍角印記。", on:"kam", face:"smile", curse:true},
   {who:"wolf",  text:"……這是什麼？", mood:"confused", on:"kam", face:"smirk"},
   {who:"kam",   text:"詛咒。", on:"kam", face:"smirk"},
   {who:"raccoon", text:"……詛咒？", mood:"surprised", on:"kam", face:"smirk"},
-  {who:"kam",   text:"倒下了，就會被傳回酒館。想死在外面，也不行。", on:"kam", face:"smile"},
-  {who:"fox",   text:"……一般這種東西，不是叫祝福嗎？", mood:"confused", on:"kam", face:"smile"},
-  {who:"kam",   text:"不准你們不回來。所以是詛咒。", on:"kam", face:"shy"},
-  {who:"dwarf", text:"哈哈！卡姆真貼心！也給大爺來一個！", face:"grin"},
-  {who:"kam",   text:"老大不用。老大倒在外面，我去撿就好。等我先把帳算完——你昨天打破的三個杯子、上個月賒的酒錢、還有偷藏在吧檯底下那箱……", on:"kam", face:"annoyed"},
-  {who:"dwarf", text:"好了好了！孩子們在看！", face:"gritted"},
+  {who:"kam",   text:"你們要是出了甚麼意外能傳回酒館，雖然會消耗你們的運氣。", on:"kam", face:"smile"},
+  {who:"fox",   text:"……一般不是都給祝福嗎？", mood:"confused", on:"kam", face:"smile"},
+  {who:"kam",   text:"......因為我是破壞神，不懂祝福相關的法術。", on:"kam", face:"smirk"},
+  {who:"dwarf", text:"哈哈！卡姆真貼心！", face:"grin"},
+  {who:"kam",   text:"換做是老大倒在外面就無所謂了。但等我先把帳算完——你昨天打破的三個杯子、上個月讓客人賒的酒錢、還有偷藏在吧檯底下那箱……", on:"kam", face:"annoyed"},
+  {who:"dwarf", text:"好了好了！毛毛們在看！", face:"gritted"},
   // 以下是原本的送別（表情 face 是香香 10-03 配的，暫定）
   {who:"dwarf", text:"要出發啦？等等等等，大爺還沒講完！", face:"surprised"},
   {who:"dwarf", text:"水袋裝滿了沒？口糧帶夠了沒？晚上睡覺記得輪流守夜！", face:"annoyed"},
@@ -91,8 +91,8 @@ const FAREWELL = [
   {who:"dwarf", text:"咳！好、好了好了，去吧！記得，天黑前回來喝熱湯！", face:"shy", hug:true},
   {who:"all",   text:"知道啦——！", hug:true},
   // 出發（大爺 10-03：送別最後放四小隻合照，邊打屁邊出發）。art：這幾句換成 STORY_ART 的插圖
-  // 以下台詞是香香寫的草稿，大爺改完才算數；不提武器，因為玩家買的裝備不一定跟圖一樣
-  // 梗：圖上默默頂著的寶箱是大爺的，抱抱的時候摸走的（大爺 10-03）
+  // 以下台詞已經大爺10-04定稿；不提武器，因為玩家買的裝備不一定跟圖一樣
+  // 梗：圖上默默頂著的寶箱是大爺的，出門的時候摸走的（大爺 10-03）
   {who:"narr",  text:"酒館的大門被推開，四個毛球衝進午後的陽光裡。", art:"party"},
   {who:"tiger", text:"出發——！今天要打倒十隻怪！", mood:"fierce", art:"party"},
   {who:"fox",   text:"話說回來，剛才那個屁，到底是誰放的？", mood:"confused", art:"party"},
@@ -102,7 +102,7 @@ const FAREWELL = [
   {who:"raccoon", text:"……路上撿的。", mood:"sly", art:"party"},
   {who:"wolf",  text:"……我們才剛走出門口。", mood:"resigned", art:"party"},
   {who:"fox",   text:"那個鎖頭……是大爺的寶箱吧？", mood:"surprised", art:"party"},
-  {who:"raccoon", text:"……抱抱的時候，順手。", mood:"happy", art:"party"},
+  {who:"raccoon", text:"……出門的時候，順手。", mood:"happy", art:"party"},
   {who:"narr",  text:"身後，酒館的門「砰」地一聲被撞開。", art:"party"},
   {who:"dwarf", text:"默默——！大爺的寶箱——！", art:"party"},
   {who:"all",   text:"快跑——！", art:"party", moods:{fox:"surprised", tiger:"happy", wolf:"sigh", raccoon:"happy"}}
