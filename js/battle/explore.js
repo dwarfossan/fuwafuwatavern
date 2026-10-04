@@ -3,16 +3,16 @@ const exploring=()=>B()?.phase==="explore";
 const exploreParty=()=>CRITTERS.map(c=>B().units.find(u=>u.id===c.id)).filter(u=>u&&!u.dead&&!u.down);
 const exploreUnit=()=>B().units.find(u=>u.id===(B().exploreSolo||B().leader)&&!u.dead&&!u.down)||exploreParty()[0]||B().units.find(u=>u.side==="pc");
 function beginExplore(){
- const b=B();b.explorationMap=true;b.phase="explore";b.groundClockAt=Date.now();b.flowEpoch=(b.flowEpoch||0)+1;b.exploreStopReason=null;b.exploreObject=null;b.exploreRest=false;b.worldObject=null;b.objectTip=null;b.leader=b.leader||"fox";if(!exploreParty().some(u=>u.id===b.leader))b.leader=exploreParty()[0]?.id||"fox";b.exploreSolo=null;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
+ const b=B();b.explorationMap=true;b.phase="explore";b.groundClockAt=Date.now();b.flowEpoch=(b.flowEpoch||0)+1;b.exploreStopReason=null;b.exploreObject=null;b.exploreRest=false;b.worldObject=null;b.objectTip=null;b.leader=b.leader||"fox";if(!exploreParty().some(u=>u.id===b.leader))b.leader=exploreParty()[0]?.id||"fox";b.exploreSolo=b.leader;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
  b.turn=b.units.findIndex(u=>u.id===b.leader);b.busy=false;b.mode=null;b.moveMode=false;b.menu=null;b.tut=-1;b.result=null;b.round=0;
  exploreTraps();exploreDetect();refreshBattle();
 }
-function exploreSelect(id){const b=B();if(b.busy||b.exploreStopped)return;const p=exploreParty().find(u=>u.id===id);if(!p)return;b.exploreSolo=id;b.turn=b.units.indexOf(p);b.info=null;refreshBattle();}
+function exploreSelect(id){const b=B();if(b.busy||b.exploreStopped)return;const p=exploreParty().find(u=>u.id===id),old=exploreUnit();if(!p)return;if(old&&old!==p){p.x=old.x;p.y=old.y;p.face=old.face;}b.exploreSolo=id;b.leader=id;b.turn=b.units.indexOf(p);b.info=null;exploreDetect();refreshBattle();}
 function exploreGather(){const b=B();if(b.busy||b.exploreStopped)return;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);refreshBattle();}
 function exploreSetLeader(){const b=B();if(b.busy||b.exploreStopped)return;b.leader=exploreUnit().id;exploreGather();}
 function exploreHide(){
  const b=B();if(b.busy||b.exploreStopped)return;
- const pcs=b.exploreSolo?[exploreUnit()]:exploreParty();
+ const pcs=[exploreUnit()].filter(Boolean);
  b.exploreSneak=!b.exploreSneak;
  for(const u of pcs){if(!b.exploreSneak){reveal(u);continue;}if(isHid(u))continue;const why=hideBlock(u);if(why)blog(`${u.name}：${why}`);else tryHide(u);}
  exploreDetect();refreshBattle();
@@ -37,7 +37,7 @@ const EXPLORE_SPEED=4; // 暫定 GPT：每秒四格，草叢／爬升仍依原�
 function explorePositionClear(u,x,y,units=true){
  const b=B();if(x<0||y<0||x>b.def.w-1||y>b.def.h-1)return false;
  if(b.def.blocks.some(o=>TERRAIN[o.kind]?.solid&&Math.abs(o.x-x)<.62&&Math.abs(o.y-y)<.62))return false;
- return !units||!b.units.some(v=>v!==u&&!v.dead&&!v.fled&&Math.hypot(v.x-x,v.y-y)<(u.side==="pc"&&v===exploreUnit()&&u!==v ? .85 : .55));
+ return !units||!b.units.some(v=>v!==u&&!v.dead&&!v.fled&&!(exploring()&&v.side==="pc"&&v!==exploreUnit())&&Math.hypot(v.x-x,v.y-y)<.55);
 }
 function exploreSegmentClear(u,a,t,units=true){
  const n=Math.max(1,Math.ceil(Math.hypot(t.x-a.x,t.y-a.y)*20));
@@ -53,7 +53,7 @@ function exploreMove(x,y,done){
  if(route.length&&(u.x!==Math.round(u.x)||u.y!==Math.round(u.y))&&!exploreSegmentClear(u,u,route[0],false))route.unshift({x:Math.round(u.x),y:Math.round(u.y)});
  if(x!==gx||y!==gy)route.push({x,y});else if(!route.length)route.push({x,y});
  const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1,epoch=b.flowEpoch;
- const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);
+ const followers=[];
  // walking 直接切既有紙娃娃 class；開始走路也不重建 scene。
  b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;
  [u,...followers].forEach(v=>{if(!v.dead&&!v.down&&!has(v,"paralyzed")&&!has(v,"prone"))v.exploreWalking=true;});
@@ -116,8 +116,8 @@ function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="ca
 // 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
 const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed);
 function exploreApproach(o){
- const b=B(),leader=b.units.find(u=>u.id===b.leader);if(!leader||leader.down||leader.dead)return;
- b.exploreSolo=null;b.turn=b.units.indexOf(leader);b.exploreObject=null;
+ const b=B(),leader=exploreUnit();if(!leader||leader.down||leader.dead)return;
+ b.turn=b.units.indexOf(leader);b.exploreObject=null;
  const open=()=>{if(B()===b&&!b.exploreStopped&&dist(leader,o)<=1){b.exploreObject=o;b.info=null;refreshBattle();}};
  if(dist(leader,o)<=1){open();return;}
  const paths=reachable(leader,10000),candidates=[];for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const x=o.x+dx,y=o.y+dy,p=paths.get(`${x},${y}`);if(p&&!unitAt(x,y)&&!blocked(x,y))candidates.push({x,y,n:p.length});}
@@ -125,14 +125,14 @@ function exploreApproach(o){
 }
 function exploreTraps(u){
  const b=B();let hit=false;for(const o of b.def.blocks.filter(o=>o.kind==="trap"&&!o.disarmed)){
-  if(!o.found&&exploreParty().some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
+  if(!o.found&&[exploreUnit()].filter(Boolean).some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
   if(u&&u.side==="pc"&&!u.down&&mapCell(u.x)===o.x&&mapCell(u.y)===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;hit=true;
    if(b.phase==='explore'){b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;}else b.moveRolled=true;
    blog(EXPLORE_ACTION_TEXT.trapHit);hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
  }return hit;
 }
 function exploreInteract(action){
- const b=B(),o=b.exploreObject,u=b.units.find(u=>u.id===b.leader);if(!exploring()||b.busy||b.exploreStopped||!o||!u||u.down||u.dead||dist(u,o)>1||!EXPLORE_OBJECTS[o.kind]?.actions.includes(action))return;
+ const b=B(),o=b.exploreObject,u=exploreUnit();if(!exploring()||b.busy||b.exploreStopped||!o||!u||u.down||u.dead||dist(u,o)>1||!EXPLORE_OBJECTS[o.kind]?.actions.includes(action))return;
  if(action==="pickup"){pickupBarrel(o,u);return;}
  const text=EXPLORE_ACTION_TEXT;
  if(action==="door"){if(o.kind==="doorOpen"&&unitAt(o.x,o.y)){blog(text.occupied);refreshBattle();return;}o.kind=o.kind==="door"?"doorOpen":"door";}
@@ -171,6 +171,8 @@ function exploreAlignCombat(){
 }
 function enterExploreCombat(targetId,manual=false){
  const b=B();if(!exploring()||b.exploreStopReason==="trap")return;const target=b.units.find(u=>u.id===targetId&&u.side==="foe"&&!u.fled&&!u.dead&&!u.down),leader=exploreUnit();
+ // 探索只顯示目前選中的角色；切入戰棋時，另外三隻才從同一隊伍位置展開。
+ for(const p of exploreParty())if(p!==leader){p.x=leader.x;p.y=leader.y;p.face=leader.face;}
  const enemies=target?b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down&&(u.id===target.id||(target.squad!==undefined&&u.squad===target.squad))):[];
  const active=b.units.filter(u=>u.side==="pc"&&!u.dead).concat(enemies);
  // 在現身、排序以前個別記錄察覺；手動發起者知道自己要開始交戰。
