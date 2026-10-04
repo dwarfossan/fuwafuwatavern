@@ -86,3 +86,5 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 ## mira/、ada/、brun/
 
 米拉、艾妲、布隆均使用大爺原始4欄3列sheet.png，表情順序同liliana（名稱暫定GPT）。各自五官定位見CSS .mira-features／.ada-features／.brun-features，原PNG不改畫；舞台等比裁成半身。
+
+米拉表情表每格內容有平移差異，不能只切格；PORTRAITS.mira.offsets以鼻子為共同定位點逐格校正，CSS保持同一縮放。

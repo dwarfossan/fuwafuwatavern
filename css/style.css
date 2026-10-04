@@ -1147,7 +1147,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 /* 三位店主沿用原圖：全身等比显示，舞台裁成半身；五官定位暫定。 */
 .actor.mira,.actor.ada{width:132%;height:auto;aspect-ratio:926/1698;top:-4%;bottom:auto}
 .actor.brun{width:132%;height:auto;aspect-ratio:1001/1572;top:-19%;bottom:auto}
-.mira-features{position:absolute;left:39.42%;top:13.43%;width:23.85%;height:13.01%;overflow:hidden}
+.mira-features{position:absolute;left:39.42%;top:12.54%;width:23.85%;height:13.01%;overflow:hidden;transform:translate(var(--face-x,0%),var(--face-y,0%))}
 .ada-features{position:absolute;left:36.18%;top:10.6%;width:21.11%;height:11.51%;overflow:hidden}
 .brun-features{position:absolute;left:43.16%;top:20.36%;width:19.89%;height:12.67%;overflow:hidden}
 .quip-face.mira-icon .portrait{width:400%;height:auto;aspect-ratio:926/1698;left:-163%;top:-97%}

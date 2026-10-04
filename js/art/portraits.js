@@ -4,7 +4,7 @@
 const NPC_FACE_NAMES=["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"];
 const TOWN_PORTRAIT={inn:"mira",smith:"brun",guild:"ada",items:"liliana"};
 const PORTRAITS = {
-  mira:{base:"assets/portraits/mira_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/mira/sheet.png"},
+  mira:{offsets:[[0.0,0.0],[3.1768,1.3812],[7.4586,-0.8287],[10.3591,0.9669],[0.5525,10.0829],[2.3481,7.8729],[6.3536,8.1492],[9.2541,7.5967],[0.5525,16.989],[2.9006,19.4751],[7.1823,15.7459],[9.6685,17.2652]],base:"assets/portraits/mira_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/mira/sheet.png"},
   ada:{base:"assets/portraits/ada_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/ada/sheet.png"},
   brun:{base:"assets/portraits/brun_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/brun/sheet.png"},
 
@@ -17,13 +17,14 @@ const PORTRAITS = {
   merchant: {base:"assets/portraits/merchant.webp", faces:null}
 };
 const faceSrc = (id, face) => { const p = PORTRAITS[id]; return p.faces ? p.faces + (p.list.includes(face) ? face : p.def) + ".webp" : ""; };
+const sheetFaceStyle=(id,face)=>{const p=PORTRAITS[id],i=Math.max(0,p.list.indexOf(face||p.def)),xy=p.offsets?.[i]||[0,0];return `--face:${i};--face-x:${xy[0]}%;--face-y:${xy[1]}%`;};
 function portraitHTML(id, face){
-  if(PORTRAITS[id].sheet)return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt=""><div class="npc-face-sheet ${id==='liliana'?'liliana-eyes':id+'-features'}" data-face="${face||"smile"}" style="--face:${Math.max(0,PORTRAITS[id].list.indexOf(face||"smile"))}"><img src="${PORTRAITS[id].sheet}" alt=""></div></div>`;
+  if(PORTRAITS[id].sheet)return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt=""><div class="npc-face-sheet ${id==='liliana'?'liliana-eyes':id+'-features'}" data-face="${face||"smile"}" style="${sheetFaceStyle(id,face)}"><img src="${PORTRAITS[id].sheet}" alt=""></div></div>`;
   return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt="">${PORTRAITS[id].faces ? `<img class="pt-face" src="${faceSrc(id, face)}" alt="">` : ""}</div>`;
 }
 // 換表情：只換臉那張的 src，底圖不動
 function setPortraitFace(root, face){
-  const eyes=root?.querySelector(".npc-face-sheet");if(eyes){const id=eyes.closest(".portrait").dataset.portrait;const i=Math.max(0,PORTRAITS[id].list.indexOf(face));eyes.dataset.face=PORTRAITS[id].list[i];eyes.style.setProperty("--face",i);return;}
+  const eyes=root?.querySelector(".npc-face-sheet");if(eyes){const id=eyes.closest(".portrait").dataset.portrait;const i=Math.max(0,PORTRAITS[id].list.indexOf(face));eyes.dataset.face=PORTRAITS[id].list[i];eyes.setAttribute("style",sheetFaceStyle(id,face));return;}
   const img = root?.querySelector(".pt-face"), id = root?.querySelector(".portrait")?.dataset.portrait || root?.dataset.portrait;
   if(!img || !id) return;
   const src = faceSrc(id, face);
