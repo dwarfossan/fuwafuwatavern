@@ -180,7 +180,7 @@ const SKILL_IMPL = {
     basicAttack,
     {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); addStatus(u,"stance",{via:"parry", until:"start", of:u.id}); blog(`　${u.name}擺出架式（AC +2，被打空會反擊）`,"skill"); }},
     // 連擊（連斬＋連打合併）：攻擊兩次，第二下不加屬性
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ weaponAttack(u,t,{}); if(!t.dead && !t.down) weaponAttack(u,t,{noMod:true}); }}
+    {target:"enemy", range:u=>meleeOrRange(u), run:(u,t)=>{ weaponAttack(u,t,{}); if(!t.dead && !t.down) weaponAttack(u,t,{noMod:true}); }}
   ],
   heavy: [
     basicAttack,
