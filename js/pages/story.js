@@ -105,7 +105,10 @@ function critterMood(id, line){
   return mood;
 }
 const stageActors = () => { const sc = SCENES[state.scene]; return sc.actors || (sc.bg==="tavern" ? ["dwarf", "kam"] : []); };   // 沒寫 actors：酒館＝大爺、卡姆，其他場景沒人
-const onStage = line => line.on || stageActors()[0];
+const onStage = line => {
+  if(state.scene==="prologue" && !SCENES.prologue.script.slice(0,state.line+1).some(l=>l.who==="dwarf"))return null;
+  return line.on || stageActors()[0];
+};
 const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
 
 function updateStoryLine(){
