@@ -122,13 +122,50 @@ function boardTerrainKey(){
  return JSON.stringify([d.w,d.h,d.road,d.elev,[...(d._h||[])],b.phase,b.exploreSneak,
   watch?[d.lighting,d.blocks.map(o=>[o.x,o.y,o.kind]),b.units.filter(u=>u.side==="foe").map(u=>[u.id,u.type,u.x,u.y,u.dead,u.down,u.fled,foeHid(u),u.scores,u.mods,u.learned,u.activeSkills,u.passiveSkills,ENEMIES[u.type].detectRange])]:null]);
 }
+// 就地同步既有 DOM，避免玩家操作時用 innerHTML 拔掉整塊 UI。
+// 無 key 的同位置節點會沿用；有 id/data-* 身分的節點優先依身分配對。
+function battleNodeKey(n){
+  if(n.nodeType!==1)return "";
+  return n.id?`#${n.id}`:
+    n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
+    n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
+    n.dataset?.skill?`skill:${n.dataset.skill}`:
+    n.dataset?.tile?`tile:${n.dataset.tile}:${n.tagName}`:"";
+}
+function patchBattleNode(dst,src){
+  if(dst.nodeType!==src.nodeType || (dst.nodeType===1&&dst.tagName!==src.tagName)){dst.replaceWith(src.cloneNode(true));return;}
+  if(dst.nodeType===3){if(dst.nodeValue!==src.nodeValue)dst.nodeValue=src.nodeValue;return;}
+  if(dst.nodeType!==1)return;
+  [...dst.attributes].forEach(a=>{if(!src.hasAttribute(a.name))dst.removeAttribute(a.name);});
+  [...src.attributes].forEach(a=>{if(dst.getAttribute(a.name)!==a.value)dst.setAttribute(a.name,a.value);});
+  const old=[...dst.childNodes], fresh=[...src.childNodes], keyed=new Map(old.map(n=>[battleNodeKey(n),n]).filter(([k])=>k));
+  let cursor=dst.firstChild;
+  for(const want of fresh){
+    const key=battleNodeKey(want); let have=key&&keyed.get(key);
+    if(!have)have=cursor;
+    if(!have){dst.appendChild(want.cloneNode(true));cursor=null;continue;}
+    if(have!==cursor)dst.insertBefore(have,cursor);
+    patchBattleNode(have,want); cursor=have.nextSibling;
+  }
+  while(cursor){const next=cursor.nextSibling;cursor.remove();cursor=next;}
+}
+function patchBattleHTML(el,html,svg=false){
+  if(!el)return;
+  let nodes;
+  if(svg){const doc=new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${html}</svg>`,"image/svg+xml");nodes=[...doc.documentElement.childNodes];}
+  else{const t=document.createElement("template");t.innerHTML=html;nodes=[...t.content.childNodes];}
+  const shell=document.createElement(svg?"g":"div");
+  nodes.forEach(n=>shell.appendChild(document.importNode(n,true)));
+  patchBattleNode(el,shell);
+}
+
 function updateBoardFloor(){
   const layer=document.getElementById("board-floor"); if(!layer) return;
   layer.innerHTML=boardFloorHTML();
   layer.terrainKey=boardTerrainKey();
 }
 function updateBoardMarks(){
-  const layer=document.getElementById("board-marks"); if(layer) layer.innerHTML=boardMarksHTML();
+  const layer=document.getElementById("board-marks"); if(layer) patchBattleHTML(layer,boardMarksHTML(),true);
 }
 // 物件、棋子、當前腳下光與演出共用排序；一般事件才重建此層。探索連續移動保留 DOM，只搬角色 transform。
 function updateBoardScene(){
@@ -1074,8 +1111,8 @@ function refreshLogStrip(){
   const b = B(); if(!b) return;
   const el = document.querySelector(".bt-logstrip"), lb = document.getElementById("logBody");
   if(b.log.filter(logDue).length === b._stripN) return;
-  if(el){ el.innerHTML = logStripRows(b); stripToEnd(); }
-  if(lb){ lb.innerHTML = logPanelRows(b); if(b.logStick!==false) lb.scrollTop = lb.scrollHeight; }
+  if(el){ patchBattleHTML(el,logStripRows(b)); stripToEnd(); }
+  if(lb){ patchBattleHTML(lb,logPanelRows(b)); if(b.logStick!==false) lb.scrollTop = lb.scrollHeight; }
 }
 function logPanelRows(b){
   const shown = b.log.filter(logDue); b._stripN = shown.length;
@@ -1200,7 +1237,7 @@ function updateBattleUI(){
   const prev=updateBattleUI.html||{};
   Object.entries(ui).forEach(([k,html])=>{
     const el=document.querySelector(`[data-battle-ui="${k}"]`);
-    if(el && prev[k]!==html)el.innerHTML=html;
+    if(el && prev[k]!==html)patchBattleHTML(el,html);
   });
   updateBattleUI.html=ui;
 }
