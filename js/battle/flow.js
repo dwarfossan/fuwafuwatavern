@@ -106,7 +106,7 @@ function reachable(u, max){
       const nx=x+dx, ny=y+dy, k=`${nx},${ny}`;
       if(B().phase==="explore"&&B().exploreGoal&&B().exploreGoal.id!==u.id&&nx===B().exploreGoal.x&&ny===B().exploreGoal.y)continue;
       if(B().phase==="explore"&&dx&&dy&&(blocked(x+dx,y)||blocked(x,y+dy)))continue;
-      const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&!v.dead&&!v.fled&&!bExploreHidden(v)&&Math.hypot(v.x-nx,v.y-ny)<.55) : !!unitAt(nx,ny);
+      const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&!v.dead&&!v.fled&&!bExploreHidden(v)&&!(v.side==="pc"&&v!==exploreUnit())&&Math.hypot(v.x-nx,v.y-ny)<.55) : !!unitAt(nx,ny);
       if(groundAvoid(u,nx,ny)||blocked(nx,ny)||occupied) continue;
       const nc = c + stepCost(x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
