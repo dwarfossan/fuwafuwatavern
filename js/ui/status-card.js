@@ -33,7 +33,7 @@ const StatusCard = {
     bindGearDrag();
     root.querySelectorAll("[data-switchset]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor;
-      if(this.switchWeapon(id)){sfx("pop");refreshGameUI();}
+      if(this.switchWeapon(id)){sfx("pop");const u=critterStatusUnit(id);if(state.page==="battle"&&B())syncBattleGear(u);else refreshGameUI();}
     }));
   }
 };
