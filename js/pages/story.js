@@ -51,6 +51,7 @@ function dialogInner(line, who, done){
 }
 const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"毛毛們"} : WHO(line.who);
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
+const critterMark = (id,line) => line.who==="all" ? line.marks?.[id] : line.who===id ? line.critterMark : null;
 /* 劇情裡的被動感知演出（大爺 2026-10-01）
    只在察覺台詞（line.shake）時出現，而且 ambushScript 只有至少一隻察覺到才會插入那幾句，所以全失敗時什麼都不顯示（不劇透）
    每隻：骰子停在 10（被動不擲骰）＋感知調整值＝總和；成功跳 ❗、失敗跳 ❓（跟戰鬥同一個泡泡），成功的卡片抖一下
@@ -130,7 +131,9 @@ function updateStoryLine(){
   party?.classList.toggle("curse-flash", !!line.curse);
   party?.querySelectorAll("[data-info]").forEach(el=>{ el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all");
     const img = el.querySelector(".c-head"), src = critterFaceSrc(el.dataset.info, critterMood(el.dataset.info, line));
-    if(img && img.getAttribute("src")!==src) img.setAttribute("src", src); });
+    if(img && img.getAttribute("src")!==src) img.setAttribute("src", src);
+    el.querySelectorAll(".story-critter-mark").forEach(x=>x.remove());
+    const mark=critterMark(el.dataset.info,line);if(mark)el.insertAdjacentHTML("beforeend",`<span class="story-critter-mark">${obsBubbleHTML(mark)}</span>`); });
   const glow = stage.querySelector(".hug-glow");
   if(line.hug && !glow) stage.querySelector(".counter")?.insertAdjacentHTML("beforebegin", '<div class="hug-glow" aria-hidden="true"></div>');
   else if(!line.hug && glow) glow.remove();
@@ -147,10 +150,12 @@ function storyPartyHTML(line={}){
       const m = modOf(finalScore(c.id,a.k));
       return `<span class="${m>=2?"hi":m<0?"lo":""}">${a.n[0]}${fmt(m)}</span>`;
     }).join("");
+    const mark=critterMark(c.id,line);
     return `<button class="pf ${line.who===c.id||line.who==="all"?"speaking":""} ${state.info===c.id?"open":""}" data-info="${c.id}" style="--c:${c.color}" aria-label="查看${c.name}">
       ${critterHead(c.id, critterMood(c.id, line))}
       <span class="pf-name">${c.name}</span>
       <span class="pf-mods">${minis}</span>
+      ${mark?`<span class="story-critter-mark">${obsBubbleHTML(mark)}</span>`:""}
     </button>`;
   }).join("");
   return `<div class="party ${line.hug?"cheer":""} ${line.curse?"curse-flash":""}" aria-label="隊伍">${party}</div>`;

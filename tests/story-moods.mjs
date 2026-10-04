@@ -21,6 +21,13 @@ try{
    assert.deepEqual(await faces(),want,`${scene} 第${i+1}句只更新說話者`);
    await pg.evaluate(()=>render());
    assert.deepEqual(await faces(),want,`${scene} 第${i+1}句重畫保留表情`);
+   const marks=await pg.locator('.party .story-critter-mark .obs').evaluateAll(es=>es.map(e=>e.className.baseVal));
+   const markCount=line.who==='all'?Object.keys(line.marks||{}).length:line.critterMark?1:0;
+   assert.equal(marks.length,markCount,`${scene} 第${i+1}句符號只跟著說話者`);
+   if(scene==='farewell'&&line.text==='……詛咒？'){
+    assert.equal(line.who,'all');assert.equal(marks.length,4);
+    assert.deepEqual(marks.map(x=>x.match(/obs-(\w+)/)[1]),['fail','ok','fail','ok']);
+   }
    // 選項停在這句，後面的分支由既有商隊測試驗證。
    if(line.choice&&!pick)break;
   }
