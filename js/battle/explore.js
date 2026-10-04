@@ -53,8 +53,12 @@ function exploreMove(x,y,done){
  if(route.length&&(u.x!==Math.round(u.x)||u.y!==Math.round(u.y))&&!exploreSegmentClear(u,u,route[0],false))route.unshift({x:Math.round(u.x),y:Math.round(u.y)});
  if(x!==gx||y!==gy)route.push({x,y});else if(!route.length)route.push({x,y});
  const moveId=b.exploreMoveId=(b.exploreMoveId||0)+1,epoch=b.flowEpoch;
- b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;b.exploreGoal={x:gx,y:gy,id:u.id};
  const followers=b.exploreSolo?[]:exploreParty().filter(v=>v!==u);
+ // 只在開始走路前建立一次 walking 外觀；進入連續動畫後保留這批 DOM。
+ b.exploreIceTried={};b.busy=true;b.info=null;b.exploreSteps=0;
+ [u,...followers].forEach(v=>{if(!v.dead&&!v.down&&!has(v,"paralyzed")&&!has(v,"prone"))v.exploreWalking=true;});
+ refreshBattle();
+ b.exploreGoal={x:gx,y:gy,id:u.id};
  let index=0,last=performance.now(),segment=null;
  const valid=()=>B()===b&&exploring()&&b.flowEpoch===epoch&&b.exploreMoveId===moveId;
  function stop(ok=false){[u,...followers].forEach(v=>delete v.exploreWalking);b.busy=false;b.exploreGoal=null;refreshBattle();if(ok)done?.();}
@@ -92,7 +96,8 @@ function exploreMove(x,y,done){
   if(!moved&&remaining&&!leaderDone){blog(EXPLORE_UI.blocked);stop();return;}
   if(leaderDone)segment=null;
   if(!touches.size&&!onScreen(u))centerCam(u.x,u.y-1,true);
-  refreshBattle();requestAnimationFrame(frame);
+  // 動畫幀只搬既有角色節點；禁止在這裡用 innerHTML 重建 scene。
+  syncExploreUnitTransforms();requestAnimationFrame(frame);
  }
  requestAnimationFrame(frame);
 }
