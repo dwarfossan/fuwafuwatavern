@@ -57,7 +57,7 @@ const FAREWELL = [
   {who:"narr",  text:"卡姆在四隻的手心各點了一下。紅光一閃，手背上浮出一個小小的龍角印記。", on:"kam", face:"smirk", curse:true, moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"surprised"}},
   {who:"wolf",  text:"……這是什麼？", mood:"confused", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"surprised"}},
   {who:"kam",   text:"詛咒。", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"surprised"}},
-  {who:"all", text:"……詛咒？", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"surprised",wolf:"confused",raccoon:"surprised"}, marks:{fox:"fail",tiger:"ok",wolf:"fail",raccoon:"ok"}},
+  {who:"all", text:"……詛咒？", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"surprised"}, marks:{fox:"fail",tiger:"ok",wolf:"fail",raccoon:"ok"}},
   {who:"kam",   text:"你們要是出了甚麼意外能傳回酒館，雖然會消耗你們的運氣。", on:"kam", face:"smile", moods:{fox:"confused",tiger:"confused",wolf:"serious",raccoon:"confused"}},
   {who:"fox",   text:"……一般不是都給祝福嗎？", mood:"confused", critterMark:"fail", on:"kam", face:"smile", moods:{fox:"confused",tiger:"confused",wolf:"serious",raccoon:"confused"}},
   {who:"kam",   text:"......因為我是破壞神，不懂祝福相關的法術。", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"confused",wolf:"serious",raccoon:"confused"}},

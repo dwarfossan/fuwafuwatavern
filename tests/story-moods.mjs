@@ -27,6 +27,7 @@ try{
    if(scene==='farewell'&&line.text==='……詛咒？'){
     assert.equal(line.who,'all');assert.equal(marks.length,4);
     assert.deepEqual(marks.map(x=>x.match(/obs-(\w+)/)[1]),['fail','ok','fail','ok']);
+    assert.match((await faces()).tiger,/\/tiger\/blank\.webp$/);
    }
    // 選項停在這句，後面的分支由既有商隊測試驗證。
    if(line.choice&&!pick)break;
