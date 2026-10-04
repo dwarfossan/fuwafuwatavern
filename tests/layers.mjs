@@ -49,6 +49,12 @@ try{
   return {hud:hud.firstElementChild===hudChild,marks:document.getElementById('board-marks').firstElementChild===marks,scene:document.getElementById('board-scene').firstElementChild===scene};
  });
  assert(uiMorph.hud&&uiMorph.marks&&uiMorph.scene);console.log('✓ 玩家 UI 切換就地更新，不拔 layer DOM');
+ const sceneMorph=await pg.evaluate(()=>{
+  const u=cur(),scene=document.getElementById('board-scene').firstElementChild,token=document.querySelector(`.token[data-moving-unit="${u.id}"]`);
+  u.hp=Math.max(1,u.hp-1);refreshBattle();
+  return {scene:document.getElementById('board-scene').firstElementChild===scene,token:document.querySelector(`.token[data-moving-unit="${u.id}"]`)===token};
+ });
+ assert(sceneMorph.scene&&sceneMorph.token);console.log('✓ 角色狀態變更就地更新，不拔 scene／角色 DOM');
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
  for(const [x,y,moving] of [[10,15,false],[10,15,true],[2,21,false],[2,21,true]]){
