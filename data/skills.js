@@ -28,7 +28,7 @@ const SKILL_GROUPS = [
    weapons:["短劍","長劍","刺劍","彎刀"],
    skills:[
     {name:"斬擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
-    {id:"parry_riposte", name:"架開反擊", kind:"近戰", req:"meleeWeapon", tier:1,   text:"攻擊一次；直到你下回合開始 AC +2，近戰攻擊你沒打中，就立刻反擊一次。"},
+    {id:"parry_riposte", name:"反擊", kind:"近戰", req:"meleeWeapon", tier:1,   text:"攻擊一次；直到你下回合開始 AC +2，近戰攻擊你沒打中，就立刻反擊一次。"},
     {id:"double_strike", name:"連擊", kind:"近戰", req:["blade","unarmed"], tier:1,   text:"攻擊兩次，第二下不加屬性。"}]},
 
   {id:"heavy", name:"雙手重武器", stat:"力量",
