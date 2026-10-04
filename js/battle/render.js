@@ -1296,15 +1296,15 @@ function updateBattleUI(){
 // 靜態地形、物件與其餘 scene 不因小數座標每幀改變而 innerHTML 重建。
 function syncExploreUnitTransforms(){
   const b=B();if(!b||b.phase!=="explore")return;
-  for(const v of b.units){
-    if(v.x===undefined||v.y===undefined)continue;
-    document.querySelectorAll(`[data-moving-unit="${v.id}"]`).forEach(el=>{
-      const rx=Number(el.dataset.renderX),ry=Number(el.dataset.renderY);
-      if(!Number.isFinite(rx)||!Number.isFinite(ry))return;
-      const from=iso(rx,ry),to=iso(v.x,v.y);
-      el.setAttribute("transform",`translate(${to.x-from.x} ${to.y-from.y})`);
-    });
-  }
+  const v=exploreUnit();if(!v||v.x===undefined||v.y===undefined)return;
+  // 探索只剩一個可見角色：角色本體與 HUD 必須共用同一份位移，避免血條獨立漂移。
+  const moving=[...document.querySelectorAll(`[data-moving-unit="${v.id}"]`)];
+  const anchor=moving.find(el=>el.classList.contains("token"))||moving[0];
+  if(!anchor)return;
+  const rx=Number(anchor.dataset.renderX),ry=Number(anchor.dataset.renderY);
+  if(!Number.isFinite(rx)||!Number.isFinite(ry))return;
+  const from=iso(rx,ry),to=iso(v.x,v.y),transform=`translate(${to.x-from.x} ${to.y-from.y})`;
+  moving.forEach(el=>el.setAttribute("transform",transform));
 }
 // walking 只是既有紙娃娃的 CSS 動畫狀態；開始／停止都不重建 scene。
 function syncExploreWalking(units){
