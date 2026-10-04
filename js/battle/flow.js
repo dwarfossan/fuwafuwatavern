@@ -335,7 +335,7 @@ const REQ_TEXT = {
   meleeWeapon:"近戰武器", blade:"有刃近戰武器", meleeOrUnarmed:"近戰武器或徒手", twoHandMelee:"雙手近戰武器",
   cutOrPierce:"揮砍或穿刺近戰武器", slashWeapon:"揮砍近戰武器", bluntOrUnarmed:"鈍器或徒手",
   longWeapon:"長兵器", lightMelee:"輕型或靈巧近戰武器", rangedWeapon:"遠程武器", bow:"弓",
-  piercingProjectile:"穿刺型遠程武器", thrown:"可投擲武器", unarmed:"徒手", shield:"盾牌", focus:"法器", material:"材料包"
+  piercingProjectile:"穿刺型遠程武器", thrown:"可投擲武器", repeatAttack:"武器或徒手", unarmed:"徒手", shield:"盾牌", focus:"法器", material:"材料包"
 };
 const weaponProps = w => (w&&w.props)||[];
 // 全單位共用彈藥規則（玩家／敵人／NPC）：弓靠箭袋、弩靠矢匣、投石索／吹箭筒／火槍／手槍靠彈袋；放在背包即可，普通彈藥不逐發消耗。
@@ -372,6 +372,7 @@ function reqOne(u, r){
     case "bow": return !!(w&&["短弓","長弓"].includes(w.base||w.n));   // base：魔法版武器的原型（非凡長弓→長弓）
     case "piercingProjectile": return isRangedWeaponReq(w) && hasDmg(w,"穿刺");
     case "thrown": return !!(w&&hasProp(w,"投擲"));
+    case "repeatAttack": return !w || (w.type==="weapon" && !hasProp(w,"裝填"));
     case "unarmed": return !w;
     case "shield": return !!(u.shield || u.offhand2?.type==="shield");
     case "focus": return !!((u.weapon&&u.weapon.type==="focus") || u.focus);
