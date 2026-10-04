@@ -1034,6 +1034,40 @@ function isTwoHand(it){ return !!(it && it.props && it.props.includes("雙手"))
 function syncWeaponSet(u){return Equipment.normalise(u);}
 function switchWeaponSet(u,set){ return Equipment.switchUnit(u,set); }
 function equipItemAt(u,from,to){return Equipment.move(u,from,to);}
+function replaceChildrenFromHTML(dst,src){
+  if(!dst||!src)return;
+  dst.replaceChildren(...[...src.childNodes].map(n=>document.importNode(n,true)));
+}
+function syncDollGear(u){
+  const html=dollSVG({id:u.id,color:u.color,mood:u.svgMood,...dollGear(u),face:1,x:0,y:0,w:140,seed:u.id.length*3});
+  const doc=new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${html}</svg>`,"image/svg+xml"),src=doc.querySelector(".doll");
+  if(!src)return;
+  const sels=[".dl-backpack",".dl-gear-body",".dl-gear-neck",".dl-gear-head",".dl-off",".dl-arm"];
+  document.querySelectorAll(`.token[data-moving-unit="${u.id}"] .doll,[data-anchor="${u.id}"] .inf-doll .doll`).forEach(doll=>{
+    sels.forEach(sel=>replaceChildrenFromHTML(doll.querySelector(sel),src.querySelector(sel)));
+  });
+}
+function syncGearCard(u){
+  const card=document.querySelector(`[data-anchor="${u.id}"].gear-info`);if(!card)return;
+  const b=StatusCard.context(u.id),t=document.createElement("template");t.innerHTML=StatusCard.render(u,b);
+  const fresh=t.content.querySelector(`[data-anchor="${u.id}"].gear-info`);if(!fresh)return;
+  ["backpack","acc1","acc2","armor","main","off"].forEach(cls=>{
+    const old=card.querySelector(`.status-eqslot.${cls}`),neu=fresh.querySelector(`.status-eqslot.${cls}`);
+    if(old&&neu)replaceChildrenFromHTML(old,neu);
+  });
+  const oldBag=card.querySelector("[data-gearbag]"),newBag=fresh.querySelector("[data-gearbag]");
+  if(oldBag&&newBag){replaceChildrenFromHTML(oldBag,newBag);oldBag.hidden=newBag.hidden;}
+}
+function syncGearSkills(u){
+  const page=document.querySelector('[data-menu-page="skills"]');if(!page)return;
+  const t=document.createElement("template");t.innerHTML=menuHTML(u,B(),"skills");
+  replaceChildrenFromHTML(page,t.content);
+}
+function syncBattleGear(u){
+  syncDollGear(u);syncGearCard(u);syncGearSkills(u);
+  bindBattle();
+  refreshBattle.keys=battleLayerKeys();
+}
 function bindGearDrag(){
   let drag=null, ghost=null, over=null, sx=0, sy=0;
   // 手機上背包清單要能上下滑（大爺 2026-10-01 選 A）：清單裡的道具用手指要「長按」才開始拖曳，
@@ -1078,7 +1112,7 @@ function bindGearDrag(){
         if(didDrag&&t&&d){
           const b=StatusCard.context(d.uid),u=critterStatusUnit(d.uid);
           const to=t.dataset.gearslot||"bag";
-          if(equipItemAt(u,d.from,to)){ b.info=u.id; refreshGameUI(); }
+          if(equipItemAt(u,d.from,to)){ b.info=u.id; syncBattleGear(u); }
         }
       };
       if(needHold) timer=setTimeout(()=>{ armed=true; lift(); },LONG_PRESS);
