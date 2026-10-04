@@ -156,7 +156,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .sheet-top h3{font-size:20px}
   .sheet-top .cls{font-size:12px;line-height:1.4}
   .sheet-actions{flex-direction:column;gap:6px}
-  .sheet-actions .btn{padding:6px 12px;font-size:14px}
+  .sheet-actions .btn{padding:6px 12px;font-size:14px;white-space:nowrap}
   .tray{min-height:58px;padding:6px;gap:6px}
   .tray-empty{font-size:13px}
   .token{width:42px;height:42px;font-size:19px;border-width:2px;box-shadow:0 3px 0 #7a5418}
