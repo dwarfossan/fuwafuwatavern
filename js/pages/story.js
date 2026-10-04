@@ -102,6 +102,7 @@ function updateStoryLine(){
   const scene = SCENES[state.scene], line = scene.script[state.line], who = WHO(line.who);
   const last = state.line === scene.script.length-1, stage = document.getElementById("stage");
   if(!stage) return render();
+  if(line.grantStarter)grantStarterGear();
   stage.classList.toggle("hugging", !!line.hug);
   stage.querySelectorAll(".scene-art").forEach(el=>el.classList.toggle("on", el.dataset.art===line.art));
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
@@ -150,6 +151,7 @@ function renderStory(){
   const SCRIPT_ = scene.script;
   const line = SCRIPT_[state.line];
   const who = WHO(line.who);
+  if(line.grantStarter)grantStarterGear();
   const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");

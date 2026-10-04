@@ -62,6 +62,7 @@ node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸�
 node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
 node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
+node tests/starter-gear.mjs   # 正式開場贈裝、100金保留、兩套配置與雙匕首、彈藥、不重複發放
 node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休息與筆記
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
 node tests/xp.mjs            # 經驗：SRD 門檻、打怪平分、商隊完成達升級門檻、升級加血與熟練格、探索戰也給

@@ -365,14 +365,14 @@ function reqOne(u, r){
     case "piercingProjectile": return isRangedWeaponReq(w) && hasDmg(w,"穿刺");
     case "thrown": return !!(w&&hasProp(w,"投擲"));
     case "unarmed": return !w;
-    case "shield": return !!(u.shield || u.offhand2);
+    case "shield": return !!(u.shield || u.offhand2?.type==="shield");
     case "focus": return !!((u.weapon&&u.weapon.type==="focus") || u.focus);
     case "material": return hasGear(u.backpack, "材料包");
     default:return true;
   }
 }
 // 施法手與持武器攻擊不同：雙手武器暫時以一手持住時，另一手可做勢。
-const castHandFree = u => ((u.weapon?1:0)+(u.focus?1:0)+(u.shield?1:0)+(u.offhand2?1:0)) < 2;
+const castHandFree = u => ((u.weapon?1:0)+(u.focus?1:0)+(u.shield?1:0)+(u.offhand?1:0)) < 2;
 function componentProblem(u, sk){
   const c=sk.def.components;if(!c)return "";
   if(c.v && (u.silenced || u.gagged))return "無法發聲";
@@ -692,9 +692,9 @@ function useItem(u, it, t){
 function swapWeapon(u, i){
   const w=u.spare&&u.spare[i];
   if(!w || equipmentRequirement(w,k=>abilityScore(u,k)))return;
-  const old=u.weapon, oldOff=u.shield?{n:"盾牌",type:"shield",_shield:true}:null, nextOff=u.offhand2||null;
+  const old=u.weapon, oldOff=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, nextOff=u.offhand2||null;
   u.weapon=w; u.spare[i]=old;
-  u.shield=!!nextOff;
+  u.shield=nextOff?.type==="shield";u.offhand=u.shield?null:nextOff;
   u.offhand2=oldOff;
   if(isTwoHand(u.weapon) && u.shield){u.offhand2={n:"盾牌",type:"shield",_shield:true};u.shield=false;}
   blog(`${u.name}切換了武器組：${u.weapon.n}${u.shield?"＋盾牌":""}`,"skill");

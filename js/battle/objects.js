@@ -3,7 +3,7 @@ const powderItem=()=>ITEMS.find(it=>it.placeable==="powderBarrel");
 const powderCount=u=>(u?.backpack||[]).filter(it=>it.placeable==="powderBarrel").length;
 const worldActor=()=>exploring()?exploreUnit():cur();
 function worldCanAct(u=worldActor()){const b=B();return !!u&&u.side==="pc"&&!u.dead&&!u.down&&!has(u,"paralyzed")&&!b.busy&&!b.result&&(exploring()?!b.exploreStopped:u===cur()&&canAct());}
-function carriedWeight(u){return [u.weapon,u.spare?.[0],u.shield?{wt:6}:null,u.offhand2,u.armor,...(u.accessories||[]),u.backpackEquip,...(u.backpack||[])].filter(Boolean).reduce((n,it)=>n+(Number(it.wt)||0),0);}
+function carriedWeight(u){return [u.weapon,u.spare?.[0],u.shield?{wt:6}:u.offhand,u.offhand2,u.armor,...(u.accessories||[]),u.backpackEquip,...(u.backpack||[])].filter(Boolean).reduce((n,it)=>n+(Number(it.wt)||0),0);}
 const worldCapacity=u=>abilityScore(u,"STR")*15*bagMul(u.backpackEquip);
 function barrelTarget(o){return {id:`barrel-${o.x}-${o.y}`,name:EXPLORE_OBJECTS.powderBarrel.name,x:o.x,y:o.y,side:"object",combatActive:true,baseAc:POWDER_BARREL.ac,hp:1,maxHp:1,mods:{STR:0,DEX:0,CON:0,INT:0,WIS:0,CHA:0},statuses:[],worldObject:o};}
 function placeableCell(u,x,y){const b=B();return Number.isInteger(x)&&Number.isInteger(y)&&dist(u,{x,y})<=1&&!blocked(x,y)&&!unitAt(x,y)&&!b.def.blocks.some(o=>o.x===x&&o.y===y)&&(!exploring()||!b.units.some(v=>!v.dead&&!v.fled&&Math.abs(v.x-x)<.62&&Math.abs(v.y-y)<.62));}

@@ -58,10 +58,26 @@ function startTravel(){
   requestAnimationFrame(step);
 }
 
+// 正式開場贈裝只發一次；不扣起始金幣，兩套配置獨立保存。
+function grantStarterGear(){
+ if(state.starterGranted)return;
+ state.startingGear=state.startingGear||{};
+ CRITTERS.forEach(c=>{
+  if(state.startingGear[c.id])return;
+  const spec=STARTER_GEAR[c.id], load={};state.inv[c.id]=state.inv[c.id]||[];
+  for(const [slot,name] of Object.entries({...spec,bag:"背包"})){
+   const it=makeItem(ITEMS.find(i=>i.n===name),false);
+   state.inv[c.id].push(it.id);load[slot]=it.id;
+  }
+  state.startingGear[c.id]=load;
+  if(state.gold[c.id]===undefined)state.gold[c.id]=100*GP;
+ });state.starterGranted=true;
+}
 // 屬性變了，已買的裝備可能不再符合限制：全部退貨重挑
 function resetGear(c){
   if(state.inv[c.id] && state.inv[c.id].length){
     state.inv[c.id] = []; state.gold[c.id] = 100*GP;
+    state.starterGranted=false;delete state.startingGear[c.id];
     state.quip = `${c.name}屬性變了？裝備全退回來，錢拿去重挑！`;
   }
 }
@@ -184,6 +200,7 @@ function bind(){
   }));
 
   $("toShop")?.addEventListener("click", ()=>{
+    grantStarterGear();
     CRITTERS.forEach(c=>{ if(state.gold[c.id]===undefined){ state.gold[c.id]=100*GP; state.inv[c.id]=[]; } });
     state.shopContext=null;state.page="shop"; render(); window.scrollTo(0,0);
   });
@@ -243,6 +260,7 @@ function bind(){
 
 // 測試用：網址後面加 #battle 直接進戰鬥（自動擲屬性、自動分配、給一套預設裝備）
 function quickBattle(battleId="ambush",phase="combat"){
+  state.startingGear={};
   // 香香是遊俠（隊伍的萬金油），穿中甲（大爺指定，也順便測中甲）；買不起或背不動才退回輕甲
   // 道具、備用武器是測試用（快速戰鬥每隻多給 50 gp 買道具，正式商店還是 100 gp）：
   // 玲玲藥水＋鍊金火、嬌嬌網子＋酸液、香香短劍（測換武器）＋網子＋藥水、默默鍊金火＋酸液

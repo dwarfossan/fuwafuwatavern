@@ -1,6 +1,12 @@
 /* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ kam（卡姆）/ 小動物 id / all（四小隻一起說，四張卡一起亮）
    on＝這句誰站在酒館舞台上（預設大爺）；face＝台上那位的表情（assets/faces/README.md 的檔名，香香 10-03 配的，暫定）
    mood＝說話那隻小動物的表情；moods＝{角色:表情} 指定其他隻（沒寫的平常臉，抱抱時是開心臉）。10-03 香香配的，暫定 */
+const STARTER_GEAR = {
+ fox:{main:"奧術法杖",second:"輕弩",armor:"法袍",ammo:"矢匣"},
+ tiger:{main:"長劍",off:"盾牌",second:"手弩",armor:"鏈甲衫",ammo:"矢匣"},
+ wolf:{main:"彎刀",second:"短弓",armor:"鏈甲衫",ammo:"箭袋"},
+ raccoon:{main:"匕首",off:"匕首",second:"短弓",armor:"鑲釘皮甲",ammo:"箭袋"}
+};
 const SCRIPT = [
   {who:"narr",  text:"晴朗的午後，山腳下的小鎮懶洋洋的。軟呼呼酒館裡，午飯的盤子還沒收。"},
   {who:"narr",  text:"四個毛球圍在飯桌邊，攤開一張皺巴巴的地圖，嘰嘰咕咕地討論著。"},
@@ -12,6 +18,12 @@ const SCRIPT = [
   {who:"dwarf", text:"可惜酒館走不開，這趟大爺沒辦法陪你們去。", face:"sad"},
   {who:"dwarf", text:"出門在外，你們四個要好好照顧彼此，聽到沒？誰受傷了，其他三個就一起扛回來。", face:"smile"},
   {who:"raccoon", text:"……嗯。（用力點頭）", mood:"happy"},
+  {who:"dwarf", text:"先把慣用的傢伙拿好。那邊的裝備送你們，出門可別空著手！", face:"smile", draft:"GPT"},
+  {who:"narr", text:"四小隻各自挑好武器與護甲，背上小背包，也把弓箭和弩矢收妥。", grantStarter:true, draft:"GPT"},
+  {who:"fox", text:"法杖，還有備用的輕弩。都檢查好了。", mood:"smug", draft:"GPT"},
+  {who:"tiger", text:"長劍跟盾牌！手弩也帶上！", mood:"happy", draft:"GPT"},
+  {who:"wolf", text:"彎刀、短弓。箭袋沒有漏掉。", mood:"smile", draft:"GPT"},
+  {who:"raccoon", text:"……兩把匕首。還有弓。", mood:"sly", draft:"GPT"},
   {who:"dwarf", text:"來！一人一百金幣，拿去！", face:"grin"},
   {who:"tiger", text:"哇！大爺好大方！", mood:"happy", face:"grin"},
   {who:"dwarf", text:"然後——（喀嚓）", face:"smirk"},
@@ -20,7 +32,7 @@ const SCRIPT = [
   {who:"fox",   text:"……這機關是什麼時候裝的？", mood:"confused"},
   {who:"raccoon", text:"……酒館裡，不只一面。（盯著另一面牆）", mood:"sly"},
   {who:"wolf",  text:"大爺，你等這一刻多久了？", mood:"sigh", face:"smirk"},
-  {who:"dwarf", text:"自己挑喜歡的，大爺賣你們。", face:"smirk"},
+  {who:"dwarf", text:"慣用的裝備送你們了。這面牆的，想添購或換裝就自己挑，大爺賣你們。", face:"smirk", draft:"GPT"},
   {who:"fox",   text:"……等一下。所以你給我們一百金幣，是要我們拿去買你的東西？", mood:"surprised", face:"surprised"},
   {who:"wolf",  text:"錢在桌上繞了一圈，又回到大爺口袋了。", mood:"resigned", face:"sad"},
   {who:"raccoon", text:"……算了一下，大爺一毛都沒花。", mood:"sly", face:"sad"},

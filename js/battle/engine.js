@@ -22,7 +22,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
+const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -99,6 +99,12 @@ function startBattle(id, retry=false, phase="combat"){
       weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpack:[], backpackEquip:null,
       speed:d.speed, statuses:[], level:1, down:false, face:n.face||1, oaUsed:false, slots:[0]
     });
+  });
+  units.filter(u=>u.side==="pc").forEach(u=>{
+    const saved=state.startingGear?.[u.id];if(!saved)return;
+    const pool=invItems(u.id).slice(), take=key=>{const id=saved[key],i=pool.findIndex(it=>it.id===id&&!equipmentRequirement(it,k=>abilityScore(u,k)));return i<0?null:pool.splice(i,1)[0];};
+    u.weapon=take("main");const off=take("off");u.shield=off?.type==="shield";u.offhand=u.shield?null:off;
+    u.spare=[take("second")].filter(Boolean);u.offhand2=null;u.armor=take("armor");u.backpackEquip=take("bag");u.backpack=pool;u.focus=null;
   });
   units.filter(u=>u.side==="pc").forEach(u=>{ u.born = u.weapon ? u.weapon.n : null; syncBattleBag(u); });
   units.forEach(u=>{
@@ -604,7 +610,7 @@ const grapplerOf = t => { const s = grappled(t); return s && B().units.find(v=>v
 const victimsOf = u => B().units.filter(v=>!v.dead && (grappled(v)||{}).src===u.id);
 // 能不能擒抱：拿雙手武器不行（敵我都一樣）；其餘要有一隻手空著（主手武器、盾、法器各佔一隻手）
 const holdsTwoHanded = u => !!(u.weapon && u.weapon.props && u.weapon.props.includes("雙手"));
-const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (u.focus?1:0)) < 2;
+const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (u.offhand?1:0) + (u.focus?1:0)) < 2;
 // 擒抱期間（抓人的、被抓的都算）不能用雙手武器
 const inGrapple = u => !!grappled(u) || victimsOf(u).length > 0;
 const twoHandLocked = u => holdsTwoHanded(u) && inGrapple(u);

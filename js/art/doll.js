@@ -214,6 +214,7 @@ function dollGear(u){                       // 敵我一樣：照手上的武器
   if(!main && (f==="arcane_staff" || f==="shaman_totem")) main = f;   // 杖類法器拿在主手
   if(!main && !f) main = "unarmed";
   if(u.shield) off = "shield";
+  else if(u.offhand)off=equipmentArtKey(u.offhand);
   else if(f && f!==main) off = f;
   return {main, off, armor: u.armor ? (u.armor.base||u.armor.n) : null, backpack: !!u.backpackEquip};
 }

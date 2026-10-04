@@ -980,7 +980,7 @@ function isTwoHand(it){ return !!(it && it.props && it.props.includes("雙手"))
 function syncWeaponSet(u){
   u.activeSet=u.activeSet===2?2:1;
   if(u.activeSet===1){
-    if(isTwoHand(u.weapon)) u.shield=false;
+    if(isTwoHand(u.weapon)){u.shield=false;u.offhand=null;}
   }else{
     if(isTwoHand(u.spare&&u.spare[0])) u.offhand2=null;
   }
@@ -993,7 +993,7 @@ function switchWeaponSet(u,set){
   if(u.activeSet===2){
     const a=u.weapon, b=u.spare&&u.spare[0]||null;
     u.weapon=b; u.spare[0]=a;
-    const sh=u.shield; u.shield=!!u.offhand2; u.offhand2=sh?{n:"盾牌",type:"shield",_shield:true}:null;
+    const sh=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, next=u.offhand2; u.shield=next?.type==="shield";u.offhand=u.shield?null:next;u.offhand2=sh;
     u.activeSet=1; // 交換後目前組仍以 UI 的配置Ⅰ代表
   }
   syncWeaponSet(u);
@@ -1005,7 +1005,7 @@ function equipItemAt(u, from, to){
   const get=slot=>{
     if(slot==="weapon1")return u.weapon||null;
     if(slot==="weapon2")return u.spare[0]||null;
-    if(slot==="offhand1")return u.shield?shieldObj():null;
+    if(slot==="offhand1")return u.shield?shieldObj():u.offhand||null;
     if(slot==="offhand2")return u.offhand2||null;
     if(slot==="armor")return u.armor||null;
     if(slot==="acc1")return u.accessories[0]||null;
@@ -1018,7 +1018,7 @@ function equipItemAt(u, from, to){
     if(!it)return true;
     if(slot!=="bag" && equipmentRequirement(it,k=>abilityScore(u,k)))return false;
     if(slot==="weapon1"||slot==="weapon2")return it.type==="weapon"||it.type==="focus";
-    if(slot==="offhand1"||slot==="offhand2")return it.type==="shield";
+    if(slot==="offhand1"||slot==="offhand2")return it.type==="shield"||(it.type==="weapon"&&!isTwoHand(it)&&weaponProps(it).includes("輕型"));
     if(slot==="armor")return it.type==="armor";
     if(slot==="acc1"||slot==="acc2")return it.type==="accessory";
     if(slot==="backpack")return isBag(it);
@@ -1029,7 +1029,7 @@ function equipItemAt(u, from, to){
     const it=get(slot); if(!it)return null;
     if(slot==="weapon1")u.weapon=null;
     else if(slot==="weapon2")u.spare.splice(0,1);
-    else if(slot==="offhand1")u.shield=false;
+    else if(slot==="offhand1"){u.shield=false;u.offhand=null;}
     else if(slot==="offhand2")u.offhand2=null;
     else if(slot==="armor")u.armor=null;
     else if(slot==="acc1")u.accessories.splice(0,1);
@@ -1042,7 +1042,7 @@ function equipItemAt(u, from, to){
     if(!it)return;
     if(slot==="weapon1")u.weapon=it;
     else if(slot==="weapon2")u.spare[0]=it;
-    else if(slot==="offhand1")u.shield=true;
+    else if(slot==="offhand1"){u.shield=it.type==="shield";u.offhand=u.shield?null:it;}
     else if(slot==="offhand2")u.offhand2=it;
     else if(slot==="armor")u.armor=it;
     else if(slot==="acc1")u.accessories[0]=it;
@@ -1060,7 +1060,7 @@ function equipItemAt(u, from, to){
     if(displaced){ if(from.startsWith("bag:"))put("bag",displaced); else put(from,displaced); }
   }
   // 雙手武器獨佔整組；裝上時該組副手自動收回背包。
-  if((to==="weapon1"||from==="weapon1") && isTwoHand(u.weapon) && u.shield){u.backpack.push(shieldObj());u.shield=false;}
+  if((to==="weapon1"||from==="weapon1") && isTwoHand(u.weapon) && (u.shield||u.offhand)){u.backpack.push(u.shield?shieldObj():u.offhand);u.shield=false;u.offhand=null;}
   if((to==="weapon2"||from==="weapon2") && isTwoHand(u.spare[0]) && u.offhand2){u.backpack.push(u.offhand2);u.offhand2=null;}
   syncBattleBag(u);
   blog(`${u.name}整理了裝備`,"skill");
@@ -1136,7 +1136,7 @@ function infoHTML(v, b){
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
     const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const n=abilityScore(v,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
-    const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:null;
+    const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:v.offhand||null;
     const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
     const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
     const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=abilityScore(v,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
