@@ -392,7 +392,6 @@ function acOfUnit(u){
   // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
   ac -= u.statuses.filter(s=>s.k==="acDown" && (!s.shield || u.shield)).reduce((m,s)=>Math.max(m, 2 + (s.n||0)), 0);
   if(has(u,"shieldSpell")) ac += 5;
-  if(hasVia(u,"stance","parry")) ac += 2;           // 架式（架開反擊）
   return ac;
 }
 // 武器用哪個屬性：彈藥武器用敏捷；靈巧取高；其餘用力量
@@ -786,7 +785,7 @@ function weaponAttack(a, t, o={}){
   const m = w ? w.mastery.split(" ")[0] : null;
   if(res.hit){
     const crit = res.crit || o.autoCrit || o.double;
-    // 通用升階：施放中的人（不含反擊）每高一階多 1 顆武器骰
+    // 通用升階：施放中的人每高一階多 1 顆武器骰
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
     let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
@@ -796,11 +795,6 @@ function weaponAttack(a, t, o={}){
     if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
   } else if(o.mastery && m==="擦傷" && mod>0){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(view), a);
-  }
-  // 架開反擊：擺好架式的人被近戰打空，立刻反擊一次（反擊本身不會再觸發反擊）
-  if(!res.hit && !ranged && !o.counter && !t.surprised && hasVia(t,"stance","parry") && dist(t,a)<=1 && !t.down && !t.dead && !a.dead && !a.down){
-    blog(`　${t.name}架開攻擊，反擊！`, "skill");
-    weaponAttack(t, a, {counter:true});
   }
   return res;
 }
