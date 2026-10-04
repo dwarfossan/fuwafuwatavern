@@ -140,7 +140,7 @@ const scoutSpotters = () => { const sc = state.scout; if(!sc) return [];
 function ambushScript(){
   const who = scoutSpotters();
   if(!who.length) return AMBUSH;
-  const extra = [{who:"narr", text:"路邊的草叢，好像晃了一下。", shake:true},
+  const extra = [{who:"narr", text:"路邊的草叢，好像晃了一下。", shake:true, mark:"shake"},
                  ...CRITTERS.filter(c=>who.includes(c.id)).map(c=>({who:c.id, text:SPOT_QUIP[c.id], shake:true, mood:SPOT_MOOD[c.id]}))];
   return [...AMBUSH.slice(0,-1), ...extra, AMBUSH[AMBUSH.length-1]];
 }
