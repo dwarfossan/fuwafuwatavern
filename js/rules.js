@@ -104,7 +104,7 @@ function critterStatusUnit(id){
   const c=CRITTERS.find(x=>x.id===id);if(!c)return null;
   const scores=abilityScores(id),mods=abilityMods({scores}),lv=critterLevel(id),hp=maxHpAt(lv,mods.CON,id);
   const unit={id,side:"pc",name:c.name,color:c.color,hp,maxHp:hp,scores,mods,level:lv,xp:critterXP(id),stress:0,
-    ...StatusCard.readGear(id),
+    ...Equipment.read(id),
     speed:6,statuses:[],learned:(state.learned[id]||starterNotes(id)).map(x=>({...x})),activeSkills:(state.activeSkills[id]||[]).slice(),down:false,face:-1,oaUsed:false};
   unit.slots=slotMax(unit).map((m,i)=>Math.min(m,Array.isArray(state.proficiency[id])?(state.proficiency[id][i]??m):m));
   return unit;

@@ -58,7 +58,7 @@ function startBattle(id, retry=false, phase="combat"){
     units.push({
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
-      ...StatusCard.readGear(c.id),items:[],
+      ...Equipment.read(c.id),items:[],
       speed:6, statuses:[], learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
     });
   });
@@ -630,15 +630,8 @@ function dropSpot(from, t){
   cands.sort((a,c)=>c.s-a.s);
   return cands[0] || null;
 }
-function takeFrom(t, it){
-  if(t.weapon===it) t.weapon = null;
-  else if(t.focus===it) t.focus = null;
-}
-function equip(u, it){
-  if(equipmentRequirement(it,k=>abilityScore(u,k)))return false;
-  if(it.type==="focus") u.focus = it;
-  else u.weapon = it;
-}
+function takeFrom(t,it){return Equipment.takeHeld(t,it);}
+function equip(u,it){return Equipment.equipHeld(u,it);}
 // 撿不撿得起來（敵我一樣）：武器欄／法器欄是空的，而且手夠（盾、法器、武器各佔一隻手，雙手武器佔兩隻）
 // 哥布林撿到玲玲的法杖也照樣會用
 function canPick(u, it){

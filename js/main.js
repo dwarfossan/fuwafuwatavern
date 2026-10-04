@@ -69,7 +69,7 @@ function grantStarterGear(){
    const it=makeItem(ITEMS.find(i=>i.n===name),false);
    state.inv[c.id].push(it.id);load[slot]=it.id;
   }
-  StatusCard.setGear(c.id,load);
+  Equipment.set(c.id,load);
   if(state.gold[c.id]===undefined)state.gold[c.id]=100*GP;
  });state.starterGranted=true;
 }
@@ -235,6 +235,7 @@ function bind(){
     const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
     if(blockReason(id,it)) return;
     state.gold[id] -= it.cost; state.inv[id].push(makeItem(it).id); if(it.baseId)delete state.shopFocusStock[it.baseId];
+    Equipment.refresh(id);
     state.quip = state.shopContext?TOWN_UI.buy:pick(DWARF_QUIPS.buy); render();
   }));
   document.querySelectorAll("[data-sell]").forEach(b=>b.addEventListener("click", ()=>{
@@ -242,6 +243,7 @@ function bind(){
     if(itemById(state.inv[id][+b.dataset.sell])?.noRefund)return;
     const [x] = state.inv[id].splice(+b.dataset.sell,1);
     state.gold[id] += itemById(x).cost;
+    Equipment.refresh(id);
     state.quip = state.shopContext?TOWN_UI.sell:pick(DWARF_QUIPS.sell); render();
   }));
   // 滑到被擋的按鈕上時，大爺吐槽一句

@@ -32,7 +32,7 @@ function drawSeal(owner=CRITTERS[state.shopActive].id){
 }
 function claimSeal(owner=CRITTERS[state.shopActive].id){
  const m=ensureMarket(),it=itemById(m.pending);if(!it||blockReason(owner,it))return false;
- state.inv[owner].push(it.id);m.pending=null;saveMarket();render();return true;
+ state.inv[owner].push(it.id);Equipment.refresh(owner);m.pending=null;saveMarket();render();return true;
 }
 function sealExchangeProblem(id,owner){
  const m=state.market;if(!m?.prizes?.includes(id))return '不在本週自選名單';if(m.marks<SEAL_EXCHANGE)return '封印印記不足';
@@ -40,7 +40,7 @@ function sealExchangeProblem(id,owner){
 }
 function exchangeSeal(id,owner=CRITTERS[state.shopActive].id){
  const m=ensureSealWeek();if(sealExchangeProblem(id,owner))return false;
- const p=itemById(id),it={...p,id:`magic-exchange-${m.exchanges=(m.exchanges||0)+1}`,noRefund:true,cost:0};state.magicItems[it.id]=it;state.inv[owner].push(it.id);m.marks-=SEAL_EXCHANGE;saveMarket();render();return true;
+ const p=itemById(id),it={...p,id:`magic-exchange-${m.exchanges=(m.exchanges||0)+1}`,noRefund:true,cost:0};state.magicItems[it.id]=it;state.inv[owner].push(it.id);Equipment.refresh(owner);m.marks-=SEAL_EXCHANGE;saveMarket();render();return true;
 }
 function bindSeal(){
  document.getElementById('sealOpen')?.addEventListener('click',openSeal);

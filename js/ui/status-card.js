@@ -1,44 +1,10 @@
 // 狀態卡唯一入口：共同畫面、裝備讀寫與切換按鈕。
 const StatusCard = {
   render: statusCardHTML,
-  readGear(id){
-    const inv=invItems(id).slice(),usable=it=>!equipmentRequirement(it,k=>abilityScore(id,k));
-    const saved=state.startingGear?.[id],pool=inv.slice();
-    const take=key=>{const i=pool.findIndex(it=>it.id===saved[key]&&usable(it));return i<0?null:pool.splice(i,1)[0];};
-    if(saved){
-      const weapon=take("main"),off=take("off"),second=take("second"),offhand2=take("secondOff"),armor=take("armor"),backpackEquip=take("bag");
-      const accessories=(saved.accessories||[]).map(i=>{const n=pool.findIndex(it=>it.id===i&&usable(it));return n<0?null:pool.splice(n,1)[0];}).filter(Boolean);
-      // 舊配置尚未保存飾品時，沿用原本的前兩件。
-      if(!saved.accessories)accessories.push(...pool.filter(it=>it.type==="accessory").slice(0,2));
-      return {weapon,focus:null,spare:second?[second]:[],shield:off?.type==="shield",offhand:off?.type==="shield"?null:off,offhand2,armor,accessories,backpackEquip,backpack:pool.filter(it=>!accessories.includes(it)),activeSet:1};
-    }
-    const weapons=inv.filter(it=>(it.type==="weapon"||it.type==="focus")&&usable(it)),weapon=weapons[0]||null,spare=weapons.slice(1,2),off=inv.find(it=>it.type==="shield"&&usable(it))||null,armor=inv.find(it=>it.type==="armor"&&usable(it))||null,accessories=inv.filter(it=>it.type==="accessory"&&usable(it)).slice(0,2),backpackEquip=bestBag(inv);
-    const equipped=[weapon,...spare,off,armor,...accessories,backpackEquip].filter(Boolean);
-    return {weapon,focus:null,spare,shield:!!off,offhand:null,offhand2:null,armor,accessories,backpackEquip,backpack:inv.filter(it=>!equipped.includes(it)),activeSet:1};
-  },
-  setGear(id,load){ state.startingGear ||= {}; state.startingGear[id]=load; },
-  saveGear(u){
-    if(!u||u.side!=="pc")return;
-    const old=state.startingGear?.[u.id]||{},inv=invItems(u.id);
-    const shieldId=slot=>{const it=inv.find(x=>x.id===old[slot]&&x.type==="shield")||inv.find(x=>x.type==="shield");return it?.id||null;};
-    const itemId=(it,slot)=>it?.type==="shield"?(it.id&&inv.some(x=>x.id===it.id)?it.id:shieldId(slot)):it?.id||null;
-    this.setGear(u.id,{main:itemId(u.weapon||u.focus,"main"),second:itemId(u.spare?.[0],"second"),off:u.shield?shieldId("off"):itemId(u.offhand,"off"),secondOff:itemId(u.offhand2,"secondOff"),armor:itemId(u.armor,"armor"),bag:itemId(u.backpackEquip,"bag"),accessories:(u.accessories||[]).map(x=>x.id)});
-  },
-  switchUnit(u,set=2){
-  if(!u||u.side!=="pc")return false;
-  if(set===2 && (!u.spare?.[0] || equipmentRequirement(u.spare[0],k=>abilityScore(u,k))))return false;
-  u.activeSet=set===2?2:1;
-  // 戰鬥實際使用欄位永遠指向目前配置；切組不消耗任何動作。
-  if(u.activeSet===2){
-    const a=u.weapon, b=u.spare&&u.spare[0]||null;
-    u.weapon=b; u.spare[0]=a;
-    const sh=u.shield?{n:"盾牌",type:"shield",_shield:true}:u.offhand||null, next=u.offhand2; u.shield=next?.type==="shield";u.offhand=u.shield?null:next;u.offhand2=sh;
-    u.activeSet=1; // 交換後目前組仍以 UI 的配置Ⅰ代表
-  }
-  syncWeaponSet(u);
-  syncBattleBag(u);
-  return true;
-  },
+  readGear(id){return Equipment.read(id);},
+  setGear(id,load){return Equipment.set(id,load);},
+  saveGear(u){return Equipment.save(u);},
+  switchUnit(u,set=2){return Equipment.switchUnit(u,set);},
   switchWeapon(id){
     const u=critterStatusUnit(id);if(!u)return false;
     if(equipmentRequirement(u.spare?.[0],k=>abilityScore(u,k)))return false;

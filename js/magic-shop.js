@@ -32,7 +32,7 @@ function magicStockHTML(){
 function buyMagic(id,owner=CRITTERS[state.shopActive].id){
  const m=ensureMarket(),row=m.stock.find(s=>s.id===id),it=itemById(id);
  if(!row||row.sold||!it||blockReason(owner,it))return false;
- state.gold[owner]-=it.cost;state.inv[owner].push(it.id);row.sold=true;saveMarket();state.quip=TOWN_UI.buy;render();return true;
+ state.gold[owner]-=it.cost;state.inv[owner].push(it.id);Equipment.refresh(owner);row.sold=true;saveMarket();state.quip=TOWN_UI.buy;render();return true;
 }
 function equippedMagic(u){return [u.weapon,u.focus,u.armor,u.backpackEquip,...(u.accessories||[])].filter(Boolean);}
 function itemResistances(u){return [...new Set(equippedMagic(u).flatMap(it=>it.resistances||[]))];}

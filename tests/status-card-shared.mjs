@@ -8,7 +8,7 @@ const inventory=[{id:'a',n:'劍',type:'weapon',props:[]},{id:'b',n:'弓',type:'w
 const state={startingGear:{},battle:null,townRest:null};
 const ctx={state,invItems:()=>inventory,equipmentRequirement:()=>false,abilityScore:()=>16,bestBag:()=>inventory[4]};
 ctx.syncBattleBag=u=>{u.items=(u.backpack||[]).filter(i=>i.type==='consumable');vm.runInContext('StatusCard',ctx).saveGear(u);};
-vm.createContext(ctx);vm.runInContext(source+weaponFns,ctx);const card=vm.runInContext('StatusCard',ctx);
+vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/equipment.js','utf8')+source+weaponFns,ctx);const card=vm.runInContext('StatusCard',ctx);
 ctx.critterStatusUnit=id=>state.battle?.units.find(u=>u.id===id)||state.townRest?.units.find(u=>u.id===id)||{id,side:'pc',...card.readGear(id)};
 assert.equal(card.readGear('fox').weapon.id,'a');assert(card.switchWeapon('fox'));
 assert.equal(state.startingGear.fox.main,'b');assert.equal(state.startingGear.fox.second,'a');assert.equal(state.startingGear.fox.secondOff,'s');
@@ -21,5 +21,5 @@ state.townRest=null;assert.equal(card.readGear('fox').weapon.id,'a','離開戰�
 ctx.equipmentRequirement=it=>it?.id==='b'?'限制':false;assert.equal(card.switchWeapon('fox'),false);assert.equal(state.startingGear.fox.main,'a');
 assert.equal((render.match(/function infoHTML/g)||[]).length,0);
 for(const file of ['js/ui/cards.js','js/battle/render.js']){const text=fs.readFileSync(file,'utf8');assert(text.includes('StatusCard.render('));assert(text.includes('StatusCard.bind(document)'));}
-for(const file of ['js/rules.js','js/battle/engine.js'])assert(fs.readFileSync(file,'utf8').includes('StatusCard.readGear('));
+for(const file of ['js/rules.js','js/battle/engine.js'])assert(fs.readFileSync(file,'utf8').includes('Equipment.read('));
 console.log('PASS：共用狀態卡；劇情→探索→戰鬥→城鎮→劇情武器／盾牌配置持續一致；裝備限制及動作資源保留。');
