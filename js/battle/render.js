@@ -372,14 +372,13 @@ function initBoardDrag(){
     if(e.pointerType!=="mouse"||touches.size)return;
     tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);
     const b=B();if(!b)return;
-    const tile=e.target.closest?.(".board [data-tile]")?.dataset.tile;
+    // 角色／血條本身都有 data-moving-unit；不要只靠 data-tile，因為角色上層的裝備 SVG 可能吃到 pointer target。
+    // 先直接認目前 hover 的 unit，再用 tgtSet 驗證牠所在格確實是這次瞄準的合法紅格。
+    const unitId=e.target.closest?.(".board [data-moving-unit]")?.dataset.movingUnit;
     let id=null;
-    if(tile&&b.mode&&!b.busy&&!b.result){
-      const ctx=boardMarkState();
-      if(ctx.tgtSet.has(tile)){
-        const [x,y]=tile.split(",").map(Number),v=unitAt(x,y);
-        if(v?.side==="foe"&&!foeHid(v))id=v.id;
-      }
+    if(unitId&&b.mode&&!b.busy&&!b.result){
+      const v=b.units.find(x=>x.id===unitId),ctx=boardMarkState();
+      if(v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`))id=v.id;
     }
     if(b.aimHover!==id){b.aimHover=id;refreshBattle();}
   });
