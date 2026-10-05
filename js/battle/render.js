@@ -210,9 +210,9 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
   shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(t.svg));
-  // 已選取的敵人共用一個紅色身體輪廓，畫在最上層：點本體或血條都只讀 b.info，不為敵人種類各做一份。
-  const selected=b.info&&shown.find(v=>v.id===b.info&&v.side==="foe"&&!v.dead);
-  if(selected)out.push(selectedFoeSVG(selected));
+  // 瞄準時游標指到的合法敵人共用一個紅色身體輪廓；只畫目前 hover 的那一隻，不為敵人種類各做一份。
+  const aimed=b.aimHover&&b.mode&&shown.find(v=>v.id===b.aimHover&&v.side==="foe"&&!v.dead&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`));
+  if(aimed)out.push(aimedFoeSVG(aimed));
   // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
@@ -368,7 +368,25 @@ function initBoardDrag(){
   setInterval(()=>{ sweepFx(); refreshLogStrip(); }, 100);
   let objectHold=null;const clearHold=()=>{clearTimeout(objectHold);objectHold=null;};
   const tip=key=>{if(B()&&B().objectTip!==key){B().objectTip=key;refreshBattle();}};
-  window.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"&&!touches.size)tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);});
+  window.addEventListener("pointermove",e=>{
+    if(e.pointerType!=="mouse"||touches.size)return;
+    tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);
+    const b=B();if(!b)return;
+    const tile=e.target.closest?.(".board [data-tile]")?.dataset.tile;
+    let id=null;
+    if(tile&&b.mode&&!b.busy&&!b.result){
+      const ctx=boardMarkState();
+      if(ctx.tgtSet.has(tile)){
+        const [x,y]=tile.split(",").map(Number),v=unitAt(x,y);
+        if(v?.side==="foe"&&!foeHid(v))id=v.id;
+      }
+    }
+    if(b.aimHover!==id){b.aimHover=id;refreshBattle();}
+  });
+  window.addEventListener("pointerout",e=>{
+    const b=B();if(!b?.aimHover)return;
+    if(e.target.closest?.(".board-wrap")&&!e.relatedTarget?.closest?.(".board-wrap")){b.aimHover=null;refreshBattle();}
+  });
   window.addEventListener("blur",()=>{clearHold();tip(null);});
   window.addEventListener("pointerdown", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
@@ -640,8 +658,8 @@ function fxSVG(kind, x, y, el){
   return impact("M-10 -48 L1 -27 L19 -51 L22 -25 L48 -38 L32 -15 L58 -8 L34 3 L54 22 L28 18 L34 47 L12 27 L-2 54 L-9 29 L-34 47 L-27 20 L-57 25 L-34 5 L-56 -10 L-29 -14 L-42 -40 L-17 -26 Z","M-6 -31 L1 -18 L13 -33 M29 -22 L19 -10 L36 -6 M28 15 L17 13 L21 30 M-18 27 L-14 14 L-31 17 M-30 -11 L-17 -10 L-24 -25");
 }
 
-// 共用敵人選取提示：只替目前 b.info 指到的敵人畫一份紅色輪廓；本體被前景遮住時仍看得到。
-function selectedFoeSVG(v){
+// 共用瞄準 hover 提示：只替游標目前指到的合法敵人畫一份紅色輪廓；本體被前景遮住時仍看得到。
+function aimedFoeSVG(v){
   const c=sideColor(v),id="selected-foe-outline";
   return `<g class="selected-foe" data-selected-unit="${v.id}" pointer-events="none">
     <defs><filter id="${id}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
@@ -1285,7 +1303,7 @@ function battleLayerKeys(){
   // 動作有開始時間（擲骰後才揮），所以場景也要看「動作現在是還沒開始／進行中／結束」，不然時間到了也不會重畫
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
   // svgMood 在 b.units 中，場景、先攻介面與狀態卡更新鍵均涵蓋表情。
-  const scene=battleDataKey([b.turn,b.result,b.info,camZoom(),b.units,b.units.map(animPhase),b.units.map(leveling),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
+  const scene=battleDataKey([b.turn,b.result,b.aimHover,camZoom(),b.units,b.units.map(animPhase),b.units.map(leveling),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
   const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.turn,b.phase,b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks,b.groundEffects]):"none";
   const ui=battleDataKey([b,state.xp,state.level,b.units.map(leveling),state.inv,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
