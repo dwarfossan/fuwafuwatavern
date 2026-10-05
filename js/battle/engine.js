@@ -193,7 +193,7 @@ const hidden = t => !!(terrainAt(t.x,t.y)||{}).hide;
 const inCombat=u=>!u.fled&&(!B().explorationMap||B().phase!=="combat"||u.combatActive);
 const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead && inCombat(u));
 // ---------- 死亡豁免（大爺 10-02，SRD 5.2，選 B）----------
-// 倒下的四小隻每回合開始擲 d20：10 以上撐住（不會穩定下來，不救遲早被送走）、9 以下失敗一次、1 算兩次、20 自己醒來（1 血、倒地）
+// 倒下的小傢伙們每回合開始擲 d20：10 以上撐住（不會穩定下來，不救遲早被送走）、9 以下失敗一次、1 算兩次、20 自己醒來（1 血、倒地）
 // 失敗滿三次：卡姆的傳送魔法把她送回酒館，這場戰鬥少一隻；四隻都被送走＝輸（checkResult）
 // 被治療、被扶起來：失敗次數歸零。倒地又被打算失敗：先不做（敵人 AI 不會打倒地的）
 const DS_MAX = 3;
@@ -289,10 +289,10 @@ function sneakShow(u){
   blog(`　${u.name}潛行 ${s.val}，比${opp.map(v=>`${v.name} ${passivePer(v)}`).join("、")}都高，沒人發現`, "miss");
 }
 // ---------- 感知：看穿敵人身上帶的東西（大爺 10-02，照 D&D）----------
-// 被動感知＝10＋感知調整值，不擲骰：敵人第一次被看到時，四小隻各自跟 DC 比，夠高的就看穿
+// 被動感知＝10＋感知調整值，不擲骰：敵人第一次被看到時，小傢伙們各自跟 DC 比，夠高的就看穿
 // 主動搜索＝d20＋感知：免費動作，6 格內看得到的敵人（js/battle/flow.js 的 doSearch）
 // 敵人藏東西的 DC＝10＋敏捷調整值＋2（低階怪的熟練加值）
-// 看穿了、或打倒之後，那隻的背包就能打開；整場戰鬥四小隻共用
+// 看穿了、或打倒之後，那隻的背包就能打開；整場戰鬥小傢伙們共用
 const passivePer = u => 10 + u.mods.WIS;
 const pocketDC = v => 10 + v.mods.DEX + 2;
 const SEARCH_RANGE = 6;
@@ -581,7 +581,7 @@ function hurt(t, n, type, src, hitSfx){
     else { t.down = true; t.dsFail = 0; t.statuses = []; blog(`${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
-    // 看得到的敵人全倒、還有躲著的（大爺 10-02）：四小隻覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
+    // 看得到的敵人全倒、還有躲著的（大爺 10-02）：小傢伙們覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
     const b = B();
     if(t.side==="foe" && !b.units.some(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v))
        && b.units.some(v=>foeHid(v) && !v.dead && !v.down)) barkOn("hunch", t, at + 700 + BARK_MS);
