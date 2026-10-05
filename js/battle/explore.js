@@ -8,8 +8,6 @@ function beginExplore(){
  exploreTraps();exploreDetect();refreshBattle();
 }
 function exploreSelect(id){const b=B();if(b.busy||b.exploreStopped)return;const p=exploreParty().find(u=>u.id===id),old=exploreUnit();if(!p)return;if(old&&old!==p){p.x=old.x;p.y=old.y;p.face=old.face;}b.exploreSolo=id;b.leader=id;b.turn=b.units.indexOf(p);b.info=null;exploreDetect();refreshBattle();}
-function exploreGather(){const b=B();if(b.busy||b.exploreStopped)return;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);refreshBattle();}
-function exploreSetLeader(){const b=B();if(b.busy||b.exploreStopped)return;b.leader=exploreUnit().id;exploreGather();}
 function exploreHide(){
  const b=B();if(b.busy||b.exploreStopped)return;
  const pcs=[exploreUnit()].filter(Boolean);
@@ -124,7 +122,7 @@ function exploreMove(x,y,done){
 function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.mode?.key==="placeBarrel"){placeBarrel(Math.round(x),Math.round(y));return;}const o=exploreObjectAt(Math.round(x),Math.round(y));if(o){exploreApproach(o);return;}const t=b.units.find(v=>!(v.side==="pc"&&v!==exploreUnit())&&!v.dead&&!v.fled&&mapCell(v.x)===mapCell(x)&&mapCell(v.y)===mapCell(y));
  if(t&&!foeHid(t)){b.info=b.info===t.id?null:t.id;refreshBattle();return;}exploreMove(x,y);
 }
-function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="gather")exploreGather();else if(c==="leader")exploreSetLeader();else if(c==="hide")exploreHide();}
+function exploreCmd(c){if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="hide")exploreHide();}
 
 // 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
 const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed);
