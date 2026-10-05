@@ -41,5 +41,21 @@ try{
     return {focusCleared:!b.focusReq,stationary:before.x===b.cam.x&&before.y===b.cam.y,onScreen:onScreen(u)};
   });
   assert.deepEqual(camera,{focusCleared:true,stationary:true,onScreen:true},'可見的玩家回合不得強制置中鏡頭');
-  console.log('PASS：封面零表情預載；探索計時器啟動／離場停止；可見玩家回合不移鏡。');
+
+  const waitSetup=await page.evaluate(()=>{
+    const b=B(),pcs=b.units.filter(u=>u.side==='pc'),rest=b.units.filter(u=>u.side!=='pc');
+    b.units=[pcs[0],pcs[1],...rest];b.turn=0;b.busy=false;b.result=null;
+    beginTurn(pcs[0]);centerCam(pcs[1].x,pcs[1].y-1,false);refreshBattle();
+    return {before:{...b.cam},next:pcs[1].id,button:!!document.querySelector('[data-cmd="wait"]')};
+  });
+  assert.equal(waitSetup.button,true,'玩家回合須顯示待機按鈕');
+  await page.locator('[data-cmd="wait"]').click();
+  await page.waitForTimeout(80);
+  const afterWait=await page.evaluate(before=>({
+    next:cur().id,
+    stationary:before.x===B().cam.x&&before.y===B().cam.y,
+    focusCleared:!B().focusReq
+  }),waitSetup.before);
+  assert.deepEqual(afterWait,{next:waitSetup.next,stationary:true,focusCleared:true},'點待機後可見的下一位玩家不得強制置中鏡頭');
+  console.log('PASS：封面零表情預載；探索計時器啟動／離場停止；可見玩家焦點及實際待機均不移鏡。');
 }finally{await browser.close();}
