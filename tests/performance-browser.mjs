@@ -14,6 +14,16 @@ try{
   await page.waitForTimeout(300);
   assert.equal(faceRequests.length,0,'封面不可預載表情圖');
 
+  await page.goto(file+'?perf=town#town',{waitUntil:'load'});
+  await page.waitForTimeout(300);
+  for(const id of ['inn','smith','guild','items']){
+    await page.locator(`[data-town-place="${id}"]`).click();
+    await page.waitForFunction(()=>[...document.querySelectorAll('.actor .portrait img')].every(img=>img.complete&&img.naturalWidth>0));
+    const townImages=await page.locator('.actor .portrait img').evaluateAll(images=>images.map(img=>img.getAttribute('src')));
+    assert(townImages.length===2&&townImages.every(src=>src.endsWith('.webp')),`${id} 店主應載入兩張 WebP`);
+    await page.locator('#townStreet').click();
+  }
+
   await page.goto(file+'?perf=explore#battle?phase=explore',{waitUntil:'load'});
   await page.waitForTimeout(500);
   let timers=await page.evaluate(()=>({
@@ -44,10 +54,11 @@ try{
 
   const waitSetup=await page.evaluate(()=>{
     const b=B(),pcs=b.units.filter(u=>u.side==='pc'),rest=b.units.filter(u=>u.side!=='pc');
-    b.units=[pcs[0],pcs[1],...rest];b.turn=0;b.busy=false;b.result=null;
-    beginTurn(pcs[0]);centerCam(pcs[1].x,pcs[1].y-1,false);refreshBattle();
-    return {before:{...b.cam},next:pcs[1].id,button:!!document.querySelector('[data-cmd="wait"]')};
+    b.explorationMap=false;b.units=[pcs[0],pcs[1],...rest];b.turn=0;b.busy=false;b.result=null;
+    beginTurn(pcs[0]);centerCam(pcs[1].x,pcs[1].y-1,false);b.focusReq=false;refreshBattle();
+    return {before:{...b.cam},next:pcs[1].id,visible:onScreen(pcs[1]),button:!!document.querySelector('[data-cmd="wait"]')};
   });
+  assert.equal(waitSetup.visible,true,'待機前下一位玩家須在畫面內');
   assert.equal(waitSetup.button,true,'玩家回合須顯示待機按鈕');
   await page.locator('[data-cmd="wait"]').click();
   await page.waitForTimeout(80);
@@ -57,5 +68,5 @@ try{
     focusCleared:!B().focusReq
   }),waitSetup.before);
   assert.deepEqual(afterWait,{next:waitSetup.next,stationary:true,focusCleared:true},'點待機後可見的下一位玩家不得強制置中鏡頭');
-  console.log('PASS：封面零表情預載；探索計時器啟動／離場停止；可見玩家焦點及實際待機均不移鏡。');
+  console.log('PASS：封面零表情預載；四店 WebP 肖像；探索計時器啟動／離場停止；可見玩家焦點及實際待機均不移鏡。');
 }finally{await browser.close();}

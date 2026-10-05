@@ -4,11 +4,11 @@
 const NPC_FACE_NAMES=["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"];
 const TOWN_PORTRAIT={inn:"mira",smith:"brun",guild:"ada",items:"liliana"};
 const PORTRAITS = {
-  mira:{offsets:[[0.0,0.0],[3.1768,1.3812],[7.4586,-0.8287],[10.3591,0.9669],[0.5525,10.0829],[2.3481,7.8729],[6.3536,8.1492],[9.2541,7.5967],[0.5525,16.989],[2.9006,19.4751],[7.1823,15.7459],[9.6685,17.2652]],base:"assets/portraits/mira_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/mira/sheet.png"},
-  ada:{base:"assets/portraits/ada_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/ada/sheet.png"},
-  brun:{base:"assets/portraits/brun_noface.png",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/brun/sheet.png"},
+  mira:{offsets:[[0.0,0.0],[3.1768,1.3812],[7.4586,-0.8287],[10.3591,0.9669],[0.5525,10.0829],[2.3481,7.8729],[6.3536,8.1492],[9.2541,7.5967],[0.5525,16.989],[2.9006,19.4751],[7.1823,15.7459],[9.6685,17.2652]],base:"assets/portraits/mira_noface.webp",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/mira/sheet.webp"},
+  ada:{base:"assets/portraits/ada_noface.webp",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/ada/sheet.webp"},
+  brun:{base:"assets/portraits/brun_noface.webp",faces:null,def:"smile",list:NPC_FACE_NAMES,sheet:"assets/faces/brun/sheet.webp"},
 
-  liliana:{base:"assets/portraits/liliana_noface.png",faces:null,def:"smile",list:["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"],sheet:"assets/faces/liliana/sheet.png"},
+  liliana:{base:"assets/portraits/liliana_noface.webp",faces:null,def:"smile",list:["smile","happy","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"],sheet:"assets/faces/liliana/sheet.webp"},
   dwarf: {base:"assets/portraits/dwarf_noface.webp", faces:"assets/faces/dwarf/", def:"smile",
           list:["annoyed","smile","grin","gritted","sad","surprised","smirk","shy"]},
   kam:   {base:"assets/portraits/kam_noface.webp",   faces:"assets/faces/kam/",   def:"smile",
