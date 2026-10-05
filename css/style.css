@@ -871,7 +871,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 @keyframes crit-vig{0%{opacity:0}20%{opacity:1}100%{opacity:.2}}
 /* 勝利標題：橫過戰場中間的一條帶子＋大字，出現後一直留著；不擋點擊 */
 .bt-victory{position:absolute;inset:0;pointer-events:none;display:grid;place-items:center;z-index:30}
-.bv-content{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;z-index:1}
+.bv-content{display:contents}
 .bv-band{position:absolute;left:0;right:0;top:50%;height:clamp(84px,18vw,130px);transform:translateY(-50%);
   background:linear-gradient(90deg,transparent,rgba(31,26,36,.88) 18%,rgba(31,26,36,.88) 82%,transparent);animation:bv-band .45s ease-out both}
 .bv-title{position:relative;font-family:var(--font-disp);font-weight:900;font-size:clamp(52px,13vw,96px);letter-spacing:.08em;white-space:nowrap;
@@ -1172,4 +1172,4 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 .mira-face-window{position:absolute;inset:0;clip-path:url(#mira-face-clip)}
 
-.bt-victory .bt-after{position:static;left:auto;bottom:auto;transform:none;z-index:auto;pointer-events:auto;margin:0;}
+.bt-victory .bt-after{position:absolute;left:50%;top:calc(50% + clamp(26px,6.5vw,48px) + 5px);bottom:auto;transform:translateX(-50%);z-index:31;pointer-events:auto;margin:0;}
