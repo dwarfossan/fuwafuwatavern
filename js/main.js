@@ -177,6 +177,13 @@ function bindTokens(){
 
 function bind(){
   const $ = id => document.getElementById(id);
+  if(state.page==="story"){
+    $("storySndToggle")?.addEventListener("click",e=>{e.stopPropagation();state.storySysPop=state.storySysPop==="volume"?null:"volume";render();});
+    $("storyGearToggle")?.addEventListener("click",e=>{e.stopPropagation();state.storySysPop=state.storySysPop==="menu"?null:"menu";render();});
+    $("storyVolMute")?.addEventListener("click",e=>{e.stopPropagation();SFX.toggleMuted();if(!SFX.isMuted())sfx("pop");render();});
+    $("storyMasterVolume")?.addEventListener("input",e=>{e.stopPropagation();SFX.setVolume(+e.target.value/100);const n=$("storyVolNum");if(n)n.textContent=`${e.target.value}%`; $("storySndToggle")?.classList.toggle("off",+e.target.value===0);});
+    document.querySelectorAll("[data-story-sys]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const a=el.dataset.storySys;state.storySysPop=null;if(a==="continue"){render();return;}if(a==="party"){state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();return;}if(a==="about"){state.modal={kind:"about"};render();return;}if(a==="title"){state.page="cover";render();window.scrollTo(0,0);}}));
+  }
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;render();});

@@ -34,6 +34,7 @@ const state = {
   scene:"prologue", // 目前劇情場景（prologue 序章 / farewell 送別）
   line:0,     // 劇情目前台詞
   info:null,  // 正在查看的角色
+  storySysPop:null, // 劇情頁右上系統工具：volume / menu
   starterGranted:false, startingGear:{},
   gold:{}, inv:{}, learned:{}, activeSkills:{}, proficiency:{}, shortRestsUsed:0, shopActive:0, shopCat:"簡易近戰", quip:"挑吧挑吧！",
   focusItems:{}, focusSerial:0, shopFocusStock:{}, // 每件法器固定使用屬性與商店現貨
