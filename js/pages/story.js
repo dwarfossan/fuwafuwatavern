@@ -92,9 +92,9 @@ function showSpot(on){
 /* 酒館舞台上的人（10-03 改新畫風立繪）：台詞的 on 指定誰站在舞台上（預設大爺）；
    face 是站在台上那位這句的表情，沒寫就用預設（PORTRAITS[id].def） */
 // 只在自己的台詞（或全體合聲）換表情；由劇本回溯，局部更新與整頁重畫一致。
-function critterMood(id, line){
+function critterMood(id, line, index=state.line){
   const script = state.page==="story" && line.who ? SCENES[state.scene]?.script : null;
-  const lines = script ? script.slice(0,state.line+1) : [line];
+  const lines = script ? script.slice(0,index+1) : [line];
   let mood = "normal";
   for(const spoken of lines){
     if(spoken.who===id || spoken.who==="all")
@@ -103,11 +103,11 @@ function critterMood(id, line){
   return mood;
 }
 const stageActors = () => { const sc = SCENES[state.scene]; return sc.actors || (sc.bg==="tavern" ? ["dwarf", "kam"] : []); };   // 沒寫 actors：酒館＝大爺、卡姆，其他場景沒人
-const onStage = line => {
-  if(state.scene==="prologue" && !SCENES.prologue.script.slice(0,state.line+1).some(l=>l.who==="dwarf"))return null;
+const onStage = (line,index=state.line) => {
+  if(state.scene==="prologue" && !SCENES.prologue.script.slice(0,index+1).some(l=>l.who==="dwarf"))return null;
   return line.on || stageActors()[0];
 };
-const actorFace = (id, line) => onStage(line)===id && line.face ? line.face : PORTRAITS[id].def;
+const actorFace = (id, line,index=state.line) => onStage(line,index)===id && line.face ? line.face : PORTRAITS[id].def;
 
 function updateStoryLine(){
   const scene = SCENES[state.scene], line = scene.script[state.line], who = storyWho(line);
@@ -144,6 +144,7 @@ function updateStoryLine(){
   const done = last && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
   syncBGM();
+  prepareStoryImages(state.line+1);
 }
 
 function storyPartyHTML(line={}){
@@ -167,31 +168,35 @@ const storyImageLoads=new Map();
 const storyDecodedImages=new Map();
 function swapPreparedStoryImage(img,src){
  const ready=storyDecodedImages.get(src);
- if(!ready){img.src=src;return;}
- for(const attr of [...img.attributes])if(attr.name!=="src")ready.setAttribute(attr.name,attr.value);
- ready.onload=img.onload;ready.onerror=img.onerror;
+ if(!ready){delete img.dataset.imageSource;img.src=src;bindPortraitLoading();return;}
+ ready.removeAttribute("data-image-source");
+ for(const attr of [...img.attributes])if(attr.name!=="src"&&attr.name!=="data-image-source")ready.setAttribute(attr.name,attr.value);
+ ready.onload=null;ready.onerror=null;
  img.replaceWith(ready);
+ bindPortraitLoading();
 }
-function prepareStoryImages(){
- const scene=SCENES[state.scene], urls=new Set();
+function prepareStoryImages(index=state.line){
+ const scene=SCENES[state.scene], line=scene.script[index], urls=new Set();
+ if(!line)return Promise.resolve([]);
  const add=src=>{if(src)urls.add(src);};
- for(const id of stageActors()){
-  const p=PORTRAITS[id];add(p.base);add(p.sheet);
-  if(p.faces)for(const face of p.list)add(faceSrc(id,face));
- }
- for(const c of CRITTERS)for(const mood of CRITTER_FACES[c.id])add(critterFaceSrc(c.id,mood));
- add(scene.image);for(const line of scene.script)if(line.art)add(STORY_ART[line.art]);
- return Promise.all([...urls].map(src=>{
+ const actor=onStage(line,index);
+ if(PORTRAITS[actor]){const p=PORTRAITS[actor];add(p.base);add(p.sheet);if(p.faces)add(faceSrc(actor,actorFace(actor,line,index)));}
+ for(const c of CRITTERS)add(critterFaceSrc(c.id,critterMood(c.id,line,index)));
+ add(scene.image);if(line.art)add(STORY_ART[line.art]);
+ return Promise.allSettled([...urls].map(src=>{
   if(!storyImageLoads.has(src)){
    const img=new Image();img.src=src;
-   const pending=img.decode().then(()=>{storyDecodedImages.set(src,img);}).catch(error=>{storyImageLoads.delete(src);throw error;});
+   const pending=new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error('圖片載入逾時')),6000);
+    img.decode().then(()=>{clearTimeout(timer);storyDecodedImages.set(src,img);resolve();},error=>{clearTimeout(timer);reject(error);});
+   }).catch(error=>{storyImageLoads.delete(src);throw error;});
    storyImageLoads.set(src,pending);
   }
   return storyImageLoads.get(src);
  }));
 }
 function renderStory(){
-  prepareStoryImages().catch(()=>{});
+  prepareStoryImages().then(()=>{if(state.page==="story")prepareStoryImages(state.line+1);});
   const scene = SCENES[state.scene];
   const SCRIPT_ = scene.script;
   const line = SCRIPT_[state.line];

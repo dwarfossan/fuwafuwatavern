@@ -24,19 +24,40 @@ function portraitHTML(id, face){
   return `<div class="portrait" data-portrait="${id}"><img fetchpriority="high" decoding="async" class="pt-base" src="${PORTRAITS[id].base}" alt="">${PORTRAITS[id].faces ? `<img class="pt-face" src="${faceSrc(id, face)}" alt="">` : ""}</div>`;
 }
 // 底圖與表情必須一起顯示；單張先到不能露出無臉人物。
+function retryDisplayImage(img){
+ const src=img.dataset.imageSource||img.getAttribute('src');
+ img.dataset.imageSource=src;
+ const url=new URL(src,document.baseURI);url.searchParams.set('image_retry',String(++retryDisplayImage.serial));
+ img.src=url.href;
+}
+retryDisplayImage.serial=0;
 function bindPortraitLoading(root=document){
  root.querySelectorAll('.portrait').forEach(el=>{
-  const imgs=[...el.querySelectorAll('img')];
   const sync=()=>{
+   const imgs=[...el.querySelectorAll('img')];
    const failed=imgs.some(i=>i.complete&&!i.naturalWidth);
    const ready=imgs.every(i=>i.complete&&i.naturalWidth);
    el.classList.toggle('portrait-ready',ready);
    el.classList.toggle('portrait-error',failed);
    el.setAttribute('aria-label',failed?'人物圖片載入失敗，點擊重試':ready?'':'人物圖片載入中');
+   el.setAttribute('role','button');el.tabIndex=failed?0:-1;
   };
-  imgs.forEach(i=>{i.onload=sync;i.onerror=sync;});
-  el.onclick=()=>{if(!el.classList.contains('portrait-error'))return;imgs.filter(i=>!i.naturalWidth).forEach(i=>{const src=i.getAttribute('src');i.removeAttribute('src');i.src=src;});sync();};
+  el.querySelectorAll('img').forEach(i=>{i.onload=sync;i.onerror=sync;});
+  const retry=e=>{if(!el.classList.contains('portrait-error'))return;e.preventDefault();e.stopPropagation();el.querySelectorAll('img').forEach(i=>{if(!i.naturalWidth)retryDisplayImage(i);});sync();};
+  el.onclick=retry;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')retry(e);};
   sync();
+ });
+ root.querySelectorAll('img:not(.portrait img)').forEach(img=>{
+  const sync=()=>{
+   let notice=img.nextElementSibling?.classList.contains('image-error-message')?img.nextElementSibling:null;
+   if(img.complete&&!img.naturalWidth){
+    if(!notice){notice=document.createElement('span');notice.className='image-error-message';notice.setAttribute('role','button');notice.tabIndex=0;notice.textContent='圖片載入失敗，點擊重試';img.after(notice);
+     const retry=e=>{e.preventDefault();e.stopPropagation();retryDisplayImage(img);sync();};notice.onclick=retry;notice.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')retry(e);};}
+    if(getComputedStyle(img.parentElement).position==='static')img.parentElement.classList.add('image-error-host');
+    Object.assign(notice.style,{left:img.offsetLeft+'px',top:img.offsetTop+'px',width:img.offsetWidth+'px',height:Math.max(32,img.offsetHeight)+'px'});
+   }else notice?.remove();
+  };
+  img.onload=sync;img.onerror=sync;sync();
  });
 }
 // 換表情：只換臉那張的 src，底圖不動
@@ -45,7 +66,7 @@ function setPortraitFace(root, face){
   const img = root?.querySelector(".pt-face"), id = root?.querySelector(".portrait")?.dataset.portrait || root?.dataset.portrait;
   if(!img || !id) return;
   const src = faceSrc(id, face);
-  if(!img.getAttribute("src").endsWith(src)){
+  if((img.dataset.imageSource||img.getAttribute("src"))!==src){
     if(typeof swapPreparedStoryImage==="function"&&state.page==="story")swapPreparedStoryImage(img,src);
     else img.setAttribute("src", src);
   }

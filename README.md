@@ -82,6 +82,7 @@ node tests/info-bars.mjs     # 狀態卡生命／經驗／壓力三條、頭像�
 node tests/about.mjs         # 關於／授權：封面與戰場主選單都打得開，SRD 5.1、5.2 官方原句完整
 node tests/performance-lifecycle.mjs # 純 Node：肖像按需載入、鏡頭焦點與戰場計時器生命週期
 node tests/performance-browser.mjs   # 390×844：封面零表情預載、離場停計時器、可見玩家不移鏡
+node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情
 node tests/town-image-assets.mjs     # 城鎮 NPC：四組 WebP 已接用，首次店主肖像下載量低於原 PNG 的 20%
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/stealth-mode.mjs # 切戰棋不開戰、安靜不增援、真實隱藏外觀與移動、主動攻擊及視野
