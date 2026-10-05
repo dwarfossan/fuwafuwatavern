@@ -206,11 +206,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 }
 .stage:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .fp-page .stage{-webkit-tap-highlight-color:transparent}   /* 手機點劇情時不要閃一塊點擊底色 */
-.sys-tools--story{position:absolute;top:8px;right:8px;z-index:40;gap:5px}
-.sys-tools--story .snd,.sys-tools--story .gear-btn{width:32px;height:32px;background:rgba(31,26,36,.62);border-width:1px;border-color:rgba(242,180,65,.48);box-shadow:0 2px 8px rgba(0,0,0,.18)}
-.sys-tools--story .snd svg,.sys-tools--story .gear-btn svg{width:18px;height:18px}
-.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:38px}
-.wall{position:absolute;inset:0;
+.story-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;min-height:38px}\n.sys-tools--story{margin-left:auto;gap:4px}\n.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:45px}\n.wall{position:absolute;inset:0;
   background:
     radial-gradient(ellipse 45% 55% at 50% 30%, rgba(242,180,65,.28), transparent 70%),
     repeating-linear-gradient(90deg,#3b2a20 0 70px,#33241b 70px 72px,#3f2d22 72px 142px,#2c1f18 142px 144px);}
