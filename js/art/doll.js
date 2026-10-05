@@ -183,7 +183,7 @@ function dollSVG(o){
   const H = o.w*150/140;
   return `<svg class="doll ${o.down?"dl-down":o.prone?"dl-prone":cheer?"dl-cheer":""}" x="${o.x}" y="${o.y}" width="${o.w}" height="${H}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true">
     ${level?`<g class="dl-level-aura" style="--level-delay:${-(now-o.levelUpAt)}ms"><ellipse cx="70" cy="136" rx="42" ry="12"/><path d="M28 136 Q22 118 32 104 M112 136 Q118 118 108 104"/><path class="level-front" d="M29 133 Q70 160 111 133"/></g>`:""}
-    <g ${flip}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--b:${bob}ms;--walk:${-(now%360)}ms">
+    <g class="dl-face" ${flip}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--b:${bob}ms;--walk:${-(now%360)}ms">
       <ellipse class="dl-foot-left" cx="60" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <ellipse class="dl-foot-right" cx="80" cy="138" rx="10" ry="5.5" fill="${L.feet}" stroke="${INK}" stroke-width="3"/>
       <g class="dl-bob">

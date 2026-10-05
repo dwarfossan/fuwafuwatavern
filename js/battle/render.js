@@ -1301,6 +1301,11 @@ function syncExploreUnitTransforms(){
   const moving=[...document.querySelectorAll(`[data-moving-unit="${v.id}"]`)];
   const anchor=moving.find(el=>el.classList.contains("token"))||moving[0];
   if(!anchor)return;
+  // 探索走路不重建 scene，方向也要就地同步到紙娃娃的鏡像層。
+  anchor.querySelectorAll(".dl-face").forEach(el=>{
+    if((v.face||1)<0)el.setAttribute("transform","translate(140 0) scale(-1 1)");
+    else el.removeAttribute("transform");
+  });
   const rx=Number(anchor.dataset.renderX),ry=Number(anchor.dataset.renderY);
   if(!Number.isFinite(rx)||!Number.isFinite(ry))return;
   const from=iso(rx,ry),to=iso(v.x,v.y),transform=`translate(${to.x-from.x} ${to.y-from.y})`;
