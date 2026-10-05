@@ -83,7 +83,7 @@ const FAREWELL = [
   {who:"tiger", text:"知道啦——先抱一下再出發！", mood:"happy", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"narr",  text:"嬌嬌第一個撲了上去，接著是玲玲、默默，最後香香也被一起拉了進去。", hug:true, face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"narr",  text:"大爺張開小小的手臂，把四個毛球一把抱住。辮子鬍扎得大家咯咯直笑。", face:"smile", hug:true, moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
-  {who:"narr",  text:"……空氣中，飄來一股微妙的味道。", face:"surprised", hug:true, moods:{fox:"surprised",tiger:"fierce",wolf:"confused",raccoon:"surprised"}},
+  {who:"narr",  text:"……空氣中，飄來一股微妙的味道。", bgm:"comedy", face:"surprised", hug:true, moods:{fox:"surprised",tiger:"fierce",wolf:"confused",raccoon:"surprised"}},
   {who:"dwarf", text:"……誰放屁？", face:"annoyed", mark:"sweat", hug:true, moods:{fox:"surprised",tiger:"fierce",wolf:"confused",raccoon:"surprised"}},
   {who:"tiger", text:"是玲玲放的！", mood:"fierce", critterMark:"anger", face:"annoyed", hug:true, moods:{fox:"surprised",tiger:"fierce",wolf:"confused",raccoon:"surprised"}},
   {who:"fox",   text:"嬌嬌在說謊。", mood:"smug", hug:true, face:"surprised", moods:{fox:"smug",tiger:"blank",wolf:"serious",raccoon:"sly"}},

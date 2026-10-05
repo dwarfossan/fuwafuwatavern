@@ -143,6 +143,7 @@ function updateStoryLine(){
   const next = document.getElementById(scene.next[0]);
   const done = last && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
+  syncBGM();
 }
 
 function storyPartyHTML(line={}){

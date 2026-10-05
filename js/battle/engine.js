@@ -111,6 +111,7 @@ function startBattle(id, retry=false, phase="combat"){
     id, def, phase, units, turn:-1, round:0, log:[], mode:null, result:null,
     tut: def.tutorial ? 0 : -1, busy:false
   };
+  syncBGM();
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
   if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u)).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
   passivePocket();                                 // 開場看得到的敵人：先比一次被動感知

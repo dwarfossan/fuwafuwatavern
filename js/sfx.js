@@ -124,12 +124,14 @@ const SFX = (()=>{
   function setMuted(m){
     muted = m; try { localStorage.setItem("fuwa-mute", m?"1":"0"); } catch(e){}
     if(master) master.gain.value = m ? 0 : volume;
+    BGM.setMuted();
   }
   function setVolume(v){
     volume = Math.max(0,Math.min(1,Number(v)||0));
     if(volume>0){ lastVolume=volume; muted=false; } else muted=true;
     try { localStorage.setItem("fuwa-volume", String(volume)); localStorage.setItem("fuwa-mute", muted?"1":"0"); } catch(e){}
     if(master) master.gain.value = muted ? 0 : volume;
+    BGM.setVolume();
   }
   function toggleMuted(){
     if(muted && volume===0) volume=lastVolume||.7;
@@ -148,6 +150,68 @@ const SFX = (()=>{
   return {play, setMuted, toggleMuted, setVolume, isMuted:()=>muted, getVolume:()=>volume, names:Object.keys(LIB), renderOffline};
 })();
 const sfx = (name, delay) => SFX.play(name, delay);
+
+// ---------- BGM：同一個主音量、單一 HTMLAudioElement 淡出後換曲 ----------
+const BGM_TRACKS = {
+  title:   {src:"assets/bgm/title_bgm.mp3", loop:true},
+  daily:   {src:"assets/bgm/daily_bgm.mp3", loop:true},
+  comedy:  {src:"assets/bgm/comedy_bgm.mp3", loop:true},
+  battle:  {src:"assets/bgm/battle_bgm.mp3", loop:true},
+  victory: {src:"assets/bgm/victory_bgm.mp3", loop:false}
+};
+const BGM = (()=>{
+  const MIX = .42, FADE = 280;
+  let audio = null, current = null, desired = null, finished = null, change = 0, fadeTimer = null;
+  const level = ()=>SFX.isMuted() ? 0 : SFX.getVolume()*MIX;
+  function ensure(){
+    if(audio) return audio;
+    audio = new Audio(); audio.preload = "metadata";
+    audio.addEventListener("ended", ()=>{ if(!audio.loop){ current=null; finished=desired; } });
+    return audio;
+  }
+  function fade(to, done){
+    const a=ensure(), from=a.volume, began=performance.now();
+    clearInterval(fadeTimer);
+    fadeTimer=setInterval(()=>{
+      const p=Math.min(1,(performance.now()-began)/FADE); a.volume=from+(to-from)*p;
+      if(p===1){ clearInterval(fadeTimer); fadeTimer=null; if(done)done(); }
+    },16);
+  }
+  function retry(){
+    if(!desired || current!==desired || finished===desired || !audio?.paused) return;
+    audio.play().then(()=>fade(level())).catch(()=>{});
+  }
+  function sync(track){
+    const spec=BGM_TRACKS[track];
+    if(!spec){ stop(); return; }
+    if(desired===track && (current===track || (!spec.loop && finished===track))) return;
+    desired=track; finished=null; const token=++change, a=ensure();
+    const start=()=>{
+      if(token!==change) return;
+      a.pause(); a.src=spec.src; a.loop=spec.loop; a.currentTime=0; a.volume=0; current=track;
+      a.play().then(()=>fade(level())).catch(()=>{});
+    };
+    if(current && !a.paused) fade(0,start); else start();
+  }
+  function stop(){
+    desired=null; finished=null; current=null; change++;
+    if(audio && !audio.paused) fade(0,()=>audio.pause());
+  }
+  ["pointerdown","keydown","touchstart"].forEach(ev=>window.addEventListener(ev,retry,{passive:true}));
+  return {sync, stop, retry, setMuted:()=>{if(audio&&!audio.paused)fade(level());}, setVolume:()=>{if(audio&&!audio.paused)fade(level());}, getTrack:()=>desired};
+})();
+function bgmTrackForState(){
+  if(state.page==="battle") return B()?.result==="win" ? "victory" : B()?.result ? null : "battle";
+  if(state.page==="cover" || state.page==="map") return "title";
+  if(state.page==="town" || state.page==="shop") return "daily";
+  if(state.page==="story"){
+    const script=SCENES[state.scene]?.script||[];
+    const cue=script.slice(0,state.line+1).map(line=>line.bgm).filter(Boolean).at(-1);
+    return cue || (["ambush","caravan"].includes(state.scene) ? "title" : "daily");
+  }
+  return null;
+}
+const syncBGM = ()=>BGM.sync(bgmTrackForState());
 
 // 動作 → 出手的聲音（跟紙娃娃動畫對齊：揮動在打中前一點點、射箭在放手那一刻）
 const HIT_SFX = {"寒冷":"hit_cold", "閃電":"hit_lightning", "毒素":"hit_poison", "揮砍":"hit_slash", "穿刺":"hit_pierce", "鈍擊":"hit_blunt", "火焰":"hit_fire", "力場":"hit_magic", "光耀":"hit_magic", "流血":"hit_pierce", "強酸":"hit_magic"};
