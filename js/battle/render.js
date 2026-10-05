@@ -837,7 +837,7 @@ function statusExplain(v,s){
     case "acDown": t = s.shield ? "盾牌被劈開，這段時間盾不算（AC −2）。" : `AC −${2+(s.n||0)}。`; break;
     case "helped": t = s.target ? `下一次攻擊${who(s.target)}有優勢。` : "下一次攻擊有優勢。"; break;
     case "dodge": t = s.once ? `${who(s.by)}守護著他：打他的第一次攻擊有劣勢（${who(s.by)}要在旁邊）。` : "打他的攻擊有劣勢。"; break;
-    case "stance": t = s.via==="guard" ? "第一個走進攻擊範圍的敵人會立刻被攻擊一次。" : "AC +2；被近戰打空會立刻反擊。"; break;
+    case "stance": t = "第一個走進攻擊範圍的敵人會立刻被攻擊一次。"; break;
     case "marked": t = `被${who(s.src)}打上狩印：${who(s.src)}打中他時多 1d6 力場傷害，直到${who(s.src)}的專注中斷。`; break;
     case "conc": t = `正在專注【${s.name}】。受傷要過體質豁免（DC＝傷害一半，最少 10），失敗或倒下就中斷；再施另一個專注法術，這個就結束。`; break;
     case "fireShield": t = `近戰打中他的敵人受 ${1+(s.n||0)}d6 火焰傷害，整場戰鬥。`; break;
