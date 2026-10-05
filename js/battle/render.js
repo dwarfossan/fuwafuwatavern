@@ -373,14 +373,14 @@ function initBoardDrag(){
     if(e.pointerType!=="mouse"||touches.size)return;
     tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);
     const b=B();if(!b)return;
-    // 游標落在哪個 SVG 零件不該改變瞄準：本體／HUD 取 unit，樹、篷車等遮擋物則取所在 tile 的敵人。
+    // 游標落在哪個 SVG 零件不該改變瞄準：遮擋物的格子未必是被遮住敵人的格子，改以合法敵人本體的實際畫面範圍判斷。
     const unitId=e.target.closest?.(".board [data-moving-unit]")?.dataset.movingUnit;
-    const tile=e.target.closest?.(".board [data-tile]")?.dataset.tile;
     let id=null;
     if(b.mode&&!b.busy&&!b.result){
       const byUnit=unitId&&b.units.find(x=>x.id===unitId);
-      const byTile=tile&&unitAt(...tile.split(",").map(Number));
-      const ctx=boardMarkState(),v=[byUnit,byTile].find(v=>v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`));
+      const ctx=boardMarkState(),legal=v=>v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`);
+      const byBody=b.units.filter(legal).sort((a,c)=>(c.x+c.y)-(a.x+a.y)).find(v=>{const r=document.querySelector(`.board .token[data-moving-unit="${v.id}"]`)?.getBoundingClientRect();return r&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});
+      const v=[byUnit,byBody].find(legal);
       if(v)id=v.id;
     }
     if(b.aimHover!==id){b.aimHover=id;refreshBattle();}
