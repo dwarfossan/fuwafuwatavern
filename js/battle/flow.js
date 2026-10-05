@@ -7,12 +7,12 @@ function nextTurn(){
   do {
     b.turn++;
     if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();}
-  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 倒下的四小隻照樣輪到：擲死亡豁免
+  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 倒下的小傢伙們照樣輪到：擲死亡豁免
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
   if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=2;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
-  // 倒下的四小隻：擲死亡豁免；擲到 20 醒過來就照常行動
+  // 倒下的小傢伙們：擲死亡豁免；擲到 20 醒過來就照常行動
   if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
@@ -68,7 +68,7 @@ function endTurn(){
   nextTurn();
 }
 
-// 打倒的敵人照 SRD 給經驗、四小隻平分；同一隻只算一次（大爺 10-04）
+// 打倒的敵人照 SRD 給經驗、小傢伙們平分；同一隻只算一次（大爺 10-04）
 function awardBattleXP(){
   const b = B(); if(!b) return;
   const got = b.units.filter(u=>u.side==="foe" && u.dead && !u.xpGiven);
@@ -181,7 +181,7 @@ function opportunityAttack(h, u){
   b.impact = 0;
   checkResult();
 }
-// 阻截：走進架式範圍就挨一下。敵我同一套（大爺 10-02；以前只有四小隻的架式有效）
+// 阻截：走進架式範圍就挨一下。敵我同一套（大爺 10-02；以前只有小傢伙們的架式有效）
 // 躲著走的看不到，不會被阻截（跟藉機攻擊一樣）；途中挨過打，這次移動就不能取消
 function checkGuards(e, prev){
   if(isHid(e)) return;
@@ -880,7 +880,7 @@ const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得�
 function aiTurn(e){
   const b = B();
   if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
-  if(!alive("pc").length){ endTurn(); return; }   // 四小隻全倒在地上擲死亡豁免：敵人沒事做
+  if(!alive("pc").length){ endTurn(); return; }   // 小傢伙們全倒在地上擲死亡豁免：敵人沒事做
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); later(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); later(endTurn, 800); return; }
