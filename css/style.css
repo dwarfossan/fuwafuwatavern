@@ -64,7 +64,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .lantern{width:18px;height:26px;border-radius:6px;background:var(--honey);box-shadow:0 0 22px 8px rgba(242,180,65,.45);animation:sway 3.4s ease-in-out infinite}
 .lantern:nth-child(2){animation-delay:-1.1s}.lantern:nth-child(3){animation-delay:-2.2s}
 @keyframes sway{50%{transform:rotate(6deg) translateY(2px)}}
-.cover-party{display:block;width:100%;max-width:440px;height:auto}   /* 封面四小隻合照頭像（大爺 10-03 給的圖） */
+.cover-party{display:block;width:100%;max-width:440px;height:auto}   /* 封面小傢伙們合照頭像（大爺 10-03 給的圖） */
 .pawnote{font-size:13px;color:var(--dim)}
 
 /* ---------- 擲骰頁 ---------- */
@@ -143,7 +143,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .summary{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px;color:var(--dim)}
 .summary b{color:var(--fur);font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .nav{display:flex;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap}
-/* 擲骰頁手機版（大爺 10-02）：四小隻的分頁同一排、屬性格子縮小，盡量一頁看完不用捲 */
+/* 擲骰頁手機版（大爺 10-02）：小傢伙們的分頁同一排、屬性格子縮小，盡量一頁看完不用捲 */
 @media (max-width:520px){
   .rule{font-size:12.5px;line-height:1.55}
   .tabs{flex-wrap:nowrap;gap:5px;margin-bottom:10px}
@@ -284,7 +284,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   .dialog.with-spot{padding-bottom:98px}
 }
 .pf{position:relative}
-.c-head{display:block;object-fit:contain;user-select:none}   /* 四小隻新畫風頭像（10-03） */
+.c-head{display:block;object-fit:contain;user-select:none}   /* 小傢伙們新畫風頭像（10-03） */
 .pf .obs{position:absolute;left:50%;top:-34px;width:44px;height:50px;margin-left:-22px;overflow:visible;z-index:3}
 .pf.spot-hit{animation:spot-hit .5s ease both;animation-delay:var(--spot-delay,0ms)}
 @keyframes spot-hit{20%{transform:translateX(-4px) rotate(-3deg)}40%{transform:translateX(4px) rotate(3deg)}60%{transform:translateX(-3px) rotate(-2deg)}80%{transform:translateX(2px)}}
@@ -1031,7 +1031,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .fx-fshield .fs-glow{animation:fsPulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes fsPulse{0%,100%{opacity:.12;transform:scale(.97)}50%{opacity:.26;transform:scale(1.03)}}
 
-/* 敵人、NPC 的狀態卡：跟四小隻同版面（.status-view），裝備格只能看不能拖；背包還沒看穿時鎖著 */
+/* 敵人、NPC 的狀態卡：跟小傢伙們同版面（.status-view），裝備格只能看不能拖；背包還沒看穿時鎖著 */
 .status-eqslot.ro{border-style:solid;border-color:rgba(255,255,255,.12)}
 .status-eqslot.ro .status-eqitem{cursor:pointer;touch-action:auto}
 .status-eqslot.backpack.locked .status-eqempty{font-family:var(--font-disp);font-size:18px;opacity:.5}
@@ -1110,7 +1110,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .about-en{font-size:12.5px;color:var(--dim);overflow-wrap:anywhere}
 .about-en a{color:var(--honey)}
 
-/* 頭像列的壓力小條（大爺 10-04）：四小隻頭像下面，0～100 */
+/* 頭像列的壓力小條（大爺 10-04）：小傢伙們頭像下面，0～100 */
 .ord{position:relative}
 .battle .order{padding-bottom:5px}
 .ord-stress{position:absolute;left:3px;right:3px;bottom:-6px;height:5px;border-radius:3px;background:#1f1a24;border:1px solid rgba(0,0,0,.6);line-height:0;overflow:hidden}
