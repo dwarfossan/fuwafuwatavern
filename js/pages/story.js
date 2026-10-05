@@ -174,7 +174,7 @@ function renderStory(){
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
-    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">\n      ${renderSystemTools({context:"story",pop:state.sysPop})}
+    <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
