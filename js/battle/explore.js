@@ -76,12 +76,12 @@ function exploreMove(x,y,done){
   [u,...followers].forEach(v=>delete v.exploreWalking);
   syncExploreUnitTransforms();syncExploreWalking([u,...followers]);
   b.busy=false;b.exploreGoal=null;
-  // 先把 renderer 的基準同步到目前狀態；停止 walking 本身不需要重建 scene。
-  refreshBattle.keys=battleLayerKeys();
+  // 停止 walking 本身不需要重建 scene；但陷阱／偵測停下要換成停止提示。
+  if(b.exploreStopped)refreshBattle();else refreshBattle.keys=battleLayerKeys();
   if(ok)done?.();
  }
  function frame(now){
-  if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);if(B()===b){syncExploreUnitTransforms();syncExploreWalking([u,...followers]);refreshBattle.keys=battleLayerKeys();}return;}
+  if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);if(B()===b){syncExploreUnitTransforms();syncExploreWalking([u,...followers]);if(b.exploreStopped)refreshBattle();else refreshBattle.keys=battleLayerKeys();}return;}
   if(b.exploreStopped||u.dead||u.down){stop();return;}
   const dt=Math.min(.035,(now-last)/1000);last=now;
   if(!segment){
@@ -109,7 +109,7 @@ function exploreMove(x,y,done){
    }
   }
   // 視野與距離直接讀連續座標，跨格以外也可能進入偵測範圍。
-  exploreDetect();if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);syncExploreUnitTransforms();syncExploreWalking([u,...followers]);refreshBattle.keys=battleLayerKeys();return;}
+  exploreDetect();if(!valid()){[u,...followers].forEach(v=>delete v.exploreWalking);syncExploreUnitTransforms();syncExploreWalking([u,...followers]);if(b.exploreStopped)refreshBattle();else refreshBattle.keys=battleLayerKeys();return;}
   const lead=segment[0],leaderDone=Math.hypot(lead.target.x-u.x,lead.target.y-u.y)<.00001;
   if(!moved&&remaining&&!leaderDone){blog(EXPLORE_UI.blocked);stop();return;}
   if(leaderDone)segment=null;
