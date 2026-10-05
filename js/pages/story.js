@@ -163,16 +163,6 @@ function storyPartyHTML(line={}){
   return `<div class="party ${line.hug?"cheer":""} ${line.curse?"curse-flash":""}" aria-label="隊伍">${party}</div>`;
 }
 
-function storySystemToolsHTML(){
-  return `<div class="sys-tools story-sys-tools">
-    <button class="snd ${SFX.isMuted()?"off":""}" id="storySndToggle" aria-label="主音量" title="主音量">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${SFX.isMuted()?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg></button>
-    <button class="gear-btn" id="storyGearToggle" aria-label="主選單" title="主選單"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06-.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.7.6 1 .3.3.7.4 1.1.4h.1v4h-.1c-.4 0-.8.1-1.1.4-.3.3-.5.6-.6 1.2Z"/></svg></button>
-    ${state.storySysPop==="volume"?`<div class="vol-pop" id="storyVolPop"><button class="snd ${SFX.isMuted()?"off":""}" id="storyVolMute" aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input id="storyMasterVolume" type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" id="storyVolNum">${SFX.isMuted()?0:Math.round(SFX.getVolume()*100)}%</span></div>`:""}
-    ${state.storySysPop==="menu"?`<div class="sys-menu" id="storySysMenu"><h3>主選單</h3><button data-story-sys="continue">繼續遊戲</button><button data-story-sys="party">隊伍</button><button data-story-sys="about">關於／授權</button><button data-story-sys="title">回到標題</button></div>`:""}
-  </div>`;
-}
-
 function renderStory(){
   const scene = SCENES[state.scene];
   const SCRIPT_ = scene.script;
@@ -184,7 +174,7 @@ function renderStory(){
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
-    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">\n      ${storySystemToolsHTML()}
+    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">\n      ${renderSystemTools({context:"story",pop:state.sysPop})}
       ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
