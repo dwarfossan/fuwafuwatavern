@@ -129,6 +129,7 @@ function battleNodeKey(n){
   return n.id?`#${n.id}`:
     n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
+    n.dataset?.aimHover?`aim-hover:${n.dataset.aimHover}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
     n.dataset?.skill?`skill:${n.dataset.skill}`:"";
 }
@@ -660,7 +661,8 @@ function fxSVG(kind, x, y, el){
 // 共用瞄準 hover 提示：只替游標目前指到的合法敵人畫一份紅色輪廓；本體被前景遮住時仍看得到。
 function aimedFoeSVG(v){
   const c=sideColor(v),id="selected-foe-outline";
-  return `<g class="selected-foe" data-selected-unit="${v.id}" pointer-events="none">
+  // 場景中插入此層時不可借用後方 HUD；以目標 id 作穩定 key，讓 keyed patch 保留它。
+  return `<g class="selected-foe" data-aim-hover="${v.id}" pointer-events="none">
     <defs><filter id="${id}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
       <feComponentTransfer in="SourceAlpha" result="a"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer>
       <feMorphology in="a" operator="dilate" radius="3.5" result="d1"/><feMorphology in="a" operator="dilate" radius="6" result="d2"/>

@@ -49,6 +49,20 @@ try{
   return {order:[...dst.children].map(n=>n.dataset.ground),kept:dst.children[1]===fire&&dst.children[3]===steam};
  });
  assert.deepEqual(groundInsert.order,['ice','fire','charged','steam']);assert(groundInsert.kept);console.log('✓ ground insertion/reorder preserves existing scene identity');
+ // 瞄準 hover 的身體提示也插在 token 與 HUD 之間；它必須有自己的 key，不能吃掉後方 HUD 後又被覆寫而消失。
+ const aimHover=await pg.evaluate(()=>{
+  const b=B(),u=cur(),foe=b.units.find(v=>v.side==='foe'&&!v.dead);foe.x=u.x+1;foe.y=u.y;
+  const sk=unitSkills(u).find(s=>s.impl?.target==='enemy'&&validTarget(u,s,foe.x,foe.y));
+  assert(sk,'fixture has a legal enemy target');
+  b.mode={key:sk.key};b.aimHover=null;refreshBattle();
+  const hud=document.querySelector(`.hud[data-moving-unit="${foe.id}"]`);
+  b.aimHover=foe.id;refreshBattle();
+  const shown=document.querySelector(`.selected-foe[data-aim-hover="${foe.id}"]`);
+  const kept=document.querySelector(`.hud[data-moving-unit="${foe.id}"]`)===hud;
+  b.aimHover=null;refreshBattle();
+  return {shown:!!shown,kept,removed:!document.querySelector('.selected-foe')};
+ });
+ assert(aimHover.shown,'aim hover marker inserted');assert(aimHover.kept,'aim hover keeps HUD identity');assert(aimHover.removed,'aim hover marker removed');console.log('✓ aim hover inserts without losing its marker or HUD identity');
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
