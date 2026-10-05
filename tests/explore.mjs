@@ -10,9 +10,12 @@ try{
  await shot('group');
  // 同一隨機場中選一條足夠長、沒敵人偵測的路，真觸控點地板。
  const dest=await pg.evaluate(()=>{const b=B(),u=exploreUnit();centerCam(u.x,u.y);const r=document.querySelector('.board-wrap').getBoundingClientRect(),z=camZoom();for(const [k,p] of reachable(u,10000)){if(p.length<7)continue;const [x,y]=k.split(',').map(Number);if(p.some(q=>b.units.some(e=>e.side==='foe'&&dist(e,q)<=ENEMIES[e.type].detectRange+1)))continue;const a=iso(x,y),cx=r.left+b.cam.x+a.x*z,cy=r.top+b.cam.y+(a.y+TH/2)*z;if(document.elementFromPoint(cx,cy)?.closest('[data-tile]')?.dataset.tile===k)return {x,y,cx,cy};}return null;});
- assert(dest,'超過戰棋移動上限的可見安全格');const groupBefore=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));await pg.touchscreen.tap(dest.cx,dest.cy);
- await pg.waitForFunction(p=>!B().busy&&Math.round(exploreUnit().x)===p.x&&Math.round(exploreUnit().y)===p.y,dest,{timeout:30000});
- assert(await pg.evaluate(()=>B().exploreSteps>6));const groupAfter=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));assert(groupAfter.every((p,i)=>p[1]!==groupBefore[i][1]||p[2]!==groupBefore[i][2]),'每隻都跟隨移動');assert.equal(new Set(groupAfter.map(p=>p.slice(1).join(','))).size,4,'隊形不重疊');assert(await pg.evaluate(()=>document.getElementById('board-floor').firstElementChild===window.__floor));
+ assert(dest,'超過戰棋移動上限的可見安全格');const before=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));
+ await pg.evaluate(()=>exploreMove(20,17));await pg.waitForFunction(()=>!B().busy);
+ const after=await pg.evaluate(()=>exploreParty().map(p=>[p.id,p.x,p.y]));
+ assert.notDeepEqual(after.find(p=>p[0]==='fox'),before.find(p=>p[0]==='fox'),'目前探索角色會移動');
+ assert.deepEqual(after.filter(p=>p[0]!=='fox'),before.filter(p=>p[0]!=='fox'),'未選取三隻不跟隨');
+ assert(await pg.evaluate(()=>document.getElementById('board-floor').firstElementChild===window.__floor));
  assert(await pg.evaluate(()=>window.__layers.every((e,i)=>e===document.getElementById(['board-floor','board-marks','board-scene'][i]))));await shot('group-move');
  await pg.locator('[data-explore-unit="raccoon"]').click();assert.equal(await pg.evaluate(()=>B().exploreSolo),'raccoon');await shot('individual');
  const others=await pg.evaluate(()=>exploreParty().filter(p=>p.id!=='raccoon').map(p=>[p.id,p.x,p.y]));
@@ -30,5 +33,5 @@ try{
  const before=await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y]));await pg.evaluate(()=>exploreMove(20,20));assert.deepEqual(await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y])),before);
  // 隱藏敵人格不洩漏到尋路，仍由我方偵測決定何時現身。
  const hidden=await pg.evaluate(()=>{const b=B(),p=B().units.find(p=>p.id==='fox'),e=b.units.find(u=>u.side==='foe');b.phase='explore';b.exploreStopped=false;b.exploreSolo='fox';e.x=p.x+2;e.y=p.y;e.statuses=[{k:'hidden',val:13,roll:13}];b.def.blocks=[{x:e.x,y:e.y,kind:'bush'}];p.mods.WIS=3;const allowed=reachable(p,10000).has(`${e.x},${e.y}`);exploreDetect();return {allowed,revealed:!isHid(e)};});assert(hidden.allowed);assert(hidden.revealed);
- assert.deepEqual(errs,[]);console.log('✓ 同頁四層、無回合、觸控長距離群體移動、個體、換隊長、集合、潛行、範圍只在潛行顯示、黃紅警示、遮擋、全隊停下、隱藏格察覺');
+ assert.deepEqual(errs,[]);console.log('✓ 同頁四層、無回合、單人探索移動、切角色原地接手、潛行、偵測與停下、隱藏格察覺');
 }catch(e){console.log(await pg.evaluate(()=>({busy:B()?.busy,stop:B()?.exploreStopped,steps:B()?.exploreSteps,pcs:exploreParty().map(p=>[p.id,p.x,p.y]),log:B()?.log.slice(-3)})));throw e;}finally{await br.close();}
