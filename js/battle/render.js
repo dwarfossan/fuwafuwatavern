@@ -127,6 +127,7 @@ function boardTerrainKey(){
 function battleNodeKey(n){
   if(n.nodeType!==1)return "";
   return n.id?`#${n.id}`:
+    n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
     n.dataset?.skill?`skill:${n.dataset.skill}`:"";

@@ -42,6 +42,13 @@ try{
   return {front:run(['b','c'],['a','b','c']),middle:run(['a','c'],['a','b','c'])};
  });
  for(const [where,r] of Object.entries(keyedInsert)){assert.deepEqual(r.order,['a','b','c'],`${where} keyed insertion order`);assert(Object.values(r.kept).every(Boolean),`${where} keyed identity`);assert(Object.values(r.updated).every(Boolean),`${where} keyed update`);console.log(`✓ keyed HUD ${where} insertion preserves identity`);}
+ // 地面效果也會在 scene 的既有物件之間插入／重排，必須有自己的穩定 key。
+ const groundInsert=await pg.evaluate(()=>{
+  const ns='http://www.w3.org/2000/svg',make=(kind,tile)=>{const n=document.createElementNS(ns,'g');n.dataset.ground=kind;n.dataset.tile=tile;n.textContent=`${kind}:${tile}`;return n;};
+  const dst=document.createElementNS(ns,'g'),src=document.createElementNS(ns,'g');const fire=make('fire','8,8'),steam=make('steam','11,8');dst.append(fire,steam);src.append(make('ice','9,8'),make('fire','8,8'),make('charged','10,8'),make('steam','11,8'));patchBattleNode(dst,src);
+  return {order:[...dst.children].map(n=>n.dataset.ground),kept:dst.children[1]===fire&&dst.children[3]===steam};
+ });
+ assert.deepEqual(groundInsert.order,['ice','fire','charged','steam']);assert(groundInsert.kept);console.log('✓ ground insertion/reorder preserves existing scene identity');
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
