@@ -129,7 +129,6 @@ function battleNodeKey(n){
   return n.id?`#${n.id}`:
     n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
-    n.dataset?.aimHover?`aim-hover:${n.dataset.aimHover}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
     n.dataset?.skill?`skill:${n.dataset.skill}`:"";
 }
@@ -211,9 +210,6 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
   shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(t.svg));
-  // 瞄準時游標指到的合法敵人共用一個紅色身體輪廓；只畫目前 hover 的那一隻，不為敵人種類各做一份。
-  const aimed=b.aimHover&&b.mode&&shown.find(v=>v.id===b.aimHover&&v.side==="foe"&&!v.dead&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`));
-  if(aimed)out.push(`<defs id="aim-hover-defs">${aimedFoeFilter()}</defs>`,aimedFoeSVG(aimed));
   // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
@@ -660,22 +656,6 @@ function fxSVG(kind, x, y, el){
   return impact("M-10 -48 L1 -27 L19 -51 L22 -25 L48 -38 L32 -15 L58 -8 L34 3 L54 22 L28 18 L34 47 L12 27 L-2 54 L-9 29 L-34 47 L-27 20 L-57 25 L-34 5 L-56 -10 L-29 -14 L-42 -40 L-17 -26 Z","M-6 -31 L1 -18 L13 -33 M29 -22 L19 -10 L36 -6 M28 15 L17 13 L21 30 M-18 27 L-14 14 L-31 17 M-30 -11 L-17 -10 L-24 -25");
 }
 
-// 與舊版已驗證可見的剪影同結構：filter defs 放 scene 根層，提示本體作為它的 sibling。
-function aimedFoeFilter(){
-  return `<filter id="aim-hover-outline" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-      <feComponentTransfer in="SourceAlpha" result="a"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer>
-      <feMorphology in="a" operator="dilate" radius="3.5" result="d1"/><feMorphology in="a" operator="dilate" radius="6" result="d2"/>
-      <feComposite in="d1" in2="a" operator="out" result="ring"/><feComposite in="d2" in2="d1" operator="out" result="edge"/>
-      <feFlood flood-color="#e0766e"/><feComposite in2="ring" operator="in" result="cr"/>
-      <feFlood flood-color="#1f1a24" flood-opacity=".75"/><feComposite in2="edge" operator="in" result="er"/>
-      <feMerge><feMergeNode in="er"/><feMergeNode in="cr"/></feMerge>
-    </filter>`;
-}
-// 共用瞄準 hover 提示：只替游標目前指到的合法敵人畫一份紅色輪廓；本體被前景遮住時仍看得到。
-function aimedFoeSVG(v){
-  // 場景中插入此層時不可借用後方 HUD；以目標 id 作穩定 key，讓 keyed patch 保留它。
-  return `<g class="selected-foe" data-aim-hover="${v.id}" pointer-events="none" filter="url(#aim-hover-outline)">${unitDoll(v,false)}</g>`;
-}
 function unitDoll(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
@@ -836,11 +816,12 @@ function hudSVG(v){
 function tokenSVG(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
   const now = Date.now(), pct = v.hp/v.maxHp;
+  const aimed = B().mode && B().aimHover===v.id;
   const doll = unitDoll(v, active);
   const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
+  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""} ${aimed?"aimed-foe":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
     ${body}
