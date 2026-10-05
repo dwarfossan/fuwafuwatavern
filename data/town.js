@@ -9,7 +9,7 @@ const TOWN_UI={title:'城鎮',subtitle:'毛絨絨小隊，今天先去哪裡？'
 
 /* 第一次離開道具店：GPT 草稿，表情暫定。 */
 const TOWN_SUPPLIER=[
- {who:'narr',text:'四小隻剛走出道具店，就看見熟悉的商人抱著貨箱，快步走進那扇門。'},
+ {who:'narr',text:'小傢伙們剛走出道具店，就看見熟悉的商人抱著貨箱，快步走進那扇門。'},
  {who:'wolf',text:'……剛才那個商人。',on:'none',mood:'serious'},
  {who:'fox',text:'他不是急著交貨嗎？原來是送這裡。',on:'none',mood:'confused'},
  {who:'raccoon',text:'難怪店裡什麼都有。',on:'none',mood:'sly'},
