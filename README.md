@@ -26,6 +26,8 @@ js/sfx.js           音效（Web Audio 當場合成）
 js/pages/           封面、擲屬性、劇情、商店、大地圖、紙娃娃測試頁（網址加 #doll）
 js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flow.js 回合、移動、AI → render.js 戰場畫面
 js/ui/cards.js      裝備卡、技能卡、彈出視窗
+js/ui/status-card.js 共用狀態卡（劇情／城鎮／探索／戰鬥）
+js/equipment.js     裝備唯一讀寫／切組／換裝入口
 js/main.js          頁面切換、事件綁定、快速戰鬥
 tests/              測試（見第 2 節）
 tools/skills_doc.mjs  從 data/skills.js 產生 docs/技能表.md
@@ -42,7 +44,9 @@ npm i playwright              # 第一次才需要（雲端環境要裝 playwrig
 node tests/smoke.mjs          # 冒煙：封面→擲屬性→序章→商店、大地圖→伏擊→戰鬥、快速戰鬥，加關鍵規則
 node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格、拖曳縮放、共用鏡頭
 node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與手機提示
+node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡
 node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿戴与手機卡
+node tests/equipment-shared.mjs # 裝備唯一讀寫、切組、卸裝／收納與跨場景保存
 node tests/critter-art.mjs    # 四隻SVG六表情、換裝相容、受傷／勝利與分層
 node tests/impact-timing.mjs # 投射命中時序、地面／身上效果延遲與到期整層清除
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
@@ -81,7 +85,7 @@ node tests/world-objects.mjs # 板條箱／寶箱、移入／長按氣泡、火�
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
 node tests/explore-watch.mjs # 潛行自動顯示可見敵人範圍、移動保留、地板更新與遮擋
 node tests/explore-continuous.mjs # 連續座標、碰撞、踏步、陷阱／地面中斷與開戰就近佔位
-node tests/explore.mjs       # 探索同頁分層、群體／個體、潛行、偵測與停下
+node tests/explore.mjs       # 探索同頁分層、單人移動／切角色、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊
 node tests/enemy-traps.mjs # 少量敵人佈陷阱、花動作、發現拆除、觸發停止與快照
 node tests/damage-types.mjs # 力場／光耀原名、傷害與抗性隔離、手機紀錄
@@ -159,7 +163,7 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 | `docs/現況.md` | **先看這份**：做到哪、各系統、大爺的偏好、排隊中的、已知問題、環境 |
 | `docs/熟練格規格.md` | 技能資源（熟練格、升階、休息） |
 | `docs/小筆記規格.md` | 觀察學習、小筆記、四小隻特性 |
-| `docs/狀態規格.md` | 15 個狀態 |
+| `docs/狀態規格.md` | 17 個掛頭圖示狀態與其他狀態規則 |
 | `docs/裝備與感知規格.md` | 被動感知、搜索、狀態卡、裝備三層與錨點、破布衣、+1 薩滿袍、AC |
 | `docs/授權與安全.md` | 借了 SRD 的什麼、不能碰的（D&D 名稱、商標、SRD 以外的內容）、類似遊戲的案例、出處標示怎麼放 |
 | `docs/技能表.md` | 每類武器的招式（`tools/skills_doc.mjs` 產生，不要手改） |
