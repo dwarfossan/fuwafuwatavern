@@ -20,7 +20,7 @@ const SCRIPT = [
   {who:"dwarf", text:"出門在外，你們四個要好好照顧彼此，聽到沒？誰受傷了，其他三個就一起扛回來。", face:"smile", moods:{fox:"normal",tiger:"normal",wolf:"serious",raccoon:"normal"}},
   {who:"raccoon", text:"……嗯。（用力點頭）", mood:"happy", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"dwarf", text:"先把慣用的傢伙拿好。那邊的裝備送你們，出門可別空著手！", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
-  {who:"narr", text:"四小隻各自挑好武器與護甲，背上小背包，也把弓箭和弩矢收妥。", grantStarter:true, face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
+  {who:"narr", text:"小傢伙們各自挑好武器與護甲，背上小背包，也把弓箭和弩矢收妥。", grantStarter:true, face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"fox", text:"法杖，還有備用的輕弩。都檢查好了。", mood:"smug", face:"smile", moods:{fox:"smug",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"tiger", text:"長劍跟盾牌！手弩也帶上！", mood:"happy", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"wolf", text:"彎刀、短弓。箭袋沒有漏掉。", mood:"smile", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
@@ -48,8 +48,8 @@ const SCRIPT = [
 const FAREWELL = [
   // 卡姆登場（大爺 10-03：拿完裝備後她走過來，嫌太危險，施傳送詛咒＝全體陣亡就傳回酒館；消耗運氣僅為劇情設定）
   // on:"kam"＝舞台上換卡姆；台詞已經大爺10-04定稿，表情配合台詞
-  {who:"narr",  text:"毛毛們正對著新裝備比來比去，一個紅髮的身影端著托盤走了過來。", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
-  {who:"kam",   text:"嗯?毛毛們要出門？", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
+  {who:"narr",  text:"小傢伙們正對著新裝備比來比去，一個紅髮的身影端著托盤走了過來。", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
+  {who:"kam",   text:"嗯?小傢伙們要出門？", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"tiger", text:"嗯！我們要去森林探險！", mood:"happy", on:"kam", face:"surprised", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
   {who:"kam",   text:"什麼？太危險了。", on:"kam", face:"surprised", mark:"anger", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
   {who:"fox",   text:"我們有裝備了，而且有四個。", mood:"smug", on:"kam", face:"sad", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
@@ -63,9 +63,9 @@ const FAREWELL = [
   {who:"kam",   text:"......因為我是破壞神，不懂祝福相關的法術。", on:"kam", face:"smirk", moods:{fox:"confused",tiger:"confused",wolf:"serious",raccoon:"confused"}},
   {who:"dwarf", text:"哈哈！卡姆真貼心！", face:"grin", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"kam",   text:"換做是老大倒在外面就無所謂了。但等我先把帳算完——你昨天打破的三個杯子、上個月讓客人賒的酒錢、還有偷藏在吧檯底下那箱……", on:"kam", face:"annoyed", mark:"anger", moods:{fox:"awkward",tiger:"blank",wolf:"resigned",raccoon:"sly"}},
-  {who:"dwarf", text:"好了好了！毛毛們在看！", face:"gritted", mark:"sweat", moods:{fox:"awkward",tiger:"blank",wolf:"resigned",raccoon:"sly"}},
+  {who:"dwarf", text:"好了好了！小傢伙們在看！", face:"gritted", mark:"sweat", moods:{fox:"awkward",tiger:"blank",wolf:"resigned",raccoon:"sly"}},
   // 以下是原本的送別（表情 face 是香香 10-03 配的，暫定）
-  {who:"narr", text:"毛毛們收下卡姆的詛咒，把最後幾樣東西塞進背包，正準備出發。", face:"smile"},
+  {who:"narr", text:"小傢伙們收下卡姆的詛咒，把最後幾樣東西塞進背包，正準備出發。", face:"smile"},
   {who:"dwarf", text:"要出發啦？等等等等，大爺還沒講完！", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
   {who:"dwarf", text:"水袋裝滿了沒？口糧帶夠了沒？晚上睡覺記得輪流守夜！", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
   {who:"dwarf", text:"玲玲，路上別什麼東西都撿起來研究，有些會咬人。", face:"annoyed", moods:{fox:"awkward",tiger:"blank",wolf:"serious",raccoon:"normal"}},
@@ -187,7 +187,7 @@ const CARAVAN_INTRO = [
   {who:"wolf",     text:"……貨箱封得很緊。", mood:"serious"},
   {who:"raccoon",  text:"……他的背包，很鼓。", mood:"sly"},
   {who:"merchant", text:"哈、哈哈！你們在說什麼悄悄話呢？", mark:"sweat"},
-  {who:"narr",     text:"四小隻互看一眼。要由誰出面？", choice:true}
+  {who:"narr",     text:"小傢伙們互看一眼。要由誰出面？", choice:true}
 ];
 const CARAVAN_RESULT = {
   fox: {
@@ -195,32 +195,32 @@ const CARAVAN_RESULT = {
          {who:"merchant", text:"！！", mark:"ok"},
          {who:"fox", text:"我們什麼都沒看到。不過……一百金幣，好像有點少？", mood:"smug"},
          {who:"merchant", text:"兩、兩百！兩百金幣，這事就當沒發生過！", mark:"sweat"},
-         {who:"narr", text:"四小隻各分到 50 金幣。"}],
+         {who:"narr", text:"小傢伙們各分到 50 金幣。"}],
     lose:[{who:"fox", text:"這輛車……嗯……應該只是在抄捷徑吧。", mood:"confused"},
           {who:"merchant", text:"對對對！就是捷徑！", mark:"note"},
-          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+          {who:"narr", text:"小傢伙們各分到 25 金幣。"}]},
   tiger: {
     win:[{who:"tiger", text:"大叔，我幫你把貨搬回車上！嘿咻——", mood:"happy"},
          {who:"narr", text:"嬌嬌一腳踩空，整個人撲在木箱上。箱子裂開，滾出一堆貼著外國封條的罐頭和點心。"},
          {who:"merchant", text:"啊啊啊！那是——！", mark:"shake"},
          {who:"tiger", text:"……大叔，這些是不是不能讓城裡的人看到？", mood:"confused"},
          {who:"merchant", text:"……拿去！全部拿去！只要你們別說出去！", mark:"sweat"},
-         {who:"narr", text:"四小隻各拿到 2 份點心（戰鬥中花一個動作吃掉，等於短休一次），還有各 25 金幣的謝禮。"}],
+         {who:"narr", text:"小傢伙們各拿到 2 份點心（戰鬥中花一個動作吃掉，等於短休一次），還有各 25 金幣的謝禮。"}],
     lose:[{who:"tiger", text:"大叔，我幫你把貨搬回車上！嘿咻——", mood:"happy"},
           {who:"narr", text:"嬌嬌一口氣把箱子全搬回車上，一根釘子都沒掉。"},
           {who:"merchant", text:"好力氣！謝謝謝謝！", mark:"note"},
-          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+          {who:"narr", text:"小傢伙們各分到 25 金幣。"}]},
   wolf: {
     win:[{who:"narr", text:"香香盯著貨箱的縫隙。陽光照進去，反射出一道冷冷的銀光。"},
          {who:"wolf", text:"……那是稀有金屬。私下買賣，要被抓的。", mood:"serious"},
          {who:"merchant", text:"！", mark:"ok"},
          {who:"wolf", text:"……我們可以什麼都沒看到。", mood:"smile"},
          {who:"merchant", text:"這、這把弓本來是要賣給貴族的……拿去吧，拜託……", mark:"sweat"},
-         {who:"narr", text:"香香拿到【非凡長弓】（裝備時可以用狩印），四小隻還各分到 25 金幣。"}],
+         {who:"narr", text:"香香拿到【非凡長弓】（裝備時可以用狩印），小傢伙們還各分到 25 金幣。"}],
     lose:[{who:"narr", text:"香香盯著貨箱看了半天，只看到一堆稻草。"},
           {who:"wolf", text:"……看不出來。", mood:"sigh"},
           {who:"merchant", text:"都是些普通貨啦，哈哈。", mark:"note"},
-          {who:"narr", text:"四小隻各分到 25 金幣。"}]},
+          {who:"narr", text:"小傢伙們各分到 25 金幣。"}]},
   raccoon: {
     win:[{who:"narr", text:"趁大家說話，默默悄悄繞到大叔背後，手一伸——"},
          {who:"narr", text:"大叔背上那個舊舊的小背包，不見了。"},
@@ -233,14 +233,14 @@ const CARAVAN_RESULT = {
           {who:"merchant", text:"嗯？小狸貓，妳的手在我包包裡做什麼？", mark:"ok", moods:{raccoon:"caught"}},
           {who:"raccoon", text:"……幫你抓蟲。", mood:"caught"},
           {who:"merchant", text:"……謝禮減半！", mark:"anger"},
-          {who:"narr", text:"四小隻各分到 12 金幣 5 銀幣。"}]}
+          {who:"narr", text:"小傢伙們各分到 12 金幣 5 銀幣。"}]}
 };
 const CARAVAN_XP = 250;   // 商隊護送完成每隻給的經驗（大爺 10-04 定商隊後可手動升到等級 2；數字暫定）
 const CARAVAN_OUTRO = [
   {who:"merchant", text:"我也要去城鎮。順路的話，一起走吧！", mark:"note"},
   {who:"fox",      text:"有人帶路，正好。", mood:"content"},
   {who:"narr",     text:"經驗夠了，可以升級！"},   // 系統提示（香香 10-04，文字暫定）
-  {who:"narr",     text:"四小隻跟在馬車旁邊，繼續往城鎮出發。"}
+  {who:"narr",     text:"小傢伙們跟在馬車旁邊，繼續往城鎮出發。"}
 ];
 
 /* 進城告別與小隊成立：GPT 草稿；表情配置暫定。默默偷包成功不揭露走私。 */
