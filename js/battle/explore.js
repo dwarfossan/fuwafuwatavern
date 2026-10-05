@@ -5,6 +5,7 @@ const exploreUnit=()=>B().units.find(u=>u.id===(B().exploreSolo||B().leader)&&!u
 function beginExplore(){
  const b=B();b.explorationMap=true;b.phase="explore";b.groundClockAt=Date.now();b.flowEpoch=(b.flowEpoch||0)+1;b.exploreStopReason=null;b.exploreObject=null;b.exploreRest=false;b.worldObject=null;b.objectTip=null;b.leader=b.leader||"fox";if(!exploreParty().some(u=>u.id===b.leader))b.leader=exploreParty()[0]?.id||"fox";b.exploreSolo=b.leader;b.exploreStopped=false;b.exploreMarks={};b.exploreSneak=false;
  b.turn=b.units.findIndex(u=>u.id===b.leader);b.busy=false;b.mode=null;b.moveMode=false;b.menu=null;b.tut=-1;b.result=null;b.round=0;
+ syncGroundClockTimer();
  exploreTraps();exploreDetect();refreshBattle();
 }
 function exploreSelect(id){const b=B();if(b.busy||b.exploreStopped)return;const p=exploreParty().find(u=>u.id===id),old=exploreUnit();if(!p)return;if(old&&old!==p){p.x=old.x;p.y=old.y;p.face=old.face;}b.exploreSolo=id;b.leader=id;b.turn=b.units.indexOf(p);b.info=null;exploreDetect();refreshBattle();}
@@ -190,6 +191,7 @@ function enterExploreCombat(targetId,manual=false){
  for(const u of active)u.surprised=enemies.length>0&&!(manual&&u===leader)&&!active.some(t=>t.side!==u.side&&(manual?exploreAware(u,t):b.exploreAwareness?.[u.id]?.includes(t.id)));
  if(!exploreAlignCombat())return;
  b.phase="combat";b.flowEpoch=(b.flowEpoch||0)+1;b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.busy=false;b.manualCombat=manual&&!target;b.exploreObject=null;b.exploreRest=false;b.round=0;b.turn=-1;b.result=null;b.panel=null;b.mode=null;b.moveMode=false;
+ syncGroundClockTimer();
  for(const u of b.units){u.combatActive=active.includes(u);u.init=u.combatActive?d20()+u.mods.DEX+Math.random()*.1:-Infinity;if(u.side==="npc")u.surprised=false;}
  b.units.sort((a,c)=>c.init-a.init);blog(EXPLORE_COMBAT.start);
  snapBattle(b.id);state.battleSnap.battle=JSON.parse(JSON.stringify(b));delete state.battleSnap.battle.def._h;

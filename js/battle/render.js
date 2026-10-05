@@ -362,7 +362,6 @@ function startPinch(){
 }
 function initBoardDrag(){
   if(initBoardDrag.done) return; initBoardDrag.done = true;
-  setInterval(()=>{ sweepFx(); refreshLogStrip(); }, 100);
   let objectHold=null;const clearHold=()=>{clearTimeout(objectHold);objectHold=null;};
   const tip=key=>{if(B()&&B().objectTip!==key){B().objectTip=key;refreshBattle();}};
   window.addEventListener("pointermove",e=>{
@@ -465,6 +464,20 @@ function initBoardDrag(){
     zoomAt(camZoom()*Math.exp(-dy*.0015), p.x, p.y);
   }, {passive:false});
   window.addEventListener("resize", ()=>{ if(B() && document.querySelector(".board-wrap")){ refreshBattle(); } });
+}
+
+let battleUiTimer = null;
+function syncBattleUiTimer(){
+  const running = state.page === "battle" && !!B();
+  if(running && !battleUiTimer){
+    battleUiTimer = setInterval(()=>{
+      if(state.page !== "battle" || !B()){ syncBattleUiTimer(); return; }
+      sweepFx(); refreshLogStrip();
+    }, 100);
+  } else if(!running && battleUiTimer){
+    clearInterval(battleUiTimer);
+    battleUiTimer = null;
+  }
 }
 
 // 掉在地上的武器：用拿在手上的同一張圖，躺在地上；剛被打飛時從原主身上拋過來
@@ -1337,6 +1350,7 @@ function syncExploreWalking(units){
   }
 }
 function refreshBattle(){
+  syncBattleUiTimer();
   if(state.page!=="battle" || !B() || !document.getElementById("board-floor") || refreshBattle.battle!==B()) { render(); return; }
   const b=B();
   if(b.phase==="explore"&&b.busy&&b.exploreGoal){syncExploreUnitTransforms();return;}
@@ -1400,8 +1414,7 @@ function bindBattle(){
   if(b && !b.cam){ const ps = b.units.filter(v=>v.side==="pc"); centerCam(ps.reduce((a,v)=>a+v.x,0)/ps.length, ps.reduce((a,v)=>a+v.y,0)/ps.length - 2); }
   else if(b){ b.cam = clampCam(b.cam); applyCam(); }
   if(b && b.focusReq && !b.result){ b.focusReq = false; const u = cur();
-    if(u.side==="pc") centerCam(u.x, u.y - 1, true);
-    else if(!touches.size && !foeHid(u) && !onScreen(u)) centerCam(u.x, u.y - 1, true); }
+    if(!touches.size && !foeHid(u) && !onScreen(u)) centerCam(u.x, u.y - 1, true); }
   const aw = document.getElementById("afterWin"); if(aw) battleListen(aw, "click", ()=>{ sfx("pop"); leaveBattleTo(B().def.after); });
   document.querySelectorAll("[data-item]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); const b = B(); b.menu = null; b.mode = {key:"item", item:el.dataset.item}; refreshBattle(); }));
   document.querySelectorAll("[data-swap]").forEach(el=>battleListen(el,"click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));

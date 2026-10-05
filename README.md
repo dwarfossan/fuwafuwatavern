@@ -80,6 +80,8 @@ node tests/xp.mjs            # 經驗：SRD 門檻、打怪平分、商隊完成
 node tests/level-up.mjs      # 手動升級：戰鬥鎖定、探索／城鎮／劇情點擊、資料同步、歡呼光暈到期移除
 node tests/info-bars.mjs     # 狀態卡生命／經驗／壓力三條、頭像列壓力小條
 node tests/about.mjs         # 關於／授權：封面與戰場主選單都打得開，SRD 5.1、5.2 官方原句完整
+node tests/performance-lifecycle.mjs # 純 Node：肖像按需載入、鏡頭焦點與戰場計時器生命週期
+node tests/performance-browser.mjs   # 390×844：封面零表情預載、離場停計時器、可見玩家不移鏡
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/stealth-mode.mjs # 切戰棋不開戰、安靜不增援、真實隱藏外觀與移動、主動攻擊及視野
 node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試、返回探索及休息

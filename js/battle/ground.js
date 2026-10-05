@@ -72,7 +72,17 @@ function groundClockPaused(){const b=B();return !b||b.phase!=='explore'||documen
 function groundClock(now=Date.now()){
  const b=B();if(!b)return;const old=b.groundClockAt;b.groundClockAt=now;if(old==null||groundClockPaused())return;groundAdvance(Math.max(0,now-old));
 }
-setInterval(()=>groundClock(),200);
+let groundClockTimer = null;
+function syncGroundClockTimer(){
+ const b=B(), running=state.page==="battle" && b?.phase==="explore";
+ if(running && !groundClockTimer){
+  b.groundClockAt=Date.now();
+  groundClockTimer=setInterval(()=>groundClock(),200);
+ } else if(!running && groundClockTimer){
+  clearInterval(groundClockTimer);
+  groundClockTimer=null;
+ }
+}
 document.addEventListener('visibilitychange',()=>{if(B())B().groundClockAt=Date.now();});
 function groundKnown(u){
  groundDetect(u);const b=B();u.knownGround ||= [];const range=ENEMIES[u.type]?.detectRange||senseRange(u);

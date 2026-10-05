@@ -31,9 +31,7 @@ function setPortraitFace(root, face){
   const src = faceSrc(id, face);
   if(!img.getAttribute("src").endsWith(src)) img.setAttribute("src", src);
 }
-// 開場角色先預載表情；城鎮 NPC 由 portraitHTML 的圖片在出現時才載入。
-(function preloadPortraits(){ if(typeof Image==="undefined") return;
-  Object.keys(PORTRAITS).filter(id=>!Object.values(TOWN_PORTRAIT).includes(id)).forEach(id=>{ const p = PORTRAITS[id]; [p.base, ...(p.sheet?[p.sheet]:(p.list||[]).map(f=>p.faces+f+".webp"))].forEach(s=>{ const i = new Image(); i.src = s; }); }); })();
+// 肖像與表情只在對應畫面出現時由 <img> 載入；封面不搶先下載整組表情圖。
 
 /* 四小隻的頭（大爺 10-03 給的新畫風，210×210，assets/faces/<id>/）：劇情卡片、擲屬性、商店、角色介紹用；戰場、大地圖維持 SVG
    表情檔名見 assets/faces/README.md；沒有的表情退回 normal */
@@ -45,5 +43,3 @@ const CRITTER_FACES = {
 };
 const critterFaceSrc = (id, mood) => `assets/faces/${id}/${(CRITTER_FACES[id]||[]).includes(mood) ? mood : "normal"}.webp`;
 const critterHead = (id, mood) => `<img class="c-head" src="${critterFaceSrc(id, mood)}" alt="" draggable="false">`;
-(function preloadCritterFaces(){ if(typeof Image==="undefined") return;
-  Object.entries(CRITTER_FACES).forEach(([id,l])=>l.forEach(f=>{ const i = new Image(); i.src = `assets/faces/${id}/${f}.webp`; })); })();
