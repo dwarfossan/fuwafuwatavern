@@ -60,9 +60,9 @@ try{
   const shown=document.querySelector(`.selected-foe[data-aim-hover="${foe.id}"]`);
   const kept=document.querySelector(`.hud[data-moving-unit="${foe.id}"]`)===hud;
   b.aimHover=null;refreshBattle();
-  return {shown:!!shown,kept,removed:!document.querySelector('.selected-foe')};
+  return {shown:!!shown,defs:!!document.getElementById('aim-hover-defs'),kept,removed:!document.querySelector('.selected-foe')};
  });
- assert(aimHover.shown,'aim hover marker inserted');assert(aimHover.kept,'aim hover keeps HUD identity');assert(aimHover.removed,'aim hover marker removed');console.log('✓ aim hover inserts without losing its marker or HUD identity');
+ assert(aimHover.shown,'aim hover marker inserted');assert(aimHover.defs,'aim hover filter defs inserted');assert(aimHover.kept,'aim hover keeps HUD identity');assert(aimHover.removed,'aim hover marker removed');console.log('✓ aim hover inserts without losing its marker or HUD identity');
  // 游標落在遮住敵人的樹／篷車等物件時，以底下合法敵人的實際 token 畫面範圍判定；遮擋物不必和敵人同格。
  const aimHoverBody=await pg.evaluate(()=>{
   const b=B(),u=cur(),foe=b.units.find(v=>v.side==='foe'&&!v.dead);foe.x=u.x+1;foe.y=u.y;
