@@ -1232,13 +1232,8 @@ function battleInterfaceHTML(){
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {
     head: `<div class="head"><div><h2>${b.phase==="explore"?EXPLORE_UI.title:b.manualCombat?EXPLORE_UI.turn:"戰鬥"}：${b.def.name}</h2><p class="rule">${b.phase==="explore"?(b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group):`第 ${b.round} 回合`}${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
-      <div class="sys-tools">
-        <button class="snd ${SFX.isMuted()?"off":""}" id="sndToggle" aria-label="主音量" title="主音量">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${SFX.isMuted()?'<path d="M17 9l5 6M22 9l-5 6"/>':'<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg></button>
-        <button class="gear-btn" id="gearToggle" aria-label="主選單" title="主選單"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.7.6 1 .3.3.7.4 1.1.4h.1v4h-.1c-.4 0-.8.1-1.1.4-.3.3-.5.6-.6 1.2Z"/></svg></button>
-        ${b.sysPop==="volume"?`<div class="vol-pop" id="volPop"><button class="snd ${SFX.isMuted()?"off":""}" id="volMute" aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input id="masterVolume" type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" id="volNum">${SFX.isMuted()?0:Math.round(SFX.getVolume()*100)}%</span></div>`:""}
-        ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="about">關於／授權</button><button data-sys="title">回到標題</button></div>`:""}
-      </div></div>`,
+      ${renderSystemTools({context:"battle",pop:b.sysPop})}
+      </div>`,
     order: `<div class="order ${b.phase==="explore"?"explore-order":""}">${order}</div>`,
     hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${isHid(exploreUnit())?1:0}/1`:""}</b></div>`:hud,
     tutorial:tut,
@@ -1399,11 +1394,7 @@ function bindBattle(){
   document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
   document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));
   document.querySelectorAll("[data-cmd]").forEach(el=>battleListen(el,"click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
-  battleListen(document.getElementById("sndToggle"),"click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="volume"?null:"volume"; refreshBattle(); });
-  battleListen(document.getElementById("gearToggle"),"click", (e)=>{ e.stopPropagation(); b.sysPop=b.sysPop==="menu"?null:"menu"; refreshBattle(); });
-  battleListen(document.getElementById("volMute"),"click", (e)=>{ e.stopPropagation(); SFX.toggleMuted(); if(!SFX.isMuted()) sfx("pop"); refreshBattle(); });
-  battleListen(document.getElementById("masterVolume"),"input", e=>{ SFX.setVolume(+e.target.value/100); const n=document.getElementById("volNum"); if(n)n.textContent=`${e.target.value}%`; document.getElementById("sndToggle")?.classList.toggle("off",+e.target.value===0); });
-  document.querySelectorAll("[data-sys]").forEach(el=>battleListen(el,"click",()=>{ const a=el.dataset.sys; b.sysPop=null; if(a==="continue"){refreshBattle();return;} if(a==="party"){const p=b.units.find(x=>x.side==="pc"); if(p){b.info=p.id;b.infoPage="status";} refreshBattle();return;} if(a==="about"){state.modal={kind:"about"};refreshBattle();return;} if(a==="title"){state.page="cover";refreshBattle();window.scrollTo(0,0);} }));
+  bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:()=>{state.page="cover";refreshBattle();window.scrollTo(0,0);},listen:battleListen});
   battleListen(document.querySelector("[data-closeinfo]"),"click", ()=>{ B().info = null; refreshBattle(); });
   StatusCard.bind(document);
   document.querySelectorAll("[data-notepage]").forEach(el=>battleListen(el,"click", ()=>{ const [id,p]=el.dataset.notepage.split(":"); const b=B(); b.notePages=b.notePages||{}; b.notePages[id]=Math.max(1,+p||1); sfx("pop"); refreshBattle(); }));
