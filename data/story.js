@@ -1,4 +1,4 @@
-/* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ kam（卡姆）/ 小動物 id / all（四小隻一起說，四張卡一起亮）
+/* 序章台詞：who = narr（旁白）/ dwarf（大爺）/ kam（卡姆）/ 小動物 id / all（小傢伙們一起說，四張卡一起亮）
    on＝這句誰站在酒館舞台上（預設大爺）；face＝台上那位的表情（assets/faces/README.md 的檔名，香香 10-03 配的，暫定）
    mood＝說話那隻小動物的表情；moods 僅取說話者自己的設定，all 合聲時取各隻設定。
    其他隻保留上次自己台詞的表情；旁白／抱抱不換臉，場景開始為平常臉。 */
@@ -94,7 +94,7 @@ const FAREWELL = [
   {who:"narr",  text:"四個毛球同時抬起頭，盯著大爺。", face:"shy", hug:true, moods:{fox:"smug",tiger:"blank",wolf:"serious",raccoon:"sly"}},
   {who:"dwarf", text:"咳！好、好了好了，去吧！記得，天黑前回來喝熱湯！", face:"shy", mark:"sweat", hug:true, moods:{fox:"smug",tiger:"blank",wolf:"serious",raccoon:"sly"}},
   {who:"all",   text:"知道啦——！", hug:true, face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}, marks:{fox:"note",tiger:"note",wolf:"note",raccoon:"note"}},
-  // 出發（大爺 10-03：送別最後放四小隻合照，邊打屁邊出發）。art：這幾句換成 STORY_ART 的插圖
+  // 出發（大爺 10-03：送別最後放小傢伙們合照，邊打屁邊出發）。art：這幾句換成 STORY_ART 的插圖
   // 以下台詞已經大爺10-04定稿；不提武器，因為玩家買的裝備不一定跟圖一樣
   // 梗：圖上默默頂著的寶箱是大爺的，出門的時候摸走的（大爺 10-03）
   {who:"narr",  text:"酒館的大門被推開，四個毛球衝進午後的陽光裡。", art:"party", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
@@ -114,8 +114,8 @@ const FAREWELL = [
 /* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
 const STORY_ART = {party:"assets/portraits/party.webp"};
 
-/* 伏擊前的被動察覺（大爺 2026-10-01）：四小隻不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
-   難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、四小隻不擲），進戰鬥沿用同一個數字
+/* 伏擊前的被動察覺（大爺 2026-10-01）：小傢伙們不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
+   難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、小傢伙們不擲），進戰鬥沿用同一個數字
    沒過 HIDE_DC＝沒躲好，草叢在抖，四隻都看到（大爺 10-02：以前會被拉到 13，等於把失敗改成及格）
    有人過：劇情裡草叢會晃、過的那幾隻吐槽，進戰鬥時那隻直接現形 */
 const SPOT_MOOD = {fox:"smug", tiger:"fierce", wolf:"serious", raccoon:"sly"};   // 察覺台詞的表情（10-03 暫定）
@@ -164,7 +164,7 @@ const AMBUSH = [
    商人只有一張圖、沒有表情：情緒用頭上的泡泡框符號（mark：ok ❗、fail ❓、known …、sweat 滴汗、shake 發抖、anger 青筋、note 音符）
    台詞全部是香香的草稿，大爺改完才算數；失敗的結果、金額分法、難度是香香定的（大爺 10-03：前面都給你決定），暫定 */
 const CARAVAN_DC = 12;
-const CARAVAN_PICKS = [   // stat：擲哪一項（大爺 10-03：照四小隻擅長的）
+const CARAVAN_PICKS = [   // stat：擲哪一項（大爺 10-03：照小傢伙們擅長的）
   {id:"fox",     stat:"INT", say:"「我們來談談報酬吧。」"},
   {id:"tiger",   stat:"STR", say:"「我幫大叔搬貨！」"},
   {id:"wolf",    stat:"WIS", say:"「……那箱子裡是什麼？」"},
