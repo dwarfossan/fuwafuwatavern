@@ -282,7 +282,7 @@ function quickBattle(battleId="ambush",phase="combat"){
     syncRolls(c.id);
     state.gold[c.id] = 150*GP; state.inv[c.id] = [];
     kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(makeItem(it).id); } });
-    // 隨機測試場暫時讓四小隻都帶著被動反擊，方便大爺直接實機驗收。
+    // 隨機測試場暫時讓小傢伙們都帶著被動反擊，方便大爺直接實機驗收。
     // 只影響 #battle；正式進度與固定商隊遭遇不動。
     if(battleId==="random"){
       const notes=state.learned[c.id] ? state.learned[c.id].map(x=>({...x})) : starterNotes(c.id);
