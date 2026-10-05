@@ -63,6 +63,15 @@ try{
   return {shown:!!shown,kept,removed:!document.querySelector('.selected-foe')};
  });
  assert(aimHover.shown,'aim hover marker inserted');assert(aimHover.kept,'aim hover keeps HUD identity');assert(aimHover.removed,'aim hover marker removed');console.log('✓ aim hover inserts without losing its marker or HUD identity');
+ // 游標落在遮住敵人的樹／篷車等物件時，依物件所在格找合法敵人；不能只看 SVG 本體的 data-moving-unit。
+ const aimHoverTile=await pg.evaluate(()=>{
+  const b=B(),u=cur(),foe=b.units.find(v=>v.side==='foe'&&!v.dead);foe.x=u.x+1;foe.y=u.y;
+  const sk=unitSkills(u).find(s=>s.impl?.target==='enemy'&&validTarget(u,s,foe.x,foe.y));b.mode={key:sk.key};b.aimHover=null;refreshBattle();
+  const ns='http://www.w3.org/2000/svg',cover=document.createElementNS(ns,'g'),part=document.createElementNS(ns,'circle');cover.dataset.tile=`${foe.x},${foe.y}`;cover.append(part);document.getElementById('board-scene').append(cover);
+  part.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerType:'mouse'}));
+  return {hover:b.aimHover,marker:!!document.querySelector(`.selected-foe[data-aim-hover="${foe.id}"]`),foe:foe.id};
+ });
+ assert.equal(aimHoverTile.hover,aimHoverTile.foe);assert(aimHoverTile.marker);console.log('✓ aim hover finds legal foe through covered tile');
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});

@@ -373,13 +373,15 @@ function initBoardDrag(){
     if(e.pointerType!=="mouse"||touches.size)return;
     tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);
     const b=B();if(!b)return;
-    // 角色／血條本身都有 data-moving-unit；不要只靠 data-tile，因為角色上層的裝備 SVG 可能吃到 pointer target。
-    // 先直接認目前 hover 的 unit，再用 tgtSet 驗證牠所在格確實是這次瞄準的合法紅格。
+    // 游標落在哪個 SVG 零件不該改變瞄準：本體／HUD 取 unit，樹、篷車等遮擋物則取所在 tile 的敵人。
     const unitId=e.target.closest?.(".board [data-moving-unit]")?.dataset.movingUnit;
+    const tile=e.target.closest?.(".board [data-tile]")?.dataset.tile;
     let id=null;
-    if(unitId&&b.mode&&!b.busy&&!b.result){
-      const v=b.units.find(x=>x.id===unitId),ctx=boardMarkState();
-      if(v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`))id=v.id;
+    if(b.mode&&!b.busy&&!b.result){
+      const byUnit=unitId&&b.units.find(x=>x.id===unitId);
+      const byTile=tile&&unitAt(...tile.split(",").map(Number));
+      const ctx=boardMarkState(),v=[byUnit,byTile].find(v=>v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`));
+      if(v)id=v.id;
     }
     if(b.aimHover!==id){b.aimHover=id;refreshBattle();}
   });
