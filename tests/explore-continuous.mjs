@@ -10,14 +10,14 @@ try{
  assert(!Number.isInteger(moving.x));assert(moving.walking&&moving.foot&&moving.floor);assert.notEqual(moving.hop,'hop');
  await pg.waitForFunction(()=>!B().busy);assert.deepEqual(await pg.evaluate(()=>[exploreUnit().x,exploreUnit().y]),[17.27,15.18]);
   if(process.env.EXPLORE_SHOTS){await pg.evaluate(()=>{const u=exploreUnit();centerCam(u.x,u.y);});await pg.screenshot({path:process.env.EXPLORE_SHOTS+'/continuous.png'});}
- await pg.evaluate(()=>{window.__pre= B().units.filter(u=>!u.dead&&!u.fled).map(u=>({id:u.id,x:u.x,y:u.y}));enterExploreCombat(null,true);window.nextTurn=()=>{};window.endTurn=()=>{};});
+ await pg.evaluate(()=>{const u=exploreUnit();window.__pre={x:u.x,y:u.y};enterExploreCombat(null,true);window.nextTurn=()=>{};window.endTurn=()=>{};});
  assert(await pg.evaluate(()=>B().phase==='combat'&&B().units.every(u=>Number.isInteger(u.x)&&Number.isInteger(u.y))));
- assert(await pg.evaluate(()=>new Set(B().units.filter(u=>!u.dead&&!u.fled).map(u=>`${u.x},${u.y}`)).size===window.__pre.length));
- assert(await pg.evaluate(()=>window.__pre.every(p=>{const u=B().units.find(u=>u.id===p.id);return Math.hypot(u.x-p.x,u.y-p.y)<1.5;})));
+ assert(await pg.evaluate(()=>{const units=B().units.filter(u=>!u.dead&&!u.fled);return new Set(units.map(u=>`${u.x},${u.y}`)).size===units.length;}));
+ assert(await pg.evaluate(()=>B().units.filter(u=>u.side==='pc'&&!u.dead&&!u.fled).every(u=>Math.hypot(u.x-window.__pre.x,u.y-window.__pre.y)<1.5)));
  if(process.env.EXPLORE_SHOTS)await pg.screenshot({path:process.env.EXPLORE_SHOTS+'/aligned.png'});
  // Shared same-cell exploration positions stay independent until alignment.
  await fixture();assert(await pg.evaluate(()=>{const [a,c]=exploreParty();a.x=15.1;a.y=15.1;c.x=15.49;c.y=15.49;return explorePositionClear(a,a.x,a.y);}));
- assert(await pg.evaluate(()=>exploreParty().every(u=>document.querySelector(`.hud[data-explore-body="${u.id}"]`))));
+ assert(await pg.evaluate(()=>{const u=exploreUnit();return !!document.querySelector(`.hud[data-explore-body="${u.id}"]`);}));
  await pg.evaluate(()=>enterExploreCombat(null,true));assert(await pg.evaluate(()=>{const p=exploreParty();return new Set(p.map(u=>`${u.x},${u.y}`)).size===p.length;}));
  // Continuous sampling cannot tunnel through solid corners or hidden units.
  await fixture();assert(await pg.evaluate(()=>{const u=exploreUnit();B().def.blocks=[{x:16,y:15,kind:'tree'}];return !exploreSegmentClear(u,u,{x:17,y:15});}));

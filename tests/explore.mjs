@@ -29,7 +29,7 @@ try{
  await pg.evaluate(()=>{const b=B();b.info=b.units.find(p=>p.side==='foe').id;refreshBattle();});assert((await pg.evaluate(()=>exploreWatchCells().size))>0);await shot('range');
  await pg.evaluate(()=>{B().exploreSneak=false;refreshBattle();});assert.equal(await pg.evaluate(()=>exploreWatchCells().size),0);
  await pg.evaluate(()=>{const b=B(),p=B().units.find(p=>p.id==='fox');b.info=null;p.statuses=[];exploreDetect();refreshBattle();});assert.equal(await pg.evaluate(()=>B().exploreStopped),true);assert.equal(await pg.evaluate(()=>B().exploreMarks.fox),2);assert.equal(await pg.evaluate(()=>B().phase),'combat','紅警示已接戰棋');await shot('red-stop');
- const before=await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y]));await pg.evaluate(()=>exploreMove(20,20));assert.deepEqual(await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y])),before);
+ const stopBefore=await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y]));await pg.evaluate(()=>exploreMove(20,20));assert.deepEqual(await pg.evaluate(()=>exploreParty().map(p=>[p.x,p.y])),stopBefore);
  // 隱藏敵人格不洩漏到尋路，仍由我方偵測決定何時現身。
  const hidden=await pg.evaluate(()=>{const b=B(),p=B().units.find(p=>p.id==='fox'),e=b.units.find(u=>u.side==='foe');b.phase='explore';b.exploreStopped=false;b.exploreSolo='fox';e.x=p.x+2;e.y=p.y;e.statuses=[{k:'hidden',val:13,roll:13}];b.def.blocks=[{x:e.x,y:e.y,kind:'bush'}];p.mods.WIS=3;const allowed=reachable(p,10000).has(`${e.x},${e.y}`);exploreDetect();return {allowed,revealed:!isHid(e)};});assert(hidden.allowed);assert(hidden.revealed);
  assert.deepEqual(errs,[]);console.log('✓ 同頁四層、無回合、單人探索移動、切角色原地接手、潛行、偵測與停下、隱藏格察覺');
