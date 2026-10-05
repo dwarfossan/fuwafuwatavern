@@ -203,7 +203,7 @@ function renderStory(){
   const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
     <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
+      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?townGateSVG():roadAmbushSVG()}</div>${actorsHTML}` : `
       <div class="wall"></div>
       <div class="lamp" aria-hidden="true"></div>
       ${actorsHTML}

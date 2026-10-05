@@ -12,6 +12,11 @@ if(window.top===window.self && window.innerWidth>600) location.replace("phone.ht
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@700;900&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap">
 <link rel="stylesheet" href="css/style.css">
+<script>
+// 首屏圖片在遊戲脚本下載前開始載入；只請求目前入口會顯示的那張。
+{const src=location.hash.startsWith('#ambush')?'assets/scenes/caravan_encounter.webp':!location.hash?'assets/portraits/party_heads.webp':null;
+ if(src){const link=document.createElement('link');link.rel='preload';link.as='image';link.href=src;link.fetchPriority='high';document.head.append(link);}}
+</script>
 </head>
 <body>
 <div class="wrap" id="app"></div>
