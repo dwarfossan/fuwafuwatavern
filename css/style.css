@@ -363,6 +363,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .battle .ord>svg{width:24px;height:24px}
 .battle .ord.now>svg{width:32px;height:32px}
 .battle .order{display:flex;flex:none;gap:4px;flex-wrap:nowrap;align-items:center;margin:0;overflow-x:auto;padding:3px}
+/* 回合頭像縮放只影響列內顯示，不得改變戰場的頂端與可用高度。 */
+.battle .order:not(.explore-order){height:46px}
 .ord{border-radius:50%;border:2px solid var(--c);background:var(--night);line-height:0}.ord>svg{width:28px;height:28px;transition:width .2s,height .2s}.ord.now>svg{width:44px;height:44px}
 .ord.now{border-width:3px;box-shadow:0 0 0 3px var(--honey)}
 .ord.out{opacity:.3;filter:grayscale(1)}
