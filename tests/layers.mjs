@@ -27,6 +27,21 @@ try{
   return {marksOnly,floorOnly,retained,terrain};
  });
  for(const [k,v] of Object.entries(identity)){assert(v,k);console.log('✓ '+k);}
+ // keyed 節點缺席時，必須在 cursor 前插入；不能把既有 HUD 改寫成新身分。
+ const keyedInsert=await pg.evaluate(()=>{
+  const ns='http://www.w3.org/2000/svg';
+  const make=id=>{const n=document.createElementNS(ns,'g');n.classList.add('hud');n.dataset.movingUnit=id;n.dataset.label=`new-${id}`;n.textContent=`new-${id}`;return n;};
+  const run=(before,want)=>{
+   const dst=document.createElementNS(ns,'g'),src=document.createElementNS(ns,'g');
+   before.forEach(id=>{const n=make(id);n.dataset.label=`old-${id}`;n.textContent=`old-${id}`;dst.append(n);});
+   want.forEach(id=>src.append(make(id)));
+   const kept=Object.fromEntries(before.map(id=>[id,[...dst.children].find(n=>n.dataset.movingUnit===id)]));
+   patchBattleNode(dst,src);
+   return {order:[...dst.children].map(n=>n.dataset.movingUnit),kept:Object.fromEntries(before.map(id=>[id,[...dst.children].find(n=>n.dataset.movingUnit===id)===kept[id]])),updated:Object.fromEntries(before.map(id=>[id,[...dst.children].find(n=>n.dataset.movingUnit===id)?.dataset.label===`new-${id}`]))};
+  };
+  return {front:run(['b','c'],['a','b','c']),middle:run(['a','c'],['a','b','c'])};
+ });
+ for(const [where,r] of Object.entries(keyedInsert)){assert.deepEqual(r.order,['a','b','c'],`${where} keyed insertion order`);assert(Object.values(r.kept).every(Boolean),`${where} keyed identity`);assert(Object.values(r.updated).every(Boolean),`${where} keyed update`);console.log(`✓ keyed HUD ${where} insertion preserves identity`);}
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});

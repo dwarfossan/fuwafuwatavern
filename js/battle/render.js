@@ -140,9 +140,9 @@ function patchBattleNode(dst,src){
   const old=[...dst.childNodes], fresh=[...src.childNodes], keyed=new Map(old.map(n=>[battleNodeKey(n),n]).filter(([k])=>k));
   let cursor=dst.firstChild;
   for(const want of fresh){
-    const key=battleNodeKey(want); let have=key&&keyed.get(key);
-    if(!have)have=cursor;
-    if(!have){dst.appendChild(want.cloneNode(true));cursor=null;continue;}
+    const key=battleNodeKey(want); let have=key?keyed.get(key):cursor;
+    // 有 key 卻找不到的節點是新增身分，不能借用目前 cursor（那會把既有 HUD 改寫掉）。
+    if(!have){const n=want.cloneNode(true);dst.insertBefore(n,cursor);cursor=n.nextSibling;continue;}
     if(have!==cursor)dst.insertBefore(have,cursor);
     have=patchBattleNode(have,want); cursor=have.nextSibling;
   }
