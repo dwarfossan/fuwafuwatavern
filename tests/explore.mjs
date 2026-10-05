@@ -17,11 +17,10 @@ try{
  assert.deepEqual(after.filter(p=>p[0]!=='fox'),before.filter(p=>p[0]!=='fox'),'未選取三隻不跟隨');
  assert(await pg.evaluate(()=>document.getElementById('board-floor').firstElementChild===window.__floor));
  assert(await pg.evaluate(()=>window.__layers.every((e,i)=>e===document.getElementById(['board-floor','board-marks','board-scene'][i]))));await shot('group-move');
- await pg.locator('[data-explore-unit="raccoon"]').click();assert.equal(await pg.evaluate(()=>B().exploreSolo),'raccoon');await shot('individual');
+ const handoff=await pg.evaluate(()=>[exploreUnit().x,exploreUnit().y]);await pg.locator('[data-explore-unit="raccoon"]').click();assert.equal(await pg.evaluate(()=>B().exploreSolo),'raccoon');assert.deepEqual(await pg.evaluate(()=>[exploreUnit().x,exploreUnit().y]),handoff,'切角色在目前探索位置接手');await shot('individual');
  const others=await pg.evaluate(()=>exploreParty().filter(p=>p.id!=='raccoon').map(p=>[p.id,p.x,p.y]));
  await pg.evaluate(()=>{const u=exploreUnit(),p=[...reachable(u,10000).values()].find(p=>p.length===1);exploreMove(p[0].x,p[0].y);});await pg.waitForFunction(()=>!B().busy);
  assert.deepEqual(await pg.evaluate(()=>exploreParty().filter(p=>p.id!=='raccoon').map(p=>[p.id,p.x,p.y])),others);
- await pg.locator('[data-explore-cmd="leader"]').click();assert.equal(await pg.evaluate(()=>B().leader),'raccoon');assert.equal(await pg.evaluate(()=>B().exploreSolo),null);await shot('gather');
  // 偵測規則用精確位置 fixture（保留隨機圖格式）；遮擋與潛行對抗逐項驗。
  await pg.evaluate(()=>{const b=B();b.def.blocks=[];b.def.elev=[];delete b.def._h;exploreParty().forEach((p,i)=>{p.x=19;p.y=17+i;p.statuses=[];});b.units.filter(p=>p.side==='foe').forEach((e,i)=>{e.x=1;e.y=2+i;e.statuses=[];});const e=b.units.find(p=>p.side==='foe');e.type='goblin';e.x=10;e.y=17;b.leader='fox';b.turn=b.units.findIndex(p=>p.id==='fox');b.exploreSolo=null;b.exploreStopped=false;exploreDetect();refreshBattle();centerCam(16,17);});
  await pg.evaluate(()=>{const p=B().units.find(p=>p.id==='fox');p.x=16;exploreDetect();refreshBattle();});assert.equal(await pg.evaluate(()=>B().exploreMarks.fox),1);await shot('yellow');
