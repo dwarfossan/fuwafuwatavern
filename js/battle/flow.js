@@ -613,7 +613,7 @@ function doHelp(u, t){
     // 醫療檢定：d20 + 感知 ≥ 10 就把他扶起來（1 點生命、倒地）
     const r = d20(), total = r + u.mods.WIS, ok = r===20 || (r!==1 && total>=10);
     blog(`${u.name}想把${t.name}扶起來，醫療檢定：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${total>=10?"≥":"<"} 10 → ${ok?"成功":"失敗"}`, ok?"heal":"miss");
-    if(ok){ t.hp = 1; t.down = false; t.dsFail = 0; addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
+    if(ok){ t.hp = 1; t.down = false; t.dsFail = 0; sfx("heal"); addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
   } else {
     addStatus(t, "helped", {until:"start", of:u.id}); sfx("help");
     blog(`${u.name}協助${t.name}：${t.name}下次攻擊有優勢`, "skill");

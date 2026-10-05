@@ -211,7 +211,7 @@ function deathSave(u){
   blog(`${u.name}死亡豁免：d20=${r} ${add ? `< 10 → 失敗${add===2?"兩次（擲到 1）":""}` : "≥ 10 → 撐住了"}（失敗 ${u.dsFail}/${DS_MAX}）`, add ? "miss" : "skill", add ? "失敗" : "撐住");
   if(u.dsFail >= DS_MAX){
     u.dead = true; u.deadAt = Date.now() + 700; u.gone = "teleport";
-    fxFloat(u, POP_TEXT.teleport, "heal"); sfx("heal", 300);
+    fxFloat(u, POP_TEXT.teleport, "heal"); sfx("poof", 300);
     blog(`卡姆的傳送魔法發動，${u.name}被送回酒館了！`, "kill");
     return "gone";
   }
@@ -477,7 +477,7 @@ function attackRoll(a, t, o={}){
     let dis = dg.some(s=>!s.once);
     if(once.length){ once.forEach(s=>{ s.spent = true; }); t.statuses = t.statuses.filter(s=>!(once.includes(s) && !(s.left > 0)));   // 守護升階：這一輪擋過了，下一輪再擋
       const by = once.map(s=>B().units.find(v=>v.id===s.by)).find(v=>v && !v.down && !v.dead && dist(v,t)<=1);
-      if(by){ dis = true; blog(`　${by.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
+      if(by){ dis = true; sfx("shield_block", B().impact||0); blog(`　${by.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
     if(dis) adv--; }
   // 協助：下次攻擊優勢（困擾給的協助只對那個目標）
   const help = a.statuses.find(s=>s.k==="helped" && (!s.target || s.target===t.id));
@@ -549,7 +549,7 @@ function damageAfterResistance(t, n, type){
   if((t.damageImmunities||[]).includes(type)) return 0;
   return [...(t.resistances||[]),...itemResistances(t)].includes(type) ? Math.floor(n/2) : n;
 }
-function hurt(t, n, type, src){
+function hurt(t, n, type, src, hitSfx){
   if(t.worldObject){if(n>0&&!t.dead){t.dead=true;explodeBarrel(t.worldObject,src);}return;}
   if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
@@ -566,7 +566,8 @@ function hurt(t, n, type, src){
   t.anim = {k:"hurt", t:impactAt()};
   fxHit(t, FX_OF_TYPE[type] || "burst");
   const at = B().impact||0;
-  sfx(HIT_SFX[type] || "hit_blunt", at); sfx(t.side==="pc" ? "ouch_pc" : "ouch_foe", at);
+  const sound = hitSfx===false ? null : (hitSfx || HIT_SFX[type] || "hit_blunt");
+  if(sound) sfx(sound, at); sfx(t.side==="pc" ? "ouch_pc" : "ouch_foe", at);
   // 火焰護盾：近戰打中你的人受 1d6
   if(src && hostile(src,t) && has(t,"fireShield") && dist(src,t)<=1){
     const f = rollDice(`${1 + (has(t,"fireShield").n||0)}d6`).total;   // 升階：每高一階多 1d6（反燒的骰給攻擊者，沒有他的列就丟掉）
@@ -592,9 +593,9 @@ function hurt(t, n, type, src){
 function heal(t, n){
   B()._pend = [];                                   // 補血的骰不是傷害骰
   n = Math.max(0, n);                         // 補血不會變成扣血
-  const was = t.down;
+  const was = t.down, before = t.hp;
   t.hp = Math.min(t.maxHp, t.hp + n); if(t.hp>0){ t.down = false; t.dsFail = 0; }   // 救起來：死亡豁免的失敗次數歸零
-  sfx("heal", B().impact||0);
+  if(t.hp>before) sfx("heal", B().impact||0);
   blog(`　${t.name}恢復 ${n} 點生命（${t.hp}/${t.maxHp}）${was?"，重新站起來了！":""}`, "heal", `${t.name} +${n}`);
   fxFloat(t, `+${n}`, "heal");
   fxHit(t, "heal");
@@ -790,8 +791,9 @@ function weaponAttack(a, t, o={}){
     let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
-    hurt(t, n, dmgType(view), a);
-    const extra=w?.extraDamage;if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
+    const extra=w?.extraDamage, arrowHit=["bow","crossbow"].includes(ak);
+    hurt(t, n, dmgType(view), a, arrowHit ? (extra ? false : "arrow_hit") : null);
+    if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
     if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
   } else if(o.mastery && m==="擦傷" && mod>0){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(view), a);

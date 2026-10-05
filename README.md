@@ -22,7 +22,7 @@ data/               遊戲資料：六圍、角色、裝備、技能、名詞、
 js/state.js         遊戲狀態
 js/rules.js         擲骰、調整值、裝備規則
 js/art/             手寫 SVG 美術：四小隻、大地圖、裝備圖示、紙娃娃、怪物、劇情背景；portraits.js 是大爺、卡姆的新畫風立繪（無臉底圖＋表情）
-js/sfx.js           音效（Web Audio 當場合成）
+js/sfx.js           音效（實體檔優先，未對應事件維持 Web Audio 合成）
 js/pages/           封面、擲屬性、劇情、商店、大地圖、紙娃娃測試頁（網址加 #doll）
 js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flow.js 回合、移動、AI → render.js 戰場畫面
 js/ui/cards.js      裝備卡、技能卡、彈出視窗
@@ -49,6 +49,7 @@ node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿�
 node tests/equipment-shared.mjs # 裝備唯一讀寫、切組、卸裝／收納與跨場景保存
 node tests/critter-art.mjs    # 四隻SVG六表情、換裝相容、受傷／勝利與分層
 node tests/impact-timing.mjs # 投射命中時序、地面／身上效果延遲與到期整層清除
+node tests/sfx-routing.mjs   # 實體音效依實際傷害／治療、弓弩命中與守護防禦事件路由
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
 node tests/perception.mjs     # 被動感知、搜索、敵人狀態卡
 node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變

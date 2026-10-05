@@ -1,9 +1,20 @@
-/* ======================== 音效：Web Audio 當場合成，不用任何音效檔 ========================
-   用法：sfx("hit_blunt", 延遲毫秒)。延遲用來對齊演出（例如箭飛 1 秒後才「打中」）。
-   以後要換成真的音效檔：在 SFX_FILES 填 {名稱: "路徑"}，有檔案的就播檔案，沒有的照舊合成。
+/* ======================== 音效：實體檔優先，Web Audio 合成 fallback ========================
+   用法：sfx("hit_blunt", 延遲毫秒)。延遲用來對齊演出（例如箭飛行後才「打中」）。
+   SFX_FILES 有檔案的就播放檔案，沒有對應檔案的事件照舊合成。
    手機瀏覽器要先點一下畫面才能出聲，第一次點擊時會自動解鎖。 */
 
-const SFX_FILES = {};           // 例：{hit_blunt:"assets/sfx/hit.ogg"}
+const SFX_FILES = {
+  arrow_shoot: "assets/sfx/arrow_shoot.mp3",
+  arrow_hit: "assets/sfx/arrow_hit.mp3",
+  hit_slash: "assets/sfx/sword_slash.mp3",
+  hit_blunt: "assets/sfx/light_punch.mp3",
+  hit_fire: "assets/sfx/fire_magic.mp3",
+  hit_cold: "assets/sfx/ice_magic.mp3",
+  hit_lightning: "assets/sfx/lightning_magic.mp3",
+  hit_poison: "assets/sfx/poison_magic.mp3",
+  heal: "assets/sfx/heal_magic.mp3",
+  shield_block: "assets/sfx/shield_block.mp3"
+};
 
 const SFX = (()=>{
   let ctx = null, master = null, noiseBuf = null;
@@ -139,10 +150,10 @@ const SFX = (()=>{
 const sfx = (name, delay) => SFX.play(name, delay);
 
 // 動作 → 出手的聲音（跟紙娃娃動畫對齊：揮動在打中前一點點、射箭在放手那一刻）
-const HIT_SFX = {"寒冷":"hit_magic", "閃電":"hit_magic", "毒素":"hit_magic", "揮砍":"hit_slash", "穿刺":"hit_pierce", "鈍擊":"hit_blunt", "火焰":"hit_fire", "力場":"hit_magic", "光耀":"hit_magic", "流血":"hit_pierce", "強酸":"hit_magic"};
+const HIT_SFX = {"寒冷":"hit_cold", "閃電":"hit_lightning", "毒素":"hit_poison", "揮砍":"hit_slash", "穿刺":"hit_pierce", "鈍擊":"hit_blunt", "火焰":"hit_fire", "力場":"hit_magic", "光耀":"hit_magic", "流血":"hit_pierce", "強酸":"hit_magic"};
 function animSfx(k, lead=0){                 // lead：先擲骰，出招往後延幾毫秒
   const imp = (DOLL_IMPACT[k] || 0) + lead;
-  if(k==="shoot") return sfx("twang", imp);
+  if(k==="shoot") return sfx("arrow_shoot", imp);
   if(k==="fire")  return sfx("bang", imp);
   if(k==="throw") return sfx("throw", imp - 60);
   if(k==="cast")  return sfx("cast", 60 + lead);
