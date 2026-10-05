@@ -1172,4 +1172,4 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 .mira-face-window{position:absolute;inset:0;clip-path:url(#mira-face-clip)}
 
-.bt-victory .bt-after{pointer-events:auto;margin:0;}
+.bt-victory .bt-after{position:static;left:auto;bottom:auto;transform:none;z-index:auto;pointer-events:auto;margin:0;}
