@@ -21,7 +21,7 @@ css/style.css       全部樣式
 data/               遊戲資料：六圍、角色、裝備、技能、名詞、敵人與 NPC、戰場、台詞、劇情、大地圖
 js/state.js         遊戲狀態
 js/rules.js         擲骰、調整值、裝備規則
-js/art/             手寫 SVG 美術：四小隻、大地圖、裝備圖示、紙娃娃、怪物、劇情背景；portraits.js 是大爺、卡姆的新畫風立繪（無臉底圖＋表情）
+js/art/             手寫 SVG 美術：小傢伙們、大地圖、裝備圖示、紙娃娃、怪物、劇情背景；portraits.js 是大爺、卡姆的新畫風立繪（無臉底圖＋表情）
 js/sfx.js           音效／BGM（實體檔優先，未對應事件維持 Web Audio 合成）
 js/pages/           封面、擲屬性、劇情、商店、大地圖、紙娃娃測試頁（網址加 #doll）
 js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flow.js 回合、移動、AI → render.js 戰場畫面
@@ -164,12 +164,12 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 | `AGENTS.md` | 給 GPT 等接手的 AI：先讀什麼、推到哪、怎麼跟大爺溝通、做完要更新什麼（Codex 會自動讀） |
 | `docs/現況.md` | **先看這份**：做到哪、各系統、大爺的偏好、排隊中的、已知問題、環境 |
 | `docs/熟練格規格.md` | 技能資源（熟練格、升階、休息） |
-| `docs/小筆記規格.md` | 觀察學習、小筆記、四小隻特性 |
+| `docs/小筆記規格.md` | 觀察學習、小筆記、小傢伙們特性 |
 | `docs/狀態規格.md` | 17 個掛頭圖示狀態與其他狀態規則 |
 | `docs/裝備與感知規格.md` | 被動感知、搜索、狀態卡、裝備三層與錨點、破布衣、+1 薩滿袍、AC |
 | `docs/授權與安全.md` | 借了 SRD 的什麼、不能碰的（D&D 名稱、商標、SRD 以外的內容）、類似遊戲的案例、出處標示怎麼放 |
 | `docs/技能表.md` | 每類武器的招式（`tools/skills_doc.mjs` 產生，不要手改） |
-| `assets/` | 美術素材。遊戲用到：封面 `portraits/party_heads.webp`、送別出發段 `portraits/party.webp`、酒館劇情和商店小頭像的大爺／卡姆（無臉底圖＋`faces/dwarf`、`faces/kam`）、商隊戰後的商人 `portraits/merchant.webp`、四小隻的頭（劇情卡片、擲屬性、商店、角色介紹；戰場和大地圖還是 SVG）；哥布林插圖還沒用。`portraits/` 立繪（四小隻合照、四小隻合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（四小隻的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
+| `assets/` | 美術素材。遊戲用到：封面 `portraits/party_heads.webp`、送別出發段 `portraits/party.webp`、酒館劇情和商店小頭像的大爺／卡姆（無臉底圖＋`faces/dwarf`、`faces/kam`）、商隊戰後的商人 `portraits/merchant.webp`、小傢伙們的頭（劇情卡片、擲屬性、商店、角色介紹；戰場和大地圖還是 SVG）；哥布林插圖還沒用。`portraits/` 立繪（小傢伙們合照、小傢伙們合照頭像、大爺、卡姆、商人；大爺和卡姆各有一張無臉底圖 `*_noface`）、`faces/` 表情（小傢伙們的頭像 210×210；大爺、卡姆各 8 張臉，疊在無臉底圖上用；**檔名一律英文**，中英對照見 `assets/faces/README.md`）、`scenes/` 插圖（哥布林）；舊的：嬌嬌 Live2D 分層、大爺頭像、怪物圖。大爺 10-02 給的圖，已去背、縮成手機用、轉 webp；原圖不在 repo |
 
 
 ---
