@@ -1180,5 +1180,13 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 /* 圖片失敗與下一句必要圖片的載入提示。 */
 .image-error-host{position:relative}
-.image-error-message{position:absolute;z-index:10;display:grid;place-items:center;text-align:center;background:#211b26e8;color:var(--honey);font-size:12px;cursor:pointer;border-radius:6px}
+.image-error-message,.image-loading-message{position:absolute;z-index:10;display:grid;place-items:center;text-align:center;background:#211b26e8;color:var(--honey);font-size:12px;cursor:pointer;border-radius:6px}
 .story-image-wait{position:absolute;z-index:10;top:8px;left:8px;padding:4px 8px;border-radius:6px;background:#211b26e8;color:var(--honey);font-size:12px;pointer-events:none}
+
+.image-startup{min-height:65vh;display:grid;align-content:center;justify-items:center;gap:12px;color:var(--honey)}
+.image-startup progress{width:70%;accent-color:var(--honey)}
+.town-building[aria-busy="true"]{opacity:.65}
+.town-building small{font-size:11px;color:var(--honey)}
+
+.image-loading-message{pointer-events:none}
+.image-pending{visibility:hidden}

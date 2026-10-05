@@ -27,6 +27,7 @@ function portraitHTML(id, face){
 function retryDisplayImage(img){
  const src=img.dataset.imageSource||img.getAttribute('src');
  img.dataset.imageSource=src;
+ entryImageFailures.delete(src);
  const url=new URL(src,document.baseURI);url.searchParams.set('image_retry',String(++retryDisplayImage.serial));
  img.src=url.href;
 }
@@ -35,7 +36,8 @@ function bindPortraitLoading(root=document){
  root.querySelectorAll('.portrait').forEach(el=>{
   const sync=()=>{
    const imgs=[...el.querySelectorAll('img')];
-   const failed=imgs.some(i=>i.complete&&!i.naturalWidth);
+   imgs.forEach(i=>{if(i.naturalWidth)entryImageFailures.delete(i.dataset.imageSource||i.getAttribute('src'));});
+   const failed=imgs.some(i=>!i.naturalWidth&&(i.complete||entryImageFailures.has(i.dataset.imageSource||i.getAttribute('src'))));
    const ready=imgs.every(i=>i.complete&&i.naturalWidth);
    el.classList.toggle('portrait-ready',ready);
    el.classList.toggle('portrait-error',failed);
@@ -49,10 +51,16 @@ function bindPortraitLoading(root=document){
  });
  root.querySelectorAll('img:not(.portrait img)').forEach(img=>{
   const sync=()=>{
-   let notice=img.nextElementSibling?.classList.contains('image-error-message')?img.nextElementSibling:null;
-   if(img.complete&&!img.naturalWidth){
-    if(!notice){notice=document.createElement('span');notice.className='image-error-message';notice.setAttribute('role','button');notice.tabIndex=0;notice.textContent='圖片載入失敗，點擊重試';img.after(notice);
-     const retry=e=>{e.preventDefault();e.stopPropagation();retryDisplayImage(img);sync();};notice.onclick=retry;notice.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')retry(e);};}
+   const src=img.dataset.imageSource||img.getAttribute('src');
+   if(img.naturalWidth)entryImageFailures.delete(src);
+   const failed=!img.naturalWidth&&(img.complete||entryImageFailures.has(src));
+   let notice=img.nextElementSibling?.matches('.image-error-message,.image-loading-message')?img.nextElementSibling:null;
+   img.classList.toggle('image-pending',failed||!img.complete);
+   if(failed||!img.complete){
+    if(!notice){notice=document.createElement('span');img.after(notice);
+     const retry=e=>{e.preventDefault();e.stopPropagation();if(notice.getAttribute('role')!=='button')return;retryDisplayImage(img);sync();};notice.onclick=retry;notice.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')retry(e);};}
+    notice.className=failed?'image-error-message':'image-loading-message';notice.setAttribute('role',failed?'button':'status');notice.tabIndex=failed?0:-1;
+    notice.textContent=failed?(entryImageFailures.get(src)==='timeout'?'圖片下載逾時，點擊重試':'圖片載入失敗，點擊重試'):'圖片載入中…';
     if(getComputedStyle(img.parentElement).position==='static')img.parentElement.classList.add('image-error-host');
     Object.assign(notice.style,{left:img.offsetLeft+'px',top:img.offsetTop+'px',width:img.offsetWidth+'px',height:Math.max(32,img.offsetHeight)+'px'});
    }else notice?.remove();

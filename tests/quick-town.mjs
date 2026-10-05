@@ -2,7 +2,7 @@ import {chromium} from 'playwright';import assert from 'node:assert/strict';impo
 const br=await chromium.launch();try{
  const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"shop":1}'));
- await p.goto('file://'+path.resolve('index.html')+'#town');
+ await p.goto('file://'+path.resolve('index.html')+'#town');await p.locator('[data-town-place]').first().waitFor();
  assert.equal(await p.locator('[data-town-place]').count(),4);assert.equal(await p.locator('#board-floor').count(),0);
  assert(await p.evaluate(()=>state.battle===null&&state.location==='town'&&state.townFounded&&state.townRest.units.filter(u=>u.side==='pc').length===4&&CRITTERS.every(c=>state.rolls[c.id]&&state.inv[c.id].length)));
  await p.locator('[data-town-place="items"]').tap();assert.equal(await p.locator('.town-page .portrait[data-portrait="liliana"]').count(),1);await p.locator('#townAction').tap();assert.equal(await p.evaluate(()=>state.shopContext),'items');await p.evaluate(()=>leaveTownShop());

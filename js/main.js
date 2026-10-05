@@ -178,6 +178,7 @@ function bindTokens(){
 }
 
 function bind(){
+  adoptEntryImages();
   bindPortraitLoading();
   const $ = id => document.getElementById(id);
   if(state.page==="story") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.page="cover";render();window.scrollTo(0,0);}});
@@ -186,7 +187,11 @@ function bind(){
   $("enterTown")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;render();});
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);
   if(state.page==="town")bindTown();
-  $("start")?.addEventListener("click", ()=>{state.page="roll";render()});
+  $("start")?.addEventListener("click", async e=>{
+    const button=e.currentTarget;button.disabled=true;const text=button.textContent;button.textContent='圖片準備中…';
+    await Promise.allSettled(CRITTERS.map(c=>loadEntryImage(critterFaceSrc(c.id,'normal'))));
+    if(state.page==='cover'){state.page='roll';render();}else{button.disabled=false;button.textContent=text;}
+  });
   $("back")?.addEventListener("click", ()=>{state.page="cover";render()});
   $("back2")?.addEventListener("click", ()=>{state.page="roll";render()});
   $("next")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)});
@@ -321,6 +326,31 @@ function quickTown(){
   state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
   state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
 }
+// 首屏解碼完成後才建立入口畫面；網路等待有可見進度，無關入口不下載城鎮圖。
+const entryDecodedImages=new Map();
+const entryImageLoads=new Map();
+const entryImageFailures=new Map();
+function loadEntryImage(src){
+ if(!entryImageLoads.has(src)){
+  const img=new Image();img.fetchPriority='high';img.src=src;
+  const pending=new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>{entryImageFailures.set(src,'timeout');img.src='';reject(new Error('圖片準備逾時'));},8000);
+   img.decode().then(()=>{clearTimeout(timer);entryImageFailures.delete(src);entryDecodedImages.set(src,img);resolve(img);},error=>{clearTimeout(timer);reject(error);});
+  }).catch(error=>{if(!entryImageFailures.has(src))entryImageFailures.set(src,'error');entryImageLoads.delete(src);throw error;});
+  entryImageLoads.set(src,pending);
+ }
+ return entryImageLoads.get(src);
+}
+function adoptEntryImages(){
+ document.querySelectorAll('img').forEach(img=>{
+  const ready=entryDecodedImages.get(img.getAttribute('src'));
+  if(!ready||ready===img||ready.isConnected)return;
+  for(const attr of [...ready.attributes])if(attr.name!=='src')ready.removeAttribute(attr.name);
+  for(const attr of [...img.attributes])if(attr.name!=='src')ready.setAttribute(attr.name,attr.value);
+  img.replaceWith(ready);
+ });
+}
+function startEntry(){
 if(location.hash==="#ambush")quickBattle("ambush","story");
 else if(location.hash==="#town")quickTown();
 else if(/^#battle(?:\?|$)/.test(location.hash)){
@@ -329,3 +359,17 @@ else if(/^#battle(?:\?|$)/.test(location.hash)){
   BATTLES.random=generateRandomBattle(seed); quickBattle("random",new URLSearchParams(location.hash.split("?")[1]||"").get("phase")==="combat"?"combat":"explore");
 }
 else { if(location.hash==="#doll") state.page = "doll"; render(); }
+
+}
+async function prepareEntry(){
+ const sources=[];
+ if(!location.hash)sources.push('assets/portraits/party_heads.webp');
+ if(location.hash==='#ambush')sources.push(SCENES.ambush.image);
+ if(location.hash==='#town'||location.hash==='#ambush')for(const id of Object.keys(CRITTER_FACES))sources.push(critterFaceSrc(id,'normal'));
+ if(location.hash==='#town')for(const id of Object.values(TOWN_PORTRAIT))sources.push(PORTRAITS[id].base,PORTRAITS[id].sheet);
+ const progress=document.querySelector('.image-startup progress');let done=0;
+ if(progress){progress.max=sources.length||1;progress.value=0;}
+ await Promise.allSettled(sources.map(src=>loadEntryImage(src).finally(()=>{if(progress)progress.value=++done;})));
+ startEntry();
+}
+prepareEntry();

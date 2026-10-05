@@ -16,6 +16,7 @@ function renderTown(){
 }
 function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
+ bindTownImageReadiness();
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',()=>openTownPlace(el.dataset.townPlace)));
  document.getElementById('townMap')?.addEventListener('click',()=>{state.page='map';state.mapSel='town';render();});
  document.getElementById('townStreet')?.addEventListener('click',()=>{if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
@@ -32,3 +33,26 @@ function bindTown(){
  document.querySelectorAll('[data-erase]').forEach(el=>el.addEventListener('click',()=>{const [id,key]=el.dataset.erase.split(':');const b=state.townRest,u=b.units.find(u=>u.id===id);if(u&&eraseNote(u,key,b)){syncLearnedState(b);render();}}));
 }
 function leaveTownShop(){state.page='town';state.shopContext=null;render();window.scrollTo(0,0);}
+
+// 城鎮入口只準備這一城的四位店主，完成前不開放尚未準備好的店。
+const townImageLoads=new Map();
+function prepareTownPlaceImages(place){
+ const id=TOWN_PORTRAIT[place], portrait=PORTRAITS[id];
+ if(!townImageLoads.has(place)){
+  const pending=Promise.all([portrait.base,portrait.sheet].map(src=>loadEntryImage(src))).catch(error=>{townImageLoads.delete(place);throw error;});
+  townImageLoads.set(place,pending);
+ }
+ return townImageLoads.get(place);
+}
+function bindTownImageReadiness(){
+ CRITTERS.forEach(c=>loadEntryImage(critterFaceSrc(c.id,'normal')).catch(()=>{}));
+ document.querySelectorAll('[data-town-place]').forEach(button=>{
+  const place=button.dataset.townPlace;
+  if(entryDecodedImages.has(PORTRAITS[TOWN_PORTRAIT[place]].base)&&entryDecodedImages.has(PORTRAITS[TOWN_PORTRAIT[place]].sheet))return;
+  button.disabled=true;button.setAttribute('aria-busy','true');
+  const label=document.createElement('small');label.textContent='圖片準備中…';button.append(label);
+  prepareTownPlaceImages(place).then(()=>{button.disabled=false;button.removeAttribute('aria-busy');label.remove();},()=>{
+   button.disabled=false;button.removeAttribute('aria-busy');label.textContent='圖片未載入，點擊重試';
+  });
+ });
+}

@@ -18,7 +18,7 @@ try{
  await p.goto(base+'#town');
  await p.locator('[data-town-place="smith"]').click();
  await p.waitForFunction(()=>document.querySelector('.actor .pt-base').naturalWidth>0);
- assert(await p.locator('.actor .pt-base').evaluate(i=>getComputedStyle(i).visibility==='hidden'),'底圖先到時不得顯示空白五官');
+ assert(await p.locator('.actor .portrait').evaluate(el=>{const imgs=[...el.querySelectorAll('img')];return imgs.every(i=>i.complete&&i.naturalWidth)?el.classList.contains('portrait-ready'):imgs.every(i=>getComputedStyle(i).visibility==='hidden');}),'四店圖片準備完整才顯示，尚未準備完整時不得露出無臉人物');
  await p.waitForFunction(()=>document.querySelector('.actor .portrait').classList.contains('portrait-ready'));
  await p.screenshot({path:'/tmp/brun-verified.png'});
  assert(await p.locator('.brun-features img').evaluate(i=>i.complete&&i.naturalWidth>0));

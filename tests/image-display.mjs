@@ -17,23 +17,23 @@ try{
  }
  console.log('PASS 封面／商隊插圖／頭像／NPC：失敗提示可見，點擊重試成功，不觸發原按鈕或劇情');
  const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});let unused=0;
- await p.route('**/wolf/sigh.webp',r=>{unused++;return r.abort();});await p.goto(url+'#town');await p.evaluate(()=>{state.page='story';state.scene='prologue';state.line=0;render();});
+ await p.route('**/wolf/sigh.webp',r=>{unused++;return r.abort();});await p.goto(url+'#town');await p.locator('[data-town-place]').first().waitFor();await p.evaluate(()=>{state.page='story';state.scene='prologue';state.line=0;render();});
  await p.locator('#stage').tap({position:{x:30,y:40}});await p.waitForFunction(()=>state.line===1);assert.equal(unused,0);assert.equal(await p.locator('.story-image-wait').count(),0);
  console.log('PASS 無關表情失敗不被請求、不阻擋下一句');
  const target=await p.evaluate(()=>{const lines=SCENES.prologue.script;for(let i=1;i<lines.length;i++){const l=lines[i];if(CRITTER_FACES[l.who]&&(l.mood||l.moods?.[l.who])&&critterMood(l.who,lines[i-1],i-1)!==critterMood(l.who,l,i))return {index:i,src:critterFaceSrc(l.who,critterMood(l.who,l,i))};}throw Error('缺少換表情案例');});
- await p.evaluate(()=>{storyImageLoads.clear();storyDecodedImages.clear();});let delayed=0;
+ await p.evaluate(()=>{storyImageLoads.clear();storyDecodedImages.clear();entryImageLoads.clear();entryDecodedImages.clear();});let delayed=0;
  await p.route('**/'+target.src,async r=>{delayed++;await new Promise(resolve=>setTimeout(resolve,700));await r.continue();});
  await p.evaluate(index=>{state.line=index-1;render();},target.index);
  await p.locator('#stage').tap({position:{x:30,y:40}});await p.locator('.story-image-wait').waitFor();assert.equal(await p.evaluate(()=>state.line),target.index-1);
  await p.waitForFunction(i=>state.line===i,target.index);assert(delayed>0);assert.equal(await p.locator('.story-image-wait').count(),0);
  const broken=await p.locator('.party img').evaluateAll(imgs=>imgs.filter(i=>!i.complete||!i.naturalWidth).map(i=>i.src));assert.deepEqual(broken,[]);
  await p.unroute('**/'+target.src);await p.route('**/'+target.src,r=>r.abort());
- await p.evaluate(index=>{storyImageLoads.clear();storyDecodedImages.clear();state.line=index-1;render();},target.index);
+ await p.evaluate(index=>{storyImageLoads.clear();storyDecodedImages.clear();entryImageLoads.clear();entryDecodedImages.clear();state.line=index-1;render();},target.index);
  await p.locator('#stage').tap({position:{x:30,y:40}});await p.waitForFunction(i=>state.line===i,target.index);
  await p.locator('.party .image-error-message').waitFor();assert.equal(await p.locator('.story-image-wait').count(),0);await p.close();
  console.log('PASS 下一句必要表情慢載入：有提示、完成後換句、頭像完整');
  const q=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});let fail=true;
- await q.route('**/*',r=>r.request().url().includes('dwarf_noface.webp')&&fail?r.abort():r.continue());await q.goto(url+'#town');await q.evaluate(()=>{state.page='story';state.scene='prologue';state.line=2;render();});await q.locator('.actor.dwarf .portrait-error').waitFor();fail=false;
+ await q.route('**/*',r=>r.request().url().includes('dwarf_noface.webp')&&fail?r.abort():r.continue());await q.goto(url+'#town');await q.locator('[data-town-place]').first().waitFor();await q.evaluate(()=>{state.page='story';state.scene='prologue';state.line=2;render();});await q.locator('.actor.dwarf .portrait-error').waitFor();fail=false;
  await q.locator('.actor.dwarf .portrait-error').tap({position:{x:150,y:80}});await q.waitForFunction(()=>document.querySelector('.actor.dwarf .portrait').classList.contains('portrait-ready'));assert.equal(await q.evaluate(()=>state.line),2);
  await q.locator('#stage').tap({position:{x:30,y:40}});await q.waitForFunction(()=>state.line===3);assert(await q.locator('.actor.dwarf .portrait').evaluate(el=>[...el.querySelectorAll('img')].every(i=>i.naturalWidth&&getComputedStyle(i).visibility==='visible')));
  await q.screenshot({path:'/tmp/image-story-retry.png'});await q.close();console.log('PASS 劇情人物重試成功且不跳句，之後正常換句與顯示');

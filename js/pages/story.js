@@ -185,11 +185,7 @@ function prepareStoryImages(index=state.line){
  add(scene.image);if(line.art)add(STORY_ART[line.art]);
  return Promise.allSettled([...urls].map(src=>{
   if(!storyImageLoads.has(src)){
-   const img=new Image();img.src=src;
-   const pending=new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(new Error('圖片載入逾時')),6000);
-    img.decode().then(()=>{clearTimeout(timer);storyDecodedImages.set(src,img);resolve();},error=>{clearTimeout(timer);reject(error);});
-   }).catch(error=>{storyImageLoads.delete(src);throw error;});
+   const pending=loadEntryImage(src).then(img=>{storyDecodedImages.set(src,img);}).catch(error=>{storyImageLoads.delete(src);throw error;});
    storyImageLoads.set(src,pending);
   }
   return storyImageLoads.get(src);

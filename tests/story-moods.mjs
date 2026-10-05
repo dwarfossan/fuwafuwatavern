@@ -6,6 +6,7 @@ try{
  const pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve('index.html')+'#town');
+ await pg.locator('[data-town-place]').first().waitFor();
  const cases=['prologue','farewell','caravan','townArrival','townSupplier'].map(scene=>({scene}));
  for(const pick of ['fox','tiger','wolf','raccoon'])for(const ok of [false,true])cases.push({scene:'caravan',pick,ok});
  for(const {scene,pick,ok} of cases){
