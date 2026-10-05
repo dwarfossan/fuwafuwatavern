@@ -1238,7 +1238,7 @@ function battleInterfaceHTML(){
         ${b.sysPop==="volume"?`<div class="vol-pop" id="volPop"><button class="snd ${SFX.isMuted()?"off":""}" id="volMute" aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input id="masterVolume" type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" id="volNum">${SFX.isMuted()?0:Math.round(SFX.getVolume()*100)}%</span></div>`:""}
         ${b.sysPop==="menu"?`<div class="sys-menu" id="sysMenu"><h3>主選單</h3><button data-sys="continue">繼續遊戲</button><button data-sys="party">隊伍</button><button data-sys="about">關於／授權</button><button data-sys="title">回到標題</button></div>`:""}
       </div></div>`,
-    order: `<div class="order">${order}</div>`,
+    order: `<div class="order ${b.phase==="explore"?"explore-order":""}">${order}</div>`,
     hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${isHid(exploreUnit())?1:0}/1`:""}</b></div>`:hud,
     tutorial:tut,
     dice: `<div class="dp-anchor">${dicePanelHTML(b)}</div>`,
