@@ -23,13 +23,32 @@ function portraitHTML(id, face){
   if(PORTRAITS[id].sheet)return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt="">${id==='mira'?`<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="mira-face-clip" clipPathUnits="objectBoundingBox"><path d="${MIRA_FACE_CLIP}"/></clipPath></defs></svg><div class="mira-face-window">`:""}<div class="npc-face-sheet ${id==='liliana'?'liliana-eyes':id+'-features'}" data-face="${face||"smile"}" style="${sheetFaceStyle(id,face)}"><img src="${PORTRAITS[id].sheet}" alt=""></div>${id==='mira'?"</div>":""}</div>`;
   return `<div class="portrait" data-portrait="${id}"><img class="pt-base" src="${PORTRAITS[id].base}" alt="">${PORTRAITS[id].faces ? `<img class="pt-face" src="${faceSrc(id, face)}" alt="">` : ""}</div>`;
 }
+// 底圖與表情必須一起顯示；單張先到不能露出無臉人物。
+function bindPortraitLoading(root=document){
+ root.querySelectorAll('.portrait').forEach(el=>{
+  const imgs=[...el.querySelectorAll('img')];
+  const sync=()=>{
+   const failed=imgs.some(i=>i.complete&&!i.naturalWidth);
+   const ready=imgs.every(i=>i.complete&&i.naturalWidth);
+   el.classList.toggle('portrait-ready',ready);
+   el.classList.toggle('portrait-error',failed);
+   el.setAttribute('aria-label',failed?'人物圖片載入失敗，點擊重試':ready?'':'人物圖片載入中');
+  };
+  imgs.forEach(i=>{i.onload=sync;i.onerror=sync;});
+  el.onclick=()=>{if(!el.classList.contains('portrait-error'))return;imgs.filter(i=>!i.naturalWidth).forEach(i=>{const src=i.getAttribute('src');i.removeAttribute('src');i.src=src;});sync();};
+  sync();
+ });
+}
 // 換表情：只換臉那張的 src，底圖不動
 function setPortraitFace(root, face){
   const eyes=root?.querySelector(".npc-face-sheet");if(eyes){const id=eyes.closest(".portrait").dataset.portrait;const i=Math.max(0,PORTRAITS[id].list.indexOf(face));eyes.dataset.face=PORTRAITS[id].list[i];eyes.setAttribute("style",sheetFaceStyle(id,face));return;}
   const img = root?.querySelector(".pt-face"), id = root?.querySelector(".portrait")?.dataset.portrait || root?.dataset.portrait;
   if(!img || !id) return;
   const src = faceSrc(id, face);
-  if(!img.getAttribute("src").endsWith(src)) img.setAttribute("src", src);
+  if(!img.getAttribute("src").endsWith(src)){
+    if(typeof swapPreparedStoryImage==="function"&&state.page==="story")swapPreparedStoryImage(img,src);
+    else img.setAttribute("src", src);
+  }
 }
 // 肖像與表情只在對應畫面出現時由 <img> 載入；封面不搶先下載整組表情圖。
 

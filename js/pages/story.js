@@ -132,7 +132,7 @@ function updateStoryLine(){
   party?.classList.toggle("curse-flash", !!line.curse);
   party?.querySelectorAll("[data-info]").forEach(el=>{ el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all");
     const img = el.querySelector(".c-head"), src = critterFaceSrc(el.dataset.info, critterMood(el.dataset.info, line));
-    if(img && img.getAttribute("src")!==src) img.setAttribute("src", src);
+    if(img && img.getAttribute("src")!==src) swapPreparedStoryImage(img,src);
     el.querySelectorAll(".story-critter-mark").forEach(x=>x.remove());
     const mark=critterMark(el.dataset.info,line);if(mark)el.insertAdjacentHTML("beforeend",`<span class="story-critter-mark">${obsBubbleHTML(mark)}</span>`); });
   const glow = stage.querySelector(".hug-glow");
@@ -163,7 +163,35 @@ function storyPartyHTML(line={}){
   return `<div class="party ${line.hug?"cheer":""} ${line.curse?"curse-flash":""}" aria-label="隊伍">${party}</div>`;
 }
 
+const storyImageLoads=new Map();
+const storyDecodedImages=new Map();
+function swapPreparedStoryImage(img,src){
+ const ready=storyDecodedImages.get(src);
+ if(!ready){img.src=src;return;}
+ for(const attr of [...img.attributes])if(attr.name!=="src")ready.setAttribute(attr.name,attr.value);
+ ready.onload=img.onload;ready.onerror=img.onerror;
+ img.replaceWith(ready);
+}
+function prepareStoryImages(){
+ const scene=SCENES[state.scene], urls=new Set();
+ const add=src=>{if(src)urls.add(src);};
+ for(const id of stageActors()){
+  const p=PORTRAITS[id];add(p.base);add(p.sheet);
+  if(p.faces)for(const face of p.list)add(faceSrc(id,face));
+ }
+ for(const c of CRITTERS)for(const mood of CRITTER_FACES[c.id])add(critterFaceSrc(c.id,mood));
+ add(scene.image);for(const line of scene.script)if(line.art)add(STORY_ART[line.art]);
+ return Promise.all([...urls].map(src=>{
+  if(!storyImageLoads.has(src)){
+   const img=new Image();img.src=src;
+   const pending=img.decode().then(()=>{storyDecodedImages.set(src,img);}).catch(error=>{storyImageLoads.delete(src);throw error;});
+   storyImageLoads.set(src,pending);
+  }
+  return storyImageLoads.get(src);
+ }));
+}
 function renderStory(){
+  prepareStoryImages().catch(()=>{});
   const scene = SCENES[state.scene];
   const SCRIPT_ = scene.script;
   const line = SCRIPT_[state.line];

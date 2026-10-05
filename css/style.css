@@ -238,6 +238,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .actor.talk{animation:grumble .5s ease}
 .portrait{position:relative;width:100%;height:100%}
 .portrait img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.portrait:not(.portrait-ready) img{visibility:hidden}
+.portrait:not(.portrait-ready)::after{content:attr(aria-label);position:absolute;inset:0;display:grid;place-items:center;color:var(--honey);font-size:14px}
 @keyframes grumble{30%{transform:translateX(-50%) scale(1.03,.97)}60%{transform:translateX(-50%) scale(.99,1.02)}}
 .counter{position:absolute;left:0;right:0;bottom:0;height:30%;
   background:linear-gradient(180deg,#7a5236 0 12%,#5a3a26 12% 16%,#4a2f1f 16%);

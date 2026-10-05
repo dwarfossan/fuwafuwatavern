@@ -178,6 +178,7 @@ function bindTokens(){
 }
 
 function bind(){
+  bindPortraitLoading();
   const $ = id => document.getElementById(id);
   if(state.page==="story") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.page="cover";render();window.scrollTo(0,0);}});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
@@ -191,9 +192,13 @@ function bind(){
   $("next")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)});
   const stage = $("stage");
   if(state.page==="story" && stage) showSpot(!!SCENES[state.scene].script[state.line].shake);   // 整頁重畫時補上被動感知
-  const adv = ()=>{ const sc = SCENES[state.scene].script, ln = sc[state.line];
+  const adv = async()=>{ const sceneId=state.scene, lineNo=state.line, sc = SCENES[sceneId].script, ln = sc[lineNo];
     if(ln && ln.choice && !(state.caravan||{}).pick) return;                 // 停在選項：要先選
-    if(state.line < sc.length-1){ state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true}); } };
+    if(state.line < sc.length-1){
+      try{await prepareStoryImages();}catch(e){$("stage")?.setAttribute('aria-label','劇情圖片載入失敗，點擊重試');return;}
+      if(state.page!=="story"||state.scene!==sceneId||state.line!==lineNo)return;
+      state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true});
+    } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
     const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
     if(e.target.closest("button, .info, .nav")) return;

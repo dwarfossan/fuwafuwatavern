@@ -13,7 +13,7 @@ try{
   const lines=await pg.evaluate(()=>SCENES[state.scene].script);
   const expected={fox:'normal',tiger:'normal',wolf:'normal',raccoon:'normal'};
   for(let i=0;i<lines.length;i++){
-   if(i)await pg.locator('#stage').tap();
+   if(i){await pg.locator('#stage').tap();await pg.waitForFunction(i=>state.line===i,i);}
    const line=lines[i];
    for(const id of Object.keys(expected))if(line.who===id||line.who==='all')expected[id]=line.mood||line.moods?.[id]||'normal';
    const faces=()=>pg.evaluate(()=>Object.fromEntries([...document.querySelectorAll('.party [data-info]')].map(el=>[el.dataset.info,el.querySelector('.c-head').getAttribute('src')])));
