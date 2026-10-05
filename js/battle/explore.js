@@ -34,9 +34,22 @@ function exploreDetect(){
 function explorePath(u,x,y){return reachable(u,10000).get(`${x},${y}`);}
 // 探索位置是真實小數座標；格子僅作尋路與地形查詢，並非角色佔位。
 const EXPLORE_SPEED=4; // 暫定 GPT：每秒四格，草叢／爬升仍依原移動成本減速。
+// 連續探索的碰撞看物件貼地的腳踏區域，不把放大的樹冠／篷布當空氣牆。
+// screenDown 同時加到等角 x、y，畫面上只會往下移，不會偏向左右。
+const EXPLORE_FOOTPRINTS={
+ tree:{halfX:.24,halfY:.20,screenDown:.10},
+ crate:{halfX:.44,halfY:.30,screenDown:.08},
+ wagon:{halfX:.46,halfY:.34,screenDown:.10}
+};
+function exploreSolidHit(o,x,y){
+ const f=EXPLORE_FOOTPRINTS[o.kind];
+ if(!f)return Math.abs(o.x-x)<.62&&Math.abs(o.y-y)<.62;
+ const bx=o.x+f.screenDown,by=o.y+f.screenDown;
+ return Math.abs(bx-x)<f.halfX&&Math.abs(by-y)<f.halfY;
+}
 function explorePositionClear(u,x,y,units=true){
  const b=B();if(x<0||y<0||x>b.def.w-1||y>b.def.h-1)return false;
- if(b.def.blocks.some(o=>TERRAIN[o.kind]?.solid&&Math.abs(o.x-x)<.62&&Math.abs(o.y-y)<.62))return false;
+ if(b.def.blocks.some(o=>TERRAIN[o.kind]?.solid&&exploreSolidHit(o,x,y)))return false;
  return !units||!b.units.some(v=>v!==u&&!v.dead&&!v.fled&&!(exploring()&&v.side==="pc"&&v!==exploreUnit())&&Math.hypot(v.x-x,v.y-y)<.55);
 }
 function exploreSegmentClear(u,a,t,units=true){
