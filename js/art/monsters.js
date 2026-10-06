@@ -118,8 +118,13 @@ const MONSTER_LOOK = (()=>{
       ...orcLook,face:captainHead(orcFront,false),head:captainHead(orcSide,true),headHurt:captainHead(orcHurt,true)
     },
     dragon: {
+      dragon:true,mouth:[126,101],
       face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 32 L17 9 L38 26 M62 26 L83 9 L76 32" fill="#f0d398" stroke="${INK}" stroke-width="4"/><path d="M19 38 Q20 21 50 23 Q80 21 81 38 L85 70 Q77 92 50 91 Q23 92 15 70 Z" fill="#b96550" stroke="${INK}" stroke-width="4"/>${eye(33,49)}${eye(67,49)}<path d="M28 63 Q50 53 72 63 L76 78 Q50 91 24 78 Z" fill="#d88964" stroke="${INK}" stroke-width="3"/><path d="M32 74 Q50 81 68 74" fill="none" stroke="${INK}" stroke-width="3"/><circle cx="39" cy="66" r="2.5" fill="${INK}"/><circle cx="61" cy="66" r="2.5" fill="${INK}"/></svg>`,
       render:dragonDollSVG
+    },
+    dragon_adult: {
+      dragon:true,adult:true,mouth:[128,58],render:dragonDollSVG,
+      face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M27 36 L12 9 L39 25 M64 26 L87 8 L75 39" fill="#f0d398" stroke="${INK}" stroke-width="4"/><path d="M23 42 Q27 23 50 25 Q74 23 78 42 L85 67 L72 82 L50 94 L28 82 L15 67 Z" fill="#b96550" stroke="${INK}" stroke-width="4"/><path d="M26 48 L40 53 M60 53 L74 48" stroke="${INK}" stroke-width="4"/><path d="M28 57 L40 59 M60 59 L72 57" stroke="#fff4b0" stroke-width="5"/><path d="M31 70 Q50 60 69 70 L63 84 L50 89 L37 84 Z" fill="#d88964" stroke="${INK}" stroke-width="3"/><path d="M39 79 L61 79" stroke="${INK}" stroke-width="3"/></svg>`
     },
     orc:orcLook,
     merchant: {
@@ -146,8 +151,20 @@ function dragonDollSVG(o){
  const ink="#2a2630",red="#b96550",light="#d88964",bone="#f0d398";
  const p=(d,c,w=3)=>`<path d="${d}" fill="${c}" stroke="${ink}" stroke-width="${w}" stroke-linejoin="round"/>`;
  const hurt=o.down||o.anim?.k==='hurt',act=o.walking?'act-walk':o.anim?`act-${o.anim.k}`:'';
- return `<svg class="doll dragon ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="dragon" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms">
- ${p('M35 119 Q18 140 5 125 Q-1 116 5 108 Q7 125 26 108 L44 106 Z',red)}${p('M5 109 L2 98 L15 108 Z',bone)}
+ const adult=o.look?.adult;
+ const adultBody=`
+ ${p('M42 113 Q25 138 4 134 Q17 130 25 113 Q31 100 44 101 Z',red)}
+ <g class="dragon-leg dragon-leg-far">${p('M43 109 L54 115 L51 128 L62 136 L44 136 L35 123 Z','#8f493f')}</g>
+ <g class="dragon-leg dragon-leg-far">${p('M91 107 L101 107 L102 129 L113 136 L97 136 L89 126 Z','#8f493f')}</g>
+ <g class="dragon-wing dragon-wing-far">${p('M68 100 L45 16 L14 26 L3 58 Q23 43 31 75 Q48 60 56 103 Z','#8f493f')}${p('M45 16 L31 75 M45 16 L56 103','none',2)}</g>
+ ${p('M30 100 Q53 83 79 94 Q91 92 88 80 Q81 68 87 56 Q95 45 111 49 L113 60 Q95 57 99 70 Q119 102 103 118 Q78 136 43 130 Q21 123 30 100 Z',red)}
+ ${p('M45 118 Q74 122 94 105 Q104 95 96 78 L98 65 L106 65 Q116 96 105 112 Q83 137 45 129 Z',bone)}
+ <path d="M57 120 L59 132 M72 117 L77 130 M85 111 L92 123 M95 99 L107 106 M97 86 L109 88" stroke="#b58e5d" stroke-width="2"/>
+ <g class="dragon-leg">${p('M37 111 Q51 104 59 119 L49 131 L56 140 L34 140 L29 130 L35 121 Z',red)}<path d="M39 135 L37 140 M47 136 L46 140" stroke="${bone}" stroke-width="2.5"/></g>
+ <g class="dragon-leg">${p('M84 112 L94 113 L94 129 L106 140 L82 140 L79 132 Z',red)}<path d="M88 135 L86 140 M97 136 L96 140" stroke="${bone}" stroke-width="2.5"/></g>
+ <g class="dragon-wing">${p('M67 105 L44 25 L10 36 L2 71 Q23 57 30 88 Q49 75 54 113 Z',light)}${p('M44 25 L30 88 M44 25 L54 113','none',2)}</g>`;
+ return `<svg class="doll dragon ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="${adult?'dragon_adult':'dragon'}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms">
+ ${adult?adultBody:`${p('M35 119 Q18 140 5 125 Q-1 116 5 108 Q7 125 26 108 L44 106 Z',red)}${p('M5 109 L2 98 L15 108 Z',bone)}
  <g class="dragon-leg dragon-leg-far">${p('M46 117 L61 117 L60 130 L67 135 L46 135 Z','#8f493f')}</g>
  <g class="dragon-leg dragon-leg-far">${p('M94 116 L107 116 L108 129 L117 135 L95 135 Z','#8f493f')}</g>
  <g class="dragon-wing dragon-wing-far">${p('M66 98 L40 49 L18 60 L11 89 Q28 79 36 103 L57 120 Z','#8f493f')}${p('M40 49 L36 89 L57 120','none',2)}</g>
@@ -156,7 +173,8 @@ function dragonDollSVG(o){
  <g class="dragon-leg">${p('M34 118 Q49 114 53 126 L47 136 L56 141 L29 141 L27 133 Z',red)}<path d="M35 136 L33 141 M44 137 L43 141" stroke="${bone}" stroke-width="3"/></g>
  <g class="dragon-leg">${p('M86 113 L99 113 L98 133 L110 140 L82 140 L82 130 Z',red)}<path d="M91 135 L89 140 M101 137 L99 140" stroke="${bone}" stroke-width="3"/></g>
  <g class="dragon-wing">${p('M56 105 L29 64 L7 75 L3 102 Q20 92 28 115 L48 127 Z',light)}${p('M29 64 L28 102 L48 127','none',2)}</g>
- <g transform="translate(4 32)"><g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
+ `}
+ <g transform="${adult?'translate(77 29) scale(.42)':'translate(4 32)'}"><g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
  ${p('M48 52 Q45 31 69 30 Q91 28 98 49 L118 59 Q127 67 119 79 L88 85 Q57 86 48 67 Z',red)}
  ${hurt?`<path d="M66 45 L78 57 M78 45 L66 57" stroke="${ink}" stroke-width="4"/>`:`<ellipse cx="74" cy="51" rx="8" ry="9" fill="#fff4b0" stroke="${ink}" stroke-width="3"/><ellipse cx="77" cy="51" rx="3" ry="6" fill="${ink}"/>`}
  <path d="M61 40 L81 43" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>
