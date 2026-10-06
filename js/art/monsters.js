@@ -155,13 +155,13 @@ function dragonDollSVG(o){
  const adultBody=`
  ${p('M42 113 Q25 138 4 134 Q17 130 25 113 Q31 100 44 101 Z',red)}
  <g class="dragon-leg dragon-leg-far">${p('M43 109 L54 115 L51 128 L62 136 L44 136 L35 123 Z','#8f493f')}</g>
- <g class="dragon-leg dragon-leg-far">${p('M91 107 L101 107 L102 129 L113 136 L97 136 L89 126 Z','#8f493f')}</g>
- <g class="dragon-wing dragon-wing-far">${p('M68 100 L45 16 L14 26 L3 58 Q23 43 31 75 Q48 60 56 103 Z','#8f493f')}${p('M45 16 L31 75 M45 16 L56 103','none',2)}</g>
- ${p('M30 100 Q53 83 79 94 Q91 92 88 80 Q81 68 87 56 Q95 45 111 49 L113 60 Q95 57 99 70 Q119 102 103 118 Q78 136 43 130 Q21 123 30 100 Z',red)}
- ${p('M45 118 Q74 122 94 105 Q104 95 96 78 L98 65 L106 65 Q116 96 105 112 Q83 137 45 129 Z',bone)}
- <path d="M57 120 L59 132 M72 117 L77 130 M85 111 L92 123 M95 99 L107 106 M97 86 L109 88" stroke="#b58e5d" stroke-width="2"/>
+ <g class="dragon-leg dragon-leg-far">${p('M104 102 L114 105 L116 124 L126 133 L108 135 L102 125 Z','#8f493f')}</g>
+ <g class="dragon-wing dragon-wing-far">${p('M86 98 L84 24 L118 17 L138 49 Q118 43 112 74 Q99 68 97 108 Z','#8f493f')}${p('M84 24 L112 74 M84 24 L97 108','none',2)}</g>
+ ${p('M30 100 Q51 82 77 91 Q90 91 86 76 Q81 62 91 52 Q99 45 111 49 L113 60 Q98 57 99 71 Q120 98 111 116 Q95 135 75 134 L43 130 Q21 123 30 100 Z',red)}
+ ${p('M48 119 Q72 120 88 107 Q94 98 89 85 L99 77 Q115 93 111 110 Q104 129 84 134 Q64 136 48 129 Z',bone)}
+ <path d="M59 121 L61 132 M72 117 L77 132 M84 111 L103 118 M91 102 L111 106 M92 91 L110 96" stroke="#b58e5d" stroke-width="2"/>
  <g class="dragon-leg">${p('M37 111 Q51 104 59 119 L49 131 L56 140 L34 140 L29 130 L35 121 Z',red)}<path d="M39 135 L37 140 M47 136 L46 140" stroke="${bone}" stroke-width="2.5"/></g>
- <g class="dragon-leg">${p('M84 112 L94 113 L94 129 L106 140 L82 140 L79 132 Z',red)}<path d="M88 135 L86 140 M97 136 L96 140" stroke="${bone}" stroke-width="2.5"/></g>
+ <g class="dragon-leg">${p('M91 112 L103 113 L103 130 L115 142 L90 142 L85 132 Z',red)}<path d="M96 137 L94 142 M106 138 L104 142" stroke="${bone}" stroke-width="2.5"/></g>
  <g class="dragon-wing">${p('M67 105 L44 25 L10 36 L2 71 Q23 57 30 88 Q49 75 54 113 Z',light)}${p('M44 25 L30 88 M44 25 L54 113','none',2)}</g>`;
  return `<svg class="doll dragon ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="${adult?'dragon_adult':'dragon'}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms">
  ${adult?adultBody:`${p('M35 119 Q18 140 5 125 Q-1 116 5 108 Q7 125 26 108 L44 106 Z',red)}${p('M5 109 L2 98 L15 108 Z',bone)}
@@ -177,9 +177,10 @@ function dragonDollSVG(o){
  <g transform="${adult?'translate(77 29) scale(.42)':'translate(4 32)'}"><g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
  ${p('M48 52 Q45 31 69 30 Q91 28 98 49 L118 59 Q127 67 119 79 L88 85 Q57 86 48 67 Z',red)}
  ${hurt?`<path d="M66 45 L78 57 M78 45 L66 57" stroke="${ink}" stroke-width="4"/>`:`<ellipse cx="74" cy="51" rx="8" ry="9" fill="#fff4b0" stroke="${ink}" stroke-width="3"/><ellipse cx="77" cy="51" rx="3" ry="6" fill="${ink}"/>`}
- <path d="M61 40 L81 43" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>
+ ${adult?(hurt?`<path d="M89 46 L98 54 M98 46 L89 54" stroke="${ink}" stroke-width="3"/>`:`<ellipse data-far-eye="true" cx="94" cy="50" rx="5" ry="7" fill="#fff4b0" stroke="${ink}" stroke-width="2.5"/><ellipse cx="96" cy="50" rx="2" ry="4.5" fill="${ink}"/>`):''}
+ <path d="M61 40 L81 43 ${adult?'M87 41 L100 45':''}" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>
  <path class="dragon-mouth" d="M82 69 L122 69 L118 87 Q99 94 83 80 Z" fill="${ink}"/>
  <g class="dragon-jaw">${p('M82 70 L122 69 L118 83 Q103 94 83 83 Z',light)}${p('M92 72 L97 80 L101 72 M110 72 L114 79 L118 72','#fffbe8',1.5)}</g>
- <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/><circle cx="112" cy="61" r="2.5" fill="${ink}"/></g></g>
+ <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/>${adult?`<ellipse cx="106" cy="63" rx="2.5" ry="2" fill="${ink}"/><ellipse cx="117" cy="61" rx="2" ry="1.7" fill="${ink}"/>`:`<circle cx="112" cy="61" r="2.5" fill="${ink}"/>`}</g></g>
  </g></g></g></svg>`;
 }
