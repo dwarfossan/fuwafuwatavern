@@ -9,6 +9,7 @@ const br=await chromium.launch();
 try{
   const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
   await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await pg.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
   await pg.waitForFunction(()=>typeof SFX!=='undefined');
   const r=await pg.evaluate(()=>{
     const seen=[], old=SFX.play;

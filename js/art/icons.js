@@ -161,7 +161,7 @@ ITEM_ART.hunter = ITEM_ART.bow;
 // 裝備外觀與技能類別分開；魔法物品沿用base，撿起仍為同一畫法。
 function equipmentArtKey(it){
   if(!it)return null;
-  return it.art || ({"短棒":"club","彎刀":"scimitar","箭袋":"quiver"})[it.base||it.n] || groupOf(it)?.id;
+  return it.art || WEAPON_ART_MAP[it.base||it.n] || ({"箭袋":"quiver"})[it.base||it.n] || groupOf(it)?.id;
 }
 
 // 火藥桶原創手繪外觀暫定 GPT；地面與背包共用。

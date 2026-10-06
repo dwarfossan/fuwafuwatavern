@@ -46,6 +46,7 @@ node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格
 node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與手機提示
 node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡
 node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿戴与手機卡
+node tests/weapon-art-shared.mjs # 37普通武器一物一圖、魔法base、共用各介面／手持／掉落／投擲
 node tests/orc-art.mjs       # 歐克外觀、現有裝備／護甲、共用動作與390×844測試截圖
 node tests/forest-monster-art.mjs # 野豬、森林狼、食人草外觀／基本動作、共用戰場與狀態卡
 node tests/dragon-captain-art.mjs # 獨眼隊長、小龍、吐息到達時序／地面接續與手機截圖

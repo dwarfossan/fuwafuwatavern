@@ -26,6 +26,7 @@ const HELD = {
   flame_orb:    {gy:70,  ang:0,  s:.4}
 };
 const GLOW = {arcane_staff:"#8fd0f0", healing_book:"#9be08a", flame_orb:"#f2b441", shaman_totem:"#c58af0"};
+for(const [key,meta] of Object.entries(WEAPON_HELD))HELD[key]={...HELD[meta.base],...meta};
 
 // 每個動作的長度（毫秒）與「打中」的時間點
 const DOLL_DUR    = {slash:550, smash:720, combo:850, spin:760, thrust:520, guard:600, shoot:680, fire:1150, throw:620, punch:420, cast:820, slam:760, hurt:600, getup:520, fall:450, hop:160, lunge:460};

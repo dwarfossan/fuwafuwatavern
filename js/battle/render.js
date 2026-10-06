@@ -488,9 +488,10 @@ function syncBattleUiTimer(){
 
 // 掉在地上的武器：用拿在手上的同一張圖，躺在地上；剛被打飛時從原主身上拋過來
 function dropSVG(dp){
+  const artKey=equipmentArtKey(dp.item)||dp.group;
   const p = iso(dp.x, dp.y), cx = p.x, cy = p.y + TH/2;
-  const h = HELD[dp.group] || {}, s = (h.s ?? .4) * 1.1, gx = h.gx ?? 60, gy = h.gy ?? 90;
-  const art = ITEM_RAW[dp.group] || "";
+  const h = HELD[artKey] || {}, s = (h.s ?? .4) * 1.1, gx = h.gx ?? 60, gy = h.gy ?? 90;
+  const art = ITEM_RAW[artKey] || "";
   const f = iso(dp.fx, dp.fy), sx = f.x - cx, sy = (f.y + TH/2 - 60) - cy;
   const el = Date.now() - dp.t, flying = el < 550;
   const st = flying ? `style="--sx:${sx}px;--sy:${sy}px;animation-delay:${-el}ms"` : "";
@@ -561,7 +562,7 @@ function bubbleSVG(v, x, now){
 
 /* 投擲物的樣子（大爺 2026-10-01：原本不管丟什麼都是小刀）
    道具看 item.proj；投擲武器用那把武器所屬技能組的圖（ITEM_RAW，跟裝備圖示同一套）。軌跡一律直線、本身旋轉 */
-const projArtKey = it => !it ? null : (it.proj || (groupOf(it) || {}).id || null);
+const projArtKey = it => !it ? null : (it.proj || equipmentArtKey(it) || null);
 const PROJ_ART = {
   flask_fire: `<path d="M-3 -16 H3 V-9 Q11 -5 11 3 Q11 13 0 13 Q-11 13 -11 3 Q-11 -5 -3 -9 Z" fill="#f6e9d8" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>
     <path d="M-9 2 Q0 -2 9 2 Q9 11 0 11 Q-9 11 -9 2 Z" fill="#f0862c"/><circle cx="-3" cy="5" r="2" fill="#ffd27a"/>
