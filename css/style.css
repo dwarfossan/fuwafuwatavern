@@ -1194,8 +1194,8 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 /* 首面集中讀取：預留正式首頁位置，完成後原位揭示。 */
 body.image-boot{background:#000}
-.cover-party{display:flex;position:relative;justify-content:center}
-.cover-party img{display:block;width:25%;height:auto;min-width:0;aspect-ratio:1}
+.cover-party{display:grid;position:relative;grid-template-columns:150fr 150fr 170fr 170fr;align-items:end}
+.cover-party img{display:block;width:100%;height:auto;min-width:0}
 .cover-loading{position:relative}
 .cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading .cover-about{visibility:hidden;pointer-events:none}
 .cover-loading .cover-party img{animation:head-load-sway 2.4s ease-in-out infinite;transform-origin:50% 85%}
