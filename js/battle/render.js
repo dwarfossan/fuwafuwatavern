@@ -228,6 +228,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 打中特效（在打中的時間點才出現）
   b.fx = (b.fx||[]).filter(f=>now-f.t<(f.dur||700));
   b.fx.forEach(f=>{ const p=iso(f.x,f.y), d=f.dur||700;
+    if(f.kind==='dragon-breath'){out.push(`<g data-exp="${f.t+d}">${dragonBreathSVG(f,now)}</g>`);return;}
     // 槍口白煙：畫在槍口（跟飛行物出手的位置一樣），往面向的方向飄
     if(f.kind==="smoke") out.push(`<g data-exp="${f.t+d}">${smokeSVG(p.x + f.face*30, p.y+TH/2-66, f.face, now-f.t)}</g>`);
     else if(f.kind==="aim") out.push(`<g data-exp="${f.t+d}">${aimSVG(p.x, p.y+TH/2-54, now-f.t, d)}</g>`);

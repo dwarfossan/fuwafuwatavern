@@ -80,6 +80,8 @@ const MONSTER_LOOK = (()=>{
   </svg>`;
   const orcSide=orcHead(true), orcFront=orcHead(false);
   const orcHurt=orcSide.replace(orcEyes(true),xEye(43,51,6.5)+xEye(69,50,6.5));
+  // 遮角色右眼：正面在畫面左方，朝右的側臉為近側眼；受傷臉也保留眼罩。
+  const captainHead=(svg,side)=>svg.replace(/<\/svg>\s*$/, `<g data-eye-patch="right"><path d="${side?'M23 34 L78 60':'M20 36 L79 63'}" stroke="${INK}" stroke-width="4" fill="none"/>${p(side?'M33 43 L53 43 L52 57 Q43 64 34 56 Z':'M25 43 L45 43 L44 57 Q35 64 26 56 Z',OH,2.5)}</g></svg>`);
   // 人類大叔（商人，暫定外觀，大爺 2026-10-01：之後再確定）：平頂帽、八字鬍、圓鼻子
   const SK="#f1c9a0", SKD="#d9a77c", HAIR="#6b4a35", CAP="#8a6a44", CAPD="#6e5032";
   const uncleFace = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -109,12 +111,17 @@ const MONSTER_LOOK = (()=>{
   </svg>`;
   const uncleSideHurt = uncleSide
     .replace(`<circle cx="50" cy="57" r="3.6" fill="${INK}"/><circle cx="69" cy="57" r="3.2" fill="${INK}"/>`, xEye(50,56,5)+xEye(69,56,4.5));
+  const orcLook={face:orcFront,head:orcSide,headHurt:orcHurt,body:O,skin:O,feet:OD,belly:false,tail:"",anchor:GOBLIN_ANCHOR,
+    extra:`<path d="M54 92 Q62 97 68 94 M72 94 Q80 97 86 92 M70 97 L70 119 M54 122 Q70 128 86 122" stroke="${OD}" stroke-width="3" fill="none" stroke-linecap="round"/>`};
   return {
-    orc: {
-      face:orcFront, head:orcSide, headHurt:orcHurt,
-      body:O, skin:O, feet:OD, belly:false, tail:"", anchor:GOBLIN_ANCHOR,
-      extra:`<path d="M54 92 Q62 97 68 94 M72 94 Q80 97 86 92 M70 97 L70 119 M54 122 Q70 128 86 122" stroke="${OD}" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    orc_captain: {
+      ...orcLook,face:captainHead(orcFront,false),head:captainHead(orcSide,true),headHurt:captainHead(orcHurt,true)
     },
+    dragon: {
+      face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 32 L17 9 L38 26 M62 26 L83 9 L76 32" fill="#f0d398" stroke="${INK}" stroke-width="4"/><path d="M19 38 Q20 21 50 23 Q80 21 81 38 L85 70 Q77 92 50 91 Q23 92 15 70 Z" fill="#b96550" stroke="${INK}" stroke-width="4"/>${eye(33,49)}${eye(67,49)}<path d="M28 63 Q50 53 72 63 L76 78 Q50 91 24 78 Z" fill="#d88964" stroke="${INK}" stroke-width="3"/><path d="M32 74 Q50 81 68 74" fill="none" stroke="${INK}" stroke-width="3"/><circle cx="39" cy="66" r="2.5" fill="${INK}"/><circle cx="61" cy="66" r="2.5" fill="${INK}"/></svg>`,
+      render:dragonDollSVG
+    },
+    orc:orcLook,
     merchant: {
       face: uncleFace, head: uncleSide, headHurt: uncleSideHurt, body:"#5f7896", skin:SK, feet:"#5a3f28", belly:false, tail:"",
       extra: `<path d="M49 112 Q70 119 91 112" stroke="#6e4a32" stroke-width="5" fill="none" stroke-linecap="round"/>
@@ -133,3 +140,26 @@ const MONSTER_LOOK = (()=>{
     }
   };
 })();
+
+/* 小龍專屬本體，接共用紙娃娃入口與動作／倒下 class；尺寸、色票暫定。 */
+function dragonDollSVG(o){
+ const ink="#2a2630",red="#b96550",light="#d88964",bone="#f0d398";
+ const p=(d,c,w=3)=>`<path d="${d}" fill="${c}" stroke="${ink}" stroke-width="${w}" stroke-linejoin="round"/>`;
+ const hurt=o.down||o.anim?.k==='hurt',act=o.walking?'act-walk':o.anim?`act-${o.anim.k}`:'';
+ return `<svg class="doll dragon ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="dragon" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms">
+ ${p('M49 114 Q15 127 11 102 Q22 119 38 100 L54 96 Z',red)}${p('M11 103 L7 90 L25 98 Z',bone)}
+ <g class="dragon-wing dragon-wing-far">${p('M66 87 L40 39 L18 50 L11 79 Q28 69 36 93 L57 110 Z','#8f493f')}${p('M40 39 L36 79 L57 110','none',2)}</g>
+ ${p('M45 89 Q63 68 86 83 Q103 99 91 130 Q67 143 43 130 Q33 111 45 89 Z',red)}${p('M59 96 Q76 88 86 102 L84 128 Q69 137 55 127 Z',bone)}
+ <path d="M58 108 L86 108 M55 117 L85 117 M56 125 L84 125" stroke="#b58e5d" stroke-width="2"/>
+ <g class="dragon-wing">${p('M56 95 L29 54 L7 65 L3 92 Q20 82 28 105 L48 117 Z',light)}${p('M29 54 L28 92 L48 117','none',2)}</g>
+ ${p('M43 128 Q54 124 64 135 L60 140 L36 140 Z',red)}${p('M79 129 Q91 124 104 135 L99 140 L75 140 Z',red)}
+ <path d="M45 135 L43 140 M54 135 L53 140 M85 135 L83 140 M95 135 L94 140" stroke="${bone}" stroke-width="3"/>
+ <g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
+ ${p('M48 52 Q45 31 69 30 Q91 28 98 49 L118 59 Q127 67 119 79 L88 85 Q57 86 48 67 Z',red)}
+ ${hurt?`<path d="M66 45 L78 57 M78 45 L66 57" stroke="${ink}" stroke-width="4"/>`:`<ellipse cx="74" cy="51" rx="8" ry="9" fill="#fff4b0" stroke="${ink}" stroke-width="3"/><ellipse cx="77" cy="51" rx="3" ry="6" fill="${ink}"/>`}
+ <path d="M61 40 L81 43" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>
+ <path class="dragon-mouth" d="M82 69 L122 69 L118 87 Q99 94 83 80 Z" fill="${ink}"/>
+ <g class="dragon-jaw">${p('M82 70 L122 69 L118 83 Q103 94 83 83 Z',light)}${p('M92 72 L97 80 L101 72 M110 72 L114 79 L118 72','#fffbe8',1.5)}</g>
+ <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/><circle cx="112" cy="61" r="2.5" fill="${ink}"/></g>
+ </g></g></g></svg>`;
+}

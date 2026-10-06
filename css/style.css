@@ -1296,3 +1296,16 @@ body.image-boot{background:#000}
 .loot-picker{margin-bottom:10px}.loot-confirm{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.loot-confirm .btn{flex:0 0 auto;margin-top:3px}.loot-select{min-width:0;flex:1;position:relative}.loot-select summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:2px solid var(--honey);border-radius:10px;padding:3px 6px;background:#39303d;font-size:13px}.loot-select summary::-webkit-details-marker{display:none}.loot-select summary>span:last-child{margin-left:auto}.loot-people{position:absolute;bottom:calc(100% + 4px);left:0;right:0;z-index:5;height:132px;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;border:1px solid #665564;border-radius:8px;margin-top:4px}.loot-person{width:100%;display:flex;align-items:center;gap:8px;border:0;border-bottom:1px solid #665564;background:#39303d;color:var(--fur);padding:4px 6px;font:inherit;font-size:13px;cursor:pointer}.loot-person.on{background:#66513a}.loot-load{display:block;font-size:11px;margin-top:5px;color:var(--dim)}
 
 .victory-loot{-webkit-tap-highlight-color:transparent}
+/* 小龍共用紙娃娃狀態；吐息先蓄氣再伸展，450ms到達後淡出。 */
+.dragon-wing{transform-box:fill-box;transform-origin:85% 85%;animation:dragon-wing 1.6s ease-in-out infinite alternate}
+.dragon.dl-down .dragon-wing,.dragon.dl-prone .dragon-wing{animation:none}
+.dragon .act-breath .dragon-head{transform-box:fill-box;transform-origin:30% 75%;animation:dragon-head 1.6s both;animation-delay:var(--d)}
+.dragon .act-breath .dragon-jaw{transform-box:fill-box;transform-origin:5% 10%;animation:dragon-jaw 1.6s both;animation-delay:var(--d)}
+.dragon-mouth{opacity:0}
+.dragon .act-breath .dragon-mouth{animation:dragon-mouth-open 1.6s both;animation-delay:var(--d)}
+.dragon-flame{transform-origin:0 0;animation:dragon-flame .9s linear both}
+@keyframes dragon-wing{from{transform:rotate(-5deg)}to{transform:rotate(8deg)}}
+@keyframes dragon-head{0%{transform:rotate(0)}40%{transform:rotate(-12deg)}50%,85%{transform:rotate(0)}100%{transform:rotate(0)}}
+@keyframes dragon-jaw{0%,35%{transform:rotate(0)}44%,85%{transform:rotate(26deg)}100%{transform:rotate(0)}}
+@keyframes dragon-mouth-open{0%,35%,100%{opacity:0}44%,85%{opacity:1}}
+@keyframes dragon-flame{0%{transform:scaleX(0);opacity:1}50%{transform:scaleX(1);opacity:1}75%{transform:scaleX(1);opacity:.8}100%{transform:scaleX(1);opacity:0}}

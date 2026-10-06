@@ -156,6 +156,7 @@ function critterLook(id, c, mood="normal"){
 /* o: {id, color 或 look, main, off, armor, anim:{k, el}, face, down, prone, x, y, w, seed}
    down＝生命歸零（橫躺、半透明、X_X）；prone＝被推倒（橫躺、顏色正常） */
 function dollSVG(o){
+  if(o.look?.render)return o.look.render(o);
   const L = o.look || critterLook(o.id, o.color, o.mood), c = L.skin, INK="#2a2630";
   const gear = armorArt(o.armor), anc = {...DEFAULT_ANCHOR, ...(L.anchor||{})};
   const main = o.main, off = o.off, h = main && HELD[main];
