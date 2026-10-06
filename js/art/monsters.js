@@ -114,6 +114,9 @@ const MONSTER_LOOK = (()=>{
   const orcLook={face:orcFront,head:orcSide,headHurt:orcHurt,body:O,skin:O,feet:OD,belly:false,tail:"",anchor:GOBLIN_ANCHOR,
     extra:`<path d="M54 92 Q62 97 68 94 M72 94 Q80 97 86 92 M70 97 L70 119 M54 122 Q70 128 86 122" stroke="${OD}" stroke-width="3" fill="none" stroke-linecap="round"/>`};
   return {
+    boar:{kind:'boar',face:forestFaceSVG('boar'),render:forestDollSVG},
+    forest_wolf:{kind:'forest_wolf',face:forestFaceSVG('forest_wolf'),render:forestDollSVG},
+    mantrap:{kind:'mantrap',face:forestFaceSVG('mantrap'),render:forestDollSVG},
     orc_captain: {
       ...orcLook,face:captainHead(orcFront,false),head:captainHead(orcSide,true),headHurt:captainHead(orcHurt,true)
     },
@@ -183,4 +186,24 @@ function dragonDollSVG(o){
  <g class="dragon-jaw">${p('M82 70 L122 69 L118 83 Q103 94 83 83 Z',light)}${p('M92 72 L97 80 L101 72 M110 72 L114 79 L118 72','#fffbe8',1.5)}</g>
  <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/>${adult?`<ellipse cx="106" cy="63" rx="2.5" ry="2" fill="${ink}"/><ellipse cx="117" cy="61" rx="2" ry="1.7" fill="${ink}"/>`:`<circle cx="112" cy="61" r="2.5" fill="${ink}"/>`}</g></g>
  </g></g></g></svg>`;
+}
+
+/* 森林怪物外觀草案；沿用紙娃娃左右、行走、動作與倒下。沒有體型／戰鬥數值。 */
+function forestFaceSVG(kind){
+ const ink='#2a2630',p=(d,c)=>`<path d="${d}" fill="${c}" stroke="${ink}" stroke-width="4" stroke-linejoin="round"/>`;
+ const eyes='<circle cx="35" cy="47" r="4" fill="'+ink+'"/><circle cx="65" cy="47" r="4" fill="'+ink+'"/>';
+ const art=kind==='boar'?`${p('M23 40 L12 19 L35 29 M65 29 L88 19 L77 40','#76533e')}${p('M18 44 Q18 24 50 27 Q82 24 82 44 L84 70 Q78 91 50 90 Q22 91 16 70 Z','#92664a')}${eyes}${p('M31 62 Q50 51 69 62 L69 77 Q50 89 31 77 Z','#c79573')}<ellipse cx="42" cy="70" rx="3" ry="5" fill="${ink}"/><ellipse cx="58" cy="70" rx="3" ry="5" fill="${ink}"/>${p('M23 77 Q13 67 19 54 Q20 68 31 71 Z M77 77 Q87 67 81 54 Q80 68 69 71 Z','#fff1ca')}`:kind==='forest_wolf'?`${p('M20 44 L17 10 L40 29 M60 29 L83 10 L80 44','#737b83')}${p('M20 40 Q50 20 80 40 L86 70 L68 86 L50 94 L32 86 L14 70 Z','#92999e')}${eyes}${p('M27 66 L50 54 L73 66 L64 84 L50 91 L36 84 Z','#d1d0c4')}${p('M42 64 L58 64 L50 74 Z',ink)}<path d="M50 73 L50 81 M40 81 Q50 87 60 81" stroke="${ink}" stroke-width="3" fill="none"/>`:`${p('M50 81 Q14 94 8 66 Q30 66 50 81 M50 81 Q86 94 92 66 Q70 66 50 81','#4f784b')}${p('M13 29 Q50 8 87 29 L85 55 Q50 79 15 55 Z','#85a65a')}<circle cx="35" cy="28" r="3.5" fill="${ink}"/><circle cx="65" cy="28" r="3.5" fill="${ink}"/>${p('M17 44 Q50 57 83 44 L78 62 Q50 79 22 62 Z','#403239')}${p('M25 48 L31 59 L37 51 M63 51 L69 59 L75 48','#fff1ca')}`;
+ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${art}</svg>`;
+}
+function forestDollSVG(o){
+ const kind=o.look.kind,ink='#2a2630',hurt=o.down||o.anim?.k==='hurt',attack=o.anim&&!hurt;
+ const p=(d,c,w=3)=>`<path d="${d}" fill="${c}" stroke="${ink}" stroke-width="${w}" stroke-linejoin="round"/>`;
+ const eye=(x,y)=>hurt?`<path d="M${x-4} ${y-4} L${x+4} ${y+4} M${x+4} ${y-4} L${x-4} ${y+4}" stroke="${ink}" stroke-width="3"/>`:`<circle cx="${x}" cy="${y}" r="3.5" fill="${ink}"/>`;
+ const legs=(c,thin=false)=>[35,51,83,99].map((x,i)=>`<g class="forest-leg ${i%2?'dl-foot-right':'dl-foot-left'}">${p(`M${x} 111 L${x+9} 111 L${x+7} 132 L${x+13} 140 L${x-2} 140 Z`,i%2?'#554d49':c,thin?2.5:3)}</g>`).join('');
+ let art;
+ if(kind==='boar')art=`${p('M29 102 Q8 92 14 81 Q21 77 23 87 Q23 94 17 91','none')}${legs('#92664a')}${p('M22 89 Q36 64 75 78 Q99 76 109 102 L98 122 Q72 139 29 121 Q15 111 22 89 Z','#92664a')}${p('M32 79 L37 70 L43 77 L52 68 L58 77 L68 71 L74 82','#554337')}${p('M78 92 L74 66 L92 78 M103 79 L117 67 L114 95','#76533e')}${p('M75 93 Q76 75 102 78 Q119 80 120 99 L128 104 L126 121 Q109 134 86 121 Z','#a87854')}${eye(93,96)}${eye(111,95)}${p('M106 107 Q116 99 130 106 L130 120 Q117 129 106 119 Z','#c79573')}<ellipse cx="117" cy="112" rx="2.5" ry="4" fill="${ink}"/><ellipse cx="125" cy="111" rx="2" ry="3.5" fill="${ink}"/>${p('M100 122 Q84 116 92 101 Q94 114 105 114 Z','#fff1ca')}`;
+ else if(kind==='forest_wolf')art=`${p('M32 105 Q12 114 7 82 Q20 98 40 89 Z','#737b83')}${legs('#92999e',true)}${p('M28 94 Q46 78 74 91 Q91 92 94 74 L109 76 Q110 111 100 120 Q74 132 32 118 Z','#92999e')}${p('M82 80 L79 52 L97 69 M104 65 L120 52 L118 83','#737b83')}${p('M78 81 Q82 65 105 69 L113 86 L132 96 L128 110 L108 117 L85 105 Z','#92999e')}${p('M89 96 L112 88 L132 98 L126 110 L108 117 Z','#d1d0c4')}${eye(99,86)}${eye(115,86)}${p('M125 96 L136 99 L131 105 Z',ink)}<path d="M111 108 L128 106" stroke="${ink}" stroke-width="2.5"/>${attack?p('M113 109 L128 106 L125 117 L114 117 Z','#403239',2):''}`;
+ else art=`${p('M68 138 Q18 147 9 120 Q36 115 68 138 M68 138 Q118 147 132 120 Q101 115 68 138','#4f784b')}${p('M56 137 Q73 109 62 78 L78 77 Q92 114 78 138 Z','#668c4b')}${p('M67 113 Q37 111 30 88 Q55 84 71 107 M77 110 Q112 108 118 84 Q94 83 77 102','#6f984c')}${p('M20 51 Q68 24 119 51 L116 77 Q68 103 23 77 Z','#85a65a')}${eye(52,49)}${eye(86,48)}${p(attack?'M24 66 Q69 79 116 66 L112 106 Q68 133 29 104 Z':'M24 67 Q69 89 116 67 L110 86 Q68 111 30 86 Z','#403239')}${p(attack?'M33 72 L41 91 L48 77 M59 80 L67 100 L75 80 M86 77 L94 91 L104 72':'M34 75 L41 90 L49 80 M87 80 L94 90 L104 75','#fff1ca',2)}${attack?p('M47 109 Q71 91 93 107 Q80 122 47 109 Z','#cc8275',2):''}`;
+ const act=o.walking?'act-walk':o.anim?`act-${o.anim.k}`:'';
+ return `<svg class="doll forest-monster ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="${kind}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms"><g class="dl-bob">${art}</g></g></g></g></svg>`;
 }

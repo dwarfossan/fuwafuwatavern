@@ -47,6 +47,7 @@ node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與�
 node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡
 node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿戴与手機卡
 node tests/orc-art.mjs       # 歐克外觀、現有裝備／護甲、共用動作與390×844測試截圖
+node tests/forest-monster-art.mjs # 野豬、森林狼、食人草外觀／基本動作、共用戰場與狀態卡
 node tests/dragon-captain-art.mjs # 獨眼隊長、小龍、吐息到達時序／地面接續與手機截圖
 DRAGON_LOOK=dragon_adult MONSTER_SHOTS=/tmp/adult-review node tests/dragon-captain-art.mjs # 同一套驗成年龍、成年／幼龍對照
 node tests/equipment-shared.mjs # 裝備唯一讀寫、切組、卸裝／收納與跨場景保存
