@@ -16,7 +16,7 @@ function dragonBreathSVG(f,now){
  if(now<f.t||now>=f.t+f.dur)return '';
  const a=iso(f.x,f.y),z=iso(f.tx,f.ty),dx=z.x-a.x,dy=z.y-a.y,len=Math.hypot(dx,dy);
  if(!len)return '';
- const x=a.x+f.face*40,y=a.y+TH/2-67,angle=Math.atan2(dy,dx)*180/Math.PI;
+ const x=a.x+f.face*47,y=a.y+TH/2-33,angle=Math.atan2(dy,dx)*180/Math.PI;
  const distance=Math.max(55,len/Math.max(Math.abs(f.tx-f.x),Math.abs(f.ty-f.y))*f.range-30),spread=distance*.32;
  return `<g class="dragon-breath" transform="translate(${x} ${y}) rotate(${angle})" pointer-events="none"><g class="dragon-flame" style="animation-delay:${f.t-now}ms"><path d="M0 0 Q${distance*.4} ${-spread*.5} ${distance} ${-spread} L${distance*.88} ${-spread*.28} L${distance*1.06} 0 L${distance*.88} ${spread*.28} L${distance} ${spread} Q${distance*.4} ${spread*.5} 0 0Z" fill="#e76b42" stroke="#2a2630" stroke-width="3" stroke-linejoin="round"/><path d="M0 0 L${distance*.85} ${-spread*.38} L${distance*.72} 0 L${distance*.93} ${spread*.4} Z" fill="#f2b441"/><path d="M0 0 L${distance*.66} ${-spread*.15} L${distance*.8} ${spread*.15} Z" fill="#fff0b4"/></g></g>`;
 }

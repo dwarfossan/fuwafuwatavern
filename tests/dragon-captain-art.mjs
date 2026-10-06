@@ -5,6 +5,7 @@ try{
  await p.goto('file://'+path.resolve('index.html')+'#town');await p.waitForFunction(()=>typeof B==='function'&&!document.body.classList.contains('image-boot'));
  await p.evaluate(()=>{
   const parse=s=>{const d=new DOMParser().parseFromString(s,'image/svg+xml');if(d.querySelector('parsererror'))throw Error('invalid svg');return d;};
+  if(parse(dollSVG({look:MONSTER_LOOK.dragon,x:0,y:0,w:140})).querySelectorAll('.dragon-leg').length!==4)throw Error('four legs required');
   for(const [key,look]of Object.entries(MONSTER_LOOK)){if(look.face)parse(look.face);if(look.head)parse(look.head);}
   for(const key of ['face','head','headHurt'])if(parse(MONSTER_LOOK.orc_captain[key]).querySelectorAll('[data-eye-patch="right"]').length!==1)throw Error('eye patch '+key);
   for(const face of [-1,1])for(const down of [false,true])for(const look of [MONSTER_LOOK.orc_captain,MONSTER_LOOK.dragon])parse(dollSVG({look,face,down,x:0,y:0,w:140,main:'sword',off:'shield',armor:'皮甲'}));

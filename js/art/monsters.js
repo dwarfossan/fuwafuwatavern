@@ -147,19 +147,21 @@ function dragonDollSVG(o){
  const p=(d,c,w=3)=>`<path d="${d}" fill="${c}" stroke="${ink}" stroke-width="${w}" stroke-linejoin="round"/>`;
  const hurt=o.down||o.anim?.k==='hurt',act=o.walking?'act-walk':o.anim?`act-${o.anim.k}`:'';
  return `<svg class="doll dragon ${o.down?'dl-down':o.prone?'dl-prone':''}" data-monster="dragon" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':''}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms">
- ${p('M49 114 Q15 127 11 102 Q22 119 38 100 L54 96 Z',red)}${p('M11 103 L7 90 L25 98 Z',bone)}
- <g class="dragon-wing dragon-wing-far">${p('M66 87 L40 39 L18 50 L11 79 Q28 69 36 93 L57 110 Z','#8f493f')}${p('M40 39 L36 79 L57 110','none',2)}</g>
- ${p('M45 89 Q63 68 86 83 Q103 99 91 130 Q67 143 43 130 Q33 111 45 89 Z',red)}${p('M59 96 Q76 88 86 102 L84 128 Q69 137 55 127 Z',bone)}
- <path d="M58 108 L86 108 M55 117 L85 117 M56 125 L84 125" stroke="#b58e5d" stroke-width="2"/>
- <g class="dragon-wing">${p('M56 95 L29 54 L7 65 L3 92 Q20 82 28 105 L48 117 Z',light)}${p('M29 54 L28 92 L48 117','none',2)}</g>
- ${p('M43 128 Q54 124 64 135 L60 140 L36 140 Z',red)}${p('M79 129 Q91 124 104 135 L99 140 L75 140 Z',red)}
- <path d="M45 135 L43 140 M54 135 L53 140 M85 135 L83 140 M95 135 L94 140" stroke="${bone}" stroke-width="3"/>
- <g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
+ ${p('M35 119 Q18 140 5 125 Q-1 116 5 108 Q7 125 26 108 L44 106 Z',red)}${p('M5 109 L2 98 L15 108 Z',bone)}
+ <g class="dragon-leg dragon-leg-far">${p('M46 117 L61 117 L60 130 L67 135 L46 135 Z','#8f493f')}</g>
+ <g class="dragon-leg dragon-leg-far">${p('M94 116 L107 116 L108 129 L117 135 L95 135 Z','#8f493f')}</g>
+ <g class="dragon-wing dragon-wing-far">${p('M66 98 L40 49 L18 60 L11 89 Q28 79 36 103 L57 120 Z','#8f493f')}${p('M40 49 L36 89 L57 120','none',2)}</g>
+ ${p('M29 105 Q49 90 76 99 Q89 96 94 86 L104 96 Q104 122 91 130 Q59 140 30 128 Q22 119 29 105 Z',red)}${p('M34 119 Q62 127 93 115 L90 129 Q59 138 34 129 Z',bone)}
+ <path d="M47 123 L49 132 M61 125 L62 134 M75 122 L77 132" stroke="#b58e5d" stroke-width="2"/>
+ <g class="dragon-leg">${p('M34 118 Q49 114 53 126 L47 136 L56 141 L29 141 L27 133 Z',red)}<path d="M35 136 L33 141 M44 137 L43 141" stroke="${bone}" stroke-width="3"/></g>
+ <g class="dragon-leg">${p('M86 113 L99 113 L98 133 L110 140 L82 140 L82 130 Z',red)}<path d="M91 135 L89 140 M101 137 L99 140" stroke="${bone}" stroke-width="3"/></g>
+ <g class="dragon-wing">${p('M56 105 L29 64 L7 75 L3 102 Q20 92 28 115 L48 127 Z',light)}${p('M29 64 L28 102 L48 127','none',2)}</g>
+ <g transform="translate(4 32)"><g class="dragon-head">${p('M58 38 L50 20 L67 31 M83 33 L94 17 L97 40',bone)}
  ${p('M48 52 Q45 31 69 30 Q91 28 98 49 L118 59 Q127 67 119 79 L88 85 Q57 86 48 67 Z',red)}
  ${hurt?`<path d="M66 45 L78 57 M78 45 L66 57" stroke="${ink}" stroke-width="4"/>`:`<ellipse cx="74" cy="51" rx="8" ry="9" fill="#fff4b0" stroke="${ink}" stroke-width="3"/><ellipse cx="77" cy="51" rx="3" ry="6" fill="${ink}"/>`}
  <path d="M61 40 L81 43" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>
  <path class="dragon-mouth" d="M82 69 L122 69 L118 87 Q99 94 83 80 Z" fill="${ink}"/>
  <g class="dragon-jaw">${p('M82 70 L122 69 L118 83 Q103 94 83 83 Z',light)}${p('M92 72 L97 80 L101 72 M110 72 L114 79 L118 72','#fffbe8',1.5)}</g>
- <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/><circle cx="112" cy="61" r="2.5" fill="${ink}"/></g>
+ <path d="M88 69 L119 69" stroke="${ink}" stroke-width="3"/><circle cx="112" cy="61" r="2.5" fill="${ink}"/></g></g>
  </g></g></g></svg>`;
 }
