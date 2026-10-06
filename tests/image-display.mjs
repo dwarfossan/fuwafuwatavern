@@ -7,7 +7,7 @@ const server=http.createServer(async(req,res)=>{try{const file=path.join(process
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const url=`http://127.0.0.1:${server.address().port}/index.html`,br=await chromium.launch();
 try{
- for(const [kind,hash,asset,place]of [['cover','','home_fox.webp'],['ambush','#ambush','caravan_encounter.webp'],['head','#town','fox/normal.webp'],['npc','#town','brun/sheet.webp','smith']]){
+ for(const [kind,hash,asset,place]of [['cover','','home_fox.webp'],['ambush','#ambush','road.webp'],['head','#town','fox/normal.webp'],['npc','#town','brun/sheet.webp','smith']]){
   const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});let fail=true;const errors=[];p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/*',r=>r.request().url().includes(asset)&&fail?r.abort():r.continue());await p.goto(url+hash);await p.locator('#retryImages:not([hidden])').waitFor();fail=false;await p.locator('#retryImages').tap();await p.locator('.cover:not(.cover-loading),[data-town-place],#stage').first().waitFor();fail=true;await p.evaluate(asset=>{entryImageLoads.clear();entryDecodedImages.clear();entryImageURLs.clear();storyImageLoads.clear();storyDecodedImages.clear();},asset);if(place)await p.locator(`[data-town-place="${place}"]`).tap();
   await p.evaluate(()=>render());const notice=place?p.locator('.actor .portrait-error'):p.locator('.image-error-message');await notice.waitFor();assert(await notice.isVisible());await p.screenshot({path:`/tmp/image-error-${kind}.png`});

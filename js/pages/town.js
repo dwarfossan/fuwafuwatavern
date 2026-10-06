@@ -9,17 +9,27 @@ function townSymbolSVG(symbol){
  };
  return `<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#302b32" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">${shapes[symbol]||shapes.board}</g></svg>`;
 }
+// 事件資料只描述呈現；實際內容／触發規則另由劇情提供。
+function townText(text){return String(text||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function townEvents(){return (state.townEvents||[]).filter(e=>e.location&&e.person&&e.action);}
+function townEventSymbol(e){return `<span class="town-event-symbol">${obsBubbleHTML(e.symbol==='?'?'fail':e.symbol==='…'?'known':'ok')}</span>`;}
+function townEventHint(e){return `<span class="town-hint" role="tooltip">${townText([...String(e.intro||e.action)].slice(0,10).join(''))}</span>`;}
+function townEventBubbleHTML(){
+ return townEvents().filter(e=>!e.place).map((e,i)=>`<button class="town-building town-event-bubble" data-town-event="${i}" style="left:${Math.max(12,Math.min(70,Number(e.x)||50))}%;top:${Math.max(16,Math.min(78,Number(e.y)||70))}%" aria-label="${townText(e.location+'／'+e.person+'／'+e.action)}"><b>${townText(e.location)}</b><span>${townText(e.person)}／${townText(e.action)}</span>${townEventSymbol(e)}${townEventHint(e)}</button>`).join('');
+}
+function townShopEventHTML(place){const e=townEvents().find(e=>e.place===place);return e?townEventSymbol(e)+townEventHint(e):'';}
 function renderTown(){
- const p=townPlace(), party=state.townRest?`<div class="town-party">${CRITTERS.map(c=>`<button data-info="${c.id}" aria-label="${c.name}狀態">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div>`:"";
- if(!p)return `<section class="page town-page"><div class="head"><h2>${TOWN_UI.title}</h2></div>${party}<p>${TOWN_UI.subtitle}</p><div class="town-street">${TOWN_PLACES.map(p=>`<button class="town-building" data-town-place="${p.id}" style="--venue:${p.color}">${townSymbolSVG(p.symbol)}<b>${p.name}</b><span>${p.owner}</span></button>`).join('')}</div><small>${TOWN_UI.draft}</small><div class="nav"><button class="btn ghost" id="townMap">${TOWN_UI.map}</button></div></section>`;
+ const p=townPlace();
+ if(!p)return `<section class="page town-page town-street-page"><div class="story-head"><h2>${TOWN_UI.title}</h2></div><div class="stage town-street town-street-art"><img class="town-street-background" src="${SCENE_ART.town}" alt="城鎮街景"><p class="town-street-caption">${TOWN_UI.subtitle}</p>${TOWN_PLACES.map(p=>`<button class="town-building" data-town-place="${p.id}" style="--venue:${p.color}">${townSymbolSVG(p.symbol)}<b>${p.name}</b><span>${p.owner}</span>${townShopEventHTML(p.id)}</button>`).join('')}${townEventBubbleHTML()}</div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><div class="nav"><button class="btn ghost town-map-button" id="townMap" aria-label="${TOWN_UI.map}"><img src="${SCENE_ART.mapMarker}" alt=""><span class="town-hint" role="tooltip">${TOWN_UI.map}</span></button></div></section>`;
  return `<section class="page fp-page town-page town-conversation" aria-label="${p.name}"><div class="stage"><div class="actor ${TOWN_PORTRAIT[p.id]}">${portraitHTML(TOWN_PORTRAIT[p.id],"smile")}</div><div class="dialog town-dialog"><b>${p.owner} · ${p.role}</b><p>${p.line}</p></div></div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><button class="btn" id="townAction">${p.action}</button>${state.townPanel==='guild'?`<p class="town-panel">${TOWN_UI.guild}</p>`:''}${state.townPanel==='rest'?`<div class="town-rest">${state.townRest?restChoiceHTML(state.townRest):`<p>${TOWN_UI.restUnavailable}</p>`}<p>${TOWN_UI.rest}</p>${state.restMessage?`<p role="status">${state.restMessage}</p>`:''}</div>`:''}<div class="nav"><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
 }
 function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
  bindTownImageReadiness();
  if(state.townPlace==='items'&&!state.supplierSeen)loadEntryImage(PORTRAITS.merchant.base).catch(()=>{});
- document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',()=>openTownPlace(el.dataset.townPlace)));
- document.getElementById('townMap')?.addEventListener('click',()=>{state.page='map';state.mapSel='town';render();});
+ document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',e=>{if(e.pointerType==='touch'&&el.querySelector('.town-hint')&&!el.classList.contains('hint-open')){el.classList.add('hint-open');return;}openTownPlace(el.dataset.townPlace);}));
+ document.getElementById('townMap')?.addEventListener('click',e=>{if(e.pointerType==='touch'&&!e.currentTarget.classList.contains('hint-open')){e.currentTarget.classList.add('hint-open');return;}state.page='map';state.mapSel='town';render();});
+ document.querySelectorAll('[data-town-event]').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('hint-open')));
  document.getElementById('townStreet')?.addEventListener('click',()=>{if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
  document.getElementById('townAction')?.addEventListener('click',()=>{
   const p=townPlace();if(p.id==='smith'||p.id==='items'){

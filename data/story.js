@@ -28,7 +28,7 @@ const SCRIPT = [
   {who:"dwarf", text:"來！一人一百金幣，拿去！", face:"grin", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"happy"}},
   {who:"tiger", text:"哇！大爺好大方！", mood:"happy", face:"grin", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"happy"}},
   {who:"dwarf", text:"然後——（喀嚓）", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"sly"}},
-  {who:"narr",  text:"大爺按下吧檯底下的開關。酒館的牆板翻轉過來，上面掛滿了刀劍盔甲。", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"sly"}},
+  {who:"narr",  background:"equipmentWall", text:"大爺按下吧檯底下的開關。酒館的牆板翻轉過來，上面掛滿了刀劍盔甲。", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"sly"}},
   {who:"tiger", text:"哇啊啊！牆會轉！", mood:"happy", critterMark:"note", face:"smirk", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"surprised"}},
   {who:"fox",   text:"……這機關是什麼時候裝的？", mood:"confused", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"sly"}},
   {who:"raccoon", text:"……酒館裡，不只一面。（盯著另一面牆）", mood:"sly", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"serious",raccoon:"sly"}},

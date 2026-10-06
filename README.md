@@ -83,6 +83,7 @@ node tests/about.mjs         # 關於／授權：封面與戰場主選單都打�
 node tests/performance-lifecycle.mjs # 純 Node：肖像按需載入、鏡頭焦點與戰場計時器生命週期
 node tests/performance-browser.mjs   # 390×844：封面零表情預載、離場停計時器、可見玩家不移鏡
 node tests/cropped-portraits.mjs   # 裁切半身圖、48表情、共用頭像、商人單層與道具屋背景預載
+node tests/scene-image-assets.mjs  # 七張劇情素材、牆面切換、原哥布林錨點、四街景入口與零追加下載
 node tests/image-startup.mjs        # 黑底四頭原位讀取、全圖片解碼、失敗重試、劇情四店零追加下載
 node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情
 node tests/town-image-assets.mjs     # 城鎮 NPC：四組 WebP 已接用，首次店主肖像下載量低於原 PNG 的 20%

@@ -1215,3 +1215,48 @@ body.image-boot{background:#000}
 @media(prefers-reduced-motion:reduce){#bootBackdrop{transition:none}}
 
 .cover-loading .cover-party img:not([src]){visibility:hidden}
+
+/* 大爺提供的劇情背景；牆面從切換台詞起保留到序章結束。 */
+.equipment-wall{opacity:0;transition:opacity .5s;pointer-events:none}
+.equipment-wall.on{opacity:1}
+.town-street-art{position:relative;display:block;aspect-ratio:7/10;padding:0;overflow:hidden;background:#cbb08b}
+.town-street-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.town-street-art .town-building{position:absolute;min-height:44px;padding:5px 9px;border-width:2px;background:rgba(255,244,220,.94);box-shadow:0 2px 0 #302b32}
+.town-street-art .town-building svg{display:none}
+.town-street-art .town-building b{font-size:17px}
+.town-street-art .town-building span{font-size:12px}
+.town-street-art [data-town-place="inn"]{left:3%;top:28%}
+.town-street-art [data-town-place="smith"]{right:3%;top:29%}
+.town-street-art [data-town-place="guild"]{left:34%;top:43%}
+.town-street-art [data-town-place="items"]{right:3%;top:65%}
+
+.scene-bg > img + svg{position:absolute;inset:0}
+
+/* 城鎮街景與劇情共用舞台／下方小隊的尺寸與排列。 */
+.town-street-page{gap:0;min-height:0}
+.town-street-page .story-head{min-height:38px;margin-bottom:5px}
+.town-street-page .story-head h2{font-size:22px;margin:0}
+.town-street-page .town-street-art{aspect-ratio:4/5;border-radius:16px;border-color:#120e14}
+.town-street-caption{position:absolute;top:8px;left:8px;right:8px;padding:5px 7px;background:rgba(255,244,220,.9);border-radius:8px;color:var(--ink);font-size:13px}
+.town-street-page>small{margin-top:8px}
+.town-street-page .nav{justify-content:flex-end;margin-top:10px}
+.town-map-button{display:flex;align-items:center;gap:7px;min-width:44px;min-height:44px}
+.town-map-button img{width:44px;height:38px;object-fit:contain}
+
+
+.town-map-button{position:relative;padding:7px;gap:0}
+.town-hint{position:absolute;right:0;bottom:calc(100% + 8px);padding:7px 10px;border:2px solid var(--ink);border-radius:12px;background:#fff4dc;color:var(--ink);font-size:13px;white-space:nowrap;visibility:hidden;pointer-events:none;z-index:5}
+.town-map-button:hover .town-hint,.town-map-button:focus-visible .town-hint,.hint-open .town-hint,.town-building:hover .town-hint,.town-building:focus-visible .town-hint{visibility:visible}
+.town-street-art .town-event-bubble{transform:translateX(-50%);width:80px;min-height:54px;font-size:12px}
+.town-street-art .town-event-bubble b{font-size:17px}
+.town-event-symbol{position:absolute;left:50%;bottom:calc(100% - 4px);width:36px;height:41px;transform:translateX(-50%);pointer-events:none}
+.town-street-art .town-event-symbol svg{display:block;width:36px;height:41px;overflow:visible}
+.town-event-symbol .obs-life,.town-event-symbol .obs-anim{animation:none;opacity:1;transform:none}
+.town-street-art .town-building .town-hint{font-size:12px;min-height:0;right:50%;transform:translateX(50%);bottom:calc(100% + 40px)}
+
+.town-street-art .town-building{width:80px;height:54px;min-height:54px;justify-content:center}
+
+.town-street-art button,.town-map-button{-webkit-tap-highlight-color:transparent}
+.town-street-art .town-event-bubble{padding:5px 3px}
+.town-street-art .town-event-bubble>span:not(.town-event-symbol):not(.town-hint){font-size:11px;white-space:nowrap}
+.town-street-art .town-event-bubble .town-hint{right:calc(100% + 8px);bottom:0;transform:none}
