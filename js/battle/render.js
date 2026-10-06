@@ -1415,6 +1415,8 @@ function bindBattle(){
   if(b && b.focusReq && !b.result){ b.focusReq = false; const u = cur();
     if(!touches.size && !foeHid(u) && !onScreen(u)) centerCam(u.x, u.y - 1, true); }
   document.querySelectorAll('[data-loot]').forEach(el=>battleListen(el,'click',()=>{B().lootSelected=el.dataset.loot;refreshBattle();}));
+  document.querySelectorAll('[data-loot-person]').forEach(el=>battleListen(el,'click',()=>{B().lootRecipientId=el.dataset.lootPerson;refreshBattle();}));
+  document.querySelectorAll('[data-loot-slider]').forEach(el=>battleListen(el,'change',()=>{B().lootRecipientId=lootRecipients()[Number(el.value)]?.id;refreshBattle();}));
   document.querySelectorAll('[data-loot-to]').forEach(el=>battleListen(el,'click',()=>claimBattleLoot(B().lootSelected,el.dataset.lootTo)));
   const aw = document.getElementById("afterWin"); if(aw) battleListen(aw, "click", ()=>{ sfx("pop"); leaveBattleTo(B().def.after); });
   document.querySelectorAll("[data-item]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); const b = B(); b.menu = null; b.mode = {key:"item", item:el.dataset.item}; refreshBattle(); }));
