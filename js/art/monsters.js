@@ -63,6 +63,23 @@ const MONSTER_LOOK = (()=>{
   const FACE_F = [50,15], FACE_B = "M28 34 Q50 24 72 34";
   // 哥布林的頭、頸錨點（跟原本薩滿頭飾、項鍊的位置一樣）
   const GOBLIN_ANCHOR = {head:[52,28,1], neck:[70,95]};
+  // 歐克本體（GPT 暫定外觀）：寬下顎、短耳、向上獠牙；裝備與動作沿用共用紙娃娃。
+  const O="#71916a", OD="#49664a", OH="#35352f";
+  const orcEyes = (side=false) => side
+    ? `${eye(43,51)}${eye(69,50)}` : `${eye(35,51)}${eye(65,51)}`;
+  const orcHead = side => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" data-monster="orc" data-view="${side?'side':'front'}">
+    ${p("M18 40 L5 34 Q5 55 22 61 Z M78 40 L95 34 Q94 55 77 61 Z", O)}
+    ${p(side?"M21 38 Q22 17 49 16 Q78 16 80 42 L86 66 Q87 89 65 93 L36 91 Q18 86 19 64 Z":"M20 38 Q20 16 50 16 Q80 16 80 38 L83 68 Q81 91 62 94 L38 94 Q19 91 17 68 Z", O)}
+    ${p("M20 38 L18 25 L28 27 L29 15 L40 19 L48 10 L57 19 L70 14 L72 26 L81 25 L80 38 L68 33 L31 33 Z", OH,3)}
+    ${orcEyes(side)}
+    <path d="${side?'M30 39 L50 44 M60 43 L77 37':'M23 39 L44 44 M56 44 L77 39'}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>
+    ${p(side?"M62 57 Q74 52 88 61 L85 69 L66 69 Z":"M42 59 Q50 54 58 59 L61 67 Q50 72 39 67 Z", OD,2.5)}
+    ${p(side?"M35 74 Q59 82 81 72 L79 84 Q58 91 38 84 Z":"M28 75 Q50 82 72 75 L69 85 Q50 91 31 85 Z", OD,2.5)}
+    <path d="${side?'M42 81 Q59 84 74 79':'M34 81 L66 81'}" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    ${p(side?"M39 84 L35 67 Q46 71 47 83 Z M70 83 Q70 71 78 65 L79 81 Z":"M31 83 L28 67 Q39 71 40 83 Z M60 83 Q61 71 72 67 L69 83 Z", "#fffbe8",2)}
+  </svg>`;
+  const orcSide=orcHead(true), orcFront=orcHead(false);
+  const orcHurt=orcSide.replace(orcEyes(true),xEye(43,51,6.5)+xEye(69,50,6.5));
   // 人類大叔（商人，暫定外觀，大爺 2026-10-01：之後再確定）：平頂帽、八字鬍、圓鼻子
   const SK="#f1c9a0", SKD="#d9a77c", HAIR="#6b4a35", CAP="#8a6a44", CAPD="#6e5032";
   const uncleFace = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -93,6 +110,11 @@ const MONSTER_LOOK = (()=>{
   const uncleSideHurt = uncleSide
     .replace(`<circle cx="50" cy="57" r="3.6" fill="${INK}"/><circle cx="69" cy="57" r="3.2" fill="${INK}"/>`, xEye(50,56,5)+xEye(69,56,4.5));
   return {
+    orc: {
+      face:orcFront, head:orcSide, headHurt:orcHurt,
+      body:O, skin:O, feet:OD, belly:false, tail:"", anchor:GOBLIN_ANCHOR,
+      extra:`<path d="M54 92 Q62 97 68 94 M72 94 Q80 97 86 92 M70 97 L70 119 M54 122 Q70 128 86 122" stroke="${OD}" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    },
     merchant: {
       face: uncleFace, head: uncleSide, headHurt: uncleSideHurt, body:"#5f7896", skin:SK, feet:"#5a3f28", belly:false, tail:"",
       extra: `<path d="M49 112 Q70 119 91 112" stroke="#6e4a32" stroke-width="5" fill="none" stroke-linecap="round"/>

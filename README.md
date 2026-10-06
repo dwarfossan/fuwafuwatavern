@@ -46,6 +46,7 @@ node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格
 node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與手機提示
 node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡
 node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿戴与手機卡
+node tests/orc-art.mjs       # 歐克外觀、現有裝備／護甲、共用動作與390×844測試截圖
 node tests/equipment-shared.mjs # 裝備唯一讀寫、切組、卸裝／收納與跨場景保存
 node tests/critter-art.mjs    # 四隻SVG六表情、換裝相容、受傷／勝利與分層
 node tests/impact-timing.mjs # 投射命中時序、地面／身上效果延遲與到期整層清除
