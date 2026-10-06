@@ -221,7 +221,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
    換算：卡姆 88.5%、底 3% → 大爺高 63%、底 12%（眼睛在原圖：卡姆 301/1100、大爺 305/1000） */
 .actor.dwarf{aspect-ratio:1100/1000;height:63%;bottom:12%}
 .actor.kam{aspect-ratio:880/1100;height:88.5%;bottom:3%}
-.actor.merchant{aspect-ratio:1024/880;height:86%;bottom:0}   /* 商人（10-03）：半身圖，下緣貼齊畫面底（路上沒有吧檯擋，貼底才不會像浮在半空） */
+.actor.merchant{aspect-ratio:1;height:97.7273%;bottom:-11.4341%}   /* 商人（10-03）：半身圖，下緣貼齊畫面底（路上沒有吧檯擋，貼底才不會像浮在半空） */
 /* 劇情頭上的泡泡框符號（商人沒有表情，10-03）：固定在舞台上的人頭頂附近，位置暫定 */
 .story-mark{position:absolute;left:62%;top:4%;width:62px;pointer-events:none;z-index:2}
 .story-mark svg{width:100%;height:auto;overflow:visible}
@@ -1080,7 +1080,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .game-bubble{position:fixed;z-index:10000;max-width:min(330px,calc(100vw - 16px));padding:12px 14px;border:3px solid #302b32;border-radius:14px;background:#fffaf0;color:#292330;box-shadow:0 5px 18px #0008;pointer-events:none;font-size:14px;line-height:1.6}
 .game-bubble p{margin:3px 0}.game-bubble small{color:#8d7562;font-size:11px}.game-bubble.thought b{color:#a55c37}
 /* 送貨進店的短演出，暫定代表物。 */
-.supplier-story .actor.merchant{height:45%;bottom:16%;left:49%;animation:supplier-walk 1s ease-out both}
+.supplier-story .actor.merchant{height:51.1364%;bottom:10.017%;left:49%;animation:supplier-walk 1s ease-out both}
 .supplier-story .actor.merchant.off{animation:none;opacity:0}
 @keyframes supplier-walk{from{transform:translateX(-140%) scale(.9)}to{transform:translateX(-50%) scale(.9)}}
 .market-day{margin:4px 0;font-size:13px;color:var(--honey)}.market-draft{font-size:11px;color:var(--dim)}
@@ -1135,7 +1135,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 /* 城鎮對話沿用開場舞台及隊伍卡，NPC區域先留空（10-04）。 */
 .town-conversation{display:block;min-height:0}
-.town-conversation .stage{cursor:default}
+.town-conversation .stage{cursor:default;container-type:inline-size}
 .town-conversation .npc-space{position:absolute;inset:0 0 30%;pointer-events:none}
 .town-conversation .town-dialog{margin:0}
 .town-conversation>small{display:block;margin:8px 0}
@@ -1154,25 +1154,26 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .party.curse-flash .pf{animation:story-curse .9s ease-out both}
 @keyframes story-curse{0%,100%{box-shadow:none}35%{box-shadow:0 0 18px 5px #ff4444,inset 0 0 12px #ff444488;filter:brightness(1.35)}}
 
-/* 莉莉安娜：原全身圖等比放大，舞台裁成半身；眼部定位為原圖座標。暫定。 */
-.actor.liliana{width:132%;height:auto;aspect-ratio:1024/1536;top:1%;bottom:auto}
-.liliana-eyes{position:absolute;left:39.55%;top:4.23%;width:18.03%;height:12.02%;overflow:hidden;clip-path:polygon(11% 44%,48% 44%,48% 62%,55% 62%,55% 38%,96% 38%,96% 57%,55% 57%,55% 65%,11% 65%)}
+/* 大爺 10-06 提供 1000×1000 半身裁切圖；五官按原圖到新圖的像素位移換算。 */
+.actor.liliana{width:128.90625%;height:auto;aspect-ratio:1;top:calc(1% - 16.5cqw);bottom:auto}
+.liliana-eyes{position:absolute;left:39.2992%;top:19.29728%;width:18.46272%;height:18.46272%;overflow:hidden;clip-path:polygon(11% 44%,48% 44%,48% 62%,55% 62%,55% 38%,96% 38%,96% 57%,55% 57%,55% 65%,11% 65%)}
 .portrait .npc-face-sheet img{width:400%;height:300%;left:calc(mod(var(--face),4) * -100%);top:calc(round(down,var(--face) / 4) * -100%);max-width:none}
 
-.quip-face.liliana-icon .portrait{width:400%;aspect-ratio:1024/1536;height:auto;left:-150%;top:-15%}
+.quip-face.liliana-icon .portrait{width:390.625%;aspect-ratio:1;height:auto;left:-145.3125%;top:-65%}
 .seal-speaker .liliana-icon .pt-base{width:100%;height:100%;object-fit:fill}
 
-/* 三位店主沿用原圖：全身等比显示，舞台裁成半身；五官定位暫定。 */
-.actor.mira,.actor.ada{width:132%;height:auto;aspect-ratio:926/1698;top:-4%;bottom:auto}
-.actor.brun{width:132%;height:auto;aspect-ratio:1001/1572;top:-19%;bottom:auto}
-.mira-features{position:absolute;left:36.93%;top:10.24%;width:26.57%;height:14.49%;overflow:hidden;transform:rotate(2deg) translate(var(--face-x,0%),var(--face-y,0%))}
-.ada-features{position:absolute;left:36.18%;top:10.6%;width:21.11%;height:11.51%;overflow:hidden}
-.brun-features{position:absolute;left:43.16%;top:20.36%;width:19.89%;height:12.67%;overflow:hidden}
-.quip-face.mira-icon .portrait{width:400%;height:auto;aspect-ratio:926/1698;left:-163%;top:-97%}
-.quip-face.ada-icon .portrait{width:450%;height:auto;aspect-ratio:926/1698;left:-164%;top:-100%}
-.quip-face.brun-icon .portrait{width:400%;height:auto;aspect-ratio:1001/1572;left:-173%;top:-136%}
+/* 裁切後保留原人物與五官的螢幕大小；位置按新圖座標設定。 */
+.actor.mira,.actor.ada{width:142.548596%;height:auto;aspect-ratio:1;bottom:auto}
+.actor.mira{left:51.568035%;top:calc(-4% - .142549cqw)}
+.actor.brun{width:131.868132%;height:auto;aspect-ratio:1;left:50.065934%;top:calc(-19% - .923077cqw);bottom:auto}
+.mira-features{position:absolute;left:36.79718%;top:17.48752%;width:24.60482%;height:24.60402%;overflow:hidden;transform:rotate(2deg) translate(var(--face-x,0%),var(--face-y,0%))}
+.ada-features{position:absolute;left:35.70268%;top:17.5988%;width:19.548%;height:19.544%;overflow:hidden}
+.brun-features{position:absolute;left:43.10316%;top:32.70592%;width:19.90989%;height:19.91724%;overflow:hidden}
+.quip-face.mira-icon .portrait{width:431.965443%;height:auto;aspect-ratio:1;left:-174.231102%;top:-97.431965%}
+.quip-face.ada-icon .portrait{width:485.961123%;height:auto;aspect-ratio:1;left:-174.691145%;top:-98.056156%}
+.quip-face.brun-icon .portrait{width:399.6004%;height:auto;aspect-ratio:1;left:-172.6004%;top:-138.797203%}
 
-.actor.ada{top:-8%}
+.actor.ada{left:52.138229%;top:calc(-8% + .570194cqw)}
 
 .mira-face-window{position:absolute;inset:0;clip-path:url(#mira-face-clip)}
 

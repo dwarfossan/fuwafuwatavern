@@ -81,10 +81,10 @@
 
 ## liliana/ 莉莉安娜
 
-sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、laugh、smirk、angry、annoyed、sad、surprised、shy、confused、serious、sly（命名暫定GPT）。只顯示眼部，眉毛與面紗沿用底圖；原圖1024×1536、表情表1448×1086，定位見CSS .liliana-eyes。舞台只裁切顯示半身，不改原PNG。
+sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、laugh、smirk、angry、annoyed、sad、surprised、shy、confused、serious、sly（命名暫定GPT）。只顯示眼部，眉毛與面紗沿用底圖；目前使用大爺 10-06 裁切的1000×1000半身底圖（遊戲WebP為600×600），表情表仍1448×1086。原1024×1536到新圖的座標位移為x−12、y＋128；定位見CSS .liliana-eyes，眼部遮罩與表情順序保留。
 
 ## mira/、ada/、brun/
 
-米拉、艾妲、布隆均使用大爺原始4欄3列sheet.png，表情順序同liliana（名稱暫定GPT）。各自五官定位見CSS .mira-features／.ada-features／.brun-features，原PNG不改畫；舞台等比裁成半身。
+米拉、艾妲、布隆均使用大爺原始4欄3列sheet.png，表情順序同liliana（名稱暫定GPT）。各自五官定位見CSS .mira-features／.ada-features／.brun-features。底圖改用大爺10-06裁切的1000×1000半身圖（遊戲WebP為600×600）；原圖到新圖座標位移：米拉x＋26、y＋1；艾妲x＋22、y−4；布隆x−1、y＋7。表情表不修改；位置／大小依像素位移換算，米拉臉部遮罩亦按相同座標轉換。
 
 米拉表情表每格內容有平移差異，不能只切格；PORTRAITS.mira.offsets以鼻子為共同定位點逐格校正，CSS保持同一縮放。

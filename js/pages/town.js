@@ -17,6 +17,7 @@ function renderTown(){
 function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
  bindTownImageReadiness();
+ if(state.townPlace==='items'&&!state.supplierSeen)loadEntryImage(PORTRAITS.merchant.base).catch(()=>{});
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',()=>openTownPlace(el.dataset.townPlace)));
  document.getElementById('townMap')?.addEventListener('click',()=>{state.page='map';state.mapSel='town';render();});
  document.getElementById('townStreet')?.addEventListener('click',()=>{if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
