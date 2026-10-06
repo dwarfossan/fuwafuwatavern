@@ -10,6 +10,7 @@ try{
   await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errors=[];pg.on('pageerror',e=>errors.push(e.message));
   await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
+ await pg.waitForFunction(()=>!document.body.classList.contains('image-boot'));
   await pg.waitForTimeout(500);
   const party=await pg.locator('.cover-party').evaluate(e=>{const r=e.getBoundingClientRect();return {ok:[...e.querySelectorAll('img')].length===4&&[...e.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0),left:r.left,right:r.right,w:r.width}});
   assert(party.ok);assert(party.left>=0&&party.right<=390&&party.w>200);
@@ -61,15 +62,15 @@ try{
   await pg.locator('[data-pagehelp="map"]').click();assert((await pg.locator('[role="dialog"]').innerText()).includes('現在的位置'));
   await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
   await pg.waitForTimeout(500);
-  // 10-02 香香：大地圖改回一次看完整張（不左右滑），地名放大到手機上看得清楚
-  assert(await pg.locator('.map-frame').evaluate(e=>e.scrollWidth<=e.clientWidth+1));
-  assert(await pg.locator('.worldmap .loc text').evaluateAll(es=>es.every(e=>{const r=e.getBoundingClientRect();return r.height>=12 && r.left>=0 && r.right<=390;})));
-  assert(await pg.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
+  assert.equal(await pg.locator('#map-party .pf').count(),4);
+  assert.equal(await pg.locator('#map-places image').count(),4);
+  assert(await pg.locator('.map-frame').evaluate(e=>Math.abs(e.clientHeight/e.clientWidth-1.25)<.03));
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/map.png'});
   for(const id of ['cave','forest','town','tavern']){
-    await pg.locator(`[data-loc="${id}"]`).click();assert.equal(await pg.evaluate(()=>state.mapSel),id);
+    await pg.evaluate(id=>{const l=WORLD.locations.find(l=>l.id===id),f=document.querySelector('.map-frame'),c=state.worldCamera;c.cam={x:f.clientWidth/2-l.x*c.zoom,y:f.clientHeight/2-l.y*c.zoom};applyWorldCamera();},id);
+    await pg.locator(`[data-loc="${id}"] text`).click();assert.equal(await pg.evaluate(()=>state.mapSel),id);
   }
-  ok('大地圖一次看完整張，四個地名都在畫面內、看得清楚，四地點都點得到');
+  ok('大地圖劇情同高、四毛固定下方，鏡頭移到各地點後皆可點選');
   await pg.evaluate(()=>{window.setTimeout=()=>0;quickBattle();});await pg.waitForTimeout(500);
   await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=0;refreshBattle();});
   const boardWithTutorial=await pg.locator('.board-wrap').boundingBox();

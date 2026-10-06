@@ -27,3 +27,14 @@ const BARKS = [
   {on:"hunch", speaker:{id:"tiger"},   draft:"香香", lines:["打完了？不對，我背後毛毛的。"]},
   {on:"hunch", speaker:{id:"raccoon"}, draft:"香香", lines:["……有人在偷看。"]}
 ];
+
+/* 大地圖對話：GPT 草稿；每趟間隔、不連續重複，到達可略過。 */
+const WORLD_CHAT={
+ banter:[
+  {draft:'GPT',lines:[{who:'tiger',text:'走路也算練腿吧！',mood:'happy'},{who:'wolf',text:'算。不要順便練嗓子。',mood:'serious'}]},
+  {draft:'GPT',lines:[{who:'fox',text:'沿著路走，先別抄近路。',mood:'normal'},{who:'raccoon',text:'近路通常比較遠。',mood:'sly'}]},
+  {draft:'GPT',lines:[{who:'tiger',text:'回去能多吃一份嗎？',mood:'happy'},{who:'raccoon',text:'先多走一份。',mood:'sly'}]}
+ ],
+ arrival:{draft:'GPT',lines:[{who:'fox',text:'到了。先看看入口。',mood:'normal'},{who:'tiger',text:'好！大家一起進去！',mood:'happy'}]},
+ chest:{draft:'GPT',lines:[{who:'narr',text:'路旁的草叢裡，露出一只舊寶箱。'},{who:'tiger',text:'寶箱！我們發現寶箱了！',mood:'happy'},{who:'fox',text:'先別碰。鎖和箱子都要看清楚。',mood:'confused'},{who:'wolf',text:'很好，至少這次先停下了。',mood:'serious'},{who:'raccoon',text:'它還沒跑。',mood:'sly'},{who:'narr',text:'小傢伙們記下寶箱的位置，繼續沿著原路前進。'}]}
+};

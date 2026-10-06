@@ -335,19 +335,25 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .scene-bg > svg{width:100%;height:100%;display:block}
 .scene-bg > img{width:100%;height:100%;display:block;object-fit:cover}
 
-/* 大地圖 */
-.wrap.map-screen{height:100vh;height:100dvh;padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 12px);overflow:hidden}
-.map-page{height:100%;display:flex;flex-direction:column;gap:10px;min-height:0}
-.map-page>.head{margin:0;flex:none;align-items:center}
-.map-frame{flex:none;aspect-ratio:1000/700;border-radius:16px;overflow:hidden;border:6px solid #4a2f1f;box-shadow:inset 0 0 0 2px #7a5236, 0 10px 30px rgba(0,0,0,.4);background:#5f8744}   /* 10-02：一次看完整張，不左右滑 */
-.worldmap{display:block;width:100%;height:100%;user-select:none}
+/* 大地圖：沿用劇情 stage／party 高度，鏡頭內容分層。 */
+.wrap.map-screen{height:auto;min-height:100dvh;padding-block:24px 48px;overflow:visible}
+.map-page{height:auto;display:block}
+.map-page .story-head h2{font-size:22px;margin:0}
+.map-frame.stage{position:relative;border-radius:16px;overflow:hidden;border:3px solid #392a20;background:#91b751;touch-action:none}
+.map-frame .worldmap{position:absolute;left:0;top:0;display:block;max-width:none;max-height:none;transform-origin:0 0;user-select:none}
 .worldmap .loc{cursor:pointer;outline:none}
-.worldmap .loc:hover rect,.worldmap .loc:focus-visible rect{stroke:#f2b441}
-.map-info{flex:none;background:var(--plank);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.map-info h3{margin:0;font-family:var(--font-disp);font-size:22px}
-.map-info p{margin:4px 0 0;color:var(--dim)}
+.worldmap .loc:hover rect,.worldmap .loc:focus-visible rect{stroke:#dc852e}
+.map-info{margin-top:12px;min-height:78px;background:var(--plank);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.map-info h3{margin:0;font-family:var(--font-disp);font-size:17px}
+.map-info p{margin:4px 0 0;color:var(--dim);font-size:13px}
 .map-info .btn{font-size:14px;padding:6px 14px}
+.map-camera-controls{position:absolute;top:8px;right:8px;display:flex;gap:6px}
+.map-camera-controls .btn{min-width:34px}
 .worldmap .alert{animation:alertpop .45s cubic-bezier(.3,1.8,.5,1) both;transform-box:fill-box;transform-origin:50% 100%}
+#map-party .pf{position:relative}
+.world-banter{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);width:150px;background:#fff1d9;color:#392a20;border:3px solid #392a20;border-radius:12px;padding:6px;font-size:13px;z-index:5;pointer-events:none}
+#map-party .pf:first-child .world-banter{left:0;transform:none}
+#map-party .pf:last-child .world-banter{left:auto;right:0;transform:none}
 @keyframes alertpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
 
 /* 戰鬥 */
@@ -1260,3 +1266,14 @@ body.image-boot{background:#000}
 .town-street-art .town-event-bubble{padding:5px 3px}
 .town-street-art .town-event-bubble>span:not(.town-event-symbol):not(.town-hint){font-size:11px;white-space:nowrap}
 .town-street-art .town-event-bubble .town-hint{right:calc(100% + 8px);bottom:0;transform:none}
+
+/* 10-06：共用商店功能頁，小筆記內容獨立捲动，頭像／休息按鈕固定。 */
+.town-service-body{overflow:hidden}
+.town-service-body .town-rest{padding:8px;height:100%;display:flex;flex-direction:column;min-height:0}
+.town-service-body .rest-box{max-height:none;overflow:visible;flex:1;min-height:0;display:flex;flex-direction:column}
+.town-service-body .rest-heads,.town-service-body .gear-tabs,.town-service-body .rest-actions{flex:none}
+.town-service-body .note-page{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.town-service-body .rest-actions{display:grid;gap:5px}
+.town-service-body .town-rest>p{margin:4px 0;font-size:11px}
+.town-service-page .nav{display:flex;justify-content:space-between}
+.story-chest{position:absolute;inset:0;width:100%;height:100%}

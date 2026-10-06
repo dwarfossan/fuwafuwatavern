@@ -1,3 +1,7 @@
+function venueHeaderHTML(venue,quip,help=''){
+ const portrait=venue?TOWN_PORTRAIT[venue.id]:'dwarf';
+ return `<div class="head"><h2>${venue?venue.name:'大爺的裝備牆'}</h2>${help}</div><div class="quip"><div class="quip-face ${portrait}-icon">${portraitHTML(portrait,venue?'smile':undefined)}</div><p>${quip}</p></div>`;
+}
 function shopCategories(){return state.shopContext==="smith"?CATS.filter(k=>!["法器","道具","冒險用品"].includes(k)):state.shopContext==="items"?[...CATS.filter(k=>["法器","道具","冒險用品"].includes(k)),MAGIC_SHOP_UI.cat]:CATS;}
 function renderShop(){
   const venue=TOWN_PLACES.find(p=>p.id===state.shopContext);
@@ -27,10 +31,7 @@ function renderShop(){
             || `<li class="empty">還沒買東西</li>`;
   const wt = weightOf(id), cap = capOf(id);
   return `<section class="page shop-page" data-shop-category="${state.shopCat}">
-    <div class="head"><div>
-      <h2>${venue?venue.name:"大爺的裝備牆"}</h2>
-    </div>${pageHelpHTML("shop")}</div>
-    <div class="quip">${venue?`<div class="quip-face ${TOWN_PORTRAIT[venue.id]}-icon">${portraitHTML(TOWN_PORTRAIT[venue.id],"smile")}</div>`:`<div class="quip-face">${portraitHTML("dwarf")}</div>`}<p>${state.quip}</p></div>
+    ${venueHeaderHTML(venue,state.quip,pageHelpHTML("shop"))}
     <div class="tabs" role="tablist" aria-label="${SHOP_UI.characters}">${tabs}</div>
     <details class="shop-side" ${state.shopBagOpen?"open":""}>
       <summary>
@@ -58,7 +59,7 @@ function renderShop(){
 // 買賣、詳細卡、切角色都會重新 render；從舊頁面記住位置，不讀已改過的 shopCat。
 function rememberShopView(app){
   const page=app.querySelector('.shop-page');
-  if(!page) return;
+  if(!page || !page.hasAttribute('data-shop-category')) return;
   state.shopScroll[page.dataset.shopCategory]=page.querySelector('.shop-list').scrollTop;
   state.shopBagOpen=page.querySelector('.shop-side').open;
 }

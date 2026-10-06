@@ -83,6 +83,8 @@ node tests/about.mjs         # 關於／授權：封面與戰場主選單都打�
 node tests/performance-lifecycle.mjs # 純 Node：肖像按需載入、鏡頭焦點與戰場計時器生命週期
 node tests/performance-browser.mjs   # 390×844：封面零表情預載、離場停計時器、可見玩家不移鏡
 node tests/cropped-portraits.mjs   # 裁切半身圖、48表情、共用頭像、商人單層與道具屋背景預載
+node tests/chest-rarity.mjs       # 五階宝箱色票、共用劇情／探索造型、開啟與預設回退
+node tests/world-travel.mjs       # 共用旅店／公會、分層地圖、導航／停走、到達／寶箱、觸控鏡頭回歸
 node tests/scene-image-assets.mjs  # 七張劇情素材、牆面切換、原哥布林錨點、四街景入口與零追加下載
 node tests/image-startup.mjs        # 黑底四頭原位讀取、全圖片解碼、失敗重試、劇情四店零追加下載
 node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情

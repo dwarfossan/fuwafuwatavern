@@ -153,3 +153,41 @@ function equipmentArtKey(it){
 
 // 火藥桶原創手繪外觀暫定 GPT；地面與背包共用。
 ITEM_ART.powder_barrel=`<g stroke="#292330" stroke-width="5" stroke-linejoin="round"><path d="M28 25 Q14 62 28 101 Q60 119 92 101 Q106 62 92 25Z" fill="#9d7046"/><path d="M42 29 Q32 65 43 106 M60 29 V111 M78 29 Q88 65 77 106" fill="none" stroke-width="3"/><path d="M24 41 Q60 56 96 41 L98 51 Q60 68 22 51Z M22 82 Q60 97 98 82 L95 94 Q60 109 25 94Z" fill="#777b82"/><ellipse cx="60" cy="25" rx="32" ry="12" fill="#c49a62"/><path d="M34 24 H87 M48 16 L45 34 M74 16 L77 34" fill="none" stroke-width="3"/><path d="M60 58 l-13 19 h12 l-5 14 19-22 H62 l5-11Z" fill="#efc25b" stroke-width="3"/></g>`;
+
+/* 劇情／探索共用寶箱：參照大爺的圓頂木箱、金屬箍、鎖孔與側環。
+   稀有度色票／亮點為 GPT 暫定；僅外觀，不改獎勵、機率或互動規則。 */
+const CHEST_PALETTES={
+ common:{name:'普通',metal:'#959b9b',shade:'#676f72',light:'#cbd0cc',sparkles:0},
+ uncommon:{name:'少見',metal:'#64ab73',shade:'#386947',light:'#b2e2ae',sparkles:0},
+ rare:{name:'稀有',metal:'#5c9cce',shade:'#365f86',light:'#a8dcf5',sparkles:1},
+ epic:{name:'史詩',metal:'#a779c7',shade:'#694884',light:'#e1baf4',sparkles:2},
+ legendary:{name:'傳說',metal:'#e6b94e',shade:'#9d712e',light:'#fff0a7',sparkles:3}
+};
+function chestSVG(o={},cx=0,cy=0){
+ const rarity=Object.hasOwn(CHEST_PALETTES,o.rarity)?o.rarity:'common',p=CHEST_PALETTES[rarity];
+ // 金屬箍只畫可見的前半弧，後半在圓頂背面，不伸出箱蓋。
+ const band=(x,y)=>`M${x} ${y} C${x-3.939} ${y-21.010} ${x+6.347} ${y-39.865} ${x+18.123} ${y-39.865} L${x+28.123} ${y-37.365} C${x+16.347} ${y-37.365} ${x+6.061} ${y-18.510} ${x+10} ${y+2.5}Z`;
+ const glints=[[-47,-62],[52,-49],[6,-78]].slice(0,p.sparkles).map(([x,y])=>`<path class="chest-sparkle" d="M${x} ${y-5} L${x+2} ${y-2} L${x+5} ${y} L${x+2} ${y+2} L${x} ${y+5} L${x-2} ${y+2} L${x-5} ${y} L${x-2} ${y-2}Z" fill="${p.light}" stroke-width="1.5"/>`).join('');
+ return `<g class="explore-chest" data-chest-rarity="${rarity}" transform="translate(${cx} ${cy})" stroke="#30281f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+ <title>${p.name}寶箱${o.opened?'（已打開）':''}</title>
+ <path class="chest-wood" d="M-54 -19 L18 -1 L54 -23 V11 L18 34 L-54 16Z" fill="#a37a43"/>
+ <path class="chest-wood" d="M18 -1 L54 -23 V11 L18 34Z" fill="#78542f"/>
+ <path class="chest-wood" d="M-53 -7 L17 10 M-53 5 L17 22 M30 -5 V25 M42 -13 V18" fill="none" stroke="#76522e" stroke-width="2"/>
+ <path d="M-54 -19 L-18 -41 L54 -23 L18 -1Z" fill="${o.opened?'#30281f':'#b99051'}"/>
+ <path class="chest-metal" d="M-45 -17 L-35 -14 V20 L-45 18Z M2 -5 L12 -2 V32 L2 30Z" fill="${p.metal}"/>
+ <path class="chest-metal" d="M18 -1 L54 -23 V-15 L18 7Z M18 25 L54 2 V11 L18 34Z" fill="${p.shade}"/>
+ <g class="chest-lid" transform="${o.opened?'translate(-7 -36) rotate(-15)':''}">
+ <path class="chest-wood" d="M-54 -19 C-57.939, -40.010 -47.653, -58.865 -35.877, -58.865 L36.123, -40.865 C42.282, -40.865 48.849, -35.707 54 -23 L18 -1Z" fill="#c09a59"/>
+ <path class="chest-wood" d="M18 -1 C12 -33 39 -60 54 -23Z" fill="#94703c"/>
+ <path class="chest-wood" d="M-50 -30 L15 -14 M-44 -45 L13 -31 M-35 -55 L27 -40" fill="none" stroke="#896333" stroke-width="2"/>
+ <path class="chest-metal" d="${band(-43,-16.25)} ${band(3,-4.75)}" fill="${p.metal}"/>
+ <path class="chest-metal" d="M-54 -19 L18 -1 V7 L-54 -11Z" fill="${p.metal}"/>
+ <path class="chest-metal" d="M18 -1 L54 -23 V-15 L18 7Z" fill="${p.shade}"/>
+ <path d="M-40 -28 C-40 -39 -34 -50 -26 -53 M7 -15 C7 -26 13 -37 21 -40" fill="none" stroke="${p.light}" stroke-width="2"/>
+ </g>
+ <path class="chest-metal chest-lock" d="M-26 -16 L-9 -12 V8 L-26 4Z" fill="${p.metal}"/>
+ <path d="M-20 -7 a3 3 0 1 1 5 1 l1 6 -6 -1Z" fill="#30281f" stroke="none"/>
+ <path d="M39 -5 q-9 1 -9 9 q0 9 7 5 q8 -4 6 -11" fill="none" stroke="${p.light}" stroke-width="3"/>
+ <g fill="${p.light}" stroke="none"><circle cx="-41" cy="-9" r="1.6"/><circle cx="-41" cy="11" r="1.6"/><circle cx="7" cy="3" r="1.6"/><circle cx="7" cy="25" r="1.6"/></g>
+ ${glints}</g>`;
+}

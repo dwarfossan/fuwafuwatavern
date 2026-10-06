@@ -280,8 +280,7 @@ function clampCam(c){
   const wrap = document.querySelector(".board-wrap"); if(!wrap) return c;
   const vw = wrap.clientWidth, vh = wrap.clientHeight, s = boardSize();
   const mx = Math.min(90, vw*.15), my = Math.min(90, vh*.15);    // 地圖邊緣最多拉進畫面一點點，不會露出一大片空白
-  const lim = (v, view, size, m) => size + 2*m <= view ? (view-size)/2 : Math.min(m, Math.max(view-size-m, v));
-  return {x:lim(c.x, vw, s.w, mx), y:lim(c.y, vh, s.h, my)};
+  return clampSceneCamera(c,{w:vw,h:vh},s,{x:mx,y:my});
 }
 function applyCam(glide){
   const svg = document.querySelector(".board"), b = B(); if(!svg || !b.cam) return;
@@ -342,9 +341,8 @@ function onScreen(v){
 function zoomAt(z, px, py){
   const b = B(), f = {z:camZoom(), cam:b.cam};
   const nz = clampZoom(z);
-  const bx = (px - f.cam.x)/f.z, by = (py - f.cam.y)/f.z;   // 這點在地圖上的原始座標
   b.zoom = nz;
-  b.cam = clampCam({x: px - bx*nz, y: py - by*nz});
+  b.cam = clampCam(sceneZoomCamera(f.cam,f.z,nz,{x:px,y:py}));
   applyCam();
 }
 
@@ -408,8 +406,7 @@ function initBoardDrag(){
       const d = Math.hypot(p1.x-p2.x, p1.y-p2.y), mx = (p1.x+p2.x)/2, my = (p1.y+p2.y)/2;
       // 兩指剛放下時中點底下的那塊地圖，永遠跟著兩指中點走（同時縮放＋平移）
       const b = B(), nz = clampZoom(pinch.z*d/pinch.d);
-      const bx = (pinch.mx - pinch.cam.x)/pinch.z, by = (pinch.my - pinch.cam.y)/pinch.z;
-      b.zoom = nz; b.cam = clampCam({x: mx - bx*nz, y: my - by*nz}); applyCam();
+      b.zoom = nz; b.cam = clampCam(sceneZoomCamera(pinch.cam,pinch.z,nz,{x:pinch.mx,y:pinch.my},{x:mx,y:my})); applyCam();
       e.preventDefault(); return;
     }
     if(!drag || e.pointerId!==drag.id) return;
@@ -618,7 +615,7 @@ function blockSVG(o){
   }
   // 互動物件的手繪 SVG 暫定（GPT）；與既有場景一起排序。
   if(o.kind==="powderBarrel")return `<g class="powder-barrel" transform="translate(${cx-36} ${cy-66}) scale(.6)">${ITEM_ART.powder_barrel}</g>`;
-  if(o.kind==="chest")return `<g class="explore-chest" transform="translate(${cx} ${cy})" stroke="#292330" stroke-width="3" stroke-linejoin="round"><path d="M-50 -24 L0 -2 L50 -24 V5 L0 28 L-50 5Z" fill="#93613d"/><path d="M0 -2 V28 L50 5 V-24Z" fill="#734b32"/><path d="M-50 -24 L0 -46 L50 -24 L0 -2Z" fill="${o.opened?"#302830":"#b9894d"}"/><g transform="${o.opened?"translate(0 -34) rotate(-18)":""}"><path d="M-50 -24 Q-50 -58 -25 -66 L25 -44 Q50 -36 50 -24 L0 -2Z" fill="#c49652"/><path d="M-28 -45 Q-24 -62 -15 -61 L-7 -57 Q-18 -46 -17 -39 L32 -17 L22 -12Z M7 -56 L17 -51 Q39 -36 34 -18 L25 -14 Q28 -35 7 -42Z" fill="#a4a5a0"/></g><path d="M-27 -14 L-17 -10 V20 L-27 16Z M23 -12 L33 -17 V13 L23 18Z" fill="#a4a5a0"/><rect x="-6" y="-8" width="12" height="17" rx="2" fill="#e8c45b"/><circle cx="0" cy="-1" r="2" fill="#292330" stroke="none"/></g>`;
+  if(o.kind==="chest")return chestSVG(o,cx,cy);
   if(o.kind==="door"||o.kind==="doorOpen")return `<g class="explore-door" transform="translate(${cx} ${cy})"><path d="M-38 5 V-100 H38 V5" fill="none" stroke="#2a2630" stroke-width="7"/><path d="${o.kind==="door"?"M-32 0 V-95 H32 V0Z":"M-32 0 V-95 L-55 -80 V15Z"}" fill="#98714e" stroke="#2a2630" stroke-width="3"/><circle cx="${o.kind==="door"?22:-47}" cy="-40" r="4" fill="#ebc965"/></g>`;
   if(o.kind==="trap")return `<g class="explore-trap"><ellipse cx="${cx}" cy="${cy}" rx="30" ry="15" fill="${o.disarmed?"#aaa":"#cf7d58"}" stroke="#2a2630" stroke-width="3"/><path d="M${cx-22} ${cy} l8 -12 l8 12 l8 -12 l8 12" fill="none" stroke="#2a2630" stroke-width="3"/></g>`;
   if(o.kind==="crate") return `<g class="slatted-crate">${box(36,"#c49a62","#9a6a3e","#7a5230")}<g transform="translate(${cx} ${cy})" fill="none" stroke="#292330" stroke-width="3" stroke-linejoin="round"><path d="M-37 -47 L19 -15 M-19 -58 L37 -26 M-56 -24 L0 8 L56 -24 M-56 -12 L0 20 L56 -12"/><path d="M-49 -29 L-7 27 M7 -1 L49 -3" stroke-width="8"/><path d="M-49 -29 L-7 27 M7 -1 L49 -3" stroke="#c49a62" stroke-width="4"/></g></g>`;

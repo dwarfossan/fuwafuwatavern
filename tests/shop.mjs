@@ -10,6 +10,7 @@ try{
   await page.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });   // 頁面說明第一次會自動打開（10-02），測試先當作看過
   const errors=[]; page.on('pageerror',e=>errors.push(e.message));
   await page.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await page.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await page.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
   await page.waitForFunction(()=>B()?.units.length);
   await page.evaluate(()=>{

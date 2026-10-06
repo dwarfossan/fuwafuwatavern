@@ -1,5 +1,6 @@
 /* 劇情場景：每個場景一份台詞；bg 是第一人稱背景；結尾按鈕依場景不同（back 為 null 就不顯示） */
 const SCENES = {
+  worldChest:{script:WORLD_CHAT.chest.lines,bg:'road',back:null,next:['resumeWorldTravel','繼續上路']},
   prologue: {script: SCRIPT,   bg:"tavern", back:["back2","回去重骰"],    next:["toShop","去看裝備"]},
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
@@ -207,7 +208,7 @@ function renderStory(){
   const done = last && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
     <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img src="${SCENE_ART.town}" alt="城鎮街景">`:`<img src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():''}`}</div>${actorsHTML}` : `
+      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img src="${SCENE_ART.town}" alt="城鎮街景">`:`<img src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?`<svg class="story-chest" viewBox="0 0 600 740" aria-label="路旁寶箱">${chestSVG({opened:false},300,400)}</svg>`:''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
       ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
       <div class="lamp" aria-hidden="true"></div>

@@ -8,6 +8,7 @@ try{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"map":1,"shop":1}'));
  await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await page.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await page.evaluate(()=>{state.modal=null;state.page='story';state.scene='prologue';state.line=0;render();});
  const opening=await page.evaluate(()=>{const a=document.querySelector('.stage').getBoundingClientRect(),p=document.querySelector('.party').getBoundingClientRect();return {width:a.width,height:a.height,gap:p.top-a.bottom,partyWidth:p.width};});
  await shot('opening-layout.png');
@@ -65,7 +66,7 @@ try{
   }
   await page.locator('#townStreet').tap();
  }
- await page.locator('#townMap').tap();await page.locator('#enterTown').tap();
+ await page.locator('#townMap').tap();if(await page.evaluate(()=>state.page!=='map'))await page.locator('#townMap').tap();await page.locator('#enterTown').tap();
  assert.equal(await page.evaluate(()=>state.page),'town');assert.equal(await page.locator('[data-town-place]').count(),4);
  assert.deepEqual(errors,[]);
  console.log('✓ four graphical venues, shops buy with fixed focus, inn shared rest and notes, map return, no combat timers/errors');

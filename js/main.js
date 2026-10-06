@@ -22,7 +22,7 @@ function render(){
   }
   rememberShopView(app);
   autoHelpOnce();
-  app.classList.toggle('shop-screen',state.page==='shop');
+  app.classList.toggle('shop-screen',state.page==='shop'||(state.page==='town'&&!!state.townPanel));
   app.classList.toggle('battle-screen',state.page==='battle');
   app.classList.toggle('map-screen',state.page==='map');
   app.innerHTML = cachedImageHTML(state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory());
@@ -37,6 +37,7 @@ function render(){
 // 大地圖：棋子沿路走到 stop 的位置停下，跳出驚嘆號，接著切到第一人稱伏擊劇情
 function startTravel(){
   const tr = state.travel;
+  if(tr.route)return startWorldTravel(tr);
   let last = performance.now();
   const step = now=>{
     if(state.page!=="map" || state.travel!==tr) return;
@@ -50,7 +51,7 @@ function startTravel(){
       if(tr.arrive==="town" && !state.townFounded){state.page="story";state.scene="townArrival";state.line=0;state.info=null;}
       render(); return;
     }
-    tr.alert = true; render();
+    tr.alert = true; focusWorldParty(p); render();
     setTimeout(()=>{
       if(state.travel!==tr) return;
       scoutBattle("ambush");
@@ -184,7 +185,7 @@ function bind(){
   if(state.page==="story") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.page="cover";render();window.scrollTo(0,0);}});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
-  $("enterTown")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;render();});
+  $("enterTown")?.addEventListener("click",enterWorldLocation);
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);
   if(state.page==="town")bindTown();
   $("start")?.addEventListener("click", async e=>{
@@ -228,6 +229,7 @@ function bind(){
   $("backShop")?.addEventListener("click", ()=>{state.page="shop";render()});
   $("toMap")?.addEventListener("click", ()=>{
     state.page="map"; state.location="tavern"; state.mapSel=null;
+    if(state.townFounded){state.travel=null;state.worldArrival=null;state.worldLine=null;render();window.scrollTo(0,0);return;}
       state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
     render(); window.scrollTo(0,0); startTravel();
   });
@@ -241,11 +243,7 @@ function bind(){
   if(state.page==="battle") bindBattle();
   if(state.page==="doll") bindDollDemo();
   if(state.page==="map") bindMap();
-  document.querySelectorAll("[data-loc]").forEach(g=>{
-    const go = ()=>{ state.mapSel = g.dataset.loc; render(); };
-    g.addEventListener("click", go);
-    g.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
-  });
+  $("resumeWorldTravel")?.addEventListener("click",resumeWorldTravel);
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}
   document.querySelectorAll("[data-magic-buy]").forEach(el=>el.addEventListener("click",()=>buyMagic(el.dataset.magicBuy)));
@@ -375,7 +373,7 @@ else { if(location.hash==="#doll") state.page = "doll"; render(); }
 }
 // 所有實際遊戲位圖：首頁、人物底圖／表情、四隻全部表情、場景插圖。
 function gameImageSources(){
- const sources=new Set([...HOME_HEADS,...Object.values(SCENE_ART)]);
+ const sources=new Set([...HOME_HEADS,...Object.values(SCENE_ART),...Object.values(WORLD_ART)]);
  for(const [id,p] of Object.entries(PORTRAITS)){sources.add(p.base);if(p.sheet)sources.add(p.sheet);if(p.faces)for(const face of p.list)sources.add(faceSrc(id,face));}
  for(const [id,moods] of Object.entries(CRITTER_FACES))for(const mood of moods)sources.add(critterFaceSrc(id,mood));
  for(const src of Object.values(STORY_ART))sources.add(src);
