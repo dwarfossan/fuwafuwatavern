@@ -3,44 +3,31 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import http from 'node:http';
 import {chromium} from 'playwright';
-const root=path.resolve(process.argv[2]||'.'),current=root===process.cwd();
-const server=http.createServer(async(req,res)=>{try{const file=path.join(root,new URL(req.url,'http://localhost').pathname),body=await fs.readFile(file);res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html');if(file.endsWith('.webp'))await new Promise(r=>setTimeout(r,350+body.length/102.4));res.end(body);}catch{res.writeHead(404);res.end();}});
-await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}/index.html`,br=await chromium.launch();
+const root=process.cwd();
+const server=http.createServer(async(req,res)=>{try{const file=path.join(root,new URL(req.url,'http://localhost').pathname),body=await fs.readFile(file);res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html');res.setHeader('Cache-Control','no-store');if(file.endsWith('.webp'))await new Promise(r=>setTimeout(r,100));res.end(body);}catch{res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${server.address().port}/index.html`,browser=await chromium.launch();
 try{
- const out=[];
- for(const hash of ['', '#ambush','#town']){
-  const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});let requests=[],errors=[];p.on('request',r=>{if(/(mira|brun|ada|liliana)(_noface|\/sheet)\.webp$/.test(r.url()))requests.push(r.url())});p.on('pageerror',e=>errors.push(e.message));const start=performance.now();await p.goto(url+hash,{waitUntil:'domcontentloaded'});
-  if(current){await p.locator('.image-startup').waitFor();assert(await p.locator('.image-startup progress').isVisible());await p.screenshot({path:'/tmp/image-startup-'+(hash.slice(1)||'cover')+'.png'});}
-  const selector=hash==='#town'?'[data-town-place]':hash==='#ambush'?'#stage':'.cover-party';await p.locator(selector).first().waitFor();const initial=Math.round(performance.now()-start);
-  if(hash==='#town'){
-   const before=requests.length,places=[];
-   for(const place of ['inn','smith','guild','items']){const box=await p.locator(`[data-town-place="${place}"]`).boundingBox();const at=performance.now();await p.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);await p.locator('.actor .portrait').waitFor();const immediately=await p.locator('.actor .portrait').evaluate(e=>({ready:e.classList.contains('portrait-ready'),decoded:[...e.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth)}));await p.waitForFunction(()=>document.querySelector('.actor .portrait').classList.contains('portrait-ready'));places.push({place,ms:Math.round(performance.now()-at),...immediately});if(current)assert.deepEqual(immediately,{ready:true,decoded:true});await p.screenshot({path:'/tmp/image-startup-ready-'+(current?'after-':'before-')+place+'.png'});await p.locator('#townStreet').tap();}
-   const after=requests.length;if(current)assert.equal(after,before,'首次點四店不得再下載NPC素材');out.push({hash,initial,places,extraImageRequests:after-before});
-  }else{
-   const imgs=hash==='#ambush'?'.scene-bg img,.party img':'.cover-party';const ready=await p.locator(imgs).evaluateAll(is=>is.every(i=>i.complete&&i.naturalWidth));if(current)assert(ready,'首屏出現即全部圖片可顯示');if(hash==='')assert(!requests.some(u=>u.includes('/faces/')),'封面不下載整組表情或城鎮圖');let roll;
-   if(hash===''){const at=performance.now();await p.locator('#start').tap();await p.locator('#next').waitFor();const headsReady=await p.locator('.c-head').evaluateAll(is=>is.length&&is.every(i=>i.complete&&i.naturalWidth));if(current)assert(headsReady,'首次擲屬性畫面頭像已解碼');roll={ms:Math.round(performance.now()-at),headsReady};}
-   out.push({hash:hash||'cover',initial,ready,roll});
-  }
-  assert.deepEqual(errors,[]);await p.close();
+ const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const requests=[],errors=[];p.on('request',r=>{if(/\.webp(?:\?|$)/.test(r.url()))requests.push(r.url());});p.on('pageerror',e=>errors.push(e.message));await p.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1}'));
+ let fail=true;await p.route('**/assets/portraits/merchant.webp*',route=>fail?route.abort():route.continue());
+ await p.goto(url,{waitUntil:'domcontentloaded'});await p.locator('.cover-loading').waitFor();assert(await p.locator('#start').isDisabled());assert.equal(await p.locator('.cover-party img').count(),4);
+ await p.waitForFunction(()=>[...document.querySelectorAll('.cover-party img')].every(i=>i.complete&&i.naturalWidth));
+ assert.equal(await p.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(0, 0, 0)');
+ // Ignore rocking transform while measuring the reserved box coordinates.
+ await p.addStyleTag({content:'.cover-party img{animation:none!important}'});const before=await p.locator('.cover-party').boundingBox();await p.screenshot({path:'/tmp/startup-black-heads.png'});
+ await p.locator('#retryImages:not([hidden])').waitFor();assert(await p.locator('#start').isDisabled());assert.match(await p.locator('.image-startup label').textContent(),/失敗/);
+ const total=await p.evaluate(()=>gameImageSources().length);assert.equal(await p.locator('progress').evaluate(e=>e.value),total-1,'失敗圖片不可計為完成');
+ const count=requests.length;fail=false;await p.locator('#retryImages').tap();await p.locator('.cover:not(.cover-loading)').waitFor();assert(await p.locator('#start').isEnabled());assert.equal(await p.locator('.image-startup').count(),0);assert.deepEqual(await p.locator('.cover-party').boundingBox(),before,'頭像原位揭示首頁');
+ assert.equal(requests.length-count,1,'只重新下載失敗圖');assert(await p.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.get(src)?.complete&&entryDecodedImages.get(src)?.naturalWidth)));
+ await p.waitForTimeout(550);await p.screenshot({path:'/tmp/startup-home-ready.png'});
+ const after=requests.length;
+ await p.locator('#start').tap();await p.locator('#next').waitFor();for(let i=0;i<4;i++){await p.locator(`[data-tab="${i}"]`).tap();await p.locator('#rollAll').tap();await p.locator('#autoAssign').tap();}await p.locator('#next').tap();await p.locator('#stage').waitFor();
+ for(const scene of ['prologue','farewell','ambush','caravan','townArrival','townSupplier']){
+  await p.evaluate(async scene=>{state.page='story';state.scene=scene;state.line=0;render();for(let i=0;i<SCENES[scene].script.length;i++){state.line=i;await prepareStoryImages();render();}},scene);
  }
- if(current){
-  const town=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-  await town.goto(url+'#battle?phase=explore');await town.locator('#board-floor').waitFor();await town.evaluate(()=>quickTown());
-  assert.equal(await town.locator('[data-town-place][aria-busy="true"]').count(),4,'正常流程首次进城須先準備圖片');
-  assert(await town.locator('[data-town-place="inn"]').isDisabled());
-  await town.locator('[data-town-place="inn"]').tap();
-  assert(await town.locator('.actor .portrait').evaluate(el=>el.classList.contains('portrait-ready')&&[...el.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth)),'完成前不開店，打開時兩圖皆就緒');
-  await town.close();console.log('PASS 正常流程首次進城：逐店準備，未完成不可進店，完成後開店立即顯圖');
-  const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),held=[];
-  await p.route('**/party_heads.webp',route=>{held.push(route);});
-  await p.goto(url,{waitUntil:'domcontentloaded'});await p.locator('.image-startup').waitFor();
-  await p.locator('.image-error-message').waitFor({timeout:12000});
-  assert.match(await p.locator('.image-error-message').textContent(),/逾時/);assert.equal(await p.locator('.image-startup').count(),0);
-  await p.unroute('**/party_heads.webp');await Promise.allSettled(held.map(route=>route.abort()));
-  await p.locator('.image-error-message').tap();await p.waitForFunction(()=>document.querySelector('.cover-party').naturalWidth>0);
-  assert(await p.locator('.cover-party').isVisible());assert.equal(await p.locator('.image-error-message,.image-loading-message').count(),0);
-  await p.screenshot({path:'/tmp/image-startup-timeout-recovered.png'});await p.close();
-  console.log('PASS 首次下載無回應：8秒後有可見逾時重試，恢復後圖片正常，不永久鎖住啟動');
- }
- console.log(JSON.stringify(out));
-}finally{await br.close();await new Promise(r=>server.close(r));}
+ await p.evaluate(()=>quickTown());
+ for(const place of ['inn','smith','guild','items']){await p.locator(`[data-town-place="${place}"]`).tap();assert(await p.locator('.actor .portrait').evaluate(e=>e.classList.contains('portrait-ready')));await p.evaluate(()=>{state.supplierSeen=true;});await p.locator('#townStreet').tap();}
+ await p.waitForTimeout(250);assert.equal(requests.length,after,'預載完成後劇情全句／四店／送貨不可再下載圖片');assert.deepEqual(errors,[]);
+ await p.close();
+ for(const hash of ['#town','#ambush','#battle?phase=explore']){const q=await browser.newPage({viewport:{width:390,height:844}});await q.goto(url+hash);await q.locator(hash==='#town'?'[data-town-place]':hash==='#ambush'?'#stage':'#board-floor').first().waitFor();assert(await q.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.has(src))));await q.close();}
+ console.log(`PASS：黑底四頭原位讀取、${total}圖片全數解碼才開放、失敗僅重試缺圖、六劇情全句／四店零追加下載、三個快速入口一致`);
+}finally{await browser.close();await new Promise(r=>server.close(r));}

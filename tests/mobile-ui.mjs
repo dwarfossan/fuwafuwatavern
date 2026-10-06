@@ -11,7 +11,7 @@ try{
   const errors=[];pg.on('pageerror',e=>errors.push(e.message));
   await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html'));
   await pg.waitForTimeout(500);
-  const party=await pg.locator('.cover-party').evaluate(e=>{const r=e.getBoundingClientRect();return {ok:e.complete&&e.naturalWidth>0,left:r.left,right:r.right,w:r.width}});
+  const party=await pg.locator('.cover-party').evaluate(e=>{const r=e.getBoundingClientRect();return {ok:[...e.querySelectorAll('img')].length===4&&[...e.querySelectorAll('img')].every(i=>i.complete&&i.naturalWidth>0),left:r.left,right:r.right,w:r.width}});
   assert(party.ok);assert(party.left>=0&&party.right<=390&&party.w>200);
   assert(!(await pg.locator('.sub').innerText()).includes('今晚'));ok('封面四小隻合照圖有載入、不超出手機寬，文案符合午後');
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/cover.png'});
@@ -102,6 +102,7 @@ try{
   {
     const p3=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
     await p3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await p3.locator('#board-floor').waitFor();
  await p3.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
     await p3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
     await p3.evaluate(()=>{ endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });

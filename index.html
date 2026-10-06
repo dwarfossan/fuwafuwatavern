@@ -13,16 +13,12 @@ if(window.top===window.self && window.innerWidth>600) location.replace("phone.ht
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap">
 <link rel="stylesheet" href="css/style.css">
 <script>
-// 首屏圖片在遊戲脚本下載前開始載入；只請求目前入口會顯示的那張。
-{const sources=[];
- if(!location.hash)sources.push('assets/portraits/party_heads.webp');
- if(location.hash==='#ambush')sources.push('assets/scenes/caravan_encounter.webp');
- if(location.hash==='#town'||location.hash==='#ambush')for(const id of ['fox','tiger','wolf','raccoon'])sources.push(`assets/faces/${id}/normal.webp`);
- if(location.hash==='#town')for(const id of ['mira','brun','ada','liliana'])sources.push(`assets/portraits/${id}_noface.webp`,`assets/faces/${id}/sheet.webp`);
- for(const src of sources){const link=document.createElement('link');link.rel='preload';link.as='image';link.href=src;link.fetchPriority='high';document.head.append(link);}}
+// 四隻首頁頭像優先請求，其他遊戲圖片由共用啟動流程統一準備。
+for(const id of ['fox','tiger','wolf','raccoon']){const link=document.createElement('link');link.rel='preload';link.as='fetch';link.crossOrigin='anonymous';link.href=`assets/portraits/home_${id}.webp`;link.fetchPriority='high';document.head.append(link);}
 </script>
 </head>
-<body>
+<body class="image-boot">
+<div id="bootBackdrop" aria-hidden="true"></div>
 <div class="wrap" id="app"><section class="image-startup" role="status"><p>圖片準備中…</p><progress aria-label="圖片準備進度"></progress></section></div>
 <script src="data/abilities.js"></script>
 <script src="data/critters.js"></script>

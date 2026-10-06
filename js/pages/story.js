@@ -132,7 +132,7 @@ function updateStoryLine(){
   party?.classList.toggle("curse-flash", !!line.curse);
   party?.querySelectorAll("[data-info]").forEach(el=>{ el.classList.toggle("speaking", el.dataset.info===line.who || line.who==="all");
     const img = el.querySelector(".c-head"), src = critterFaceSrc(el.dataset.info, critterMood(el.dataset.info, line));
-    if(img && img.getAttribute("src")!==src) swapPreparedStoryImage(img,src);
+    if(img && (img.dataset.imageSource||img.getAttribute("src"))!==src) swapPreparedStoryImage(img,src);
     el.querySelectorAll(".story-critter-mark").forEach(x=>x.remove());
     const mark=critterMark(el.dataset.info,line);if(mark)el.insertAdjacentHTML("beforeend",`<span class="story-critter-mark">${obsBubbleHTML(mark)}</span>`); });
   const glow = stage.querySelector(".hug-glow");
@@ -167,9 +167,10 @@ function storyPartyHTML(line={}){
 const storyImageLoads=new Map();
 const storyDecodedImages=new Map();
 function swapPreparedStoryImage(img,src){
- const ready=storyDecodedImages.get(src);
+ let ready=storyDecodedImages.get(src);
+ if(ready?.isConnected&&ready!==img)ready=ready.cloneNode(true);
  if(!ready){delete img.dataset.imageSource;img.src=src;bindPortraitLoading();return;}
- ready.removeAttribute("data-image-source");
+ ready.dataset.imageSource=src;
  for(const attr of [...img.attributes])if(attr.name!=="src"&&attr.name!=="data-image-source")ready.setAttribute(attr.name,attr.value);
  ready.onload=null;ready.onerror=null;
  img.replaceWith(ready);

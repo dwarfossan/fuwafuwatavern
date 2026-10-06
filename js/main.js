@@ -25,9 +25,9 @@ function render(){
   app.classList.toggle('shop-screen',state.page==='shop');
   app.classList.toggle('battle-screen',state.page==='battle');
   app.classList.toggle('map-screen',state.page==='map');
-  app.innerHTML = state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory();
+  app.innerHTML = cachedImageHTML(state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory());
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
-  app.insertAdjacentHTML("beforeend", renderModal());
+  app.insertAdjacentHTML("beforeend", cachedImageHTML(renderModal()));
   if(entering) app.firstElementChild?.classList.add("enter");
   bind();
   bindModal();
@@ -326,16 +326,28 @@ function quickTown(){
   state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
   state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
 }
-// 首屏解碼完成後才建立入口畫面；網路等待有可見進度，無關入口不下載城鎮圖。
+// 開始前集中下載／解碼遊戲圖片，後續由記憶體來源重用。
 const entryDecodedImages=new Map();
 const entryImageLoads=new Map();
+const entryImageURLs=new Map();
 const entryImageFailures=new Map();
-function loadEntryImage(src){
+function cachedImageHTML(html){
+ return html.replace(/(<img\b[^>]*?\bsrc=")([^"]+)(")/g,(match,before,src,after)=>entryImageURLs.has(src)?`${before}${entryImageURLs.get(src)}${after} data-image-source="${src}"`:match);
+}
+function loadEntryImage(src,retry=false,timeoutMs=8000){
  if(!entryImageLoads.has(src)){
-  const img=new Image();img.fetchPriority='high';img.src=src;
+  const img=new Image(),controller=new AbortController();img.fetchPriority='high';let objectURL;
   const pending=new Promise((resolve,reject)=>{
-   const timer=setTimeout(()=>{entryImageFailures.set(src,'timeout');img.src='';reject(new Error('圖片準備逾時'));},8000);
-   img.decode().then(()=>{clearTimeout(timer);entryImageFailures.delete(src);entryDecodedImages.set(src,img);resolve(img);},error=>{clearTimeout(timer);reject(error);});
+   const timer=setTimeout(()=>{entryImageFailures.set(src,'timeout');controller.abort();img.src='';reject(new Error('圖片準備逾時'));},timeoutMs);
+   (async()=>{
+    try{
+     const url=new URL(src,document.baseURI);if(retry)url.searchParams.set('image_retry',String(++retryDisplayImage.serial));
+     if(url.protocol==='file:')img.src=retry?url.href:src;
+     else{const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw new Error('圖片下載失敗');objectURL=URL.createObjectURL(await response.blob());img.src=objectURL;}
+     await img.decode();if(controller.signal.aborted)throw new Error('圖片準備逾時');
+     clearTimeout(timer);entryImageFailures.delete(src);if(objectURL)entryImageURLs.set(src,objectURL);entryDecodedImages.set(src,img);resolve(img);
+    }catch(error){clearTimeout(timer);if(objectURL)URL.revokeObjectURL(objectURL);reject(error);}
+   })();
   }).catch(error=>{if(!entryImageFailures.has(src))entryImageFailures.set(src,'error');entryImageLoads.delete(src);throw error;});
   entryImageLoads.set(src,pending);
  }
@@ -343,7 +355,7 @@ function loadEntryImage(src){
 }
 function adoptEntryImages(){
  document.querySelectorAll('img').forEach(img=>{
-  const ready=entryDecodedImages.get(img.getAttribute('src'));
+  const ready=entryDecodedImages.get(img.dataset.imageSource||img.getAttribute('src'));
   if(!ready||ready===img||ready.isConnected)return;
   for(const attr of [...ready.attributes])if(attr.name!=='src')ready.removeAttribute(attr.name);
   for(const attr of [...img.attributes])if(attr.name!=='src')ready.setAttribute(attr.name,attr.value);
@@ -361,15 +373,33 @@ else if(/^#battle(?:\?|$)/.test(location.hash)){
 else { if(location.hash==="#doll") state.page = "doll"; render(); }
 
 }
+// 所有實際遊戲位圖：首頁、人物底圖／表情、四隻全部表情、場景插圖。
+function gameImageSources(){
+ const sources=new Set(HOME_HEADS);
+ for(const [id,p] of Object.entries(PORTRAITS)){sources.add(p.base);if(p.sheet)sources.add(p.sheet);if(p.faces)for(const face of p.list)sources.add(faceSrc(id,face));}
+ for(const [id,moods] of Object.entries(CRITTER_FACES))for(const mood of moods)sources.add(critterFaceSrc(id,mood));
+ for(const src of Object.values(STORY_ART))sources.add(src);
+ for(const scene of Object.values(SCENES))if(scene.image)sources.add(scene.image);
+ return [...sources];
+}
 async function prepareEntry(){
- const sources=[];
- if(!location.hash)sources.push('assets/portraits/party_heads.webp');
- if(location.hash==='#ambush')sources.push(SCENES.ambush.image);
- if(location.hash==='#town'||location.hash==='#ambush')for(const id of Object.keys(CRITTER_FACES))sources.push(critterFaceSrc(id,'normal'));
- if(location.hash==='#town')for(const id of Object.values(TOWN_PORTRAIT))sources.push(PORTRAITS[id].base,PORTRAITS[id].sheet);
- const progress=document.querySelector('.image-startup progress');let done=0;
- if(progress){progress.max=sources.length||1;progress.value=0;}
- await Promise.allSettled(sources.map(src=>loadEntryImage(src).finally(()=>{if(progress)progress.value=++done;})));
- startEntry();
+ const app=document.getElementById('app');app.innerHTML=renderCover(true);
+ const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages');
+ progress.max=sources.length;
+ function update(){const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';}
+ async function run(retry=false){
+  retryButton.hidden=true;label.firstChild.textContent='讀取中 ';update();
+  // 頭像先解碼並沿用其節點，再以四個並行工作逐張準備其餘圖片。
+  await Promise.allSettled(HOME_HEADS.map(src=>loadEntryImage(src,retry,30000).then(()=>{adoptEntryImages();update();})));
+  const pending=sources.filter(src=>!entryDecodedImages.has(src)&&!HOME_HEADS.includes(src));let cursor=0;
+  await Promise.all(Array.from({length:4},async()=>{while(cursor<pending.length){const src=pending[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});update();}}));
+  if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;return;}
+  document.body.classList.remove('image-boot');
+  const backdrop=document.getElementById('bootBackdrop');if(!location.hash){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
+  if(!location.hash){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();}
+  else startEntry();
+ }
+ retryButton.addEventListener('click',()=>run(true));
+ await run();
 }
 prepareEntry();

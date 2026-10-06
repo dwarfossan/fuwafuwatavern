@@ -12,7 +12,9 @@ try{
   page.on('request',request=>{if(request.url().includes('/assets/faces/'))faceRequests.push(request.url());});
   await page.goto(file,{waitUntil:'load'});
   await page.waitForTimeout(300);
-  assert.equal(faceRequests.length,0,'封面不可預載表情圖');
+  await page.locator('.cover:not(.cover-loading)').waitFor();
+  assert(faceRequests.length>0,'首面須集中預載全表情圖');
+  assert(await page.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.has(src))),'全部圖片完成才進首頁');
 
   await page.goto(file+'?perf=town#town',{waitUntil:'load'});
   await page.waitForTimeout(300);
@@ -25,7 +27,7 @@ try{
   }
 
   await page.goto(file+'?perf=explore#battle?phase=explore',{waitUntil:'load'});
-  await page.waitForTimeout(500);
+  await page.locator('#board-floor').waitFor();await page.waitForTimeout(500);
   let timers=await page.evaluate(()=>({
     phase:B().phase,
     ui:globalThis.eval('battleUiTimer !== null'),
@@ -42,7 +44,7 @@ try{
   assert.deepEqual(timers,{ui:true,ground:true},'離開戰場須停止兩個計時器');
 
   await page.goto(file+'?perf=combat#battle?phase=combat',{waitUntil:'load'});
-  await page.waitForTimeout(500);
+  await page.locator('#board-floor').waitFor();await page.waitForTimeout(500);
   const camera=await page.evaluate(()=>{
     const b=B(),index=b.units.findIndex(u=>u.side==='pc'),u=b.units[index];
     b.turn=index;b.busy=false;b.result=null;
@@ -68,5 +70,5 @@ try{
     focusCleared:!B().focusReq
   }),waitSetup.before);
   assert.deepEqual(afterWait,{next:waitSetup.next,stationary:true,focusCleared:true},'點待機後可見的下一位玩家不得強制置中鏡頭');
-  console.log('PASS：封面零表情預載；四店 WebP 肖像；探索計時器啟動／離場停止；可見玩家焦點及實際待機均不移鏡。');
+  console.log('PASS：首面集中完成全圖片預載；四店 WebP 肖像；探索計時器啟動／離場停止；可見玩家焦點及實際待機均不移鏡。');
 }finally{await browser.close();}

@@ -1191,3 +1191,27 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 
 .image-loading-message{pointer-events:none}
 .image-pending{visibility:hidden}
+
+/* 首面集中讀取：預留正式首頁位置，完成後原位揭示。 */
+body.image-boot{background:#000}
+.cover-party{display:flex;position:relative;justify-content:center}
+.cover-party img{display:block;width:25%;height:auto;min-width:0;aspect-ratio:1}
+.cover-loading{position:relative}
+.cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading .cover-about{visibility:hidden;pointer-events:none}
+.cover-loading .cover-party img{animation:head-load-sway 2.4s ease-in-out infinite;transform-origin:50% 85%}
+.cover-loading .cover-party img:nth-child(2){animation-delay:-.6s}.cover-loading .cover-party img:nth-child(3){animation-delay:-1.2s}.cover-loading .cover-party img:nth-child(4){animation-delay:-1.8s}
+.cover-loading .image-startup{position:absolute;bottom:16px;left:10%;width:80%;min-height:0;align-content:start;display:grid;gap:8px;text-align:center;padding:0;color:var(--fur)}
+.cover-loading .image-startup progress{width:100%;accent-color:var(--honey)}
+.cover:not(.cover-loading) .lanterns,.cover:not(.cover-loading) .sign,.cover:not(.cover-loading) .sub,.cover:not(.cover-loading) #start,.cover:not(.cover-loading) .cover-about{animation:cover-reveal .5s ease both}
+@keyframes head-load-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes cover-reveal{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.cover-loading .cover-party img{animation:none}.cover:not(.cover-loading)>*{animation:none}}
+
+.image-startup [hidden]{display:none}
+
+#bootBackdrop{position:fixed;inset:0;background:#000;z-index:0;pointer-events:none;opacity:1;transition:opacity .5s ease}
+#bootBackdrop.ready{opacity:0}
+.cover{position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){#bootBackdrop{transition:none}}
+
+.cover-loading .cover-party img:not([src]){visibility:hidden}
