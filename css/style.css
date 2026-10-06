@@ -11,8 +11,8 @@
   --dim:#b9a9b5;
   --ink:#1f1a24;
   --bad:#e0766e;
-  --font-body:"LXGW WenKai TC","PingFang TC","Microsoft JhengHei",serif;
-  --font-disp:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --font-body:"LXGW WenKai TC","Microsoft JhengHei","PingFang TC","Noto Sans CJK TC","Noto Sans TC",system-ui,sans-serif;
+  --font-disp:var(--font-body);
   --font-num:"Fraunces",Georgia,serif;
 }
 *{box-sizing:border-box}
