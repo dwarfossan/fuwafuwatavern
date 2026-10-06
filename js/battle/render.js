@@ -7,6 +7,13 @@ const iconSVG = (k, size=16) => `<svg viewBox="-14 -14 148 148" width="${size}" 
 
 // 格子座標 → 畫面座標；會加上那格的高度（一層往上 HZ 像素），站在上面的東西都跟著抬高
 function iso(x, y){ const d=B().def; return {x:(x-y)*TW/2 + d.h*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
+// 探索連續座標的呈現高度：格子中心間平滑銜接，只影響角色與HUD，不改攀爬成本。
+function unitIso(v){
+ const p=iso(v.x,v.y);if(B().phase!=='explore')return p;
+ const x=Math.floor(v.x),y=Math.floor(v.y),tx=v.x-x,ty=v.y-y;
+ const h=(hAt(x,y)*(1-tx)+hAt(x+1,y)*tx)*(1-ty)+(hAt(x,y+1)*(1-tx)+hAt(x+1,y+1)*tx)*ty;
+ p.y+=(hAt(v.x,v.y)-h)*HZ;return p;
+}
 const diamond = (x,y) => { const p=iso(x,y); return `${p.x},${p.y} ${p.x+TW/2},${p.y+TH/2} ${p.x},${p.y+TH} ${p.x-TW/2},${p.y+TH/2}`; };
 
 function boardMarkState(){
@@ -209,7 +216,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 躲著的敵人不畫（玩家不知道牠在哪）
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
   shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
-  things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(t.svg));
+  things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
@@ -668,7 +675,7 @@ function fxSVG(kind, x, y, el){
 }
 
 function unitDoll(v, active){
-  const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2;
+  const p = unitIso(v), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
   if(v.look==="mimic")return `<g class="${live?'chest-result':''}">${mimicSVG(v,cx,cy-34)}</g>`;
@@ -822,11 +829,11 @@ function unitHUD(v, cx, top, badgeUp){
 const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
-  const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
+  const p = unitIso(v), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
   return `<g class="hud" data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
 }
 function tokenSVG(v, active){
-  const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
+  const p = unitIso(v), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
   const now = Date.now(), pct = v.hp/v.maxHp;
   const aimed = B().mode && B().aimHover===v.id;
   const doll = unitDoll(v, active);
@@ -1335,8 +1342,16 @@ function syncExploreUnitTransforms(){
   });
   const rx=Number(anchor.dataset.renderX),ry=Number(anchor.dataset.renderY);
   if(!Number.isFinite(rx)||!Number.isFinite(ry))return;
-  const from=iso(rx,ry),to=iso(v.x,v.y),transform=`translate(${to.x-from.x} ${to.y-from.y})`;
+  const from=unitIso({x:rx,y:ry}),to=unitIso(v),transform=`translate(${to.x-from.x} ${to.y-from.y})`;
   moving.forEach(el=>el.setAttribute("transform",transform));
+  // 重排現有角色節點，不重建地板／場景；移到前方時不能仍被原先前方的高台遮住。
+  const layer=anchor.closest('[data-scene-depth]');if(layer){
+    const depth=v.x+v.y+.5;layer.dataset.sceneDepth=depth;
+    const others=[...layer.parentNode.querySelectorAll(':scope > [data-scene-depth]')].filter(el=>el!==layer);
+    const next=others.find(el=>Number(el.dataset.sceneDepth)>depth);
+    if(next){if(layer.nextSibling!==next)layer.parentNode.insertBefore(layer,next);}
+    else if(others.length){const last=others[others.length-1];if(last.nextSibling!==layer)layer.parentNode.insertBefore(layer,last.nextSibling);}
+  }
 }
 // walking 只是既有紙娃娃的 CSS 動畫狀態；開始／停止都不重建 scene。
 function syncExploreWalking(units){

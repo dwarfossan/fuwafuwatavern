@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];
 pg.on('pageerror',e=>errors.push(e.message));
-async function fixture(){await pg.goto('about:blank');await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await pg.evaluate(()=>{const b=B();b.flowEpoch=(b.flowEpoch||0)+1;b.def.blocks=[];b.def.elev=[];delete b.def._h;b.groundEffects={};b.units.filter(u=>u.side==='foe').forEach((u,i)=>{u.x=1;u.y=1+i;u.statuses=[];});exploreParty().forEach((u,i)=>{u.x=15;u.y=15+i;u.statuses=[];});b.exploreSolo='fox';b.busy=false;b.exploreStopped=false;b.exploreRest=false;b.info=null;refreshBattle();centerCam(15,15);window.__floor=document.getElementById('board-floor').firstElementChild;});}
+async function fixture(){await pg.goto('about:blank');await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await pg.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));await pg.evaluate(()=>{const b=B();b.flowEpoch=(b.flowEpoch||0)+1;b.def.blocks=[];b.def.elev=[];delete b.def._h;b.groundEffects={};b.units.filter(u=>u.side==='foe').forEach((u,i)=>{u.x=1;u.y=1+i;u.statuses=[];});exploreParty().forEach((u,i)=>{u.x=15;u.y=15+i;u.statuses=[];});b.exploreSolo='fox';b.busy=false;b.exploreStopped=false;b.exploreRest=false;b.info=null;refreshBattle();centerCam(15,15);window.__floor=document.getElementById('board-floor').firstElementChild;});}
 try{
  await fixture();await pg.evaluate(()=>exploreMove(17.27,15.18));await pg.waitForFunction(()=>exploreUnit().x>15.1&&exploreUnit().x<16);
  const moving=await pg.evaluate(()=>({x:exploreUnit().x,y:exploreUnit().y,walking:exploreUnit().exploreWalking,hop:exploreUnit().anim?.k,foot:document.querySelector('.act-walk .dl-foot-left')!==null,floor:window.__floor===document.getElementById('board-floor').firstElementChild}));
@@ -23,7 +23,7 @@ try{
  await fixture();assert(await pg.evaluate(()=>{const u=exploreUnit();B().def.blocks=[{x:16,y:15,kind:'tree'}];return !exploreSegmentClear(u,u,{x:17,y:15});}));
  assert(await pg.evaluate(()=>{const b=B(),u=exploreUnit(),e=b.units.find(u=>u.side==='foe');b.def.blocks=[];e.x=16;e.y=15;e.statuses=[{k:'hidden',val:30}];return !exploreSegmentClear(u,u,{x:17,y:15});}));
  // Trap is resolved upon entering its region, before reaching its center.
- await fixture();await pg.evaluate(()=>{B().def.blocks=[{x:16,y:15,kind:'trap'}];exploreMove(17.2,15);});await pg.waitForFunction(()=>B().exploreStopReason==='trap');
+ await fixture();await pg.evaluate(()=>{Math.random=()=>0;exploreUnit().hp=exploreUnit().maxHp;B().def.blocks=[{x:16,y:15,kind:'trap'}];exploreMove(17.2,15);});await pg.waitForFunction(()=>B().exploreStopReason==='trap');
  assert(await pg.evaluate(()=>exploreUnit().x>=15.5&&exploreUnit().x<16));assert(await pg.evaluate(()=>B().def.blocks[0].triggered&&!B().busy));
  // Ground status stops the same continuous movement, not a new implementation of saves.
  await fixture();await pg.evaluate(()=>{Math.random=()=>0;B().groundEffects={'16,15':{x:16,y:15,kind:'charged',left:6000}};exploreMove(17.2,15);});await pg.waitForFunction(()=>!B().busy);

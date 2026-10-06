@@ -97,6 +97,7 @@ node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試
 node tests/world-objects.mjs # 板條箱／寶箱、移入／長按氣泡、火藥桶負重與動作、九格友傷與連鎖
 node tests/explore-objects.mjs # 探索物件：寶箱、門、推箱、陷阱、原層保留
 node tests/explore-watch.mjs # 潛行自動顯示可見敵人範圍、移動保留、地板更新與遮擋
+node tests/cover-ground-height.mjs # 首次授權入口、原Seed高台高度／遮擋、燃燒去底色
 node tests/explore-continuous.mjs # 連續座標、碰撞、踏步、陷阱／地面中斷與開戰就近佔位
 node tests/explore.mjs       # 探索同頁分層、單人移動／切角色、潛行、偵測與停下
 node tests/random-map.mjs    # 種子重現、50 張地圖出生點連通、隨機入口與固定伏擊

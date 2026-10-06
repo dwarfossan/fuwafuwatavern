@@ -97,7 +97,7 @@ function groundEffectSVG(f){
  if((f.visualAt||0)>Date.now())return '';
  const p=iso(f.x,f.y),cx=p.x,cy=p.y+TH/2,ink='#2a2630';
  const colors={fire:'#d89446',ice:'#a9dce6',charged:'#78b7cd',steam:'#c9cbd3'};
- let art=`<polygon points="${diamond(f.x,f.y)}" fill="${colors[f.kind]}" opacity=".72" stroke="${ink}" stroke-width="2"/>`;
+ let art=f.kind==='fire'?'':`<polygon points="${diamond(f.x,f.y)}" fill="${colors[f.kind]}" opacity=".72" stroke="${ink}" stroke-width="2"/>`;
  const flame=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><g class="ground-flame"><path d="M0 -31Q-4 -14 -11 -19Q-26 0 -11 10Q11 21 20 2Q22 -8 9 -20L6 -8Z" fill="#ee7540" stroke="${ink}" stroke-width="3"/><path d="M0 -8Q-11 4 -4 9Q8 16 10 5L4 -2L3 3Z" fill="#ffe080"/></g></g>`;
  if(f.kind==='fire')art+=flame(cx-19,cy+3,.75)+flame(cx+15,cy-3,1);
  if(f.kind==='ice')art+=`<path d="M${cx-38} ${cy+2}L${cx-5} ${cy-12}L${cx+12} ${cy-2}L${cx+39} ${cy-10}M${cx-5} ${cy-12}L${cx-12} ${cy+12}" stroke="#5f9bb9" stroke-width="3" fill="none"/><path d="M${cx-27} ${cy-3}L${cx-9} ${cy-9}" stroke="#fff" stroke-width="3"/>`;

@@ -397,7 +397,7 @@ async function prepareEntry(){
   if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;return;}
   document.body.classList.remove('image-boot');
   const backdrop=document.getElementById('bootBackdrop');if(!location.hash){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
-  if(!location.hash){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();}
+  if(!location.hash){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();bindModal();}
   else startEntry();
  }
  retryButton.addEventListener('click',()=>run(true));
