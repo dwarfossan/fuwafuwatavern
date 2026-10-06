@@ -97,6 +97,19 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
       ${ln("M40 92 L90 92 M40 99 L88 99", "#cbbd9e", 2.5)}
     </g>`,
     // 背包：皮革旅行背包（裝在角色背後）
+    // 箭袋：依大爺確認的預覽重畫成共用 SVG，外觀暫定 GPT。
+    quiver: RAW.quiver = `<g transform="rotate(-15 60 60)">
+      ${p("M77 57Q116 72 95 106L84 109L81 101Q104 78 75 67Z", LEATHER, 5)}
+      ${p("M34 48L78 48L83 104Q60 122 37 104Z", "#a0703f")}
+      ${p("M37 57L48 60L52 107L39 102Z", WOOD_DK, 0)}
+      <ellipse cx="56" cy="49" rx="23" ry="9" fill="${WOOD_DK}" stroke="${INK}" stroke-width="5"/>
+      ${ln("M44 49L38 15M57 48L57 7M69 48L78 17", "#c49a62", 5)}
+      ${p("M38 17L27 10L30 26L41 32L48 24L47 9Z", "#f2dfb5", 4)}
+      ${p("M57 10L47 2L47 20L57 28L67 20L67 2Z", "#f2dfb5", 4)}
+      ${p("M78 19L68 12L65 28L74 35L86 29L90 13Z", "#f2dfb5", 4)}
+      ${ln("M38 15L42 30M57 7L57 26M78 17L75 33", WOOD_DK, 3)}
+      ${p("M33 47Q55 62 79 47L80 57Q57 70 34 58Z", "#c49a62", 4)}
+    </g>`,
     backpack: RAW.backpack = `<g>
       ${p("M26 34 Q26 18 42 18 L78 18 Q94 18 94 34 L100 102 Q100 114 88 114 L32 114 Q20 114 20 102 Z", LEATHER)}
       ${p("M30 46 L90 46 L94 98 Q94 106 84 106 L36 106 Q26 106 26 98 Z", "#8b6243", 4)}
@@ -148,7 +161,7 @@ ITEM_ART.hunter = ITEM_ART.bow;
 // 裝備外觀與技能類別分開；魔法物品沿用base，撿起仍為同一畫法。
 function equipmentArtKey(it){
   if(!it)return null;
-  return it.art || ({"短棒":"club","彎刀":"scimitar"})[it.base||it.n] || groupOf(it)?.id;
+  return it.art || ({"短棒":"club","彎刀":"scimitar","箭袋":"quiver"})[it.base||it.n] || groupOf(it)?.id;
 }
 
 // 火藥桶原創手繪外觀暫定 GPT；地面與背包共用。
