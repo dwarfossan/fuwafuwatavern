@@ -385,7 +385,7 @@ function initBoardDrag(){
   window.addEventListener("blur",()=>{clearHold();tip(null);});
   window.addEventListener("pointerdown", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
-    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut") || (e.pointerType==="mouse" && e.button!==0)) return;
+    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut, .victory-loot") || (e.pointerType==="mouse" && e.button!==0)) return;
     // 第一根手指放下＝前面的手指一定都離開了。畫面重畫時手指按著的元素會被換掉，
     // 手機（尤其 iPhone）之後的放開事件送不到 window，留下「幽靈手指」讓下一次單指拖曳變成縮放
     if(e.isPrimary && (touches.size || pinch || drag)){ touches.clear(); pinch = null; drag = null; document.body.classList.remove("board-dragging"); }
@@ -454,7 +454,7 @@ function initBoardDrag(){
   // 滾輪縮放（以游標為中心）；在戰場上滾輪不捲頁面
   window.addEventListener("wheel", e=>{
     const wrap = e.target.closest && e.target.closest(".board-wrap");
-    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut")) return;
+    if(!wrap || !B() || e.target.closest(".bt-ov, .bt-logstrip, .tut, .victory-loot")) return;
     e.preventDefault();
     const dy = e.deltaMode===1 ? e.deltaY*16 : e.deltaY;
     const p = wrapXY(e);
@@ -1415,8 +1415,7 @@ function bindBattle(){
   if(b && b.focusReq && !b.result){ b.focusReq = false; const u = cur();
     if(!touches.size && !foeHid(u) && !onScreen(u)) centerCam(u.x, u.y - 1, true); }
   document.querySelectorAll('[data-loot]').forEach(el=>battleListen(el,'click',()=>{B().lootSelected=el.dataset.loot;refreshBattle();}));
-  document.querySelectorAll('[data-loot-person]').forEach(el=>battleListen(el,'click',()=>{B().lootRecipientId=el.dataset.lootPerson;refreshBattle();}));
-  document.querySelectorAll('[data-loot-slider]').forEach(el=>battleListen(el,'change',()=>{B().lootRecipientId=lootRecipients()[Number(el.value)]?.id;refreshBattle();}));
+  document.querySelectorAll('[data-loot-person]').forEach(el=>battleListen(el,'click',()=>{B().lootRecipientId=el.dataset.lootPerson;el.closest('details').open=false;refreshBattle();}));
   document.querySelectorAll('[data-loot-to]').forEach(el=>battleListen(el,'click',()=>claimBattleLoot(B().lootSelected,el.dataset.lootTo)));
   const aw = document.getElementById("afterWin"); if(aw) battleListen(aw, "click", ()=>{ sfx("pop"); leaveBattleTo(B().def.after); });
   document.querySelectorAll("[data-item]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); const b = B(); b.menu = null; b.mode = {key:"item", item:el.dataset.item}; refreshBattle(); }));
