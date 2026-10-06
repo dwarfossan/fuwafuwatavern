@@ -90,6 +90,7 @@ node tests/scene-image-assets.mjs  # 七張劇情素材、牆面切換、原哥�
 node tests/image-startup.mjs        # 黑底四頭原位讀取、全圖片解碼、失敗重試、劇情四店零追加下載
 node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情
 node tests/town-image-assets.mjs     # 城鎮 NPC：四組 WebP 已接用，首次店主肖像下載量低於原 PNG 的 20%
+node tests/battle-loot.mjs   # 勝利戰利品、四背包分配、負重、同名多件／實例、消耗／地面與戰後接續
 node tests/caravan.mjs       # 商隊戰後：打贏→繼續→商人道謝→四選一檢定（不能跳過）→報酬只發一次→走到城鎮
 node tests/stealth-mode.mjs # 切戰棋不開戰、安靜不增援、真實隱藏外觀與移動、主動攻擊及視野
 node tests/explore-combat.mjs # 原地切戰棋、小隊增援、奇襲、重試、返回探索及休息

@@ -1280,3 +1280,14 @@ body.image-boot{background:#000}
 .town-service-body .town-rest>p{margin:4px 0;font-size:11px}
 .town-service-page .nav{display:flex;justify-content:space-between}
 .story-chest{position:absolute;inset:0;width:100%;height:100%}
+
+/* 勝利戰利品清單，手機外觀暫定；戰場仍保留在底下。 */
+.bt-victory:has(.victory-loot){display:flex;flex-direction:column;justify-content:center;gap:10px;padding:10px;pointer-events:none}
+.bt-victory:has(.victory-loot) .bv-band{display:none}
+.bt-victory:has(.victory-loot) .bv-title{font-size:36px;-webkit-text-stroke:2px #6e3a12}
+.victory-loot{pointer-events:auto;width:100%;max-height:70%;overflow:auto;background:#2b242f;border:2px solid #e4be6b;border-radius:14px;padding:12px;color:var(--fur)}
+.victory-loot h3{margin:0 0 8px}.victory-loot h3 small{font-size:12px;color:var(--dim)}
+.loot-list{max-height:190px;overflow:auto;display:grid;gap:6px}
+.loot-item{display:flex;align-items:center;gap:8px;background:#39303d;border:2px solid transparent;border-radius:10px;padding:6px 8px;color:var(--fur);text-align:left;font:inherit;cursor:pointer}
+.loot-item.on{border-color:var(--honey)}.loot-item span{display:grid}.loot-item small{font-size:11px;color:var(--dim)}
+.loot-instruction{font-size:12px;margin:8px 0}.loot-recipients{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}.loot-recipients small{display:block;font-size:10px}.victory-loot>#afterWin{width:100%}

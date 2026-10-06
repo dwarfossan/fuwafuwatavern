@@ -641,7 +641,7 @@ function dropItem(u, it){
     syncBattleBag(u);
     if(state.inv[u.id]){ const i = state.inv[u.id].indexOf(it.id); if(i>=0) state.inv[u.id].splice(i, 1); }
   }else{
-    const i=u.items.indexOf(it); if(i>=0) u.items.splice(i,1);
+    const i=u.items.indexOf(it); if(i>=0){u.items.splice(i,1);const bi=(u.backpack||[]).indexOf(it);if(bi>=0)u.backpack.splice(bi,1);}
   }
 }
 // 點心＝這一隻短休一次：熟練格每一階回一半（無條件進位），跟 takeRest 的短休同一條公式；不算進每天兩次短休
