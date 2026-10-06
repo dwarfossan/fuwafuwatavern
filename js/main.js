@@ -332,28 +332,45 @@ const entryDecodedImages=new Map();
 const entryImageLoads=new Map();
 const entryImageURLs=new Map();
 const entryImageFailures=new Map();
+// 僅記錄圖片路徑與讀取階段，不記帳號、網址參數或其他遊戲資料。
+const entryImageSession={startedAt:new Date().toISOString(),clock:performance.now(),attempts:[]};
+let previousImageReport=null;try{previousImageReport=JSON.parse(localStorage.getItem('fuwa-image-load-report')||'null');}catch{}
+function getEntryImageReport(){
+ const now=performance.now(),sources=gameImageSources(),nav=performance.getEntriesByType('navigation')[0];
+ const resources=performance.getEntriesByType('resource').filter(r=>['link','css','script'].includes(r.initiatorType)).sort((a,b)=>b.duration-a.duration).slice(0,8).map(r=>{const url=new URL(r.name,document.baseURI);return {source:url.origin+url.pathname,type:r.initiatorType,startedMs:Math.round(r.startTime),elapsedMs:Math.round(r.duration)};});
+ return {version:1,startedAt:entryImageSession.startedAt,page:location.origin+location.pathname,elapsedMs:Math.round(now-entryImageSession.clock),beforeImagesMs:Math.round(entryImageSession.clock),pageElapsedMs:Math.round(now),navigation:nav?{ttfbMs:Math.round(nav.responseStart-nav.requestStart),documentMs:Math.round(nav.responseEnd-nav.startTime),domContentLoadedMs:Math.round(nav.domContentLoadedEventEnd)}:null,slowPageResources:resources,total:sources.length,decoded:sources.filter(src=>entryDecodedImages.has(src)).length,failures:[...entryImageFailures].map(([source,reason])=>({source,reason})),attempts:entryImageSession.attempts.map(r=>({...r,elapsedMs:r.elapsedMs??Math.round(now-r.clock),clock:undefined}))};
+}
+function saveEntryImageReport(){try{localStorage.setItem('fuwa-image-load-report',JSON.stringify(getEntryImageReport()));}catch{}}
+function downloadEntryImageReport(){
+ const url=URL.createObjectURL(new Blob([JSON.stringify({current:getEntryImageReport(),previous:previousImageReport},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='image-load-report.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+window.addEventListener('pagehide',saveEntryImageReport);
 function cachedImageHTML(html){
  return html.replace(/(<img\b[^>]*?\bsrc=")([^"]+)(")/g,(match,before,src,after)=>entryImageURLs.has(src)?`${before}${entryImageURLs.get(src)}${after} data-image-source="${src}"`:match);
 }
 function loadEntryImage(src,retry=false,timeoutMs=8000){
  if(!entryImageLoads.has(src)){
-  const img=new Image(),controller=new AbortController();img.fetchPriority='high';let objectURL;
+  const img=new Image(),controller=new AbortController();img.fetchPriority='high';let objectURL,stage='download',phaseAt=performance.now();
+  const record={source:src,retry,clock:phaseAt,startedMs:Math.round(phaseAt-entryImageSession.clock),status:'pending',stage,headersMs:null,downloadMs:null,decodeMs:null,bytes:null,httpStatus:null};
+  entryImageSession.attempts.push(record);if(entryImageSession.attempts.length>240)entryImageSession.attempts.shift();
+  const finish=(status,error)=>{if(record.status!=='pending')return;record.status=status;record.stage=stage;record.elapsedMs=Math.round(performance.now()-record.clock);if(stage==='decode')record.decodeMs=Math.round(performance.now()-phaseAt);if(error)record.error={name:error.name,message:String(error.message).slice(0,240)};};
   const pending=new Promise((resolve,reject)=>{
-   const timer=setTimeout(()=>{entryImageFailures.set(src,'timeout');controller.abort();img.src='';reject(new Error('圖片準備逾時'));},timeoutMs);
+   const timer=setTimeout(()=>{const error=new Error('圖片準備逾時');finish('timeout',error);entryImageFailures.set(src,'timeout');controller.abort();img.src='';reject(error);},timeoutMs);
    (async()=>{
     try{
      const url=new URL(src,document.baseURI);if(retry)url.searchParams.set('image_retry',String(++retryDisplayImage.serial));
-     if(url.protocol==='file:')img.src=retry?url.href:src;
-     else{const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw new Error('圖片下載失敗');objectURL=URL.createObjectURL(await response.blob());img.src=objectURL;}
-     await img.decode();if(controller.signal.aborted)throw new Error('圖片準備逾時');
-     clearTimeout(timer);entryImageFailures.delete(src);if(objectURL)entryImageURLs.set(src,objectURL);entryDecodedImages.set(src,img);resolve(img);
-    }catch(error){clearTimeout(timer);if(objectURL)URL.revokeObjectURL(objectURL);reject(error);}
+     if(url.protocol==='file:'){stage='local-load/decode';img.src=retry?url.href:src;}
+     else{const response=await fetch(url,{signal:controller.signal});record.headersMs=Math.round(performance.now()-record.clock);record.httpStatus=response.status;if(!response.ok)throw new Error('圖片下載失敗：HTTP '+response.status);stage='body';record.stage=stage;const blob=await response.blob();record.bytes=blob.size;record.downloadMs=Math.round(performance.now()-record.clock);objectURL=URL.createObjectURL(blob);img.src=objectURL;stage='decode';phaseAt=performance.now();}
+     record.stage=stage;await img.decode();if(controller.signal.aborted)throw new Error('圖片準備逾時');
+     clearTimeout(timer);finish('ready');entryImageFailures.delete(src);if(objectURL)entryImageURLs.set(src,objectURL);entryDecodedImages.set(src,img);resolve(img);
+    }catch(error){clearTimeout(timer);finish('error',error);if(objectURL)URL.revokeObjectURL(objectURL);reject(error);}
    })();
   }).catch(error=>{if(!entryImageFailures.has(src))entryImageFailures.set(src,'error');entryImageLoads.delete(src);throw error;});
   entryImageLoads.set(src,pending);
  }
  return entryImageLoads.get(src);
 }
+
 function adoptEntryImages(){
  document.querySelectorAll('img').forEach(img=>{
   const ready=entryDecodedImages.get(img.dataset.imageSource||img.getAttribute('src'));
@@ -385,22 +402,22 @@ function gameImageSources(){
 }
 async function prepareEntry(){
  const app=document.getElementById('app');app.innerHTML=renderCover(true);
- const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages');
+ const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages'),reportButton=app.querySelector('#imageLoadReport');
  progress.max=sources.length;
  function update(){const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';}
  async function run(retry=false){
-  retryButton.hidden=true;label.firstChild.textContent='讀取中 ';update();
+  retryButton.hidden=true;reportButton.hidden=true;label.firstChild.textContent='讀取中 ';update();
   // 頭像先解碼並沿用其節點，再以四個並行工作逐張準備其餘圖片。
   await Promise.allSettled(HOME_HEADS.map(src=>loadEntryImage(src,retry,30000).then(()=>{adoptEntryImages();update();})));
   const pending=sources.filter(src=>!entryDecodedImages.has(src)&&!HOME_HEADS.includes(src));let cursor=0;
   await Promise.all(Array.from({length:4},async()=>{while(cursor<pending.length){const src=pending[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});update();}}));
-  if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;return;}
-  document.body.classList.remove('image-boot');
+  if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;reportButton.hidden=false;saveEntryImageReport();return;}
+  saveEntryImageReport();document.body.classList.remove('image-boot');
   const backdrop=document.getElementById('bootBackdrop');if(!location.hash){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
   if(!location.hash){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();bindModal();}
   else startEntry();
  }
- retryButton.addEventListener('click',()=>run(true));
+ retryButton.addEventListener('click',()=>run(true));reportButton.addEventListener('click',downloadEntryImageReport);
  await run();
 }
 prepareEntry();

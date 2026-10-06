@@ -87,6 +87,7 @@ node tests/chest-rarity.mjs       # 五階宝箱色票、共用劇情／探索�
 node tests/world-chest.mjs        # 選取藍屏、城鎮背景、泡泡導航、四人開箱與一次獎勵、寶箱怪戰鬥／接續
 node tests/world-travel.mjs       # 共用旅店／公會、分層地圖、導航／停走、到達／寶箱、觸控鏡頭回歸
 node tests/scene-image-assets.mjs  # 七張劇情素材、牆面切換、原哥布林錨點、四街景入口與零追加下載
+node tests/image-load-report.mjs # 98%失敗來源／耗時紀錄、HTTP／解碼／逾時與重試保存
 node tests/image-startup.mjs        # 黑底四頭原位讀取、全圖片解碼、失敗重試、劇情四店零追加下載
 node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情
 node tests/town-image-assets.mjs     # 城鎮 NPC：四組 WebP 已接用，首次店主肖像下載量低於原 PNG 的 20%
