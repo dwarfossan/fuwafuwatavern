@@ -134,6 +134,7 @@ function boardTerrainKey(){
 function battleNodeKey(n){
   if(n.nodeType!==1)return "";
   return n.id?`#${n.id}`:
+    n.dataset?.sceneKey?`scene:${n.dataset.sceneKey}`:
     n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
@@ -201,22 +202,22 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const {b,d,u}=ctx, out=[], raised=raisedTiles();
   wakeSceneAt(b);
   const nowOn=b.phase!=="explore" && u && !b.result && !u.dead && !u.down && !foeHid(u)?u:null;
-  const glow=nowOn?`<polygon class="tile-now" points="${diamond(nowOn.x,nowOn.y)}"/>`:"";
+  const glow=nowOn?`<polygon class="tile-now" data-scene-key="active-tile" points="${diamond(nowOn.x,nowOn.y)}"/>`:"";
   if(nowOn && hAt(nowOn.x,nowOn.y)===0) out.push(glow);
   // 物件與棋子，依前後順序畫
   const things = [];
   // 地形柱排在同一格的物件、角色前面（s 比較小），比牠後面的角色晚畫，所以會擋住後面的人
   raised.forEach(({x,y})=>{
-    things.push({s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
-  (b.drops||[]).forEach(dp=> things.push({s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
-  Object.values(b.groundEffects||{}).forEach(f=>things.push({s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
-  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}>${svg}</g>`});});
+    things.push({key:`tile:${x},${y}`,s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
+  (b.drops||[]).forEach((dp,i)=> things.push({key:`drop:${i}`,s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
+  Object.values(b.groundEffects||{}).forEach(f=>things.push({key:`ground:${f.kind}:${f.x},${f.y}`,s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({key:`block:${o.kind}:${o.x},${o.y}`,s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}>${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
-  shown.forEach(v=> things.push({s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
-  things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-depth="${t.s}">${t.svg}</g>`));
+  shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
+  things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
