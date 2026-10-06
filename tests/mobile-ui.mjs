@@ -68,9 +68,9 @@ try{
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/map.png'});
   for(const id of ['cave','forest','town','tavern']){
     await pg.evaluate(id=>{const l=WORLD.locations.find(l=>l.id===id),f=document.querySelector('.map-frame'),c=state.worldCamera;c.cam={x:f.clientWidth/2-l.x*c.zoom,y:f.clientHeight/2-l.y*c.zoom};applyWorldCamera();},id);
-    await pg.locator(`[data-loc="${id}"] text`).click();assert.equal(await pg.evaluate(()=>state.mapSel),id);
+    await pg.locator(`[data-loc="${id}"]`).hover();assert(await pg.locator("#world-place-hint").isVisible());assert.equal(await pg.evaluate(()=>state.travel),null);
   }
-  ok('大地圖劇情同高、四毛固定下方，鏡頭移到各地點後皆可點選');
+  ok('大地圖劇情同高、四毛固定下方，鏡頭移到各地點後游標皆顯示泡泡');
   await pg.evaluate(()=>{window.setTimeout=()=>0;quickBattle();});await pg.waitForTimeout(500);
   await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(u=>u.id==='fox');b.busy=false;b.tut=0;refreshBattle();});
   const boardWithTutorial=await pg.locator('.board-wrap').boundingBox();

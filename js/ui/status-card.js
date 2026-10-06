@@ -67,7 +67,7 @@ function statusCardHTML(v, b, embedded=false){
   } else {
     // 敵人、NPC：紙娃娃＋裝備格（不能拖）、六圍（介面沿用只顯示調整值，資料保存完整屬性值）；不顯示熟練格、燈號、小筆記
     // 背包：看穿（被動感知、搜索）或打倒之後才打得開（大爺 10-02）
-    const big=`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:sideColor(v),look:MONSTER_LOOK[v.look],...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`;
+    const big=`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${v.look==="mimic"?mimicSVG(v,70,100):dollSVG({id:v.id,color:sideColor(v),look:MONSTER_LOOK[v.look],...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`;
     const roSlot=(it,label,cls)=>`<div class="status-eqslot ro ${cls}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:""}</div>`;
     const known=pocketKnown(v), bagOpen=known && !!b.gearBagOpen, items=v.backpack||[];
     const bag=known

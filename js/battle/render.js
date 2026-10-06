@@ -637,6 +637,7 @@ function faceSVG(v, x, y, size){
   if(foeHid(v)) return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#2a2630"/>
     <text x="50" y="69" text-anchor="middle" font-size="58" font-weight="900" fill="#e0766e" font-family="var(--font-num),serif">?</text></svg>`;
   if(v.side==="pc") return critterSVG(v.id,v.down?"hurt":B().result==="win"?"happy":v.svgMood).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
+  if(v.look==="mimic")return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="-80 -115 160 160">${mimicSVG(v)}</svg>`;
   const L = MONSTER_LOOK[v.look];
   return (L.face || L.head).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
 }
@@ -670,6 +671,7 @@ function unitDoll(v, active){
   const p = iso(v.x,v.y), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
+  if(v.look==="mimic")return `<g class="${live?'chest-result':''}">${mimicSVG(v,cx,cy-34)}</g>`;
   const look = v.side!=="pc" ? MONSTER_LOOK[v.look] : null;
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});

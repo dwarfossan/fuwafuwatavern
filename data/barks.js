@@ -38,3 +38,12 @@ const WORLD_CHAT={
  arrival:{draft:'GPT',lines:[{who:'fox',text:'到了。先看看入口。',mood:'normal'},{who:'tiger',text:'好！大家一起進去！',mood:'happy'}]},
  chest:{draft:'GPT',lines:[{who:'narr',text:'路旁的草叢裡，露出一只舊寶箱。'},{who:'tiger',text:'寶箱！我們發現寶箱了！',mood:'happy'},{who:'fox',text:'先別碰。鎖和箱子都要看清楚。',mood:'confused'},{who:'wolf',text:'很好，至少這次先停下了。',mood:'serious'},{who:'raccoon',text:'它還沒跑。',mood:'sly'},{who:'narr',text:'小傢伙們記下寶箱的位置，繼續沿著原路前進。'}]}
 };
+
+// 路旁開箱與寶箱怪演出：GPT 草稿。
+WORLD_CHAT.chestTry={
+ fox:{draft:'GPT',try:'先找鎖舌的位置。',win:'開了。別把金幣撒出去。',lose:'鎖舌沒動。換你們試試。',winMood:'happy',loseMood:'confused'},
+ tiger:{draft:'GPT',try:'我會輕輕轉！',win:'開了！我真的很輕！',lose:'它比我的手還倔。',winMood:'happy',loseMood:'blank'},
+ wolf:{draft:'GPT',try:'先讓我看看卡在哪裡。',win:'好了。手先拿開再掀蓋。',lose:'沒開。至少手還在。',winMood:'smile',loseMood:'sigh'},
+ raccoon:{draft:'GPT',try:'這個鎖，有點想法。',win:'它想通了。',lose:'它暫時不想跟我聊。',winMood:'happy',loseMood:'caught'}
+};
+WORLD_CHAT.chestEnd={draft:'GPT',choose:'誰來試著開鎖？每隻只能試一次。',gold:'箱裡有 {gold} 枚金幣，四隻各分 {share}。',reveal:'箱蓋突然張開，露出一排牙齒！',unlockMimic:'鎖鬆了……箱子怎麼在動？',lockedMimic:'鎖沒開……箱子怎麼在動？',failed:'四隻都試過了。記下位置，先走吧。',mimic:'寶箱長牙了！？',defeated:'這次確認了。它不會再咬人。',resume:'回到剛才停下的位置，繼續走。'};

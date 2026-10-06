@@ -1,11 +1,11 @@
 /* 劇情場景：每個場景一份台詞；bg 是第一人稱背景；結尾按鈕依場景不同（back 為 null 就不顯示） */
 const SCENES = {
-  worldChest:{script:WORLD_CHAT.chest.lines,bg:'road',back:null,next:['resumeWorldTravel','繼續上路']},
+  worldChest:{get script(){return worldChestScript();},bg:'road',back:null,get next(){return state.worldChest?.status==='mimic'?['startWorldMimic','戰鬥開始！']:['resumeWorldTravel','繼續上路'];}},
   prologue: {script: SCRIPT,   bg:"tavern", back:["back2","回去重骰"],    next:["toShop","去看裝備"]},
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
   caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
-  townSupplier: {script:TOWN_SUPPLIER,bg:"shopfront",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},
+  townSupplier: {script:TOWN_SUPPLIER,bg:"town",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},
   townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]}
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
@@ -29,8 +29,8 @@ function caravanPick(id, roll=d20()){   // roll：測試可以指定
   const mod = modOf(finalScore(id, p.stat)), total = roll + mod, ok = total >= CARAVAN_DC;
   Object.assign(c, {pick:id, stat:p.stat, roll, mod, total, ok, flick:[0,1,2].map(()=>1+Math.floor(Math.random()*20))});
   const r = CARAVAN_REWARD[id][ok ? "win" : "lose"];
+  grantPartyGold(r.gold);
   CRITTERS.forEach(x=>{
-    state.gold[x.id] = (state.gold[x.id]||0) + Math.round(r.gold * GP / CRITTERS.length);
     state.inv[x.id] = state.inv[x.id] || [];
     [...((r.items||{}).all||[]), ...((r.items||{})[x.id]||[])].forEach(n=>{ const it = ITEMS.find(i=>i.n===n); if(it) state.inv[x.id].push(makeItem(it).id); });
   });
@@ -41,13 +41,13 @@ function caravanPick(id, roll=d20()){   // roll：測試可以指定
 }
 // 對話框內容：一般台詞；選項那句換成四個按鈕；檢定那句多一排骰子
 function dialogInner(line, who, done){
-  let extra = "";
+  let extra = line.worldChestChoice?worldChestChoices():line.chestRoll?worldChestRollHTML(line.chestRoll):"";
   if(line.choice && !(state.caravan||{}).pick)
     extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
       return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
   if(line.roll){ const c = state.caravan;
     extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
-  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice?"":"▼ 點一下繼續"}</span>`;
+  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice?"":"▼ 點一下繼續"}</span>`;
 }
 const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"小傢伙們"} : WHO(line.who);
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
@@ -120,6 +120,7 @@ function updateStoryLine(){
   stage.querySelector(".equipment-wall")?.classList.toggle("on",storyBackground(state.line)==="equipmentWall");
   stage.querySelector(".scene-bg")?.classList.toggle("bush-shake", !!line.shake);
   showSpot(!!line.shake);
+  if(state.scene==='worldChest'){const chest=stage.querySelector('.story-chest');if(chest)chest.outerHTML=worldChestStage(line);}
   const mk = stage.querySelector(".story-mark"); if(mk) mk.innerHTML = markHTML(line);
   stageActors().forEach(id=>{ const el = stage.querySelector(".actor."+id); if(!el) return;
     el.classList.toggle("off", onStage(line)!==id); el.classList.toggle("talk", line.who===id);
@@ -143,7 +144,7 @@ function updateStoryLine(){
   const progress = document.querySelector(".fp-page .progress");
   if(progress) progress.textContent = `${state.line+1} / ${scene.script.length}`;
   const next = document.getElementById(scene.next[0]);
-  const done = last && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
   syncBGM();
   prepareStoryImages(state.line+1);
@@ -205,12 +206,12 @@ function renderStory(){
   const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
-  const done = last && !(line.choice && !(state.caravan||{}).pick);
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
     <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img src="${SCENE_ART.town}" alt="城鎮街景">`:`<img src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?`<svg class="story-chest" viewBox="0 0 600 740" aria-label="路旁寶箱">${chestSVG({opened:false},300,400)}</svg>`:''}`}</div>${actorsHTML}` : `
+      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
-      ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
+      ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img draggable="false" src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
       <div class="lamp" aria-hidden="true"></div>
       ${actorsHTML}
       ${line.hug?`<div class="hug-glow" aria-hidden="true"></div>`:""}

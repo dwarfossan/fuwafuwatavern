@@ -84,7 +84,7 @@ function checkResult(){
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
   if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead)){b.result="lose";blog("四隻都被卡姆傳送回酒館了……","kill");refreshBattle();return true;}
   if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ b.result = "win"; blog("勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
+  if(!alive("foe").length){ b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
   return false;
 }

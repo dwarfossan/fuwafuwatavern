@@ -199,6 +199,7 @@ function bind(){
   const stage = $("stage");
   if(state.page==="story" && stage) showSpot(!!SCENES[state.scene].script[state.line].shake);   // 整頁重畫時補上被動感知
   const adv = async()=>{ if(state.page!=="story"||!stage)return; const sceneId=state.scene, lineNo=state.line, sc = SCENES[sceneId].script, ln = sc[lineNo];
+    if(ln?.worldChestChoice)return;
     if(ln && ln.choice && !(state.caravan||{}).pick) return;                 // 停在選項：要先選
     if(state.line < sc.length-1){
       if(stage.dataset.imageWaiting)return;
@@ -210,6 +211,7 @@ function bind(){
       state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true});
     } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
+    const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
     const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
     if(e.target.closest("button, .info, .nav")) return;
     adv();
@@ -243,6 +245,7 @@ function bind(){
   if(state.page==="battle") bindBattle();
   if(state.page==="doll") bindDollDemo();
   if(state.page==="map") bindMap();
+  $("startWorldMimic")?.addEventListener("click",startWorldMimic);
   $("resumeWorldTravel")?.addEventListener("click",resumeWorldTravel);
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}

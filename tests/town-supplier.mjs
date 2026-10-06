@@ -1,6 +1,7 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
 const br=await chromium.launch();try{const p=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
- await p.evaluate(()=>{state.battle=null;state.modal=null;state.page='town';state.townPlace='items';state.caravan={pick:'raccoon',ok:true};render();});await p.locator('#townStreet').tap();assert.equal(await p.evaluate(()=>state.scene),'townSupplier');assert(await p.locator('.actor.merchant').isVisible());
+ await p.waitForFunction(()=>!document.body.classList.contains('image-boot'));
+ await p.evaluate(()=>{state.battle=null;state.modal=null;state.page='town';state.townPlace='items';state.caravan={pick:'raccoon',ok:true};render();});await p.locator('#townStreet').tap();assert.equal(await p.evaluate(()=>state.scene),'townSupplier');assert(await p.locator('.actor.merchant').isVisible());assert.equal(await p.locator('.scene-bg img').getAttribute('data-image-source')||await p.locator('.scene-bg img').getAttribute('src'),'assets/scenes/town.webp');
  await p.locator('#stage').tap();await p.waitForFunction(()=>getComputedStyle(document.querySelector('.actor.merchant')).opacity==='0');
  assert(!(await p.evaluate(()=>SCENES.townSupplier.script.map(l=>l.text).join())).includes('走私'));
  if(process.env.SUPPLIER_SHOT)await p.screenshot({path:process.env.SUPPLIER_SHOT});

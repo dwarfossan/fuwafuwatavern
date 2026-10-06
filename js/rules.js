@@ -133,3 +133,6 @@ function levelUp(id){
   setTimeout(()=>{if(progressionUnits(id).some(u=>u.levelUpAt===at))refreshGameUI();},LEVEL_UP_DURATION+20);
   return true;
 }
+
+// 商隊、路旁寶箱共用四人分錢；金額為 gp，狀態保存 cp。
+function grantPartyGold(gold){CRITTERS.forEach(c=>{state.gold[c.id]=(state.gold[c.id]||0)+Math.round(gold*GP/CRITTERS.length);});}

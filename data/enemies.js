@@ -14,6 +14,9 @@ const NPCS = {
 };
 
 const ENEMIES = {
+  // 寶箱怪測試配置 GPT 暫定，原創數值；只沿用徒手與撞倒，不借新版怪物能力。
+  world_mimic:{detectRange:6,name:"寶箱怪",look:"mimic",gear:[],hp:7,ac:12,speed:6,xp:0,
+    scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6},innate:[]},
   // xp：打倒給的經驗，照 SRD 5.2 挑戰等級（哥布林 1/4＝50）；薩滿血量同哥布林，先同樣 50（暫定，大爺 10-04）
   goblin: {
     detectRange:5, name:"哥布林", look:"goblin", gear:["彎刀","破布衣"],

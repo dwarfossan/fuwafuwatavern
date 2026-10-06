@@ -205,7 +205,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
   border:3px solid #120e14;background:#2a1f1a;
 }
 .stage:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
-.fp-page .stage{-webkit-tap-highlight-color:transparent}   /* 手機點劇情時不要閃一塊點擊底色 */
+.fp-page .stage{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}   /* 手機點劇情時不要閃一塊點擊底色 */
 .story-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;min-height:38px}\n.sys-tools--story{margin-left:auto;gap:4px}\n.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:45px}\n.wall{position:absolute;inset:0;
   background:
     radial-gradient(ellipse 45% 55% at 50% 30%, rgba(242,180,65,.28), transparent 70%),
@@ -333,7 +333,7 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .scene-bg.bush-shake .story-bush{animation:bush-shake .9s ease-in-out infinite}
 @keyframes bush-shake{0%,100%{transform:rotate(0)}15%{transform:rotate(-3deg) scaleY(.98)}30%{transform:rotate(2.5deg)}45%{transform:rotate(-1.5deg)}60%{transform:rotate(0)}}
 .scene-bg > svg{width:100%;height:100%;display:block}
-.scene-bg > img{width:100%;height:100%;display:block;object-fit:cover}
+.scene-bg > img{-webkit-user-drag:none;user-select:none;width:100%;height:100%;display:block;object-fit:cover}
 
 /* 大地圖：沿用劇情 stage／party 高度，鏡頭內容分層。 */
 .wrap.map-screen{height:auto;min-height:100dvh;padding-block:24px 48px;overflow:visible}
@@ -342,13 +342,16 @@ button:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .map-frame.stage{position:relative;border-radius:16px;overflow:hidden;border:3px solid #392a20;background:#91b751;touch-action:none}
 .map-frame .worldmap{position:absolute;left:0;top:0;display:block;max-width:none;max-height:none;transform-origin:0 0;user-select:none}
 .worldmap .loc{cursor:pointer;outline:none}
-.worldmap .loc:hover rect,.worldmap .loc:focus-visible rect{stroke:#dc852e}
+.worldmap .loc:focus-visible rect{stroke:#dc852e;stroke-width:3}
 .map-info{margin-top:12px;min-height:78px;background:var(--plank);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .map-info h3{margin:0;font-family:var(--font-disp);font-size:17px}
 .map-info p{margin:4px 0 0;color:var(--dim);font-size:13px}
 .map-info .btn{font-size:14px;padding:6px 14px}
-.map-camera-controls{position:absolute;top:8px;right:8px;display:flex;gap:6px}
-.map-camera-controls .btn{min-width:34px}
+.world-place-hint{position:absolute;width:220px;padding:8px 12px;border:3px solid #392a20;border-radius:16px;background:#fff0d3;color:#392a20;pointer-events:none;z-index:2}
+.world-place-hint b,.world-place-hint span{display:block}
+.world-place-hint span{font-size:12px;line-height:1.4}
+.chest-result .explore-chest{animation:chest-reveal .5s ease-out}
+@keyframes chest-reveal{from{opacity:.4}to{opacity:1}}
 .worldmap .alert{animation:alertpop .45s cubic-bezier(.3,1.8,.5,1) both;transform-box:fill-box;transform-origin:50% 100%}
 #map-party .pf{position:relative}
 .world-banter{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);width:150px;background:#fff1d9;color:#392a20;border:3px solid #392a20;border-radius:12px;padding:6px;font-size:13px;z-index:5;pointer-events:none}

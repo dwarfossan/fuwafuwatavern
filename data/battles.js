@@ -10,6 +10,10 @@ const roadCol = (xs, h) => xs.flatMap(x => Array.from({length:h}, (_,y) => [x,y]
 const roadRow = (ys, w) => ys.flatMap(y => Array.from({length:w}, (_,x) => [x,y]));
 
 const BATTLES = {
+  // 路旁寶箱遭遇場，GPT 暫定；勝利回接原本旅程。
+  worldMimic:{name:"路旁寶箱怪",w:12,h:12,tutorial:false,road:roadRow([5,6],12),
+    blocks:[{x:2,y:2,kind:"tree"},{x:9,y:9,kind:"tree"},{x:4,y:3,kind:"bush"}],
+    party:[[7,5],[7,6],[8,5],[8,6]],foes:[{type:"world_mimic",x:5,y:5,testSkill:"topple"}],after:"worldChest"},
   ambush: {
     name:"救援商隊", w:23, h:26, tutorial:true,
     road: roadRow([12,13], 23),

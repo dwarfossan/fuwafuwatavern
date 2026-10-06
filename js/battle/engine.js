@@ -38,6 +38,11 @@ function teleportHome(){
 }
 // 打贏後接劇情：熟練格、筆記存回去，戰鬥收掉（計時器都會檢查 B()，不會再動）
 function leaveBattleTo(scene){
+  if(B()?.id==="worldMimic"){
+    if(B().result!=="win"||scene!=="worldChest"||state.worldChest?.status!=="fighting")return;
+    syncLearnedState();state.worldChest.status="defeated";state.battle=null;state.scout=null;
+    state.page="story";state.scene="worldChest";state.line=0;state.info=null;render();window.scrollTo(0,0);return;
+  }
   syncLearnedState();
   // 商隊進城後整理同一場理解的招式；保留休息資料，不讓戰場計時器繼續。
   if(scene==="caravan"){
@@ -67,7 +72,7 @@ function startBattle(id, retry=false, phase="combat"){
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
-      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, name:e.name+"ABCD"[i], look:e.look,
+      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"?"":"ABCD"[i]), look:e.look,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
       resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),

@@ -18,6 +18,7 @@ async function open(hash='', viewport={width:390, height:844}){   // 只做手�
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
   await pg.goto(url + hash);
+ await pg.waitForFunction(()=>!document.body.classList.contains('image-boot'));
   if(hash==="#battle") await pg.evaluate(()=>startBattle("ambush")); // 原有規則用固定場景
   await pg.waitForTimeout(800);
   return {pg, errs};

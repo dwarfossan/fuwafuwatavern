@@ -191,3 +191,6 @@ function chestSVG(o={},cx=0,cy=0){
  <g fill="${p.light}" stroke="none"><circle cx="-41" cy="-9" r="1.6"/><circle cx="-41" cy="11" r="1.6"/><circle cx="7" cy="3" r="1.6"/><circle cx="7" cy="25" r="1.6"/></g>
  ${glints}</g>`;
 }
+
+// 原創寶箱怪暫定外觀，沿用同一圓頂寶箱與稀有度色票。
+function mimicSVG(o={},cx=0,cy=0){return `<g class="mimic-token${o.down?' mimic-down':''}" transform="translate(${cx} ${cy})" opacity="${o.down?.55:1}">${chestSVG({...o,opened:true})}<g stroke="#30281f" stroke-width="2" stroke-linejoin="round"><path d="M-50 -17 L-43 -3 L-36 -14 L-29 1 L-22 -10 L-15 4 L-8 -7 L0 8 L8 -3 L16 9" fill="#fff0d3"/><ellipse cx="-24" cy="-51" rx="7" ry="5" fill="#f9e9a8"/><ellipse cx="1" cy="-44" rx="7" ry="5" fill="#f9e9a8"/><path d="M-24 -55 V-47 M1 -48 V-40"/></g></g>`;}

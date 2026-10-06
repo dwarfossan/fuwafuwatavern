@@ -9,6 +9,7 @@ try{
  const pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{ window.__nt=nextTurn; nextTurn=()=>{}; B().tut=-1; });
@@ -56,6 +57,7 @@ try{
  const pg2=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  pg2.on('pageerror',e=>errors.push(e.message));
  await pg2.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg2.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg2.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg2.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const t=await pg2.evaluate(async()=>{ const b=B(); b.tut=-1;
@@ -71,6 +73,7 @@ try{
  const pg3=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  pg3.on('pageerror',e=>errors.push(e.message));
  await pg3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg3.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg3.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const lose=()=>pg3.evaluate(()=>{ const b=B(); b.tut=-1; b.units.filter(v=>v.side==='pc').forEach(p=>{ p.dead=true; p.gone='teleport'; }); checkResult(); refreshBattle(); });
