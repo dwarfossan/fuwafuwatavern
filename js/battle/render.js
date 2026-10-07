@@ -735,8 +735,9 @@ function statusBadges(v, cx, y){
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
   const k = badgeK(), W = 20, gap = 4, rows=statusRows(list);
+  const rowPitch=W+(rows.at(-1).items.some(o=>o.n!=null)?13:2);
   return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${rows.map((row,r)=>{
-    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*34;
+    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*rowPitch;
     return `<g data-status-row="${row.good?"good":"bad"}">${row.items.map((o,i)=>`
       <g data-st="${o.icon}" transform="translate(${x0+i*(W+gap)} ${yy})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>
       ${ST_ICON[o.icon]||""}${o.n!=null?`<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>`:""}</g>`).join("")}</g>`;
