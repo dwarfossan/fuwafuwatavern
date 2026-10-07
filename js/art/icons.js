@@ -121,6 +121,7 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
     // 盾牌：一層輪廓＋大十字，縮小後仍清楚
     shield: RAW.shield = p("M60 7L104 22Q103 82 60 114Q17 82 16 22Z", "#426e9e")
       + ln("M60 20V98M30 48H90", GOLD, 8) + c(60,48,10,GOLD,4),
+    round_shield: RAW.round_shield = c(60,60,51,WOOD,6) + ln("M36 22V98M60 12V108M84 22V98",WOOD_DK,4) + c(60,60,14,"#89939b",4),
     // 法杖：菱形水晶，與圓形法球分開辨識；握點不變
     arcane_staff: rot(RAW.arcane_staff =
       haft(27,148,6) + p("M60 -18L79 6L60 30L41 6Z", "#8fd0f0")
@@ -161,7 +162,7 @@ ITEM_ART.hunter = ITEM_ART.bow;
 // 裝備外觀與技能類別分開；魔法物品沿用base，撿起仍為同一畫法。
 function equipmentArtKey(it){
   if(!it)return null;
-  return it.art || WEAPON_ART_MAP[it.base||it.n] || ({"箭袋":"quiver"})[it.base||it.n] || groupOf(it)?.id;
+  return it.art || WEAPON_ART_MAP[it.base||it.n] || ({"箭袋":"quiver"})[it.base||it.n] || (it.type==="shield"?"shield":groupOf(it)?.id);
 }
 
 // 火藥桶原創手繪外觀暫定 GPT；地面與背包共用。

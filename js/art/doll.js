@@ -26,6 +26,7 @@ const HELD = {
   flame_orb:    {gy:70,  ang:0,  s:.4}
 };
 const GLOW = {arcane_staff:"#8fd0f0", healing_book:"#9be08a", flame_orb:"#f2b441", shaman_totem:"#c58af0"};
+HELD.round_shield={...HELD.shield};
 for(const [key,meta] of Object.entries(WEAPON_HELD))HELD[key]={...HELD[meta.base],...meta};
 
 // 每個動作的長度（毫秒）與「打中」的時間點
@@ -174,7 +175,7 @@ function dollSVG(o){
   // 副手
   let offHand = "";
   if(!two){
-    if(off==="shield") offHand = handSVG(40,106,c) + heldSVG("shield",38,108);
+    if(off==="shield"||off==="round_shield") offHand = handSVG(40,106,c) + heldSVG(off,38,108);
     else if(off) offHand = heldSVG(off,36,96) + handSVG(40,110,c);
     else offHand = handSVG(40,106,c);
   }
@@ -215,7 +216,7 @@ function dollGear(u){                       // 敵我一樣：照手上的武器
   let main = w, off = null;
   if(!main && (f==="arcane_staff" || f==="shaman_totem")) main = f;   // 杖類法器拿在主手
   if(!main && !f) main = "unarmed";
-  if(u.shield) off = "shield";
+  if(u.shield) off = equipmentArtKey(Equipment.shieldItem(u,u.activeSet===2?"secondOff":"off")||{type:"shield"});
   else if(u.offhand)off=equipmentArtKey(u.offhand);
   else if(f && f!==main) off = f;
   return {main, off, armor: u.armor ? (u.armor.base||u.armor.n) : null, backpack: !!u.backpackEquip};

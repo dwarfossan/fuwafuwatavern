@@ -51,12 +51,12 @@ function statusCardHTML(v, b, embedded=false){
   const notes=v.side==="pc"&&!embedded?notebookPageHTML(v,b):"";
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
-  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return g?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
+  const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return equipmentArtKey(it)?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
   if(v.side==="pc"){
     const bagOpen=!!b.gearBagOpen;
     const abilities=`<div class="status-abilities" data-status-abilities ${bagOpen?"hidden":""}>${ABILITIES.map(a=>{const n=abilityScore(v,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
-    const sh1=v.shield?{n:"盾牌",type:"shield",id:"shield",wt:6}:v.offhand||null;
+    const sh1=v.shield?(Equipment.shieldItem(v,v.activeSet===2?"secondOff":"off")||{n:"盾牌",type:"shield",id:"shield",wt:6}):v.offhand||null;
     const eqSlot=(slot,it,label,cls,extra="")=>`<div class="status-eqslot ${cls}" data-gearslot="${slot}"><small>${label}</small>${it?`<button class="status-eqitem eq-tip" data-uid="${v.id}" data-gearitem="${slot}" data-tip="${eqTip(it)}" data-iteminfo="${it.id||""}">${eqIcon(it)}</button>`:eqIcon(null)}${extra}</div>`;
     const carried=[v.weapon,v.spare&&v.spare[0],sh1,v.offhand2,v.armor,...(v.accessories||[]),v.backpackEquip,...(v.backpack||[])].filter(Boolean);
     const load=carried.reduce((sum,it)=>sum+(Number(it.wt)||0),0), cap=abilityScore(v,"STR")*15*bagMul(v.backpackEquip), loadPct=Math.min(100,cap?load/cap*100:0);
@@ -73,10 +73,10 @@ function statusCardHTML(v, b, embedded=false){
     const bag=known
       ? `<div class="status-eqslot backpack ro ${bagOpen?"on":""}"><small>背包</small><button class="status-eqitem status-bagbtn" data-bagtoggle aria-label="${bagOpen?"收起":"打開"}${v.name}的背包"><svg viewBox="0 0 120 120" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg></button></div>`
       : `<div class="status-eqslot backpack ro locked" title="還沒看穿牠身上帶了什麼"><small>背包</small><span class="status-eqempty">？</span></div>`;
-    const drawer=`<div class="status-bagdrawer gear-bag"><div class="gear-bagitems">${items.map(it=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${g?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty">身上沒帶東西</span>`}</div></div>`;
+    const drawer=`<div class="status-bagdrawer gear-bag"><div class="gear-bagitems">${items.map(it=>{const g=groupOf(it);return `<button class="gear-item eq-tip" data-iteminfo="${it.id||""}" data-tip="${eqTip(it)}">${equipmentArtKey(it)?iconSVG(equipmentArtKey(it),24):""}<span>${it.n}</span></button>`}).join("")||`<span class="gear-empty">身上沒帶東西</span>`}</div></div>`;
     const abilities=`<div class="status-abilities">${ABILITIES.map(a=>{const m=v.mods[a.k]||0;return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${m>=0?"+":""}${m}</b></div></div>`}).join("")}</div>`;
     const main=v.weapon||v.focus||null;
-    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${big}</div>${bag}${roSlot(v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${roSlot(v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${roSlot(v.armor,"身體","armor")}${roSlot(main,"主手","main")}${isTwoHand(main)?`<div class="status-eqslot ro off locked"><small>副手</small><span class="gear-empty">雙手</span></div>`:roSlot(v.shield?{n:"盾牌",type:"shield",id:"shield"}:null,"副手","off")}</div>${bagOpen?drawer:abilities}</div>`;
+    statusPage=`<div class="status-page"><div class="status-loadout"><div class="status-paper">${statusBadgeHTML}${statusPop}${big}</div>${bag}${roSlot(v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${roSlot(v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${roSlot(v.armor,"身體","armor")}${roSlot(main,"主手","main")}${isTwoHand(main)?`<div class="status-eqslot ro off locked"><small>副手</small><span class="gear-empty">雙手</span></div>`:roSlot(v.shield?(Equipment.shieldItem(v,v.activeSet===2?"secondOff":"off")||{n:"盾牌",type:"shield",id:"shield",wt:6}):null,"副手","off")}</div>${bagOpen?drawer:abilities}</div>`;
   }
   const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
   return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
