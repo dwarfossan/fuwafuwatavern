@@ -16,9 +16,10 @@ const browser=await chromium.launch();try{
    const expectedSVG=document.createElementNS('http://www.w3.org/2000/svg','svg');expectedSVG.innerHTML=ST_ICON[icon];
    if(card.querySelector('[data-status-art]').innerHTML!==expectedSVG.innerHTML)throw Error(k+' card uses different art');
    if(getComputedStyle(hud.querySelector('rect')).fill!==expected[good?'good':'bad']||getComputedStyle(card.querySelector('rect')).fill!==expected[good?'good':'bad'])throw Error(k+' palette mismatch');
-   const wanted=k==='bleed'?3:2;if(document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent!==String(wanted)||card.querySelector('.turns')?.textContent!==String(wanted))throw Error(k+' duration changed '+document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent+'/'+card.querySelector('.turns')?.textContent);
+   if(document.querySelector('.st-countdowns,.st-n,.status-unit-badge .turns'))throw Error(k+' visible countdown remains');
+   if(stTurns(u.statuses[0])!==(k==='bleed'?3:2)||u.statuses[0].left!==1||u.statuses[0].until!=='end'||!statusExplain(u,u.statuses[0]).includes(String(k==='bleed'?3:2)))throw Error(k+' duration data/explanation changed');
   }
-  u.statuses=[{k:'bleed',n:2},{k:'bleed',n:4}];refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==1||document.querySelector('.hud[data-moving-unit="fox"] .st-n').textContent!=='4')throw Error('duplicate badge/duration');
+  u.statuses=[{k:'bleed',n:2},{k:'bleed',n:4}];refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==1||u.statuses[1].n!==4)throw Error('duplicate badge/duration');
   u.statuses=entries.map(([k])=>({k}));refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==5)throw Error('HUD display limit changed');
   u.dead=true;if(statusBadges(u,0,0)!=='')throw Error('dead HUD');u.dead=false;
   u.statuses=[];refreshBattle();if(document.querySelector('.hud[data-moving-unit="fox"] [data-st]')||document.querySelector('.status-unit-badge'))throw Error('status removal leaves icon');
@@ -35,5 +36,5 @@ const browser=await chromium.launch();try{
  if(dir){await p.evaluate(()=>{
   const cards=Object.entries(STATUS_BADGE).filter(([,a])=>a[0]).map(([k,[icon,good]])=>`<section><svg viewBox="0 0 20 20" style="background:var(${good?'--status-good':'--status-bad'})">${ST_ICON[icon]}</svg><b>${STATUS_NAME[k]}</b><svg class="small" viewBox="0 0 20 20" style="background:var(${good?'--status-good':'--status-bad'})">${ST_ICON[icon]}</svg></section>`).join('');document.body.className='';document.body.innerHTML=`<style>body{padding:16px}h2{font-size:20px;margin:0 0 15px}main{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}section{display:flex;align-items:center;flex-direction:column;gap:8px;padding:14px 5px;background:#352e3b;border-radius:12px}section svg{width:50px;height:50px;border:2px solid #211923;border-radius:8px}section svg.small{width:24px;height:24px;border-width:1px;border-radius:4px}b{font-size:14px}</style><h2>遊戲共用圖示・18種</h2><main>${cards}</main>`;
  });await p.screenshot({path:path.join(dir,'03-icons.png'),fullPage:true});}
- assert.deepEqual(errors,[]);console.log('✓ 18種共用SVG／藍紅底／燃燒觸控說明、回合數／去重／5圖示限制、死亡／解除、地板與角色節點及HP保留；390×844實際戰場與卡片');
+ assert.deepEqual(errors,[]);console.log('✓ 18種共用SVG／藍紅底／燃燒觸控說明、倒數已移除／期限保留／去重／5圖示限制、死亡／解除、地板與角色節點及HP保留；390×844實際戰場與卡片');
 }finally{await browser.close();}
