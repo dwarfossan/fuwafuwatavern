@@ -7,9 +7,11 @@ const br=await chromium.launch();
 const pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
 const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 // 凍結 AI／演出定時器，避免回合自行前進；觸控仍用瀏覽器原生事件。
-await pg.addInitScript(()=>{window.setTimeout=()=>0;window.setInterval=()=>0;let s=42;Math.random=()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);});
+await pg.addInitScript(()=>{let s=42;Math.random=()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);});
 try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.waitForFunction(()=>typeof B==="function"&&B()&&!document.body.classList.contains("image-boot"));
+ await pg.evaluate(()=>{window.setTimeout=()=>0;window.setInterval=()=>0;});
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.evaluate(()=>{const b=B();b.turn=b.units.findIndex(v=>v.id==='fox');b.busy=false;b.tut=-1;b.focusReq=false;b.mode=null;b.moveMode=false;render();});
  const identity=await pg.evaluate(()=>{
@@ -53,7 +55,7 @@ try{
  const aimHover=await pg.evaluate(()=>{
   const b=B(),u=cur(),foe=b.units.find(v=>v.side==='foe'&&!v.dead);foe.x=u.x+1;foe.y=u.y;
   const sk=unitSkills(u).find(s=>s.impl?.target==='enemy'&&validTarget(u,s,foe.x,foe.y));
-  assert(sk,'fixture has a legal enemy target');
+  if(!sk)throw Error('fixture has a legal enemy target');
   b.mode={key:sk.key};b.aimHover=null;refreshBattle();
   const token=document.querySelector(`.token[data-moving-unit="${foe.id}"]`);
   const hud=document.querySelector(`.hud[data-moving-unit="${foe.id}"]`);
@@ -64,6 +66,22 @@ try{
   return {shown,tokenKept:document.querySelector(`.token[data-moving-unit="${foe.id}"]`)===token,kept,removed:!document.querySelector('.aimed-foe')};
  });
  assert(aimHover.shown,'aim hover marks original token');assert(aimHover.tokenKept,'aim hover keeps token identity');assert(aimHover.kept,'aim hover keeps HUD identity');assert(aimHover.removed,'aim hover class removed');console.log('✓ aim hover lights original token without extra SVG');
+ // 近期技能／裝備卡：固定選單頁與角色本體不能被開關或內容更新重建。
+ const recent=await pg.evaluate(()=>{
+  const b=B(),u=cur();b.mode=null;b.aimHover=null;b.menu="root";refreshBattle();
+  const floor=document.querySelector('#board-floor').firstElementChild;
+  const token=document.querySelector(`.token[data-moving-unit="${u.id}"]`);
+  const pages=[...document.querySelectorAll('[data-menu-page]')];
+  for(const cmd of ['act','skills','act','root'])battleCmd(cmd);
+  const menus=pages.every(n=>n===document.querySelector(`[data-menu-page="${n.dataset.menuPage}"]`));
+  u.learned.push({key:'magic_missile',name:'魔法飛彈'});u.activeSkills=['magic_missile'];refreshBattle();
+  const shown=!!document.querySelector('[data-menu-page="skills"] [data-skill="magic_missile"]');
+  u.activeSkills=[];refreshBattle();
+  const removed=!document.querySelector('[data-menu-page="skills"] [data-skill="magic_missile"]');
+  for(let i=0;i<3;i++){state.modal={kind:'item',id:ITEMS.find(it=>it.type==='focus'&&groupOf(it)?.id==='arcane_staff').id};refreshBattle();if(document.querySelectorAll('.modal-back').length!==1)throw Error('duplicate modal');state.modal=null;refreshBattle();}
+  return {menus,shown,removed,floor:floor===document.querySelector('#board-floor').firstElementChild,token:token===document.querySelector(`.token[data-moving-unit="${u.id}"]`),closed:!document.querySelector('.modal-back')};
+ });
+ for(const [k,v]of Object.entries(recent)){assert(v,`recent layers ${k}`);console.log('✓ recent layers '+k);}
  // 選攻擊只允許必要的標示／指令列更新；場景與未變的 UI 節點必須保留。
  // 對每種格子送原生 touch，驗證 SVG use 不會吞掉 data-tile。
  await pg.evaluate(()=>{window.__tile=null;clickTile=(x,y)=>{window.__tile=[x,y]};B().moveMode=false;B().mode=null;render();});
