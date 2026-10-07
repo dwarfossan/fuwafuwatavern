@@ -135,6 +135,7 @@ function battleNodeKey(n){
   if(n.nodeType!==1)return "";
   return n.id?`#${n.id}`:
     n.dataset?.sceneKey?`scene:${n.dataset.sceneKey}`:
+    n.dataset?.statusRow?`status-row:${n.dataset.statusRow}`:
     n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
@@ -218,7 +219,8 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
   shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
-  // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
+  // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
+  // 血條、狀態圖示畫在物件上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
   out.push(`<use href="#mark-tags"/>`);
@@ -721,6 +723,10 @@ const ST_ICON = {
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
 const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
+// 單列／雙列共用分組；只有一類時不產生空列。
+function statusRows(list){
+  return [0,1].map(good=>({good,items:list.filter(o=>!!o.good===!!good)})).filter(row=>row.items.length);
+}
 function statusBadges(v, cx, y){
   const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
   v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;
@@ -728,10 +734,13 @@ function statusBadges(v, cx, y){
     if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
-  const k = badgeK(), W = 20, gap = 4, x0 = -(list.length*W + (list.length-1)*gap)/2;
-  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${list.map((o,i)=>`
-    <g data-st="${o.icon}" transform="translate(${x0 + i*(W+gap)} ${-W})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>
-    ${ST_ICON[o.icon]||""}${o.n!=null ? `<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>` : ""}</g>`).join("")}</g>`;
+  const k = badgeK(), W = 20, gap = 4, rows=statusRows(list);
+  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${rows.map((row,r)=>{
+    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*34;
+    return `<g data-status-row="${row.good?"good":"bad"}">${row.items.map((o,i)=>`
+      <g data-st="${o.icon}" transform="translate(${x0+i*(W+gap)} ${yy})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>
+      ${ST_ICON[o.icon]||""}${o.n!=null?`<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>`:""}</g>`).join("")}</g>`;
+  }).join("")}</g>`;
 }
 // 燃燒：身上冒火（三團火焰在身體周圍閃動，躺下時貼著地面）
 // ---------- 骰子面板（戰場上方中央，參考索拉塔） ----------
