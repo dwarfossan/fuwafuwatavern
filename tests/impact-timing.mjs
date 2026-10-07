@@ -6,6 +6,7 @@ try{
  const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await pg.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
  const r=await pg.evaluate(async()=>{
   const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.phase='combat';b.turn=b.units.indexOf(u);b.busy=true;b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreStopped=true;b.tut=-1;b.groundEffects={};b.def.blocks=[{x:11,y:10,kind:'bush'},{x:12,y:10,kind:'water'},{x:13,y:10,kind:'water'}];u.x=10;u.y=10;u.statuses=[];centerCam(11,10,false);
   const floor=document.querySelector('#board-floor');
