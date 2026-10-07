@@ -70,7 +70,7 @@ function grantStarterGear(){
   if(state.startingGear[c.id])return;
   const spec=STARTER_GEAR[c.id], load={};state.inv[c.id]=state.inv[c.id]||[];
   for(const [slot,name] of Object.entries({...spec,bag:"背包"})){
-   const it=makeItem(ITEMS.find(i=>i.n===name),false);
+   const it=makeItem(ITEMS.find(i=>i.n===name),false,c);
    state.inv[c.id].push(it.id);load[slot]=it.id;
   }
   Equipment.set(c.id,load);
@@ -253,7 +253,7 @@ function bind(){
   document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>{
     const id = CRITTERS[state.shopActive].id, it = itemById(b.dataset.buy);
     if(blockReason(id,it)) return;
-    state.gold[id] -= it.cost; state.inv[id].push(makeItem(it).id); if(it.baseId)delete state.shopFocusStock[it.baseId];
+    state.gold[id] -= it.cost; state.inv[id].push(makeItem(it,true,id).id); if(it.baseId)delete state.shopFocusStock[it.baseId];
     Equipment.refresh(id);
     state.quip = state.shopContext?TOWN_UI.buy:pick(DWARF_QUIPS.buy); render();
   }));
@@ -298,7 +298,7 @@ function quickBattle(battleId="ambush",phase="combat"){
     order.forEach((k,n)=> state.slot[c.id][k] = hi[n]);
     syncRolls(c.id);
     state.gold[c.id] = 150*GP; state.inv[c.id] = [];
-    kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(makeItem(it).id); } });
+    kit[c.id].forEach(n=>{ const it = ITEMS.find(x=>x.n===n); if(!blockReason(c.id,it)){ state.gold[c.id]-=it.cost; state.inv[c.id].push(makeItem(it,true,c).id); } });
     // 隨機測試場暫時讓小傢伙們都帶著被動反擊，方便大爺直接實機驗收。
     // 只影響 #battle；正式進度與固定商隊遭遇不動。
     if(battleId==="random"){

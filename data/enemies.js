@@ -19,13 +19,13 @@ const ENEMIES = {
     scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6},innate:[]},
   // xp：打倒給的經驗，照 SRD 5.2 挑戰等級（哥布林 1/4＝50）；薩滿血量同哥布林，先同樣 50（暫定，大爺 10-04）
   goblin: {
-    detectRange:5, name:"哥布林", look:"goblin", gear:["彎刀","破布衣"],
+    detectRange:5, name:"哥布林", look:"goblin", shieldArt:"round_shield", gear:["彎刀","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
     innate:["nimble"],
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
   },
   goblin_archer: {
-    detectRange:7, name:"哥布林弓手", look:"goblin", gear:["短弓","箭袋","破布衣"],
+    detectRange:7, name:"哥布林弓手", look:"goblin", shieldArt:"round_shield", gear:["短弓","箭袋","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
     innate:["nimble"],
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
@@ -33,7 +33,7 @@ const ENEMIES = {
   // 哥布林薩滿：躲在草叢裡施法（火焰箭、治癒真言、災禍術都來自薩滿圖騰；圖騰被打掉就不能施法）
   // 行動方式見 js/battle/flow.js 的 aiShaman
   goblin_shaman: {
-    detectRange:6, name:"哥布林薩滿", look:"goblin_shaman", gear:["薩滿圖騰","+1 薩滿袍"],
+    detectRange:6, name:"哥布林薩滿", look:"goblin_shaman", shieldArt:"round_shield", gear:["薩滿圖騰","+1 薩滿袍"],
     hp:7, ac:12, speed:6, xp:50,
     innate:["nimble"],
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:14, CHA:10}

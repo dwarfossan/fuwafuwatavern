@@ -22,7 +22,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","focusItems","focusSerial","shopFocusStock","magicItems","market"];
+const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","equipmentItems","equipmentSerial","focusItems","focusSerial","shopFocusStock","magicItems","market"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -68,7 +68,7 @@ function startBattle(id, retry=false, phase="combat"){
     });
   });
   def.foes.forEach((f,i)=>{
-    const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(it=>makeItem(it,false));
+    const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(it=>makeItem(it,false,e));
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
@@ -82,7 +82,7 @@ function startBattle(id, retry=false, phase="combat"){
     });
   });
   if(!retry){
-    for(const k of ["focusItems","focusSerial"])state.battleSnap.data[k]=JSON.parse(JSON.stringify(state[k]??null)); }
+    for(const k of ["equipmentItems","equipmentSerial","focusItems","focusSerial"])state.battleSnap.data[k]=JSON.parse(JSON.stringify(state[k]??null)); }
   // NPC：站在戰場上、不參與先攻、不行動（行為之後跟劇情一起定）
   (def.npcs||[]).forEach((n,i)=>{
     const d = NPCS[n.type];

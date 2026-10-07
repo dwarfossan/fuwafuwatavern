@@ -73,7 +73,6 @@ const ITEMS = [
   {type:"armor",n:"板條甲",en:"Splint Armor",cat:"護甲",tier:"重甲",cost:200*GP,wt:60,ac:17,dex:"none",str:15,stealth:true},
   {type:"armor",n:"全身板甲",en:"Plate Armor",cat:"護甲",tier:"重甲",cost:1500*GP,wt:65,ac:18,dex:"none",str:15,stealth:true},
   {type:"shield",n:"盾牌",en:"Shield",cat:"盾牌",cost:10*GP,wt:6,ac:2},
-  {type:"shield",n:"圓木盾",en:"Round Wooden Shield",cat:"盾牌",cost:10*GP,wt:6,ac:2,art:"round_shield"},
   // 法器：每件綁定一組 3 個法術（見 data/skills.js）；價格重量參考 SRD 的法杖、法球與法術書
   {type:"focus",n:"奧術法杖",en:"Arcane Staff",cat:"法器",cost:5*GP,wt:4,stat:"INT",spells:"魔法飛彈、護盾術、法師護甲"},
   {type:"focus",n:"治癒法書",en:"Tome of Healing",cat:"法器",cost:50*GP,wt:3,stat:"WIS",spells:"治癒真言、治療傷口、祝福術"},

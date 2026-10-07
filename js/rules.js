@@ -23,20 +23,28 @@ function money(cp){
 }
 const scoreK = abilityScore;
 // 每件法器有自己的識別與使用屬性；模板仍供規格／測試查詢。
-const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || ITEMS.find(i=>i.id===id);
-function makeItem(it, randomStat=true){
+const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || (state.equipmentItems||{})[id] || ITEMS.find(i=>i.id===id);
+// 背景只決定初次配發造型；已建立的盾牌實例不隨持有人改變。
+const shieldArtFor=owner=>(typeof owner==="string"?CRITTERS.find(c=>c.id===owner):owner)?.shieldArt||"shield";
+function makeItem(it, randomStat=true, owner=null){
+  if(it?.type==="shield"&&!it.baseId&&!it.rarity){
+    state.equipmentItems ||= {};
+    const id="shield-instance-"+(state.equipmentSerial=(state.equipmentSerial||0)+1);
+    return state.equipmentItems[id]={...it,id,baseId:it.id,n:"盾牌",en:"Shield",art:it.art||shieldArtFor(owner)};
+  }
   if(!it || it.type!=="focus" || it.baseId) return it;
   state.focusItems=state.focusItems||{};
   const id="focus-instance-"+(state.focusSerial=(state.focusSerial||0)+1);
   return state.focusItems[id]={...it,id,baseId:it.id,stat:randomStat?pick(["INT","WIS","CHA"]):it.stat};
 }
 function shopItem(it){
+  if(it.type==="shield")return {...it,art:shieldArtFor(CRITTERS[state.shopActive])};
   if(it.type!=="focus")return it;
   state.shopFocusStock=state.shopFocusStock||{};
   return itemById(state.shopFocusStock[it.id]) || (state.shopFocusStock[it.id]=makeItem(it).id,itemById(state.shopFocusStock[it.id]));
 }
 const invItems = id => (state.inv[id]||[]).map((x,i)=>{
-  const it=itemById(x),made=makeItem(it);
+  const it=itemById(x),made=makeItem(it,true,id);
   if(made!==it)state.inv[id][i]=made.id;
   return made;
 });

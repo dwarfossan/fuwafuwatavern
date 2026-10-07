@@ -24,6 +24,7 @@ const Equipment={
     this.set(u.id,{main:itemId(u.weapon,"main"),focus:itemId(u.focus,"focus"),second:itemId(u.spare?.[0],"second"),off:u.shield?shieldId("off"):itemId(u.offhand,"off"),secondOff:itemId(u.offhand2,"secondOff"),armor:itemId(u.armor,"armor"),bag:itemId(u.backpackEquip,"bag"),accessories:(u.accessories||[]).map(x=>x.id)});
   },
   shieldItem(u,slot="off"){
+    if(u.side==="foe")return state.battleSnap?.foeGear?.[Number(u.id.replace("foe",""))]?.find(it=>it.type==="shield")||null;
     const inv=invItems(u.id),saved=state.startingGear?.[u.id];
     return inv.find(it=>it.id===saved?.[slot]&&it.type==="shield") || inv.find(it=>it.type==="shield") || null;
   },
