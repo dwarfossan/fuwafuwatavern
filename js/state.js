@@ -1,25 +1,9 @@
 /* ======================== 狀態 ======================== */
 const STARTER_NOTES = {
-  fox:[
-    {key:"magic_missile",name:"魔法飛彈",innate:false,from:"起始技能",lv:1},
-    {key:"shield_spell",name:"護盾術",innate:false,from:"起始技能",lv:1},
-    {key:"mage_armor",name:"法師護甲",innate:false,from:"起始技能",lv:1}
-  ],
-  tiger:[
-    {key:"sunder",name:"破甲",innate:false,from:"起始技能",lv:1},
-    {key:"bleed",name:"放血",innate:false,from:"起始技能",lv:1},
-    {key:"topple",name:"撞倒",innate:false,from:"起始技能",lv:1}
-  ],
-  wolf:[
-    {key:"aimed_shot",name:"瞄準射擊",innate:false,from:"起始技能",lv:1},
-    {key:"suppress",name:"壓制射擊",innate:false,from:"起始技能",lv:1},
-    {key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}
-  ],
-  raccoon:[
-    {key:"sneak_attack",name:"偷襲",innate:false,from:"起始技能",lv:1},
-    {key:"dash_stab",name:"閃身刺",innate:false,from:"起始技能",lv:1},
-    {key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}
-  ]
+  fox:[{key:"shield_spell",name:"護盾術",innate:false,from:"起始技能",lv:1}],
+  tiger:[{key:"sunder",name:"破甲",innate:false,from:"起始技能",lv:1}],
+  wolf:[{key:"aimed_shot",name:"瞄準射擊",innate:false,from:"起始技能",lv:1}],
+  raccoon:[{key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}]
 };
 const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"darkvision",name:"黑暗視覺",innate:true,from:"天生",lv:1}];
 

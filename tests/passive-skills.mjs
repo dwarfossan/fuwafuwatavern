@@ -1,10 +1,12 @@
 // 共用配置限制、被動生效與黑暗視覺距離／遮擋；額外被動僅測試fixture。
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
-const br=await chromium.launch();try{const p=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+const br=await chromium.launch();try{const p=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await p.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
 const r=await p.evaluate(()=>{
  const b=B(),u=b.units.find(u=>u.id==='fox');b.busy=false;b.exploreRest=true;b.tut=99;b.units.filter(u=>u.side==='foe').forEach(u=>u.dead=true);
  const all=SKILL_GROUPS.flatMap(g=>g.skills).every(s=>['active','passive'].includes(s.activation));
  const four=b.units.filter(u=>u.side==='pc').every(u=>u.learned.some(n=>n.key==='darkvision')&&darkvisionRange(u)===12);
+ // 上限驗收明確提供三個已學主動，不依賴起始角色自帶三招。
+ for(const key of ['magic_missile','mage_armor'])if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:learnedSkillByKey(key).def.name});
  const existing=u.learned.map(n=>({...n}));
  for(let i=0;i<4;i++){const key='fixture_passive_'+i,def={id:key,name:'測試被動'+i,activation:'passive',kind:'被動',tier:0,text:'僅測試'};const g=SKILL_GROUPS.find(g=>g.id==='natural');g.skills.push(def);SKILL_BY_ID[key]={g,idx:g.skills.length-1};u.learned.push({key,name:def.name});}
  u.learned.push({key:'burning_hands',name:'燃燒之手'});u.activeSkills=['magic_missile','shield_spell','mage_armor','darkvision'];const fourth=!toggleCarriedSkill(u,'burning_hands'),fifth=toggleCarriedSkill(u,'fixture_passive_0'),sixth=!toggleCarriedSkill(u,'fixture_passive_1');syncLearnedState();const saved=state.activeSkills.fox.length===5;
