@@ -16,7 +16,7 @@ const browser=await chromium.launch();try{
    const expectedSVG=document.createElementNS('http://www.w3.org/2000/svg','svg');expectedSVG.innerHTML=ST_ICON[icon];
    if(card.querySelector('svg').innerHTML!==expectedSVG.innerHTML)throw Error(k+' card uses different art');
    if(getComputedStyle(hud.querySelector('rect')).fill!==expected[good?'good':'bad']||getComputedStyle(card).backgroundColor!==expected[good?'good':'bad'])throw Error(k+' palette mismatch');
-   const wanted=k==='bleed'?3:2;if(hud.querySelector('.st-n')?.textContent!==String(wanted)||card.querySelector('.turns')?.textContent!==String(wanted))throw Error(k+' duration changed');
+   const wanted=k==='bleed'?3:2;if(document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent!==String(wanted)||card.querySelector('.turns')?.textContent!==String(wanted))throw Error(k+' duration changed');
   }
   u.statuses=[{k:'bleed',n:2},{k:'bleed',n:4}];refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==1||document.querySelector('.hud[data-moving-unit="fox"] .st-n').textContent!=='4')throw Error('duplicate badge/duration');
   u.statuses=entries.map(([k])=>({k}));refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==5)throw Error('HUD display limit changed');

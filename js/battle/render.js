@@ -734,14 +734,17 @@ function statusBadges(v, cx, y){
     if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
-  const k = badgeK(), W = 20, gap = 4, rows=statusRows(list);
-  const rowPitch=W+(rows.at(-1).items.some(o=>o.n!=null)?13:2);
-  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${rows.map((row,r)=>{
-    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*rowPitch;
-    return `<g data-status-row="${row.good?"good":"bad"}">${row.items.map((o,i)=>`
-      <g data-st="${o.icon}" transform="translate(${x0+i*(W+gap)} ${yy})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>
-      ${ST_ICON[o.icon]||""}${o.n!=null?`<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>`:""}</g>`).join("")}</g>`;
-  }).join("")}</g>`;
+  const k = badgeK(), W = 20, gap = 4, rows=statusRows(list), counts=[];
+  const icons=rows.map((row,r)=>{
+    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*W;
+    return `<g data-status-row="${row.good?"good":"bad"}">${row.items.map((o,i)=>{
+      const x=x0+i*(W+gap);
+      if(o.n!=null)counts.push(`<g data-count-for="${o.icon}" data-scene-key="status-count:${o.icon}" transform="translate(${x+W/2} ${yy-4})"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>`);
+      return `<g data-st="${o.icon}" transform="translate(${x} ${yy})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>${ST_ICON[o.icon]||""}</g>`;
+    }).join("")}</g>`;
+  }).join("");
+  // 倒數最後繪製，蓋在兩排圖示上；HUD後面的即時演出仍有最高優先順序。
+  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${icons}${counts.length?`<g class="st-countdowns" data-scene-key="status-countdowns">${counts.join("")}</g>`:""}</g>`;
 }
 // 燃燒：身上冒火（三團火焰在身體周圍閃動，躺下時貼著地面）
 // ---------- 骰子面板（戰場上方中央，參考索拉塔） ----------
