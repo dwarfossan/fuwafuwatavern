@@ -111,7 +111,7 @@ const MONSTER_LOOK = (()=>{
   </svg>`;
   const uncleSideHurt = uncleSide
     .replace(`<circle cx="50" cy="57" r="3.6" fill="${INK}"/><circle cx="69" cy="57" r="3.2" fill="${INK}"/>`, xEye(50,56,5)+xEye(69,56,4.5));
-  const orcLook={face:orcFront,head:orcSide,headHurt:orcHurt,body:O,skin:O,feet:OD,belly:false,tail:"",anchor:GOBLIN_ANCHOR,
+  const orcLook={shieldArt:"round_shield",face:orcFront,head:orcSide,headHurt:orcHurt,body:O,skin:O,feet:OD,belly:false,tail:"",anchor:GOBLIN_ANCHOR,
     extra:`<path d="M54 92 Q62 97 68 94 M72 94 Q80 97 86 92 M70 97 L70 119 M54 122 Q70 128 86 122" stroke="${OD}" stroke-width="3" fill="none" stroke-linecap="round"/>`};
   return {
     boar:{kind:'boar',face:forestFaceSVG('boar'),render:forestDollSVG},

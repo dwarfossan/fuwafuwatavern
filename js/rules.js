@@ -25,7 +25,10 @@ const scoreK = abilityScore;
 // 每件法器有自己的識別與使用屬性；模板仍供規格／測試查詢。
 const itemById = id => (state.magicItems||{})[id] || (state.focusItems||{})[id] || (state.equipmentItems||{})[id] || ITEMS.find(i=>i.id===id);
 // 背景只決定初次配發造型；已建立的盾牌實例不隨持有人改變。
-const shieldArtFor=owner=>(typeof owner==="string"?CRITTERS.find(c=>c.id===owner):owner)?.shieldArt||"shield";
+const shieldArtFor=owner=>{
+  const background=typeof owner==="string"?(CRITTERS.find(c=>c.id===owner)||{look:owner}):owner;
+  return background?.shieldArt || (typeof MONSTER_LOOK!=="undefined"?MONSTER_LOOK[background?.look]?.shieldArt:null) || "shield";
+};
 function makeItem(it, randomStat=true, owner=null){
   if(it?.type==="shield"&&!it.baseId&&!it.rarity){
     state.equipmentItems ||= {};
