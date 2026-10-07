@@ -43,7 +43,7 @@ tools/skills_doc.mjs  從 data/skills.js 產生 docs/技能表.md
 npm i playwright              # 第一次才需要（雲端環境要裝 playwright@1.56.1；package.json 不要 commit）
 node tests/smoke.mjs          # 冒煙：封面→擲屬性→序章→商店、大地圖→伏擊→戰鬥、快速戰鬥，加關鍵規則
 node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格、拖曳縮放、共用鏡頭
-node tests/status-rows.mjs   # 正負上下排、單類無空排、即時演出優先、卡片橫捲與390×844截圖
+node tests/status-rows.mjs   # 共用排版比例、正負上下排、倒數置頂、即時演出優先、卡片橫捲與390×844截圖
 node tests/status-icons.mjs  # 18種共用圖示、藍紅底、燃燒說明、回合數／解除與390×844截圖
 node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與手機提示
 node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡

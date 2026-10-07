@@ -14,9 +14,9 @@ const browser=await chromium.launch();try{
    const hud=document.querySelector('.hud[data-moving-unit="fox"] [data-st]'),card=document.querySelector('.status-unit-badge');
    if(hud?.dataset.st!==icon||card?.getAttribute('aria-label')!==STATUS_NAME[k])throw Error(k+' missing shared icon');
    const expectedSVG=document.createElementNS('http://www.w3.org/2000/svg','svg');expectedSVG.innerHTML=ST_ICON[icon];
-   if(card.querySelector('svg').innerHTML!==expectedSVG.innerHTML)throw Error(k+' card uses different art');
-   if(getComputedStyle(hud.querySelector('rect')).fill!==expected[good?'good':'bad']||getComputedStyle(card).backgroundColor!==expected[good?'good':'bad'])throw Error(k+' palette mismatch');
-   const wanted=k==='bleed'?3:2;if(document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent!==String(wanted)||card.querySelector('.turns')?.textContent!==String(wanted))throw Error(k+' duration changed');
+   if(card.querySelector('[data-status-art]').innerHTML!==expectedSVG.innerHTML)throw Error(k+' card uses different art');
+   if(getComputedStyle(hud.querySelector('rect')).fill!==expected[good?'good':'bad']||getComputedStyle(card.querySelector('rect')).fill!==expected[good?'good':'bad'])throw Error(k+' palette mismatch');
+   const wanted=k==='bleed'?3:2;if(document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent!==String(wanted)||card.querySelector('.turns')?.textContent!==String(wanted))throw Error(k+' duration changed '+document.querySelector(`.hud[data-moving-unit="fox"] [data-count-for="${icon}"] .st-n`)?.textContent+'/'+card.querySelector('.turns')?.textContent);
   }
   u.statuses=[{k:'bleed',n:2},{k:'bleed',n:4}];refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==1||document.querySelector('.hud[data-moving-unit="fox"] .st-n').textContent!=='4')throw Error('duplicate badge/duration');
   u.statuses=entries.map(([k])=>({k}));refreshBattle();if(document.querySelectorAll('.hud[data-moving-unit="fox"] [data-st]').length!==5)throw Error('HUD display limit changed');
@@ -29,7 +29,7 @@ const browser=await chromium.launch();try{
  });assert.equal(r.count,18);await p.waitForTimeout(500);
  const dir=process.env.STATUS_ICON_SHOTS;if(dir){fs.mkdirSync(dir,{recursive:true});await p.screenshot({path:path.join(dir,'01-battle.png')});}
  await p.evaluate(()=>{B().info='fox';B().infoPage='status';refreshBattle();});await p.locator('[data-statustip][aria-label="燃燒"]').tap();assert.match(await p.locator('.status-pop').innerText(),/1d4 火焰傷害/);
- assert.equal(await p.locator('[data-statustip][aria-label="燃燒"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(168, 93, 97)','selected burning retains debuff background');
+ assert.equal(await p.locator('[data-statustip][aria-label="燃燒"]').evaluate(el=>getComputedStyle(el.querySelector('rect')).fill),'rgb(168, 93, 97)','selected burning retains debuff background');
  if(dir)await p.screenshot({path:path.join(dir,'02-burning-card.png')});
  await p.evaluate(()=>{const u=B().units.find(v=>v.id==='fox');u.statuses=[];B().statusTip=null;refreshBattle();});assert.equal(await p.locator('.status-unit-badge').count(),0);
  if(dir){await p.evaluate(()=>{

@@ -727,6 +727,22 @@ const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end"
 function statusRows(list){
   return [0,1].map(good=>({good,items:list.filter(o=>!!o.good===!!good)})).filter(row=>row.items.length);
 }
+// 狀態表示唯一排版規則：尺寸只是比例，兩種呈現不能各自定間距或倒數位置。
+function statusIndicatorLayout(list,size=20){
+  const scale=size/20, gap=4*scale, border=2*scale, radius=5*scale;
+  const count={r:6.5*scale,stroke:1.8*scale,dy:-4*scale,textY:3.6*scale,font:10*scale,layer:1};
+  const outer=count.r+count.stroke/2, inset=outer-count.dy;
+  const rows=statusRows(list).map((row,r,all)=>{
+    const widths=row.items.map(o=>o.icon?size:Math.max(size,[...(o.label||'')].length*size*.45+size*.5));
+    const width=widths.reduce((a,n)=>a+n,0)+gap*(widths.length-1),y=(r-all.length)*size;let x=-width/2;
+    return {...row,width,y,items:row.items.map((o,i)=>{const entry={...o,x,y,width:widths[i],count:o.n==null?null:{x:x+widths[i]/2,y:y+count.dy,...count}};x+=widths[i]+gap;return entry;})};
+  });
+  const style=`--status-size:${size}px;--status-gap:${gap}px;--status-radius:${radius}px;--status-border:${border}px;--status-count-inset:${inset}px;--status-count-size:${outer*2}px;--status-count-left:${size/2-outer}px;--status-count-top:${count.dy-outer}px;--status-count-border:${count.stroke}px;--status-count-font:${count.font}px;--status-icon-layer:0;--status-count-layer:${count.layer};`;
+  return {size,gap,rows,count,height:rows.length*size,style};
+}
+function statusIndicatorFace(o){
+  return `<rect width="20" height="20" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/><g data-status-art="">${ST_ICON[o.icon]||""}</g>`;
+}
 function statusBadges(v, cx, y){
   const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
   v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;
@@ -734,15 +750,12 @@ function statusBadges(v, cx, y){
     if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
-  const k = badgeK(), W = 20, gap = 4, rows=statusRows(list), counts=[];
-  const icons=rows.map((row,r)=>{
-    const x0=-(row.items.length*W+(row.items.length-1)*gap)/2, yy=-W-(rows.length-1-r)*W;
-    return `<g data-status-row="${row.good?"good":"bad"}">${row.items.map((o,i)=>{
-      const x=x0+i*(W+gap);
-      if(o.n!=null)counts.push(`<g data-count-for="${o.icon}" data-scene-key="status-count:${o.icon}" transform="translate(${x+W/2} ${yy-4})"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>`);
-      return `<g data-st="${o.icon}" transform="translate(${x} ${yy})"><rect width="${W}" height="${W}" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/>${ST_ICON[o.icon]||""}</g>`;
-    }).join("")}</g>`;
-  }).join("");
+  const k=badgeK(),layout=statusIndicatorLayout(list),counts=[];
+  const icons=layout.rows.map(row=>`<g data-status-row="${row.good?"good":"bad"}">${row.items.map(o=>{
+    const c=o.count;
+    if(c)counts.push(`<g data-count-for="${o.icon}" data-scene-key="status-count:${o.icon}" transform="translate(${c.x} ${c.y})"><circle r="${c.r}" fill="#fff4b0" stroke="#1f1a24" stroke-width="${c.stroke}"/><text y="${c.textY}" text-anchor="middle" class="st-n" style="font-size:${c.font}px">${o.n}</text></g>`);
+    return `<g data-st="${o.icon}" transform="translate(${o.x} ${o.y})">${statusIndicatorFace(o)}</g>`;
+  }).join("")}</g>`).join("");
   // 倒數最後繪製，蓋在兩排圖示上；HUD後面的即時演出仍有最高優先順序。
   return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${icons}${counts.length?`<g class="st-countdowns" data-scene-key="status-countdowns">${counts.join("")}</g>`:""}</g>`;
 }
