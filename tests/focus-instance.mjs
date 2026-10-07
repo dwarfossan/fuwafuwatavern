@@ -4,6 +4,7 @@ try{
 const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 await pg.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"shop":1}'));
 await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+await pg.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
 const r=await pg.evaluate(()=>{
  const base=ITEMS.find(i=>i.n==='火焰法球'),a=makeItem(base),b=makeItem(base);
  const stats=new Set(Array.from({length:150},()=>makeItem(base).stat));

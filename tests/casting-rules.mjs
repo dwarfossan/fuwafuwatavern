@@ -2,6 +2,7 @@ import {chromium} from 'playwright';import assert from 'node:assert/strict';impo
 const browser=await chromium.launch();try{
 const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+await p.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
 const checks=await p.evaluate(()=>{
  startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.tut=-1;b.actionUsed=b.freeUsed=false;
  u.weapon=u.focus=u.offhand2=null;u.shield=false;u.mods={STR:0,DEX:0,CON:0,INT:1,WIS:4,CHA:2};u.backpack=[];u.slots=[2];

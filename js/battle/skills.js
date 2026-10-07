@@ -44,34 +44,53 @@ function activeLearnedSkills(u){
   return carriedSkillKeys(u).map(learnedSkillByKey).filter(s=>s&&!isPassiveSkill(s));
 }
 function unitSkills(u){
-  const unarmed=SKILL_GROUPS.find(g=>g.id==="unarmed");
   const held=u.weapon||u.focus||null;
-  const g=held?groupOf(held):unarmed;
-  const out=[];
-  if(g){
-    const sk=g.skills[0], impl=(SKILL_IMPL[g.id]||[])[0];
-    let def=basicDef(g,sk,u);
-    if(held?.type==="focus" && def.components && (def.tier||0)===0)def={...def,free:true,turnLimit:"focusCantrip"};
-    out.push({key:`${g.id}_0`,group:g,idx:0,def,impl});
-    if(FOCUS_GROUPS.includes(g.id)){
-      if(g.id!=="arcane_staff") out.push(focusStrikeSkill(g));
-      if(!held.elementFocus && (g.id==="arcane_staff" || g.id==="healing_book")) out.push(focusCantripSkill(g));
-    }
-  }
-  // 裝備附帶的特性技能（item.grants，例如非凡長弓的狩印，10-03）
-  equippedMagic(u).forEach(it=>((it&&it.grants)||[]).forEach(k=>{ const s = learnedSkillByKey(k); if(s) out.push(it.type==="focus" && s.def.components && (s.def.tier||0)===0 ? {...s,def:{...s.def,free:true,turnLimit:"focusCantrip"}} : s); }));
+  const unarmed=SKILL_GROUPS.find(g=>g.id==="unarmed");
+  const out=held?equipmentSkills(held,u):[{key:"unarmed_0",group:unarmed,idx:0,def:basicDef(unarmed,unarmed.skills[0],u),impl:SKILL_IMPL.unarmed[0]}];
+  equippedMagic(u).filter(it=>it!==held).forEach(it=>out.push(...equipmentSkills(it,u).filter(s=>s.equipmentGrant)));
   const off=offhandAttackSkill(u);if(off)out.push(off);
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
   return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
 
-// 法器的免費基本攻擊：法杖打擊照原本 1d6；法書、法球以 1d4 作輕型鈍器。
+// 同名法術／普攻共用結算；不同裝備來源保留既有技能代號。
+const FIRE_BOLT_IMPL={target:"enemy",range:()=>12,run:(u,t)=>{
+  if(!t.id){groundReact(t.x,t.y,"火焰");return;}
+  const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});
+  if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}
+}};
+const HEALING_WORD_IMPL={target:"ally",range:()=>6,run:(u,t)=>heal(t,Math.max(1,rollDice(`${1+upNow()}d4`).total+u.mods[spellStat(u)]))};
+const focusStrikeImpl=die=>({target:"enemy",range:()=>1,run:(u,t)=>{
+  const r=attackRoll(u,t,{bonus:u.mods.STR+2});if(!r.hit)return;
+  const n=dmgRoll(die,u.mods.STR,r.crit);
+  if(die==="1d6"&&n<=0){blog(`　打中了，但${t.name}不痛不癢（0 點）`,"miss","不痛不癢");fxFloat(t,"0","miss");}
+  hurt(t,n,"鈍擊",u);
+}});
+const FOCUS_STRIKE_IMPLS={staff:focusStrikeImpl("1d6"),other:focusStrikeImpl("1d4")};
+// 法杖當長棍，其他法器當輕型鈍器；共用命中、傷害與貼身距離。
 function focusStrikeSkill(g){
-  const die=g.id==="arcane_staff"?"1d6":"1d4";
-  return {key:`${g.id}_strike`,group:g,idx:0,synthetic:true,anim:"smash",
-    def:{name:"打擊",kind:"近戰",dmg:"物理",tier:0,req:"focus",basicAttack:true,
-      text:`造成 ${die} + 力量調整值物理傷害。`},
-    impl:{target:"enemy",range:()=>1,run:(u,t)=>{const r=attackRoll(u,t,{bonus:u.mods.STR+2});if(r.hit)hurt(t,dmgRoll(die,u.mods.STR,r.crit),"鈍擊",u);}}};
+  const staff=g.id==="arcane_staff",die=staff?"1d6":"1d4";
+  return {key:`${g.id}_strike`,group:g,idx:-2,synthetic:true,anim:"smash",
+    def:{name:"打擊",kind:"近戰",dmg:"物理",tier:0,req:"focus",basicAttack:true,text:`造成 ${die} + 力量調整值物理傷害。`},
+    impl:FOCUS_STRIKE_IMPLS[staff?"staff":"other"]};
+}
+// 裝備卡與戰鬥共用：只取裝備實際提供的普攻，以及物品明列的 grants。
+function equipmentSkills(it,u){
+  if(!it)return [];
+  const g=groupOf(it),out=[];
+  if(g&&(it.type==="weapon"||it.type==="focus")){
+    let def=basicDef(g,g.skills[0],u);
+    if(it.type==="focus"&&def.components&&(def.tier||0)===0)def={...def,free:true,turnLimit:"focusCantrip"};
+    out.push({key:`${g.id}_0`,group:g,idx:0,def,impl:SKILL_IMPL[g.id][0]});
+    if(FOCUS_GROUPS.includes(g.id)){
+      if(g.id!=="arcane_staff")out.push(focusStrikeSkill(g));
+      if(!it.elementFocus&&(g.id==="arcane_staff"||g.id==="healing_book"))out.push(focusCantripSkill(g));
+    }
+  }
+  for(const key of it.grants||[]){const sk=learnedSkillByKey(key);if(!sk)continue;
+    out.push({...sk,equipmentGrant:true,def:it.type==="focus"&&sk.def.components&&(sk.def.tier||0)===0?{...sk.def,free:true,turnLimit:"focusCantrip"}:sk.def});
+  }
+  return out;
 }
 // 法杖用火焰箭、治癒法書用聖火術；火焰法球和薩滿圖騰本來就有火焰箭。
 function focusCantripSkill(g){
@@ -81,7 +100,7 @@ function focusCantripSkill(g){
     : {name:"火焰箭",groundElement:true,kind:"遠程",dmg:"火焰",tier:0,srd:true,components:{v:true,s:true},basicAttack:true,text:"命中造成 1d10 火焰傷害。"};
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
-    : {target:"enemy",range:()=>24,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}};
+    : FIRE_BOLT_IMPL;
   return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def:{...def,free:true,turnLimit:"focusCantrip"},impl};
 }
 
@@ -268,9 +287,7 @@ const SKILL_IMPL = {
       blog(`　${u.name}舉盾守護${ps.map(p=>p.name).join("、")}${up?`（${1+up} 輪）`:""}`,"skill"); }}
   ],
   arcane_staff: [
-    // 敲：法杖當長棍用，近戰 1d6 + 力量
-    {target:"enemy", range:()=>1, run:(u,t)=>{ const r = attackRoll(u,t,{bonus:u.mods.STR+2}); if(r.hit){ const n = dmgRoll("1d6",u.mods.STR,r.crit);
-      if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); } hurt(t,n,"鈍擊",u); } }},
+    FOCUS_STRIKE_IMPLS.staff,
     // 魔法飛彈：必中，每發 1d4+1；ts 是每一發的目標（可以重複、可以分給不同敵人），一發一顆光球錯開飛出去
     {target:"enemy", multi:true, darts:()=>2+upNow(), range:()=>24, run:(u,ts)=>{ ts = [].concat(ts);
       blog(`　${ts.length} 發魔法飛彈必定命中！`,"skill");
@@ -280,14 +297,14 @@ const SKILL_IMPL = {
     {target:"self", can:u=>!u.armor || u.armor.cloth, why:"穿著輕甲以上時不能用", run:u=>{ addStatus(u,"mageArmor",{until:"battle"}); blog(`　法師護甲：${u.name}的 AC 變成 ${acOfUnit(u)}`,"skill"); }}
   ],
   healing_book: [
-    {target:"ally", range:()=>6, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods[spellStat(u)]))},   // 感知是負的也至少補 1（不會補成扣血）
+    HEALING_WORD_IMPL,
     {target:"ally", range:()=>1, run:(u,t)=>heal(t, Math.max(1, rollDice(`${2*(1+upNow())}d8`).total + u.mods[spellStat(u)]))},
     {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>!p.down && dist(p,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
       startConc(u, "bless", "祝福術");
       ps.forEach(p=>addStatus(p,"blessed",{src:u.id})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4（${u.name}專注中）`,"skill"); }}
   ],
   flame_orb: [
-    {target:"enemy", range:()=>24, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
+    FIRE_BOLT_IMPL,
     {target:"cone", range:()=>1, run:(u,c)=>{ coneTiles(u,c,3).forEach(p=>groundReact(p.x,p.y,"火焰"));const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
       es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,spellStat(u)),u) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
@@ -303,8 +320,8 @@ const SKILL_IMPL = {
     {target:"enemy",range:()=>1,run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"閃電");return;}const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2});if(r.hit){groundReact(t.x,t.y,"閃電");hurt(t,dmgRoll(`${1+(levelOf(u)>=5)+(levelOf(u)>=11)+(levelOf(u)>=17)}d8`,0,r.crit),"閃電",u);if(!t.dead&&!t.down){t.shockNoOA=true;blog(`　${t.name}在下回合開始前不能藉機攻擊。`,"skill");}}}}
   ],
   shaman_totem: [
-    {target:"enemy", range:()=>12, run:(u,t)=>{if(!t.id){groundReact(t.x,t.y,"火焰");return;} const r=attackRoll(u,t,{bonus:u.mods[spellStat(u)]+2,ranged:true});if(r.hit){hurt(t,dmgRoll("1d10",0,r.crit),"火焰",u);groundReact(t.x,t.y,"火焰");}}},
-    {target:"ally", range:()=>12, run:(u,t)=>heal(t, Math.max(1, rollDice(`${1+upNow()}d4`).total + u.mods[spellStat(u)]))},
+    FIRE_BOLT_IMPL,
+    HEALING_WORD_IMPL,
     // 災禍術：自動挑 6 格內最近、看得到的 3 個敵人
     {target:"self", run:u=>{ const ts = enemiesOf(u).filter(e=>dist(e,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
       if(!ts.length) blog("　6 格內沒有看得到的敵人。");

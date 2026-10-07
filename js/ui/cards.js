@@ -47,7 +47,7 @@ function itemCardHTML(it){
     rows.push(["護甲等級", "AC +2"]);
   } else if(it.type==="focus"){
     rows.push(["使用門檻", `${ABILITIES.find(a=>a.k===it.stat).n} 13 以上才能用`]);
-    rows.push(["說明", "裝備附帶技能不用學；施放仍需聲勢材。"]);
+    rows.push(["說明", "法器提供普攻；明列的附帶技能不用學，施放仍需聲勢材。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
     rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉一個免費動作（每回合共兩個）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
@@ -57,19 +57,16 @@ function itemCardHTML(it){
   if(it.rarity){rows.push(["分類",MAGIC_RARITIES[it.rarity].name]);if(it.desc)rows.push(["效果",it.desc]);if(it.lore)rows.push([MAGIC_SHOP_UI.lore,it.lore+"（草稿）"]);rows.push(["暫定",MAGIC_SHOP_UI.draft]);}
   rows.push([it.noRefund?"領取／重量":"價格／重量", `${it.noRefund?"不可退換":money(it.cost)}／${it.wt} 磅`]);
   const g = groupOf(it);
-  const on = g ? (it.elementFocus?g.skills.slice(0,1):g.skills).map((s,i)=>({s,i,gid:g.id})) : [];
-  if(it.elementFocus)(it.grants||[]).forEach(key=>{const f=SKILL_BY_ID[key];if(f)on.push({s:f.g.skills[f.idx],i:f.idx,gid:f.g.id});});
-  const skills = g && it.type!=="weapon" && it.type!=="shield" ? `<h4 class="md-sub">${on.length===1?"給的技能":`給的${["","一","兩","三","四","五"][on.length]||on.length}個技能`}</h4>
-    <div class="md-skills">${on.map(({s,i,gid})=>{ const im=(SKILL_IMPL[gid]||[])[i];
-      return `<button class="md-sk" data-skinfo="${gid}:${i}:${it.id}">${skillIcon(gid,s,im,34)}<span>${s.name}</span><small>${tierOf(s,im).label.split("・")[0]}</small></button>`; }).join("")}</div>
-    <p class="dim md-hint">點技能看詳細說明</p>` : "";
+  const on=equipmentSkills(it,probeUnit(it)).filter(sk=>it.type==="focus"||sk.equipmentGrant);
+  const skills=on.length?`<h4 class="md-sub">裝備提供</h4><div class="md-skills">${on.map(sk=>
+    `<button class="md-sk" data-skinfo="${sk.group.id}:${sk.idx}:${it.id}">${skillIcon(sk.group.id,sk.def,sk.impl,34)}<span>${sk.def.name}</span><small>${sk.def.tier?"技能":"普攻"}</small></button>`).join("")}</div><p class="dim md-hint">點選看詳細說明</p>`:"";
   return `<div class="md-head">${equipmentArtKey(it)||it.placeable?iconSVG(equipmentArtKey(it),34):""}<div><h3>${it.n}</h3><div class="dim">${it.en}・${it.cat}</div></div></div>
     <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${rulesHTML(v)}</dd>`).join("")}</dl>${skills}`;
 }
 
 // ---------- 技能卡 ----------
 function skillCardHTML(groupId, idx, item, unit){
-  const g = SKILL_GROUPS.find(x=>x.id===groupId), extra=idx===-1?focusCantripSkill(g):null, im = extra?.impl || (SKILL_IMPL[groupId]||[])[idx];
+  const g = SKILL_GROUPS.find(x=>x.id===groupId), extra=idx===-1?focusCantripSkill(g):idx===-2?focusStrikeSkill(g):null, im = extra?.impl || (SKILL_IMPL[groupId]||[])[idx];
   let s = extra?.def || g.skills[idx];
   if(idx===0 && HAS_BASIC(g) && g.id!=="shield")        // 基本攻擊名稱看武器；沒指定武器（技能總表）就列出這組可能的名稱
     s = {...s, name: g.id==="arcane_staff" || g.id==="unarmed" ? "打擊" : item && item.type==="weapon" ? basicName(g, item) : basicNames(g)};

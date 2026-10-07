@@ -119,6 +119,7 @@ node tests/elements.mjs     # 冷電法器、戲法傷害與到期、手機瞄�
 node tests/unit-scores.mjs # 敵我完整六圍、13門檻、怪物被動資料與手機狀態卡
 node tests/casting-rules.mjs # 最高施法屬性、法器13門檻、裝備戲法抄寫與手機施放
 node tests/components.mjs   # 聲勢材、空手、標價材料、禁止施法與手機提示
+node tests/shared-focus-skills.mjs # 法器提供內容共用、同名法術距離／結算、手機卡片
 node tests/focus-instance.mjs # 法器逐件固定隨機屬性、現貨、裝備卡與重試
 node tests/resistance.mjs    # 抗性／傷害免疫、取整、原始類型、面板、專注、資料覆寫
 node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
