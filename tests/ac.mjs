@@ -1,6 +1,7 @@
 // 戰鬥中換裝 AC 要跟著變（大爺 10-02：原本讀開戰前的背包清單，換裝後 AC 不變）
 // 公式：沒穿 10＋敏捷；有穿＝護甲 AC＋敏捷（中甲最多 +2、重甲不加）；拿盾 +2
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -9,7 +10,7 @@ const ok=n=>console.log('✓ '+n);
 try{
  const pg=await br.newPage({viewport:{width:390,height:844}});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
- await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>B()&&B().units.length,null,{timeout:60000});
  const r=await pg.evaluate(()=>{

@@ -1,10 +1,11 @@
 // 經驗與升級（大爺 10-04）：打倒敵人照 SRD 平分、商隊達標後手動升級、升級加生命 5＋體質、探索戰也給經驗
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';import {fileURLToPath} from 'node:url';
+import {bootReady} from './boot.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html');
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errs=[];pg.on('pageerror',e=>errs.push(e.message));
 const ok=n=>console.log('✓ '+n);
 try{
-  await pg.goto('file://'+root+'#battle');await pg.waitForTimeout(500);
+  await pg.goto('file://'+root+'#battle');await bootReady(pg);await pg.waitForTimeout(500);
   // EXP 可累積多級，達標不會自動升級。
   const th=await pg.evaluate(()=>{state.xp={};state.level={};gainXP(['fox'],299);const low=canLevelUp('fox');gainXP(['fox'],601);return {low,lv:critterLevel('fox'),ready:canLevelUp('fox')};});
   assert.deepEqual(th,{low:false,lv:1,ready:true});ok('EXP 累積至900仍是等級1，達標只提示');
@@ -23,11 +24,11 @@ try{
   const top=await pg.evaluate(()=>{state.xp={};state.level={};state.caravan=null;caravanPick('fox',20);return CRITTERS.map(c=>critterLevel(c.id));});
   assert.deepEqual(top,[1,1,1,1]);
   await pg.evaluate(()=>CRITTERS.forEach(c=>levelUp(c.id)));ok('沒拿打怪經驗也補到門檻，玩家確認才升級');
-  // 等級 2 開戰：生命＝8＋體質 ＋ 5＋體質；熟練格照等級 2（一階 ×3）
-  const hp=await pg.evaluate(()=>{startBattle('ambush');return B().units.filter(u=>u.side==='pc').map(u=>({lv:u.level,hp:u.maxHp,want:Math.max(1,8+u.mods.CON)+Math.max(1,5+u.mods.CON),slots:slotMax(u)[0]}));});
+  // 等級 2 開戰：生命＝初始1d10骰面＋體質 ＋ 5＋體質（10-04 初始生命改1d10）；熟練格照等級 2（一階 ×3）
+  const hp=await pg.evaluate(()=>{startBattle('ambush');return B().units.filter(u=>u.side==='pc').map(u=>({lv:u.level,hp:u.maxHp,want:Math.max(1,state.initialHpDice[u.id]+u.mods.CON)+Math.max(1,5+u.mods.CON),slots:slotMax(u)[0]}));});
   hp.forEach(h=>{assert.equal(h.lv,2);assert.equal(h.hp,h.want);assert.equal(h.slots,3);});ok('等級 2 開戰：生命 +5＋體質，熟練格一階 ×3');
   // 探索戰：打完回探索也給經驗
-  await pg.goto('file://'+root+'#battle?seed=123');await pg.reload();await pg.waitForTimeout(600);
+  await pg.goto('file://'+root+'#battle?seed=123');await bootReady(pg);await pg.reload();await bootReady(pg);await pg.waitForTimeout(600);
   const ex=await pg.evaluate(()=>{state.xp={};state.level={};const b=B();b.phase='combat';b.manualCombat=false;b.units.filter(u=>u.side==='pc').forEach(u=>u.combatActive=true);const fs=b.units.filter(u=>u.side==='foe');fs.forEach(v=>{v.dead=true;v.hp=0;v.combatActive=true;});const want=Math.floor(fs.reduce((a,u)=>a+(ENEMIES[u.type].xp||0),0)/4);checkResult();return {want,got:CRITTERS.map(c=>critterXP(c.id)),phase:B().phase};});
   assert(ex.want>0);assert.deepEqual(ex.got,[ex.want,ex.want,ex.want,ex.want]);assert.equal(ex.phase,'explore');ok('探索中的戰鬥打完回探索，也照 SRD 給經驗');
   assert.deepEqual(errs,[]);

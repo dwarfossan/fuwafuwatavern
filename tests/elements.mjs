@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
-const br=await chromium.launch();try{const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+import {bootReady} from './boot.mjs';
+const br=await chromium.launch();try{const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
 const r=await pg.evaluate(()=>{startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox'),t=b.units.find(v=>v.side==='foe');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.menu='act';b.tut=-1;b.actionUsed=b.freeUsed=false;u.weapon=makeItem(ITEMS.find(i=>i.n==='霜雷法杖'));u.shield=false;u.focus=null;u.activeSkills=[];u.mods={STR:0,DEX:0,CON:0,INT:1,WIS:2,CHA:3};u.weapon.stat='WIS';t.hp=t.maxHp=100;t.statuses=[];t.down=t.dead=false;t.x=u.x+1;t.y=u.y;
 const out={anim:skillAnim(u,learnedSkillByKey("ray_of_frost"),t),skills:unitSkills(u).map(s=>s.key),stat:spellStat(u)},saved=Math.random;Math.random=()=>.75;
 SKILL_IMPL.elements[0].run(u,t);out.cold={hp:t.hp,slowed:!!has(t,'slowed'),of:has(t,'slowed')?.of};expire('start',u.id);out.expired=!has(t,'slowed');t.oaUsed=false;

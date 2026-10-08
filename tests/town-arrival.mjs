@@ -1,12 +1,13 @@
 // 進城固定劇情：所有檢定分支、偷包例外、商人離場與小隊成立。
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 const browser=await chromium.launch();
 try{
  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(page);
  const branches=await page.evaluate(()=>{
    const out=[];
    for(const pick of ['fox','tiger','wolf','raccoon'])for(const ok of [true,false]){

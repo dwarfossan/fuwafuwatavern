@@ -1,5 +1,6 @@
 // 升階效果（熟練格規格第八節，大爺 10-02 做）：只有多傷害、多目標、多持續時間；範圍招範圍固定
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -8,7 +9,7 @@ const ok=n=>console.log('✓ '+n);
 try{
  const pg=await br.newPage({viewport:{width:390,height:844}});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
- await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>B()&&B().units.length,null,{timeout:60000});
  const r=await pg.evaluate(()=>{

@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -10,7 +11,7 @@ const shot=async name=>{if(shots){await fs.mkdir(shots,{recursive:true});await p
 const tapTile=async(x,y)=>{const p=await page.evaluate(({x,y})=>{const r=document.querySelector('.board-wrap').getBoundingClientRect(),p=iso(x,y),z=camZoom();return {x:r.left+B().cam.x+p.x*z,y:r.top+B().cam.y+(p.y+TH/2)*z};},{x,y});await page.touchscreen.tap(p.x,p.y);};
 const boxPoint=async selector=>{const r=await page.locator(selector).boundingBox();assert(r);return {x:r.x+r.width/2,y:r.y+r.height/2};};
 try{
- await page.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle?seed=123');
+ await page.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle?seed=123');await bootReady(page);
  assert.equal(await page.evaluate(()=>B().def.blocks.filter(o=>o.kind==='powderBarrel').length),2);
  await page.evaluate(()=>{const b=B();b.flowEpoch++;b.def.blocks=[];b.def.elev=[];delete b.def._h;b.groundEffects={};b.busy=false;b.result=null;b.exploreStopped=false;b.phase='explore';b.exploreObject=null;b.leader='fox';b.turn=b.units.findIndex(u=>u.id==='fox');b.units.forEach((u,i)=>{u.x=u.side==='pc'?16:1;u.y=u.side==='pc'?18+i:i+1;u.hp=u.maxHp=100;u.dead=u.down=false;u.statuses=[];});const u=exploreUnit();u.x=16;u.y=18;u.backpack=[];syncBattleBag(u);state.inv[u.id]=[];b.def.blocks=[{kind:'powderBarrel',x:18,y:18},{kind:'crate',x:18,y:20},{kind:'chest',x:20,y:18,locked:true},{kind:'trap',x:19,y:19,found:false}];refreshBattle();centerCam(18,18);window.__floor=document.getElementById('board-floor').firstElementChild;window.__scene=document.getElementById('board-scene');});
  assert.equal(await page.locator('[data-world-object]').count(),3,'隱藏陷阱不公開');

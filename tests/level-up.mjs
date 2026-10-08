@@ -1,10 +1,11 @@
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));
 try{
- await pg.goto('file://'+path.resolve('index.html')+'#battle');await pg.waitForTimeout(500);
+ await pg.goto('file://'+path.resolve('index.html')+'#battle');await bootReady(pg);await pg.waitForTimeout(500);
  await pg.evaluate(()=>{state.modal=null;B().phase="combat";gainXP(['fox'],900);B().info='fox';refreshBattle();});
  assert.equal(await pg.locator('.level-button.ready').count(),1);
  assert.equal(await pg.locator('.dl-level-aura').count(),0);

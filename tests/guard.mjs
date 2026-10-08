@@ -1,5 +1,6 @@
 // 阻截（長柄架式）：走進範圍就挨一下，敵我同一套（大爺 10-02）；挨過打的移動不能取消；躲著走的不會被阻截
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -8,7 +9,7 @@ const ok=(name)=>console.log('✓ '+name);
 try{
  const pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
- await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{ endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });

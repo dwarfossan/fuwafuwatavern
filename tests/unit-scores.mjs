@@ -1,7 +1,8 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const browser=await chromium.launch();try{
 const p=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
-await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
 const r=await p.evaluate(()=>{
  startBattle('ambush',false,'explore');const b=B(),u=b.units.find(v=>v.id==='fox');
  const original={goblin:{STR:-1,DEX:2,CON:0,INT:0,WIS:-1,CHA:-1},goblin_archer:{STR:-1,DEX:2,CON:0,INT:0,WIS:-1,CHA:-1},goblin_shaman:{STR:-1,DEX:2,CON:0,INT:0,WIS:2,CHA:0}};

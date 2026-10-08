@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 const br=await chromium.launch();
@@ -14,10 +15,10 @@ try {
      const rel=url.pathname.split('/local-review/')[1];
      r.fulfill({path:path.resolve(rel)});
     });
-    await p.goto('file://'+path.resolve(process.env.ENTRY_HTML));
+    await p.goto('file://'+path.resolve(process.env.ENTRY_HTML));await bootReady(p);
     assert.deepEqual(await p.locator('a.btn').allTextContents(),['測試戰鬥','營救商隊','直達城鎮','從頭玩']);
     await p.locator(`a[href$="${hash}"]`).tap();
-   } else await p.goto('file://'+path.resolve('index.html')+hash);
+   } else await p.goto('file://'+path.resolve('index.html')+hash);await bootReady(p);
    if(id==='ambush'){
     assert.deepEqual(await p.evaluate(()=>({page:state.page,scene:state.scene,line:state.line,battle:!!state.battle})),{page:'story',scene:'ambush',line:0,battle:false});
     await p.locator('.scene-bg img').evaluate(img=>img.decode());

@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -7,7 +8,7 @@ try{
  for(const patched of [false,true]){
   const page=await browser.newPage({viewport:{width:390,height:844}});
   if(!patched)await page.route('**/css/style.css',async route=>route.fulfill({contentType:'text/css',body:(await fs.readFile('css/style.css','utf8')).replace('.battle .order:not(.explore-order){height:46px}','')}));
-  await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123&phase=combat');
+  await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123&phase=combat');await bootReady(page);
   const results=await page.evaluate(async()=>{
    const b=B();b.flowEpoch=(b.flowEpoch||0)+1;b.explorationMap=false;
    b.units.sort((a,c)=>(a.side==='pc'?0:1)-(c.side==='pc'?0:1));

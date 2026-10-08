@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -7,7 +8,7 @@ const url='file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'.
 const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 try{
  await pg.addInitScript(()=>{window.__realTimeout=window.setTimeout;window.setTimeout=()=>0;window.setInterval=()=>0;});
- await pg.goto(url+'#battle?seed=123&phase=combat');
+ await pg.goto(url+'#battle?seed=123&phase=combat');await bootReady(pg);
  const first=await pg.evaluate(()=>JSON.stringify(generateRandomBattle(123)));
  assert.equal(await pg.evaluate(()=>B().def.seed),123);
  assert.equal(first,await pg.evaluate(()=>JSON.stringify(generateRandomBattle(123))));
@@ -34,8 +35,8 @@ try{
  await pg.waitForFunction(p=>cur().x===p.x&&cur().y===p.y,dest);
  await pg.getByRole('button',{name:'確認',exact:true}).count().then(async n=>{if(n)await tapButton(pg.getByRole('button',{name:'確認',exact:true}));});
  if(process.env.RANDOM_SCREENSHOT)await pg.screenshot({path:process.env.RANDOM_SCREENSHOT});
- await pg.reload();assert.equal(await pg.evaluate(()=>JSON.stringify(generateRandomBattle(B().def.seed))),first);
- await pg.goto(url+'#battle');assert.equal(await pg.evaluate(()=>B().id),'random');assert(Number.isInteger(await pg.evaluate(()=>B().def.seed)));
+ await pg.reload();await bootReady(pg);assert.equal(await pg.evaluate(()=>JSON.stringify(generateRandomBattle(B().def.seed))),first);
+ await pg.goto(url+'#battle');await bootReady(pg);assert.equal(await pg.evaluate(()=>B().id),'random');assert(Number.isInteger(await pg.evaluate(()=>B().def.seed)));
  await pg.evaluate(()=>startBattle('ambush'));assert.equal(await pg.evaluate(()=>B().def.after),'caravan');
  assert.deepEqual(errors,[]);console.log('✓ 固定種子重現、不同種子不同、50 種子連通、隨機入口、固定伏擊保留、手機種子顯示');
 }finally{await br.close();}

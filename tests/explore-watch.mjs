@@ -1,7 +1,8 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];pg.on('pageerror',e=>errors.push(e.message));
 try{
- await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
  await pg.evaluate(()=>{const b=B();b.def.blocks=[];b.def.elev=[];delete b.def._h;b.def.lighting='bright';b.groundEffects={};b.info=null;b.exploreSneak=false;b.exploreStopped=false;b.exploreSolo='fox';b.leader='fox';b.turn=b.units.findIndex(u=>u.id==='fox');
   exploreParty().forEach((u,i)=>{u.x=17;u.y=20+i;u.statuses=[];u.hp=u.maxHp;u.down=false;b.def.blocks.push({x:u.x,y:u.y,kind:'bush'});});
   const foes=b.units.filter(u=>u.side==='foe');foes.forEach(u=>{u.statuses=[];u.type='goblin';u.dead=false;u.down=false;u.fled=false;});

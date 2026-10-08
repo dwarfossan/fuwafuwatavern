@@ -1,5 +1,6 @@
 // 專注、狩印、商隊報酬道具（10-03）：專注同時一個、受傷豁免、倒下中斷；狩印打中多傷害、目標倒下免費改標；點心＝短休；次元背包負重 2 倍
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -8,7 +9,7 @@ const ok=n=>console.log('✓ '+n);
 try{
  const pg=await br.newPage({viewport:{width:390,height:844}});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
- await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
+ await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!cur().down&&!cur().dead&&!B().busy,null,{timeout:60000});
  const r=await pg.evaluate(()=>{

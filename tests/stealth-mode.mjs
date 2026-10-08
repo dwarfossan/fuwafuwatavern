@@ -1,7 +1,8 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch(),p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 try{
- await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
  await p.evaluate(()=>{const b=B();b.flowEpoch++;b.def.blocks=[];b.def.elev=[];delete b.def._h;b.groundEffects={};b.busy=false;b.exploreStopped=false;b.leader='fox';b.exploreSolo='fox';b.turn=b.units.findIndex(u=>u.id==='fox');b.units.filter(u=>u.side==='pc').forEach((u,i)=>{u.x=18;u.y=17+i;u.hp=u.maxHp=50;u.down=u.dead=false;u.statuses=[];u.mods.DEX=4;});b.units.filter(u=>u.side==='foe').forEach((u,i)=>{u.x=1;u.y=2+i;u.statuses=[];u.type='goblin';u.mods.WIS=0;u.squad=Math.floor(i/2);});Math.random=()=>.99;refreshBattle();centerCam(18,17);});
  await p.locator('[data-explore-cmd="hide"]').tap();
  const appearance=()=>p.evaluate(()=>{const u=exploreUnit(),body=document.querySelector(`.token[data-explore-body="${u.id}"]`),hud=document.querySelector(`.hud[data-explore-body="${u.id}"]`);return {id:u.id,hidden:isHid(u),opacity:getComputedStyle(body.querySelector(':scope>svg')).opacity,eye:!!hud.querySelector('.hid-eye')};});

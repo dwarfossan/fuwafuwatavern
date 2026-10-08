@@ -1,12 +1,13 @@
 // 抗性／免疫：傷害面板、實際扣血與專注皆使用結算後傷害。
 import {chromium} from 'playwright';
+import {bootReady} from './boot.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 const browser=await chromium.launch();
 try {
  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await page.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(page);
  const result=await page.evaluate(()=>{
   const b=B(),u=b.units.find(u=>u.side==='pc');
   b.units.filter(u=>u.side==='foe').forEach(u=>u.dead=true);b.busy=false;b.exploreStopped=false;

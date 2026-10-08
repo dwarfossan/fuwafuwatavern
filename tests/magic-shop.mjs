@@ -1,9 +1,10 @@
 // 每日現貨、固定實例與實際裝備效果；手機購買。
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch();try{
 const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));
 await pg.addInitScript(()=>{localStorage.removeItem('fuwa-market-v1');localStorage.setItem('fuwa-help-seen','{"shop":1}');});
-await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
 const r=await pg.evaluate(()=>{
  const b=B(),u=b.units.find(u=>u.id==='fox');b.units.filter(u=>u.side==='foe').forEach(u=>u.dead=true);b.busy=false;
  const good=k=>MAGIC_GOODS.find(g=>g.key===k),hunter=makeMagicItem(good('hunter_bow'),'test-hunter'),armor=makeMagicItem(good('guard_leather'),'test-armor'),fire=makeMagicItem(good('fire_leather'),'test-fire'),bow=makeMagicItem(good('flame_bow'),'test-bow'),light=makeMagicItem(good('light_sword'),'test-light'),focus=makeMagicItem(good('light_staff'),'test-focus',()=>.8);

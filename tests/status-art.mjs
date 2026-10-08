@@ -1,7 +1,8 @@
 import {chromium}from'playwright';import assert from'node:assert/strict';import path from'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch();try{
  const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
- await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
  const r=await p.evaluate(()=>{
   window.nextTurn=()=>{};startBattle('ambush');const b=B();b.turn=0;b.flowEpoch=(b.flowEpoch||0)+1;b.busy=false;b.tut=-1;b.phase='explore';b.exploreMarks={};
   const u=b.units.find(u=>u.id==='fox');u.statuses=[];u.anim=null;refreshBattle();const floor=document.querySelector('#board-floor').innerHTML,hp=u.hp;

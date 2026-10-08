@@ -1,7 +1,8 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const browser=await chromium.launch();try{
  const p=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
- await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
  await p.evaluate(()=>{const b=B();b.busy=false;b.exploreRest=true;b.tut=99;b.units.filter(u=>u.side==='pc').forEach(u=>{u.slots=[0];u.pendingLearned=[];});b.units.find(u=>u.id==='fox').pendingLearned=[{key:'burning_hands',name:'燃燒之手',from:'測試',lv:1}];b.units.find(u=>u.id==='wolf').pendingLearned=[{key:'ray_of_frost',name:'寒冷射線',from:'測試',lv:1}];refreshBattle();});
  assert.equal(await p.locator('[data-rest-who]').count(),4);assert.equal(await p.locator('.rest-box .note-cap').count(),1);
  await p.locator('[data-rest-who="wolf"]').tap();await p.locator('[data-restpick="wolf:ray_of_frost"]').uncheck();

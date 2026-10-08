@@ -1,10 +1,11 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch();try{
 const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));
-await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
 await pg.waitForFunction(()=>typeof B==='function'&&B()&&!document.body.classList.contains('image-boot'));
 const checks=await pg.evaluate(()=>{
- startBattle('ambush');const b=B(),u=b.units.find(x=>x.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.menu='act';b.tut=-1;b.actionUsed=b.freeUsed=false;u.armor=null;u.weapon=makeItem(ITEMS.find(i=>i.n==='火焰法球'));u.focus=null;u.shield=true;u.offhand2=null;u.activeSkills=['magic_missile','mage_armor','healing_word','bless'];u.slots=[2];
+ startBattle('ambush');const b=B(),u=b.units.find(x=>x.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);b.busy=false;b.menu='act';b.tut=-1;b.actionUsed=b.freeUsed=false;u.armor=null;u.weapon=makeItem(ITEMS.find(i=>i.n==='火焰法球'));u.focus=null;u.shield=true;u.offhand2=null;for(const key of ['magic_missile','mage_armor']){if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:learnedSkillByKey(key).def.name});if(!u.activeSkills.includes(key))u.activeSkills.push(key);}u.activeSkills=['magic_missile','mage_armor','healing_word','bless'];u.slots=[2];
  const skill=name=>({def:{components:SPELL_COMPONENTS[name]}}),out={};
  out.vs=componentProblem(u,skill('魔法飛彈'));out.vsm=componentProblem(u,skill('法師護甲'));out.v=componentProblem(u,skill('治癒真言'));
  u.silenced=true;out.silence=componentProblem(u,skill('治癒真言'));u.silenced=false;u.gagged=true;out.gag=componentProblem(u,skill('治癒真言'));u.gagged=false;

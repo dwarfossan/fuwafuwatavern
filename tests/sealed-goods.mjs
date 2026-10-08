@@ -1,9 +1,10 @@
 // 公開機率／保底、週自選與領取交易；手機操作實際付費。
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
+import {bootReady} from './boot.mjs';
 const br=await chromium.launch();try{
  const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.addInitScript(()=>{localStorage.removeItem('fuwa-market-v1');localStorage.setItem('fuwa-help-seen','{"shop":1}');});
- await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');
+ await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
  await pg.evaluate(()=>{state.battle=null;state.page='shop';state.shopContext='items';state.shopCat='魔法物品';state.shopActive=0;state.inv.fox=[];state.gold.fox=1000*GP;state.rolls.fox=Object.fromEntries(ABILITIES.map(a=>[a.k,[6,6,6,1]]));state.market={day:1,seed:123,stockDay:0,stock:[],marks:0,pity:0,totalDraws:0};render();});
  assert.deepEqual(await pg.evaluate(()=>[sealRarity(.699,0),sealRarity(.7,0),sealRarity(.95,0),sealRarity(.99,0),sealRarity(0,9)]),['blue','yellow','orange','gold','yellow']);
  assert(await pg.evaluate(()=>rulesHTML('負重與狩印').includes('data-rule="負重"')&&ruleDictionary()['狩印']===SKILL_GROUPS.flatMap(g=>g.skills).find(s=>s.id==='hunters_mark').text));await pg.locator('#sealOpen').tap();assert.match(await pg.locator('.modal').innerText(),/這個問號/);
