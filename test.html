@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>毛絨絨小隊 測試入口</title>
-<!-- 測試入口（大爺 10-02；10-08 改走 GitHub Pages）：存成書籤，打開就是 dev 的測試版。
-     dev 由 .github/workflows/pages.yml 發佈到 GitHub 自己的主機 /fuwafuwatavern/dev/（不再經過 raw.githack，10-08 githack 整站回 429）。
-     這頁同時問 GitHub dev 最新一筆、和 /dev/ 目前發佈的那一筆（version.json），還沒發佈完就照實顯示。
+<!-- 測試入口（大爺 10-02；10-08 githack 掛掉時加了 GitHub Pages 備用，後來大爺改回 githack 為主）：存成書籤。
+     大按鈕：raw.githack 指定 dev 最新那一筆（40 碼 commit），推完馬上可測、沒有快取問題。
+     下方小連結：GitHub Pages /dev/（.github/workflows/pages.yml 發佈），githack 回 429 時備用。
      這個檔案只放 main，遊戲本身不讀它。 -->
 <style>
 :root{--night:#2a1f18;--card:#3e2c21;--fur:#f4e7d3;--honey:#e8b04b;--ink:#2a1f18;--dim:#bfa98c}
@@ -45,21 +45,19 @@ Promise.all([
   fetch(`dev/version.json?t=${Date.now()}`, {cache:"no-store"}).then(r => r.ok ? r.json() : null).catch(() => null)
 ]).then(([c, live]) => {
     const sha = c.sha, msg = c.commit.message.split("\n")[0];
-    info.innerHTML = `<div class="msg"></div><div class="meta">${fmt(c.commit.committer.date)}・${sha.slice(0,7)}</div><div class="meta" id="live"></div>`;
+    info.innerHTML = `<div class="msg"></div><div class="meta">${fmt(c.commit.committer.date)}・${sha.slice(0,7)}</div>`;
     info.querySelector(".msg").textContent = msg;
     const liveEl = info.querySelector("#live");
-    // githack 備用（10-08 大爺要保留）：指定最新這一筆，不吃 Pages 快取；githack 不穩，可能回 429
+    // 主要：githack 指定這一筆（10-08 大爺改回主要；推完馬上可測、沒有快取問題，但 githack 不穩可能回 429）
     const gh = `https://raw.githack.com/${REPO}/${sha}/index.html`;
-    backup.innerHTML = `githack 備用（${sha.slice(0,7)}，可能被擋）：<br><a href="${gh}#battle">測試戰鬥</a><a href="${gh}#ambush">營救商隊</a><a href="${gh}#town">直達城鎮</a><a href="${gh}">從頭玩</a>`;
-    if(!live) liveEl.innerHTML = `<span class="err">測試版網站還沒發佈（第一次設定或發佈中），等一兩分鐘重新整理。</span>`;
-    else if(live.sha !== sha) liveEl.innerHTML = `<span class="err">最新這筆還在發佈中（約一兩分鐘）；現在打開會是 ${live.sha.slice(0,7)}。</span>`;
-    else liveEl.textContent = "測試版網站已是這一筆。";
-    if(!live) return;
+    links.innerHTML = `<a class="btn main" href="${gh}#battle">測試戰鬥</a>
+                       <a class="btn ghost" href="${gh}#ambush">營救商隊</a>
+                       <a class="btn ghost" href="${gh}#town">直達城鎮</a>
+                       <a class="btn ghost" href="${gh}">從頭玩</a>`;
+    // 備用：GitHub Pages /dev/（githack 429 時用；推完約一兩分鐘發佈、有約 10 分鐘瀏覽器快取）
+    if(!live){ backup.textContent = "GitHub 備用：還沒發佈完，等一兩分鐘重新整理。"; return; }
     const base = `dev/index.html?v=${live.sha.slice(0,7)}`;
-    links.innerHTML = `<a class="btn main" href="${base}#battle">測試戰鬥</a>
-                       <a class="btn ghost" href="${base}#ambush">營救商隊</a>
-                       <a class="btn ghost" href="${base}#town">直達城鎮</a>
-                       <a class="btn ghost" href="${base}">從頭玩</a>`;
+    backup.innerHTML = `GitHub 備用（${live.sha.slice(0,7)}${live.sha!==sha?"，最新這筆還在發佈中":""}；githack 開不了時用）：<br><a href="${base}#battle">測試戰鬥</a><a href="${base}#ambush">營救商隊</a><a href="${base}#town">直達城鎮</a><a href="${base}">從頭玩</a>`;
   })
   .catch(e => {
     info.innerHTML = `<div class="msg err">查不到最新版（${e.message}）。等一下重新整理再試。</div>`;
