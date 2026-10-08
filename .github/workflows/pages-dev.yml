@@ -1,0 +1,19 @@
+# 推 dev 後叫 main 上的 pages.yml 重新發佈（Pages 預設只允許 main 部署，所以由 main 那支來跑）
+# 發佈結果：https://dwarfossan.github.io/fuwafuwatavern/dev/ （大爺 10-08）
+name: dev 推送後更新測試版
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  actions: write
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 叫 main 的 pages.yml 發佈
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
