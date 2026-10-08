@@ -96,7 +96,6 @@ node tests/scene-image-assets.mjs  # 七張劇情素材、牆面切換、原哥�
 node tests/image-load-report.mjs # 98%失敗來源／耗時紀錄、HTTP／解碼／逾時與重試保存
 node tests/image-startup.mjs        # 黑底四頭原位讀取、全圖片解碼、失敗重試、劇情四店零追加下載
 node tests/image-display.mjs        # 圖片失敗重試、只等待下一句必要圖片、不誤推進劇情
-node tests/image-first-load.mjs     # 慢網冷快取：封面／商隊／四店首次圖片顯示時間與容量上限（可帶另一版目錄做前後對照）
 node tests/reported-regressions.mjs # 大爺回報過的圖片問題：布隆底圖與表情一起顯示、序章／送別逐句零未載入
 node tests/wait-layout.mjs          # 連按待機時先攻列固定高度、戰場不晃動（修正前後對照）
 node tests/town-image-assets.mjs     # 城鎮 NPC：四組 WebP 已接用，首次店主肖像下載量低於原 PNG 的 20%
