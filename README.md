@@ -143,7 +143,7 @@ node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；�
 ### 4. 給大爺測試
 
 - **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。按「測試戰鬥」、「營救商隊」、「直達城鎮」或「從頭玩」開 GitHub Pages 上的測試版 `https://dwarfossan.github.io/fuwafuwatavern/dev/`。推完跟大爺說「推好了」和 commit 前 7 碼就好
-  - **10-08 起不再用 raw.githack**（那天 githack 整站回 429，連 jQuery 也開不了）。推 dev 後，dev 的 `.github/workflows/pages-dev.yml` 叫 main 的 `pages.yml` 重新發佈，約一兩分鐘上線；入口頁會顯示 `/dev/` 目前是哪一筆，還沒發佈完會照實提示
+  - **10-08 起不再用 raw.githack**（那天 githack 整站回 429，連 jQuery 也開不了）。推 dev 後，dev 的 `.github/workflows/pages-dev.yml` 叫 main 的 `pages.yml` 重新發佈，約一兩分鐘上線；入口頁會顯示 `/dev/` 目前是哪一筆，還沒發佈完會照實提示。入口頁下方另有「githack 備用」小連結（指定 dev 最新一筆，不吃 Pages 快取，但 githack 不穩可能 429）
   - 入口頁 `test.html` 和 `pages.yml` 在 main，遊戲不讀它們；改它們要動 main，先問大爺
   - GitHub Pages 有約 10 分鐘的瀏覽器快取：剛推完覺得沒變，先看入口頁顯示的 commit，再強制重新整理
 - **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）
