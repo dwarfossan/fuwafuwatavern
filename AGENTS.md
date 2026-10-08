@@ -35,7 +35,7 @@
   - 寫好**在回覆裡直接列給大爺看**（不用寫進文件）
   - 寫進 `data/barks.js` 的每一組加 `draft:"GPT"`（寫你是誰），大爺看過、改過才拿掉
 - 自己決定的外觀、數值，標明「暫定」，並在回覆裡講
-- **大爺測試開測試入口** https://dwarfossan.github.io/fuwafuwatavern/test.html（他的書籤，大按鈕自動跳 dev 最新那一筆的 githack 網址；下方小連結是 GitHub Pages `/dev/` 備用）。推完說「推好了」＋commit 前 7 碼就好。**不要給 githack 的分支網址**（`raw.githack.com/.../dev/`），會吃到舊快取（README 第 4 節）
+- **大爺測試開測試入口** https://dwarfossan.github.io/fuwafuwatavern/test.html（他的書籤，大按鈕自動跳 dev 最新那一筆的 githack 網址；下方小連結是 GitHub Pages `/dev/` 備用）。推完說「推好了」＋commit 前 7 碼，**並提醒大爺：用 GitHub 備用開的話先按 Ctrl+F5**（Pages 有約 10 分鐘快取，大爺 10-08：不加版本號程式，用提醒就好）。**不要給 githack 的分支網址**（`raw.githack.com/.../dev/`），會吃到舊快取（README 第 4 節）
 - 測試結果照實說：沒在瀏覽器跑過、沒截圖看過，就說沒測
 
 ## 四、做完之後
