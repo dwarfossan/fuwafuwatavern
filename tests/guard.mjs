@@ -23,6 +23,8 @@ try{
    for(let y=2;y<b.def.h-2&&!spot;y++) for(let x=2;x<b.def.w-6&&!spot;x++){
      const line=[0,1,2,3,4].map(i=>({x:x+i,y}));
      if(line.every(p=>!blocked(p.x,p.y)&&(!unitAt(p.x,p.y)||unitAt(p.x,p.y)===u))&&b.def.tiles?.[y]?.[x]!=='grass') spot=line; }
+   // 開場敵人可能先擊倒輪到的這隻（10-04 起初始生命 1d10），本 fixture 驗清醒角色的移動，明確還原清醒，不改遊戲判定（10-08）
+   u.down=false; u.dead=false; u.hp=u.maxHp; u.dsFail=0;
    u.x=spot[0].x; u.y=spot[0].y; u.statuses=[]; g.x=spot[4].x; g.y=spot[4].y;
    addStatus(g,'stance',{via:'guard', until:'start', of:g.id});
    b.moveLeft=6; b.movedThisTurn=false; b.actionUsed=false; b.busy=false; b.pendingMove=null; b.menu='root';

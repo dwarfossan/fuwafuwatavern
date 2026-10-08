@@ -1,9 +1,10 @@
 // 狀態卡三條（生命／經驗／壓力，名稱｜條｜數字）與頭像列壓力小條（大爺 10-04）
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';import {fileURLToPath} from 'node:url';
+import {bootReady} from './boot.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html');
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errs=[];pg.on('pageerror',e=>errs.push(e.message));
 try{
-  await pg.goto('file://'+root+'#battle?seed=123');await pg.waitForTimeout(700);
+  await pg.goto('file://'+root+'#battle?seed=123');await bootReady(pg);await pg.waitForTimeout(700);
   await pg.evaluate(()=>{const f=B().units.find(u=>u.id==='fox');f.stress=40;f.xp=150;f.hp=Math.max(1,f.maxHp-2);B().info='fox';refreshBattle();});
   await pg.waitForTimeout(300);
   const card=await pg.evaluate(()=>{const g=document.querySelector('.inf-bars');const ls=[...g.querySelectorAll('.ib-l')].map(e=>e.textContent),ns=[...g.querySelectorAll('.ib-n')].map(e=>e.textContent),bars=[...g.querySelectorAll('.ib-bar')].map(e=>e.getBoundingClientRect()),f=B().units.find(u=>u.id==='fox');
