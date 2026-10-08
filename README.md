@@ -143,9 +143,11 @@ node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；�
 
 ### 4. 給大爺測試
 
-- **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。打開時即時問 GitHub dev 最新是哪一筆，大按鈕「測試戰鬥」、「營救商隊」、「直達城鎮」、「從頭玩」跳到那一筆的 githack 指定版本網址（`raw.githack.com/.../<40 碼 commit>/index.html`）。推完跟大爺說「推好了」和 commit 前 7 碼就好，不用再貼網址
-  - **不要給 githack 的 `/dev/` 分支網址**：githack 會記住「dev 指向哪一筆」，不知道多久才更新，大爺會看到舊版（10-02 發生兩次）。入口頁用的是 40 碼 commit，沒有這個問題
-  - **備用：GitHub Pages `https://dwarfossan.github.io/fuwafuwatavern/dev/`**（入口頁下方小連結）。10-08 githack 整站回 429 一個多小時，因此加了 `.github/workflows/pages.yml`（main）＋`pages-dev.yml`（dev）：推 dev 約一兩分鐘後發佈到 `/dev/`。githack 正常時大爺改回用 githack 為主（10-08）。Pages 版有約 10 分鐘瀏覽器快取，剛推完要 Ctrl+F5
+- **大爺測試一律開測試入口**：https://dwarfossan.github.io/fuwafuwatavern/test.html （大爺存成書籤）。大按鈕開 GitHub Pages 上的測試版 `https://dwarfossan.github.io/fuwafuwatavern/dev/`；下方小連結是 githack 指定 dev 最新一筆的備用（`raw.githack.com/.../<40 碼 commit>/index.html`）。推完說「推好了」和 commit 前 7 碼，並提醒大爺按 Ctrl+F5
+  - 10-08 githack 兩度整站回 429 各約一小時，大爺定：GitHub Pages 為主、githack 備用
+  - 推 dev 後，dev 的 `.github/workflows/pages-dev.yml` 叫 main 的 `pages.yml` 重新發佈，約一兩分鐘上線；入口頁會顯示 `/dev/` 目前是哪一筆
+  - Pages 有約 10 分鐘瀏覽器快取：不加版本號程式，靠提醒大爺 Ctrl+F5（大爺 10-08）
+  - **不要給 githack 的 `/dev/` 分支網址**：githack 會記住分支指向哪一筆，大爺會看到舊版
   - 入口頁 `test.html` 和 `pages.yml` 在 main，遊戲不讀它們；改它們要動 main，先問大爺
 - **合併進 main 之後**才用正式網站 https://dwarfossan.github.io/fuwafuwatavern/ （加 `#battle` 直接進快速戰鬥，推上 main 後一兩分鐘更新）
 - **不要再傳下載用的單一檔案給大爺**，GitHub 才是唯一的版本
