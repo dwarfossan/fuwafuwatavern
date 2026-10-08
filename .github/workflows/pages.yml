@@ -1,0 +1,55 @@
+# 發佈 GitHub Pages：main 放網站根目錄、dev 放 /dev/（大爺 10-08：測試不再經過 githack）
+# - 推 main：直接跑
+# - 推 dev：dev 上的 pages-dev.yml 會叫這支在 main 上跑（Pages 預設只允許 main 部署）
+# - 也可以在 GitHub 網頁 Actions 分頁手動按 Run workflow
+# 需要 repo 設定 Settings → Pages → Source 選「GitHub Actions」
+name: 發佈 Pages（main＋dev）
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          path: dev
+      - name: 組合網站（main 在根目錄、dev 在 /dev/）
+        run: |
+          mkdir -p _site/dev
+          rsync -a --exclude .git --exclude .github main/ _site/
+          rsync -a --exclude .git --exclude .github dev/ _site/dev/
+          # 測試入口用：讓頁面知道 /dev/ 目前發佈的是哪一筆
+          printf '{"sha":"%s","time":"%s"}\n' "$(git -C dev rev-parse HEAD)" "$(git -C dev log -1 --format=%cI)" > _site/dev/version.json
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
