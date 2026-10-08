@@ -289,7 +289,7 @@ const SKILL_IMPL = {
   arcane_staff: [
     FOCUS_STRIKE_IMPLS.staff,
     // 魔法飛彈：必中，每發 1d4+1；ts 是每一發的目標（可以重複、可以分給不同敵人），一發一顆光球錯開飛出去
-    {target:"enemy", multi:true, darts:()=>2+upNow(), range:()=>24, run:(u,ts)=>{ ts = [].concat(ts);
+    {target:"enemy", multi:true, darts:()=>3+upNow(), range:()=>24, run:(u,ts)=>{ ts = [].concat(ts);
       blog(`　${ts.length} 發魔法飛彈必定命中！`,"skill");
       ts.forEach((t,i)=>{ if(t.dead){ blog(`　第 ${i+1} 發：${t.name}已經倒下了，飛彈散掉。`,"miss"); return; }
         B().impact = launch(u, t, "cast", i*140); hurt(t, rollDice("1d4+1").total, "力場", u); }); }},

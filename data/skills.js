@@ -116,7 +116,7 @@ const SKILL_GROUPS = [
    weapons:["奧術法杖","霜雷法杖"],
    skills:[
     {name:"打擊", kind:"近戰", dmg:"物理",     tier:0,   text:"造成 1d6 + 力量調整值物理傷害。"},
-    {id:"magic_missile", name:"魔法飛彈",  kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 2 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
+    {id:"magic_missile", name:"魔法飛彈",  kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 3 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
     {id:"shield_spell", name:"護盾術",  kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, text:"AC +5，直到你下回合開始。"},
     {id:"mage_armor", name:"法師護甲",  kind:"輔助", tier:1, srd:true, noUp:true, text:"沒穿護甲或只穿布甲時，整場戰鬥的基礎 AC 變成 13 + 敏捷調整值。"}]},
 

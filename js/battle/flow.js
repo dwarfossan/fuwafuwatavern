@@ -250,7 +250,7 @@ function aimTier(t){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;
   const n = upOf(u, sk, t);
-  if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 2 + n) return;
+  if(sk.impl.multi && sk.impl.darts && (b.mode.darts||[]).length > 3 + n) return;
   b.tier = t; b.up = n; b.tierOpen = false; sfx("pop"); refreshBattle();   // 選好就收起來
 }
 // 瞄準列的「＋／×」：展開、收起其他階（大爺 2026-10-01：升階平常收起來，點＋才展開）

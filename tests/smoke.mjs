@@ -128,9 +128,9 @@ console.log('規則');
     // 熟練格（全施法者表）、嬌嬌物理招免費升一階、一階用完拿高階的放、短休每階回一半
     o.table = [1,3,5,20].map(l=>slotMax({level:l}).join('/'));
     const ax = unitSkills(tig).find(s=>s.def.tier===1 && isPhysicalSkill(s) && canUp(s));
-    const sp = unitSkills(fox).find(s=>s.def.tier===1 && !isPhysicalSkill(s) && canUp(s));
+    const sp = learnedSkillByKey('magic_missile');   // 10-08：直接指定會升階的法術，不依賴誰的起始技能
     o.tiger = ax ? [upOf(tig,ax,1), upOf(tig,ax,2), upOf(wolf,ax,1), upOf(wolf,ax,2)] : null;
-    o.spell = sp ? upOf(fox,sp,1) : null;
+    o.spell = sp ? upOf(tig,sp,1) : null;   // 拿嬌嬌算：她的免費升階不管法術招
     const t3 = {id:'wolf', side:'foe', level:3, slots:[0,1]};
     o.fallback = ax ? [tiersFor(t3,ax).join(), skillReady(t3,ax), (t3.slots=[0,0], skillReady(t3,ax))] : null;
     const t5 = {id:'wolf', side:'foe', level:5, slots:[0,1,0]};
@@ -189,7 +189,7 @@ console.log('規則');
       notes:Object.values(STARTER_NOTES).flat().every(n=>learnedSkillByKey(n.key)), foes:b.def.foes.every(f=>!f.testSkill || learnedSkillByKey(f.testSkill)),
       bowAnim: (()=>{ const w=b.units.find(u=>u.id==='wolf'); w.weapon=W('短弓'); return skillAnim(w, learnedSkillByKey('hamstring'), {x:w.x-6,y:w.y}); })() }; });
   ok('合併招式：舊名稱都不在、每招都有實作、組數對得上', r4.gone.length===0 && r4.impl.length===0 && r4.len, JSON.stringify(r4));
-  ok('合併招式：武器條件（徒手連擊、長柄撞倒、拿弓扎腿…）', r4.req==='11011010', r4.req);
+  ok('合併招式：武器條件（徒手連擊、長柄撞倒、拿弓扎腿…）', r4.req==='11111010', r4.req);
   ok('起始技能、敵人的 testSkill 都用代號找得到', r4.notes && r4.foes);
   ok('拿弓放扎腿用射箭的動作', r4.bowAnim==='shoot', r4.bowAnim);
   // 狀態精簡成 15 個（2026-10-01）：合併的狀態照新規則、凍結麻痺中毒
