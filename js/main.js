@@ -400,6 +400,8 @@ function gameImageSources(){
  for(const scene of Object.values(SCENES))if(scene.image)sources.add(scene.image);
  return [...sources];
 }
+// 開機同時下載幾張圖（10-08 大爺同意 4→12）：GitHub Pages 是 HTTP/2，本機模擬來回 0.2 秒時開機 4.9→2.3 秒；再加到 16 幾乎沒差
+const BOOT_IMAGE_WORKERS=12;
 async function prepareEntry(){
  const app=document.getElementById('app');app.innerHTML=renderCover(true);
  const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages'),reportButton=app.querySelector('#imageLoadReport');
@@ -407,10 +409,10 @@ async function prepareEntry(){
  function update(){const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';}
  async function run(retry=false){
   retryButton.hidden=true;reportButton.hidden=true;label.firstChild.textContent='讀取中 ';update();
-  // 頭像先解碼並沿用其節點，再以四個並行工作逐張準備其餘圖片。
+  // 頭像先解碼並沿用其節點，再以 BOOT_IMAGE_WORKERS（12）個並行工作逐張準備其餘圖片。
   await Promise.allSettled(HOME_HEADS.map(src=>loadEntryImage(src,retry,30000).then(()=>{adoptEntryImages();update();})));
   const pending=sources.filter(src=>!entryDecodedImages.has(src)&&!HOME_HEADS.includes(src));let cursor=0;
-  await Promise.all(Array.from({length:4},async()=>{while(cursor<pending.length){const src=pending[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});update();}}));
+  await Promise.all(Array.from({length:BOOT_IMAGE_WORKERS},async()=>{while(cursor<pending.length){const src=pending[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});update();}}));
   if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;reportButton.hidden=false;saveEntryImageReport();return;}
   saveEntryImageReport();document.body.classList.remove('image-boot');
   const backdrop=document.getElementById('bootBackdrop');if(!location.hash){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
