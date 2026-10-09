@@ -695,7 +695,7 @@ const STATUS_BADGE = {
   frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0], marked:["target",0],
   conc:["focus",1],   // 10-03 大爺：上限放寬到 17，加狩印（被標的）和專注（施法的）
   blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
-  prone:[null,0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
+  prone:["fall",0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
 };
 const badgeOf = s => (STATUS_BADGE[s.k]||[])[0];
 const hasBadge = v => v.statuses.some(badgeOf);
@@ -718,6 +718,7 @@ const ST_ICON = {
   parry:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M20 3L26 9L14 21L8 15Z" fill="#fff4df"/><path d="M7 20L13 26M5 28L10 23" fill="none" stroke="#211923" stroke-width="2"/><path d="M5 4H11V12H5Z" fill="#fff4df"/><path d="M3 2V16" fill="none" stroke="#211923" stroke-width="2"/></g>`,
   target:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="16" r="10" fill="#fff4df"/><circle cx="16" cy="16" r="6" fill="#fff4df"/><circle cx="16" cy="16" r="2" fill="#fff4df"/><path d="M16 1V9M16 23V31M1 16H9M23 16H31" fill="none" stroke="#211923" stroke-width="2"/></g>`,
   focus:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 16Q16 1 29 16Q16 31 3 16Z" fill="#fff4df"/><circle cx="16" cy="16" r="6" fill="#bba3d7"/><circle cx="16" cy="16" r="2.5" fill="#302137"/><path d="M16 1V4M16 28V31" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  fall:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M1.5 29.5H30.5" fill="none" stroke-width="2.2"/><path d="M12 20H26.5Q30 20 30 24.25Q30 28.5 26.5 28.5H12Z" fill="#fff4df"/><circle cx="7.5" cy="24" r="5.5" fill="#fff4df"/><path d="M22 15Q14 15 10 4" fill="none" stroke="#211923" stroke-width="5.2"/><path d="M22 15Q14 15 10 4" fill="none" stroke="#fff4df" stroke-width="2.6"/><path d="M20 10.5L27 15L20 19.5Z" fill="#fff4df"/><path d="M4 9L7 11M3 14H6.5" fill="none" stroke="#ffd34d" stroke-width="1.8"/></g>`,   // 倒地（10-09 大爺選 B3：翻倒弧形箭頭）
   fire:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 2C17 10 28 12 28 21A12 12 0 0 1 4 21C4 15 8 12 10 9C10 14 13 16 16 17C13 11 14 6 16 2Z" fill="#fff4df"/><path d="M16 15C17 19 22 20 22 24A6 6 0 0 1 10 24C10 21 12 19 14 18C14 21 16 22 17 22Z" fill="#f3a053"/></g>`,
   grab:`<g fill="#fff4df" stroke="#211923" stroke-width="1" stroke-linejoin="round"><path d="M5 17V10a1.2 1.2 0 0 1 2.4 0V5a1.2 1.2 0 0 1 2.4 0V3.5a1.2 1.2 0 0 1 2.4 0V5a1.2 1.2 0 0 1 2.4 0v5l1-1a1.2 1.2 0 0 1 2 1L15 17Z"/></g>`,
 };
