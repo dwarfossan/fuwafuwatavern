@@ -43,7 +43,7 @@ console.log('封面 → 擲屬性 → 序章');
   ok('點對話框以外的地方也會推進', await pg.evaluate(()=>state.line) === 1);
   ok('換台詞不整頁重畫', await pg.evaluate(()=>window.__st===document.getElementById('stage')));
   const total = await pg.evaluate(()=>SCENES.prologue.script.length);
-  for(let i=0;i<total;i++){ await pg.mouse.click(200, 60); await pg.waitForTimeout(40); }
+  for(let i=0;i<total;i++){ /* 10-10 起始風格：停在選項時點第一個 */ if(await pg.locator('[data-style-pick]').count()) await pg.locator('[data-style-pick]').first().click(); else await pg.mouse.click(200, 60); await pg.waitForTimeout(40); }
   ok('序章最後一句「去看裝備」按鈕亮起', await pg.evaluate(()=>{ const b=document.getElementById('toShop'); return b && !b.disabled && b.textContent==='去看裝備'; }));
   await pg.click('#toShop'); await pg.waitForTimeout(200);
   ok('進入商店', await pg.evaluate(()=>state.page) === 'shop');

@@ -10,11 +10,11 @@ try{
  const cases=['prologue','farewell','caravan','townArrival','townSupplier'].map(scene=>({scene}));
  for(const pick of ['fox','tiger','wolf','raccoon'])for(const ok of [false,true])cases.push({scene:'caravan',pick,ok});
  for(const {scene,pick,ok} of cases){
-  await pg.evaluate(({scene,pick,ok})=>{state.caravan=pick?{pick,ok,stat:'INT',roll:10,mod:0,total:10,flick:[]}:{};state.page='story';state.scene=scene;state.line=0;state.info=null;render();},{scene,pick,ok});
+  await pg.evaluate(({scene,pick,ok})=>{state.caravan=pick?{pick,ok,stat:'INT',roll:10,mod:0,total:10,flick:[]}:{};state.page='story';state.starterStyle={};state.scene=scene;state.line=0;state.info=null;render();},{scene,pick,ok});
   const lines=await pg.evaluate(()=>SCENES[state.scene].script);
   const expected={fox:'normal',tiger:'normal',wolf:'normal',raccoon:'normal'};
   for(let i=0;i<lines.length;i++){
-   if(i){await pg.locator('#stage').tap();await pg.waitForFunction(i=>state.line===i,i);}
+   if(i){/* 10-10 起始風格：選項那句要點選項才會往下 */if(lines[i-1].styleChoice)await pg.locator('[data-style-pick]').first().tap();else await pg.locator('#stage').tap();await pg.waitForFunction(i=>state.line===i,i);}
    const line=lines[i];
    for(const id of Object.keys(expected))if(line.who===id||line.who==='all')expected[id]=line.mood||line.moods?.[id]||'normal';
    const faces=()=>pg.evaluate(()=>Object.fromEntries([...document.querySelectorAll('.party [data-info]')].map(el=>[el.dataset.info,el.querySelector('.c-head').getAttribute('src')])));

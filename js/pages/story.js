@@ -39,15 +39,33 @@ function caravanPick(id, roll=d20()){   // roll：測試可以指定
   sfx(ok ? "win" : "miss");
   state.line++; render();
 }
+// 起始風格（大爺 10-10）：選了就寫進小筆記並帶著；回頭改選會換掉上一個
+const styleChoicePending = line => !!(line && line.styleChoice && !(state.starterStyle||{})[line.styleChoice]);
+function pickStarterStyle(id, key){
+  const st = STARTER_STYLE[id]; if(!st || !st.answers[key]) return;
+  state.starterStyle ||= {}; const old = state.starterStyle[id]; state.starterStyle[id] = key;
+  let notes = (state.learned[id] || starterNotes(id)).filter(n=>n.key!==old || n.key===key);
+  if(!notes.some(n=>n.key===key)) notes = [...notes, {key, name:learnedSkillByKey(key).def.name, innate:false, from:"起始風格", lv:1}];
+  state.learned[id] = notes;
+  const carry = (state.activeSkills[id] || notes.slice(0,5).map(n=>n.key)).filter(k=>k!==old);
+  state.activeSkills[id] = carry.includes(key) ? carry : [...carry, key];
+  sfx("pop"); state.line++; render();
+}
+function styleChoicesHTML(id){
+  const st = STARTER_STYLE[id], c = CRITTERS.find(x=>x.id===id);
+  return `<div class="choice-list">${Object.keys(st.answers).map(k=>{ const sk = learnedSkillByKey(k);
+    return `<button class="choice" data-style-pick="${k}" data-style-who="${id}" style="--c:${c.color}"><b>${sk.def.name}</b><small>${sk.def.text}</small></button>`; }).join("")}</div>`;
+}
 // 對話框內容：一般台詞；選項那句換成四個按鈕；檢定那句多一排骰子
 function dialogInner(line, who, done){
   let extra = line.worldChestChoice?worldChestChoices():line.chestRoll?worldChestRollHTML(line.chestRoll):"";
+  if(styleChoicePending(line)) extra = styleChoicesHTML(line.styleChoice);
   if(line.choice && !(state.caravan||{}).pick)
     extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
       return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
   if(line.roll){ const c = state.caravan;
     extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
-  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice?"":"▼ 點一下繼續"}</span>`;
+  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
 }
 const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"小傢伙們"} : WHO(line.who);
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
@@ -144,7 +162,7 @@ function updateStoryLine(){
   const progress = document.querySelector(".fp-page .progress");
   if(progress) progress.textContent = `${state.line+1} / ${scene.script.length}`;
   const next = document.getElementById(scene.next[0]);
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick);   // 停在選項上不算演完
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
   syncBGM();
   prepareStoryImages(state.line+1);
@@ -206,7 +224,7 @@ function renderStory(){
   const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick);
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
     <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `

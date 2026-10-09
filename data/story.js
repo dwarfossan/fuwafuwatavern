@@ -8,6 +8,25 @@ const STARTER_GEAR = {
  wolf:{main:"彎刀",second:"短弓",armor:"鏈甲衫",ammo:"箭袋"},
  raccoon:{main:"匕首",off:"匕首",second:"短弓",armor:"鑲釘皮甲",ammo:"箭袋"}
 };
+// 起始風格（大爺 10-10）：風格類別照 CG、背景先定（像起始裝備），類別裡的被動由玩家在序章挑一個；
+// 大爺挨個問，選完那隻回答。台詞香香寫、大爺 10-10 看過
+const STARTER_STYLE = {
+ fox:{style:"mage", ask:"玲玲，妳書讀得最多，說說看？", mood:"smug", answers:{
+  mage_armor:"法袍擋不了刀，所以我會先在身上唸一層護甲。", metamagic:"同一個咒文，我可以讓它飛得更遠，或唸得更快。",
+  empowered_cantrip:"戲法也是法術。唸得準一點，就會痛一點。", lore:"看過的書我都記得。認得出來的東西，就不怕。"}},
+ tiger:{style:"warrior", ask:"嬌嬌，妳呢？別只說『衝』啊！", mood:"happy", answers:{
+  double_strike:"一下不夠，那就兩下！", counterattack:"打不中我的，我就打回去！",
+  shield_guard:"站我旁邊的，我用盾牌擋！", weapon_mastery:"這把劍怎麼揮最痛，我最清楚！"}},
+ wolf:{style:"rogue", ask:"香香，妳話最少，手最準。妳說？", mood:"serious", answers:{
+  aim:"……站定了，就不會射偏。", sneak_attack:"……有人牽制著，我就從旁邊下手。",
+  cunning_action:"……換位置，不用停下來。", turn_danger:"……挨打的時候，卸掉一半。"}},
+ raccoon:{style:"rogue", ask:"默默，你呢？……喂，別躲到桌子底下！", mood:"sly", answers:{
+  aim:"……盯久一點，就打得到。", sneak_attack:"……他看著別人的時候。（比劃一刀）",
+  cunning_action:"……溜進去、溜出來。", turn_danger:"……被打到也不會太痛。"}}
+};
+// 選完那隻的回答：文字跟著玩家的選擇
+const styleAnswerLine = id => ({who:id, styleAnswer:id, mood:STARTER_STYLE[id].mood, face:"smile",
+  get text(){ const k = (state.starterStyle||{})[id]; return k ? STARTER_STYLE[id].answers[k] : "……"; }});
 const SCRIPT = [
   {who:"narr",  text:"晴朗的午後，山腳下的小鎮懶洋洋的。軟呼呼酒館裡，午飯的盤子還沒收。", face:"smile", moods:{fox:"content",tiger:"content",wolf:"smile",raccoon:"normal"}},
   {who:"narr",  text:"四個毛球圍在飯桌邊，攤開一張皺巴巴的地圖，嘰嘰咕咕地討論著。", face:"smile", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"sly"}},
@@ -25,6 +44,9 @@ const SCRIPT = [
   {who:"tiger", text:"長劍跟盾牌！手弩也帶上！", mood:"happy", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"wolf", text:"彎刀、短弓。箭袋沒有漏掉。", mood:"smile", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"raccoon", text:"……兩把匕首。還有弓。", mood:"sly", face:"smile", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"sly"}},
+  {who:"dwarf", text:"傢伙拿好了，那本事呢？出門在外，你們各自最拿手的是什麼？一個一個說給大爺聽！", face:"grin"},
+  ...["fox","tiger","wolf","raccoon"].flatMap(id=>[{who:"dwarf", text:STARTER_STYLE[id].ask, styleChoice:id, face:"smile"}, styleAnswerLine(id)]),
+  {who:"dwarf", text:"好！各有各的本事，大爺放心了！", face:"grin", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"dwarf", text:"來！一人一百金幣，拿去！", face:"grin", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"happy"}},
   {who:"tiger", text:"哇！大爺好大方！", mood:"happy", face:"grin", moods:{fox:"surprised",tiger:"happy",wolf:"surprised",raccoon:"happy"}},
   {who:"dwarf", text:"然後——（喀嚓）", face:"smirk", moods:{fox:"confused",tiger:"blank",wolf:"confused",raccoon:"sly"}},

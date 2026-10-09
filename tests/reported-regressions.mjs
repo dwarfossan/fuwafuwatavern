@@ -25,12 +25,13 @@ try{
  assert(await p.locator('.brun-features img').evaluate(i=>i.complete&&i.naturalWidth>0));
  console.log('PASS 布隆：延遲圖片載入後底圖與表情一起顯示；截圖 /tmp/brun-verified.png');
  for(const scene of ['prologue','farewell']){
- await p.evaluate(scene=>{state.page='story';state.scene=scene;state.line=0;render();},scene);
+ await p.evaluate(scene=>{state.page='story';state.starterStyle={};state.scene=scene;state.line=0;render();},scene);
  await p.evaluate(()=>prepareStoryImages());
  const failures=[];
  for(let n=1;;n++){
   const count=await p.evaluate(()=>SCENES[state.scene].script.length);if(n>=count)break;
-  await p.locator('#stage').click({position:{x:30,y:40}});
+  if(await p.locator('[data-style-pick]').count())await p.locator('[data-style-pick]').first().click();   // 10-10 起始風格：停在選項時點第一個
+  else await p.locator('#stage').click({position:{x:30,y:40}});
   await p.waitForFunction(n=>state.line===n,n);
   const unloaded=await p.locator('.portrait img,.c-head').evaluateAll(imgs=>imgs.filter(i=>!i.complete||!i.naturalWidth).map(i=>i.src));
   if(unloaded.length)failures.push({n,unloaded});

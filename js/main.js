@@ -201,6 +201,7 @@ function bind(){
   const adv = async()=>{ if(state.page!=="story"||!stage)return; const sceneId=state.scene, lineNo=state.line, sc = SCENES[sceneId].script, ln = sc[lineNo];
     if(ln?.worldChestChoice)return;
     if(ln && ln.choice && !(state.caravan||{}).pick) return;                 // 停在選項：要先選
+    if(styleChoicePending(ln)) return;                                         // 起始風格：要先選
     if(state.line < sc.length-1){
       if(stage.dataset.imageWaiting)return;
       stage.dataset.imageWaiting='1';
@@ -212,6 +213,7 @@ function bind(){
     } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
     const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
+    const sp = e.target.closest("[data-style-pick]"); if(sp){ pickStarterStyle(sp.dataset.styleWho, sp.dataset.stylePick); return; }   // 起始風格（10-10）
     const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
     if(e.target.closest("button, .info, .nav")) return;
     adv();
