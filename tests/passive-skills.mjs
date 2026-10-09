@@ -23,10 +23,10 @@ const counter=await p.evaluate(()=>{
  const old=Math.random,seq=[0,0,.999,.999,.5,.5,.5];Math.random=()=>seq.length?seq.shift():.5;
  attackRoll(a,d,{bonus:-99,ranged:true});Math.random=old;
  const ranged=a.hp<ahp;
- a.hp=ahp;d.x=0;d.y=0;a.x=1;a.y=0;d.weapon=null;
+ a.hp=ahp;a.down=false;a.dead=false;a.statuses=[];/* 10-09：第一段反擊可能把弓手射倒，只補血不還原倒下 */d.x=0;d.y=0;a.x=1;a.y=0;d.weapon=null;const mods=d.mods;d.mods={...mods,STR:2};/* 10-09：徒手傷害 1＋力量，玲玲力量隨機為 8 時是 0 傷害，看不出有沒有反擊 */
  const seq2=[0,0,.999,.999,.5,.5,.5];Math.random=()=>seq2.length?seq2.shift():.5;
  weaponAttack(a,d,{});Math.random=old;
- const unarmed=a.hp<ahp;
+ const unarmed=a.hp<ahp;d.mods=mods;
  d.learned=learned;d.activeSkills=carried;d.weapon=weapon;d.focus=focus;d.backpack=backpack;a.x=apos.x;a.y=apos.y;d.x=dpos.x;d.y=dpos.y;a.hp=ahp;
  return {ranged,unarmed};
 });assert(counter.ranged,'遠程攻擊骰失手可觸發反擊');assert(counter.unarmed,'徒手反擊可觸發');

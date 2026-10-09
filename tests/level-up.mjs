@@ -12,7 +12,7 @@ try{
  await pg.locator('[data-levelup="fox"]').click();
  assert.equal(await pg.evaluate(()=>critterLevel('fox')),1);
  assert.equal(await pg.locator('.level-message').textContent(),'打完再升級');
- await pg.evaluate(()=>{B().phase='explore';const u=B().units.find(u=>u.id==='fox');u.hp-=2;u.slots=[1];state.townRest=JSON.parse(JSON.stringify(B()));refreshBattle();});
+ await pg.evaluate(()=>{B().phase='explore';const u=B().units.find(u=>u.id==='fox');state.initialHpDice.fox=10;u.maxHp=maxHpAt(1,u.mods.CON,'fox');u.hp=u.maxHp-2;/* 10-09：初始生命 1d10 可能只有 1～2，直接扣 2 會倒下，固定骰面讓「保留傷勢」可驗 */u.slots=[1];state.townRest=JSON.parse(JSON.stringify(B()));refreshBattle();});
  const before=await pg.evaluate(()=>{const u=B().units.find(u=>u.id==='fox');return {hp:u.hp,max:u.maxHp};});
  await pg.locator('[data-levelup="fox"]').click();
  const after=await pg.evaluate(()=>({lv:critterLevel('fox'),units:progressionUnits('fox').map(u=>({lv:u.level,hp:u.hp,max:u.maxHp,slots:u.slots,xp:u.xp})),saved:state.proficiency.fox}));

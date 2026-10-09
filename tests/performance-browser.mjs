@@ -63,7 +63,8 @@ try{
   assert.equal(waitSetup.visible,true,'待機前下一位玩家須在畫面內');
   assert.equal(waitSetup.button,true,'玩家回合須顯示待機按鈕');
   await page.locator('[data-cmd="wait"]').click();
-  await page.waitForTimeout(80);
+  // 10-09：換人要經過回合流程的計時器，固定等 80ms 在機器忙時還沒輪到下一位；改成等到換人再檢查鏡頭
+  await page.waitForFunction(next=>cur()?.id===next,waitSetup.next,{timeout:5000}).catch(()=>{});
   const afterWait=await page.evaluate(before=>({
     next:cur().id,
     stationary:before.x===B().cam.x&&before.y===B().cam.y,
