@@ -92,7 +92,9 @@ console.log('快速戰鬥');
   const {pg, errs} = await open('#battle');
   ok('#battle 直接進戰鬥', await pg.evaluate(()=>state.page==='battle' && !!B()));
   ok('回合順序沒有 NPC、沒有躲著的敵人', await pg.evaluate(()=>document.querySelectorAll('.ord').length === B().units.filter(u=>u.side!=='npc' && !foeHid(u)).length));
-  for(let i=0;i<30;i++){ const btn=pg.locator('button:has-text("待機")'); if(await btn.count()){ try{ await btn.first().click({timeout:400}); }catch{} } await pg.waitForTimeout(450); }
+  // 10-09 反應：直接待機會保留免費動作，敵人命中時會停下來問；測試一律選「不用」，讓回合繼續
+  for(let i=0;i<30;i++){ const no=pg.locator('[data-react="none"]'); if(await no.count()){ try{ await no.first().click({timeout:400}); }catch{} }
+    const btn=pg.locator('button:has-text("待機")'); if(await btn.count()){ try{ await btn.first().click({timeout:400}); }catch{} } await pg.waitForTimeout(450); }
   const r = await pg.evaluate(()=>({round:B().round, npcHp:B().units.find(u=>u.side==='npc').hp}));
   ok('敵人會行動、回合會前進', r.round >= 2, JSON.stringify(r));
   ok('沒有人攻擊商人', r.npcHp === 4);

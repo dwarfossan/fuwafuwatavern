@@ -149,7 +149,7 @@ function ambushScript(){
    merchant：商人，設定未定，先只用聲音出場（顯示為「？？？」） */
 const AMBUSH = [
   {who:"narr",     text:"走到岔路口時，通往城鎮的那條路上，突然傳來一聲尖叫。"},
-  {who:"narr",     text:"一輛馬車翻倒在路邊，貨物散了一地。三隻哥布林圍著馬車又叫又跳：一隻揮著短棒、一隻舉著彎刀，後面那隻拉著弓。"},
+  {who:"narr",     text:"一輛馬車翻倒在路邊，貨物散了一地。三隻哥布林圍著馬車又叫又跳：一隻揮著短棒、一隻舉著短劍，後面那隻拉著弓。"},
   {who:"merchant", text:"救、救命啊——！有沒有人啊——！"},
   {who:"tiger",    text:"有人在求救！上啊！", mood:"fierce"},
   {who:"wolf",     text:"嬌嬌，等一下！……大家跟上，別讓她落單！", mood:"serious"},

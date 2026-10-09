@@ -19,7 +19,7 @@ const ENEMIES = {
     scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6},innate:[]},
   // xp：打倒給的經驗，照 SRD 5.2 挑戰等級（哥布林 1/4＝50）；薩滿血量同哥布林，先同樣 50（暫定，大爺 10-04）
   goblin: {
-    detectRange:5, name:"哥布林", look:"goblin", shieldArt:"round_shield", gear:["彎刀","破布衣"],
+    detectRange:5, name:"哥布林", look:"goblin", shieldArt:"round_shield", gear:["短劍","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
     innate:["nimble"],
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
