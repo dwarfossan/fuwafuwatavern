@@ -1263,7 +1263,20 @@ function battleInterfaceHTML(){
     ${hint?`<span class="hud-hint">${hint}</span>`:""}</div>`;
 
   let ov = "";
-  if(b.result){
+  // 反應詢問（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時；文字、外觀暫定（香香）
+  if(b.reactPending && !b.result){
+    const q=b.reactPending.info, A=b.units.find(v=>v.id===q.a), T=b.units.find(v=>v.id===q.t);
+    const block=q.r!==20 && q.total < q.ac+5;
+    const btns=[
+      q.opts.includes("shield")?`<button class="btn" data-react="shield">護盾術<small>AC ${q.ac} → ${q.ac+5}・${block?"可以擋下":"還是擋不下"}・用一格熟練格</small></button>`:"",
+      q.opts.includes("halve")?`<button class="btn" data-react="halve">化險<small>這次傷害減半</small></button>`:"",
+      `<button class="btn ghost" data-react="none">不用</button>`].join("");
+    ov = `<div class="bt-ov bt-react" role="dialog" aria-live="assertive">
+      <h3>${A?A.name:"敵人"}的攻擊命中${T?T.name:""}！</h3>
+      <p>擲出 ${q.total}${q.r===20?"（爆擊）":""} 對 AC ${q.ac}。${T?T.name:""}還保留 ${T?.reserveFree||0} 個免費動作，要用嗎？</p>
+      <div class="react-btns">${btns}</div></div>`;
+  }
+  else if(b.result){
     // 勝利：保留標題，戰利品按指定背包分配（大爺 10-06）。
     if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-content"><div class="bv-title">${POP_TEXT.victory}</div>${battleLootHTML()}</div></div>`;   // 打完有後續劇情（伏擊→商隊，10-03）
     // 輸了（大爺 10-09）：四隻都昏迷；玩家自己選「回酒館」才出現卡姆的傳送詛咒。文字暫定（香香）。
@@ -1487,6 +1500,7 @@ function bindBattle(){
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
   battleListen(document.getElementById("longRest"),"click",()=>takeRest("long",restSelections()));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
+  document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });
   battleListen(document.getElementById("confirmTavern"),"click", ()=>teleportHome());
   // 點一下往下一段：3 行 → 6 行 → 完整紀錄 → 3 行（完整紀錄裡捲動不算點）

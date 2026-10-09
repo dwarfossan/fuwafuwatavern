@@ -51,4 +51,6 @@ const SKILL_THOUGHT_ROWS=[
  ['聖火術','要看他的敏捷豁免，不是只看護甲。','火從上面來！','……亮起來也不代表一定命中。','護甲包得再好，也得自己躲。']
 ];
 SKILL_THOUGHT_ROWS.push(['黑暗視覺','看得見，但顏色分不出來，別認錯藥水。','黑黑的也能找路！','看得見不代表沒有東西擋著。','不用點火，別人就少一個找到我們的線索。']);
-const SKILL_THOUGHTS=Object.fromEntries(SKILL_THOUGHT_ROWS.map(([name,...lines])=>[name,{draft:'GPT',lines:Object.fromEntries(['fox','tiger','wolf','raccoon'].map((id,i)=>[id,lines[i]]))}]));
+// 10-09 香香草稿（化險）；第六格寫草稿作者，沒寫的是 GPT
+SKILL_THOUGHT_ROWS.push(['化險','力道順著卸掉，就只剩一半。','痛是痛，但我還站著！','……留一口氣，挨打時才用得上。','被打到也要裝作沒那麼痛，他才會猶豫。','香香']);
+const SKILL_THOUGHTS=Object.fromEntries(SKILL_THOUGHT_ROWS.map(([name,a,b,c,d,draft])=>[name,{draft:draft||'GPT',lines:Object.fromEntries(['fox','tiger','wolf','raccoon'].map((id,i)=>[id,[a,b,c,d][i]]))}]));

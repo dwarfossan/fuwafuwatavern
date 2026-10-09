@@ -124,7 +124,7 @@ const SKILL_GROUPS = [
    skills:[
     {name:"打擊", kind:"近戰", dmg:"物理",     tier:0,   text:"造成 1d6 + 力量調整值物理傷害。"},
     {id:"magic_missile", name:"魔法飛彈",  kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 3 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
-    {id:"shield_spell", name:"護盾術",  kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, text:"AC +5，直到你下回合開始。"},
+    {id:"shield_spell", name:"護盾術",  kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, reaction:true, text:"敵人攻擊命中你時，花一個保留的免費動作施放：AC +5（可能讓這次攻擊變成沒中），直到你下回合開始。"},
     {id:"mage_armor", name:"法師護甲",  kind:"輔助", tier:1, srd:true, noUp:true, text:"沒穿護甲或只穿布甲時，整場戰鬥的基礎 AC 變成 13 + 敏捷調整值。"}]},
 
   {id:"healing_book", name:"治癒法書", stat:"感知",
@@ -197,6 +197,10 @@ Object.values(SKILL_GROUPS).forEach(g=>g.skills.forEach(s=>{if(["火焰箭","寒
 // 主／被動以是否需要玩家施展分類；天生技能仍使用同一技能資料。
 SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"—",skills:[
  {id:"darkvision",name:"黑暗視覺",activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
+]});
+// 風格被動（10-09）：不屬於任何武器組的放這裡；招式本身寫 style 決定是哪一類風格
+SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",skills:[
+ {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
 

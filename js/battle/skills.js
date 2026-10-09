@@ -208,6 +208,7 @@ function dashSpot(u, t, max){
 
 const SKILL_IMPL = {
   natural:[{passive:true}],
+  style:[{passive:true}],
   sword: [
     basicAttack,
     {passive:true},

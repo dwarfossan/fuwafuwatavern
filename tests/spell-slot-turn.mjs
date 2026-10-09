@@ -8,12 +8,13 @@ try{
   const b=B();b.flowEpoch=(b.flowEpoch||0)+1;enterExploreCombat(null,true);b.flowEpoch=(b.flowEpoch||0)+1;
   const u=b.units.find(v=>v.id==='fox'),tiger=b.units.find(v=>v.id==='tiger');
   b.units.filter(v=>v.side==='foe').forEach(v=>{v.dead=true;});
-  for(const key of ['magic_missile','shield_spell'])if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:key});
-  u.activeSkills=['magic_missile','shield_spell'];u.slots=[4,2];u.statuses=[];u.down=false;u.dead=false;
+  for(const key of ['magic_missile','healing_word'])if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:key});
+  u.activeSkills=['magic_missile','healing_word'];u.slots=[4,2];u.statuses=[];u.down=false;u.dead=false;
   b.turn=b.units.indexOf(u);b.busy=false;beginTurn(u);
-  const shield=learnedSkillByKey('shield_spell'),missile=learnedSkillByKey('magic_missile');
+  // 10-09：護盾術改成反應，改用治癒真言（免費動作、花熟練格的法術）
+  const word=learnedSkillByKey('healing_word'),missile=learnedSkillByKey('magic_missile');
   const before=turnLimitProblem(u,missile);
-  doSkill(u,shield,u);
+  doSkill(u,word,u);
   const after=turnLimitProblem(u,missile),slotsAfter=slotsOf(u)[0];
   // 直接拿法杖戲法驗規則；玲玲智力是隨機擲的，不到 13 時身上沒有法杖戲法（10-09 修偶發）
   const cantrip=learnedSkillByKey('arcane_staff_cantrip');
@@ -30,12 +31,12 @@ try{
  });
  assert.equal(r.before,'','還沒施法可以放');
  assert.equal(r.after,'本回合已花熟練格施過法','施過一格後第二個要格子的法術被擋');
- assert.equal(r.slotsAfter,3,'護盾術確實花了一格');
+ assert.equal(r.slotsAfter,3,'治癒真言確實花了一格');
  assert.equal(r.cantripOk,'','戲法不算');
  assert.equal(r.weaponOk,'','武器招式不算');
  assert.equal(r.reset,'','下一回合重置');
  assert.equal(r.foeBlocked,'本回合已花熟練格施過法','敵人同樣受限');
  assert.match(await p.locator('body').innerText(),/本回合已花熟練格施過法/,'技能選單顯示原因');
  assert.deepEqual(errors,[]);
- console.log('✓ 每回合一格熟練格施法：護盾術後魔法飛彈被擋、戲法與武器招式不算、下回合重置、敵我一致、按鈕顯示原因');
+ console.log('✓ 每回合一格熟練格施法：治癒真言後魔法飛彈被擋、戲法與武器招式不算、下回合重置、敵我一致、按鈕顯示原因');
 }finally{await br.close();}

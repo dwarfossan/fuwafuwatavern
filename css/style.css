@@ -1330,3 +1330,11 @@ body.image-boot{background:#000}
 .sk-foot{margin:12px 0 0;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);color:var(--bad);font-size:12.5px}
 .sk-card>.btn{margin-top:12px}
 .note-block{margin:4px 0 6px;color:var(--bad);font-size:12.5px}
+/* 反應詢問（10-09）：敵人命中時跳出，按鈕直排、手機好按 */
+.bt-react .react-btns{display:grid;gap:8px;margin-top:10px}
+.bt-react .react-btns .btn{display:flex;flex-direction:column;align-items:center;gap:2px}
+.bt-react .react-btns .btn small{font-size:11.5px;font-weight:400;opacity:.85}
+.bt-react p{font-size:14px;line-height:1.6}
+.bt-react{left:50%;top:50%;transform:translate(-50%,-50%);width:min(330px,88%);padding:16px;text-align:center;border-top-color:var(--bad)}
+.bt-react h3{margin:0 0 4px;font-size:17px}
+.bt-react p{margin:0}

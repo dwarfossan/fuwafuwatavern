@@ -312,6 +312,9 @@ function quickBattle(battleId="ambush",phase="combat"){
         carried.splice(replaceAt>=0?replaceAt:carried.length-1,1);
       }
       carried.push("counterattack");
+      // 10-09：化險（俠盜風格，反應）目前沒有地方學，測試場一起加上；滿了就不加
+      if(!notes.some(x=>x.key==="turn_danger")) notes.push({key:"turn_danger",name:"化險",innate:false,from:"測試戰鬥",lv:1});
+      if(carried.length<5) carried.push("turn_danger");
       state.activeSkills[c.id]=carried;
     }
   });

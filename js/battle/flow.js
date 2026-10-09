@@ -2,6 +2,7 @@
 
 function nextTurn(){
   const b = B();
+  if(b?.reactPending) return;   // 等玩家回答反應
   if(b.phase==="explore")return;
   if(checkResult()) return;
   do {
@@ -23,7 +24,7 @@ function nextTurn(){
 
 function beginTurn(u){
   const b = B();
-  u.shockNoOA=false;
+  u.shockNoOA=false; u.reserveFree=0;
   expire("start", u.id);
   u._cleaved = false;
   b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;u.slotSpellUsed=false;
@@ -56,8 +57,9 @@ function beginTurn(u){
 
 function endTurn(){
   const b = B();
-  if(!b || b.result) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
+  if(!b || b.result || b.reactPending) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
   const u = cur();
+  if(u.side==="pc") u.reserveFree = Math.max(0, 2-(b.freeUsed||0));   // 沒用完的免費動作留到敵人回合當反應（10-09）
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
   groundStatusSave(u);
   expire("end", u.id);
@@ -326,6 +328,7 @@ function spendFree(u){ if(freeLeft()) B().freeUsed=(Number(B().freeUsed)||0)+1; 
 const isSpellSkill = sk => !!sk?.def?.components;
 const spendsSlot = (u,sk) => (sk.def.tier||0)>0 && !remarkFree(u,sk);
 function turnLimitProblem(u,sk){
+ if(sk.def.reaction) return "敵人攻擊命中時才能用";
  if(isSpellSkill(sk) && spendsSlot(u,sk) && u.slotSpellUsed) return "本回合已花熟練格施過法";
  if(!sk.def.turnLimit)return "";
  if(sk.def.turnLimit==="offhand" && (!u.offhand || u.offhand.type!=="weapon"))return "沒有副手武器";
@@ -751,7 +754,43 @@ function skillAnimBase(u, sk, t){
   if(!ranged && skRanged) return cg ? animFor(cg.id, 0) : "punch";
   return base;
 }
+// 敵方招式包一層：有小傢伙能反應時，命中那刻暫停問玩家，選完用同一組骰子重跑（大爺 10-09，見 engine.js 反應）
 function doSkill(u, sk, t){
+  if(u.side==="foe" && !REACT_RUN && B().units.some(v=>reactOptions(v).length)) return runFoeSkill({actor:u.id, sk:sk.key, t:serReactT(t), answers:[], rec:null, snap:null});
+  return doSkillNow(u, sk, t);
+}
+const serReactT = t => Array.isArray(t) ? {arr:t.map(serReactT)} : t && t.id ? {id:t.id} : t ? {x:t.x, y:t.y} : null;
+const deserReactT = o => !o ? o : o.arr ? o.arr.map(deserReactT) : o.id ? B().units.find(v=>v.id===o.id) : {x:o.x, y:o.y};
+function runFoeSkill(p){
+  const snap = p.snap || JSON.stringify(B());
+  const real = Math.random, queue = (p.rec||[]).slice(), rec = [];
+  Math.random = () => { const v = queue.length ? queue.shift() : real(); rec.push(v); return v; };
+  REACT_RUN = {answers:p.answers, n:0};
+  try{
+    const u = B().units.find(v=>v.id===p.actor), sk = unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk);
+    doSkillNow(u, sk, deserReactT(p.t));
+    B().units.forEach(v=>delete v.halveFrom);
+    return true;
+  }catch(e){
+    if(!e || !e.reactPause) throw e;
+    Math.random = real; REACT_RUN = null;
+    const epoch = (B().flowEpoch||0)+1, nb = JSON.parse(snap); delete nb.def._h; nb.flowEpoch = epoch;   // 舊計時器全部失效
+    state.battle = nb; refreshBattle.keys = null;
+    nb.reactPending = {...p, rec, snap, info:e.info}; nb.busy = true;
+    sfx("pop"); refreshBattle();
+    return false;
+  }finally{ Math.random = real; REACT_RUN = null; }
+}
+function answerReaction(choice){
+  const b = B(), p = b && b.reactPending; if(!p) return;
+  const nb = JSON.parse(p.snap); delete nb.def._h; nb.flowEpoch = (b.flowEpoch||0)+1;
+  state.battle = nb; refreshBattle.keys = null;
+  const done = runFoeSkill({actor:p.actor, sk:p.sk, t:p.t, answers:[...p.answers, choice], rec:p.rec, snap:p.snap});
+  if(!done) return;
+  const c = B(); c.busy = true; refreshBattle();
+  later(()=>{ c.busy = false; if(!checkResult()) endTurn(); }, settle(900));
+}
+function doSkillNow(u, sk, t){
   const b = B();
   const problem=componentProblem(u,sk)||turnLimitProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
   if(b.explorationMap&&u.side==="pc"&&sk.def.kind!=="輔助"){const targets=Array.isArray(t)?t:sk.impl.target==="cone"?coneUnits(u,t,3):sk.impl.target==="area"?b.units.filter(v=>dist(v,t)<=(sk.impl.radius||1)):sk.impl.target==="line"?lineUnits(u,t,sk.impl.range(u)):[t];targets.forEach(v=>{if(v?.side==="foe")engageExploreSquad(v,u);});}
@@ -882,6 +921,7 @@ function foeMelee(e, adj){
 // ---------- 敵人 AI：走向最近的角色，貼身就打 ----------
 const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得到的角色（躲著的不算）
 function aiTurn(e){
+  if(B()?.reactPending) return;
   const b = B();
   if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
   if(!alive("pc").length){ endTurn(); return; }   // 小傢伙們全昏迷：敵人沒事做（checkResult 會判輸）

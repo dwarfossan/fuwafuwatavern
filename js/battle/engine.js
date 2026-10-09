@@ -492,6 +492,9 @@ function attackRoll(a, t, o={}){
   const cov = coverOf(a, t), covAC = coverAC(cov);
   ac += covAC;
   let hit = r===20 || (r!==1 && total >= ac);
+  // 反應（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時，暫停問玩家（見 reactionHook）
+  const react = reactionHook(a, t, {r, total, ac});
+  if(react==="shield"){ ac += 5; hit = r===20 || (r!==1 && total >= ac); }
   panelRow("atk", t, adv ? [r1, r2] : [r1], r, total, r===20 ? "crit" : hit ? "hit" : r===1 ? "fumble" : "miss", a);   // 沒中就不會擲傷害骰
   if(hit && r===20) critMoment(t);
   // 狩印：打中自己標記的目標，這一擊多 1d6 力場（爆擊骰加倍）；傷害在 hurt 裡補上
@@ -505,6 +508,42 @@ function attackRoll(a, t, o={}){
   if(sneak) reveal(a, "出手，現身了！");
   if(!hit) triggerCounterattack(t, a);
   return {hit, crit: r===20};
+}
+
+// ---------- 反應：保留免費動作（大爺 10-09） ----------
+// 自己回合沒用完的免費動作留到敵人回合（u.reserveFree，endTurn 存、自己 beginTurn 清）。
+// 敵人攻擊命中小傢伙、她有可用的反應時：整個敵方招式在快照上「先跑一次」，命中那刻丟出 REACT_PAUSE，
+// 戰場還原成快照、跳出詢問；玩家選完用同一組骰子重跑，到同一次命中套上選擇（見 flow.js 的 foeSkillWithReactions）。
+let REACT_RUN = null;   // {answers:[...], n:第幾次可反應的命中}
+const REACT_SHIELD = "shield_spell", REACT_HALVE = "turn_danger";
+function reactOptions(t){
+  if(!t || t.side!=="pc" || t.down || t.dead || !(t.reserveFree>0)) return [];
+  const out = [];
+  const sh = activeLearnedSkills(t).find(s=>s.key===REACT_SHIELD);
+  if(sh && !has(t,"shieldSpell") && tiersFor(t, sh).length && !componentProblem(t, sh)) out.push("shield");
+  if(passiveSkills(t).some(s=>s.key===REACT_HALVE)) out.push("halve");
+  return out;
+}
+function reactionHook(a, t, roll){
+  if(!REACT_RUN || !a || a.side!=="foe" || !t || t.side!=="pc") return null;
+  const hit = roll.r===20 || (roll.r!==1 && roll.total >= roll.ac);
+  if(!hit) return null;
+  const opts = reactOptions(t); if(!opts.length) return null;
+  const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
+  if(ans===undefined) throw {reactPause:true, info:{a:a.id, t:t.id, r:roll.r, total:roll.total, ac:roll.ac, opts}};
+  if(ans==="shield" && opts.includes("shield")){
+    const sh = activeLearnedSkills(t).find(s=>s.key===REACT_SHIELD);
+    t.reserveFree--; spendSlot(t, sh, lowestTier(t, sh));
+    addStatus(t, "shieldSpell", {until:"start", of:t.id});
+    blog(`　${t.name}施放護盾術！AC +5（${roll.ac} → ${roll.ac+5}）`, "skill", "護盾術！"); sfx("shield_block", B().impact||0);
+    return "shield";
+  }
+  if(ans==="halve" && opts.includes("halve")){
+    t.reserveFree--; t.halveFrom = a.id;
+    blog(`　${t.name}化險：這次傷害減半`, "skill", "化險！");
+    return "halve";
+  }
+  return null;
 }
 
 // 被動反擊：任何需要擲攻擊骰的敵方攻擊未命中，都能觸發一次正常攻擊。
@@ -541,6 +580,7 @@ function hurt(t, n, type, src, hitSfx){
   if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
+  if(t.halveFrom && src && src.id===t.halveFrom && n>0){ const h=Math.floor(n/2); blog(`　化險：${n} → ${h}`, "skill"); n=h; }   // 化險：這次敵方招式的傷害減半（招式結束清掉）
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）
     if(row){ row.dmg = (row.dmg||0) + Math.max(0, n); row.type = type; row.faces.push(...(b._pend||[])); }
     b._pend = []; }
