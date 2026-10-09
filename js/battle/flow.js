@@ -28,7 +28,7 @@ function beginTurn(u){
   u.shockNoOA=false;
   expire("start", u.id);
   u._cleaved = false;
-  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;
+  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;u.slotSpellUsed=false;
   u.oaUsed = false;                         // 藉機攻擊每輪一次，輪到自己時恢復
   b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;b.worldObject=null;b.objectTip=null;
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
@@ -323,7 +323,12 @@ const freeRemaining=()=>Math.max(0,2-(Number(B().freeUsed)||0));
 const freeLeft = () => freeRemaining()>0;
 const canFree = () => freeLeft() || canAct();
 function spendFree(u){ if(freeLeft()) B().freeUsed=(Number(B().freeUsed)||0)+1; else useAction(u); }
+// 每回合只能花一格熟練格施法（大爺 10-09，照 D&D 2024「每回合只能消耗一個法術位」）：
+// 法術＝有聲勢材的招；戲法（不用格子）不算；狩印改標不花格子也不算。敵我同一套。
+const isSpellSkill = sk => !!sk?.def?.components;
+const spendsSlot = (u,sk) => (sk.def.tier||0)>0 && !remarkFree(u,sk);
 function turnLimitProblem(u,sk){
+ if(isSpellSkill(sk) && spendsSlot(u,sk) && u.slotSpellUsed) return "本回合已花熟練格施過法";
  if(!sk.def.turnLimit)return "";
  if(sk.def.turnLimit==="offhand" && (!u.offhand || u.offhand.type!=="weapon"))return "沒有副手武器";
  if(sk.def.turnLimit==="offhand" && u.offhandAttackUsed)return "本回合已用副手攻擊";
@@ -760,6 +765,7 @@ function doSkill(u, sk, t){
   const tier = remarkFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
   const names = Array.isArray(t) ? [...new Set(t.map(x=>x.name))].join("、") : (t && t.name && t!==u ? t.name : "");
   const paid = spendSlot(u, sk, tier);
+  if(paid && isSpellSkill(sk)) u.slotSpellUsed = true;
   blog(`${u.name}使用【${sk.def.name}】${names ? `→ ${names}` : ""}${paid ? `（${TIER_NAME[paid]}格${up ? `，升 ${up} 階` : ""}）` : ""}`, "skill");
   const t0 = Array.isArray(t) ? t[0] : t;
   if(t0 && t0!==u && t0.x!==undefined){ faceTo(u, t0); if(sk.def.kind!=="輔助") camOnAttack(u, t0); }

@@ -75,6 +75,7 @@ node tests/town-supplier.mjs # 首次離店送貨、商人貨源暗示與一次�
 node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸控與原技能說明
 node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/style-groups.mjs   # 風格：同類上限、混搭、上限加成、「戰士風格：反擊」名稱、被擋原因、敵我同一套
+node tests/spell-slot-turn.mjs # 每回合只能花一格熟練格施法：戲法與武器招式不算、下回合重置、敵我一致、按鈕原因
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出
 node tests/battle-entry.mjs # 測試入口兩個戰鬥各觸控5次、隨機場與固定商隊戰
 node tests/quick-town.mjs # #town直達、屬性裝備與旅店、購物／首次離店事件
