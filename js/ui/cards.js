@@ -6,9 +6,9 @@ function tierOf(def, impl){
   if(def.tier) return {tag:String(def.tier), label:`用一格${TIER_NAME[def.tier]}以上的熟練格${def.free?"・免費動作":""}`, cls:"t-sig"};
   return {tag:"", label:`不用熟練格・隨時可用${def.free?"・免費動作":""}`, cls:"t-basic"};
 }
-function skillIcon(groupId, def, impl, size=22){
+function skillIcon(groupId, def, impl, size=22, badge=true){
   const t = tierOf(def, impl);
-  return `<span class="skicon ${t.cls}" style="--s:${size}px">${iconSVG(groupId, size-6)}${t.tag?`<i>${t.tag}</i>`:""}</span>`;
+  return `<span class="skicon ${t.cls}" style="--s:${size}px">${iconSVG(groupId, size-6)}${badge&&t.tag?`<i>${t.tag}</i>`:""}</span>`;
 }
 
 // 用裝備做一個假角色，算出射程等數字（裝備店裡沒有真正的角色）
@@ -71,29 +71,35 @@ function skillCardHTML(groupId, idx, item, unit){
   if(idx===0 && HAS_BASIC(g) && g.id!=="shield")        // 基本攻擊名稱看武器；沒指定武器（技能總表）就列出這組可能的名稱
     s = {...s, name: g.id==="arcane_staff" || g.id==="unarmed" ? "打擊" : item && item.type==="weapon" ? basicName(g, item) : basicNames(g)};
   if(item?.type==="focus" && s.components && (s.tier||0)===0)s={...s,free:true,turnLimit:"focusCantrip"};
-  const t = tierOf(s, im);
-  const u = probeUnit(item, unit);
-  let range = "—";
-  if(im && im.range){ const r = im.range(u); range = r<=1 ? "貼身（1 格）" : `${r} 格（${r*5} 呎）`; }
-  const rows = [
-    ["類型", skillType(g, s)],
-    ["使用", t.label+(s.turnLimit?"・每回合一次":"")],
-    ["目標", im && im.passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"],
-    ...(!im?.passive || s.darkvision ? [["距離", im?.passive ? `${s.darkvision} 格（${s.darkvision*5} 呎）` : range]] : []),
-    ["屬性", s.statText || (s.components ? "智力／感知／魅力取最高" : skillStatText(g, item))]
-  ];
-  if(s.areaText)rows.push(["範圍",s.areaText]);
-  if(s.conc)rows.push(["專注","維持至專注中斷"]);
-  if(s.components)rows.push(["聲勢材",componentsText(s.components)]);
-  if(s.req) rows.push(["施展條件", reqText(s.req)]);
-  if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; rows.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
-  if(s.tier) rows.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);
-  if(s.srd) rows.push(["出處", "SRD 5.2"]);
-  return `<div class="md-head">${skillIcon(groupId,s,im,44)}<div><h3>${s.name}</h3></div></div>
-    <p class="md-effect">${rulesHTML(s.text)}</p>
-    ${unit && unit.slots && s.tier ? `<p class="md-cd">${unit.name}還有熟練格：${slotsText(unit)}</p>` : ""}
-    <dl class="md-rows">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${rulesHTML(v)}</dd>`).join("")}</dl>
-    ${item && state.modal && state.modal.back ? `<button class="btn small ghost" data-iteminfo="${item.id}">← 回到${item.n}</button>` : ""}`;
+  const u = probeUnit(item, unit), passive = !!(s.activation==="passive" || im?.passive);
+  // 10-09 大爺定的卡面：名稱＋階數標籤、兩行小字（類型・動作・屬性／距離・目標・條件…）、本文、升階等段落
+  const range = passive ? (s.darkvision ? `${s.darkvision} 格` : "") : im && im.range ? `${im.range(u)} 格` : "";
+  const dmg = skillDmg(g, s), kind = passive ? (dmg||"") : (s.kind==="近戰"||s.kind==="遠程") ? `${s.kind}${dmg||""}攻擊` : dmg ? `${s.kind}（${dmg}）` : s.kind;
+  const act = passive ? "" : s.free ? "免費動作"+(s.turnLimit?"（每回合一次）":"") : "主要動作";
+  const stat = s.statText || (s.components ? "智力／感知／魅力取最高" : skillStatText(g, item));
+  const meta1 = [kind, act, stat!=="—"?stat:""].filter(Boolean);
+  const meta2 = [
+    // 有範圍的招（錐形、以自己為中心）距離與目標由「範圍」說明，不重複列
+    range && !(s.areaText && ["cone","self"].includes(im?.target)) && `距離：${range}`,
+    !(s.areaText && ["cone","self"].includes(im?.target)) && `目標：${passive ? "條件符合時自動觸發" : TARGET_TEXT[im && im.target] || "—"}`,
+    s.areaText && `範圍：${s.areaText}`,
+    s.req && `條件：${reqText(s.req)}`,
+    s.components && `聲勢材：${componentsText(s.components)}`,
+    s.conc && "專注"
+  ].filter(Boolean);
+  const tag = passive ? "被動" : s.tier ? TIER_NAME[s.tier] : "";   // 階數只用這個標籤表示，卡上圖示不放角標（10-09）
+  const sections = [];
+  if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; sections.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
+  if(s.tier) sections.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);
+  return `<div class="sk-card">
+    <div class="sk-head">${skillIcon(groupId,s,im,30,false)}<h3>${s.name}</h3>${tag?`<span class="sk-tag">${tag}</span>`:""}</div>
+    <p class="sk-meta">${meta1.map(rulesHTML).join("・")}</p>
+    <p class="sk-meta">${meta2.map(rulesHTML).join("・")}</p>
+    <p class="md-effect sk-body">${rulesHTML(s.text)}</p>
+    ${sections.map(([h,t])=>`<div class="sk-sec"><h4>${h}</h4><p>${rulesHTML(t)}</p></div>`).join("")}
+    ${unit && unit.slots && s.tier ? `<p class="sk-foot">${unit.name}還有熟練格：${slotsText(unit)}</p>` : ""}
+    ${item && state.modal && state.modal.back ? `<button class="btn small ghost" data-iteminfo="${item.id}">← 回到${item.n}</button>` : ""}
+  </div>`;
 }
 
 // ---------- 彈出視窗 ----------

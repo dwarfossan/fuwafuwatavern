@@ -38,7 +38,7 @@ const br=await chromium.launch();try{
  });
  assert.deepEqual(result.wordRanges,[6,6]);assert.deepEqual(result.fireRanges,[12,12,12]);assert.deepEqual(result.damage,[[10,'火焰'],[8,'鈍擊'],[6,'鈍擊']]);assert.deepEqual(result.heals,[11,11]);assert.deepEqual(result.ground,['火焰','火焰']);assert.deepEqual(result.dice,['2d4','2d4','1d10','1d6','1d4']);
  await p.locator(`.shop-list [data-iteminfo="${result.staff}"]`).tap();assert.deepEqual(await p.locator('.md-sk>span:not(.skicon)').allTextContents(),['打擊','火焰箭']);
- await p.locator('.md-sk').filter({hasText:'火焰箭'}).tap();assert.match(await p.locator('.modal').innerText(),/12 格（60 呎）/);
+ await p.locator('.md-sk').filter({hasText:'火焰箭'}).tap();assert.match(await p.locator('.modal').innerText(),/距離：12 格/);
  await p.locator('.modal [data-iteminfo]').tap();await p.locator('.md-sk').filter({hasText:'打擊'}).tap();assert.match(await p.locator('.modal').innerText(),/1d6/);
  if(process.env.FOCUS_SHOT){await p.locator('.modal [data-iteminfo]').tap();await p.waitForTimeout(500);await p.screenshot({path:process.env.FOCUS_SHOT});}
  assert.deepEqual(errors,[]);console.log('✓ 治癒真言共用6格、火焰箭共用12格、距離與目標邊界、傷害骰／升階／地面反應、全法器卡與戰鬥一致、特殊grants、390×844觸控詳情');
