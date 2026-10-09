@@ -13,5 +13,5 @@ const ENEMY_TRAPS={count:1,placed:"放下陷阱"};
 
 // 自訂火藥桶：10-03 大爺確認；外觀及物件 AC 暫定 GPT，不引用其他遊戲數值。
 const POWDER_BARREL={damage:"2d6",type:"火焰",dc:13,weight:20,count:2,ac:10};
-const WORLD_OBJECT_TEXT={pickup:"收進背包",place:"放置火藥桶",cancel:"取消放置",tooHeavy:"揹不動，火藥桶仍留在地面",placed:"放下火藥桶",picked:"收起火藥桶",exploded:"火藥桶爆炸！",placeHint:"點相鄰空格放置",chestLocked:"上鎖；可搜索、開鎖或用鐵撬撬開",chestOpen:"已開啟；可搜索裡面的物品",crate:"可推一格；提供半掩護",door:"可開關；關門時擋路與視線",trap:"已發現；可拆除",barrel:"20 磅；可收納、放置；探索可推動",blast:"攻擊破壞／火焰引爆；所在格＋周圍八格",chain:"敵我皆傷；相鄰火藥桶連鎖爆炸",carryAction:"20 磅；用掉動作",placeAction:"相鄰空格；用掉動作"};
+const WORLD_OBJECT_TEXT={pickup:"收進背包",place:"放置火藥桶",cancel:"取消放置",tooHeavy:"揹不動，火藥桶仍留在地面",placed:"放下火藥桶",picked:"收起火藥桶",exploded:"火藥桶爆炸！",placeHint:"點相鄰空格放置",chestLocked:"上鎖；可搜索、開鎖或用鐵撬撬開",chestOpen:"已開啟；可搜索裡面的物品",crate:"可推一格；提供半掩護",door:"可開關；關門時擋路與視線",trap:"已發現；可拆除",barrel:"20 磅；可收納、放置；探索可推動",blast:"攻擊破壞／火焰引爆；所在格＋周圍八格",chain:"敵我皆傷；相鄰火藥桶連鎖爆炸",carryAction:"20 磅；用掉主要動作",placeAction:"相鄰空格；用掉主要動作"};
 EXPLORE_ACTION_TEXT.pickup=WORLD_OBJECT_TEXT.pickup;

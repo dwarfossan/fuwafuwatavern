@@ -205,7 +205,7 @@ const CARAVAN_RESULT = {
          {who:"merchant", text:"啊啊啊！那是——！", mark:"shake"},
          {who:"tiger", text:"……大叔，這些是不是不能讓城裡的人看到？", mood:"confused"},
          {who:"merchant", text:"……拿去！全部拿去！只要你們別說出去！", mark:"sweat"},
-         {who:"narr", text:"小傢伙們各拿到 2 份點心（戰鬥中花一個動作吃掉，等於短休一次），還有各 25 金幣的謝禮。"}],
+         {who:"narr", text:"小傢伙們各拿到 2 份點心（戰鬥中花一個主要動作吃掉，等於短休一次），還有各 25 金幣的謝禮。"}],
     lose:[{who:"tiger", text:"大叔，我幫你把貨搬回車上！嘿咻——", mood:"happy"},
           {who:"narr", text:"嬌嬌一口氣把箱子全搬回車上，一根釘子都沒掉。"},
           {who:"merchant", text:"好力氣！謝謝謝謝！", mark:"note"},

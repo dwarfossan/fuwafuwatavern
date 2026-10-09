@@ -108,10 +108,10 @@ const ITEMS = [
   {type:"consumable",n:"酸液瓶",en:"Acid",cat:"道具",cost:25*GP,wt:1,
    use:{kind:"save", range:4, save:"DEX", dmg:"2d6", type:"強酸"}, proj:"flask_acid", desc:"丟向 4 格內的敵人：敏捷豁免失敗受 2d6 強酸傷害。"},
   {type:"consumable",n:"網子",en:"Net",cat:"道具",cost:1*GP,wt:3,
-   use:{kind:"save", range:3, save:"DEX", status:"restrained", escape:10}, proj:"net", desc:"丟向 3 格內的敵人：敏捷豁免失敗就被束縛（不能移動；打他有優勢、他攻擊有劣勢），要花動作做力量檢定 10 才能掙脫。"},
+   use:{kind:"save", range:3, save:"DEX", status:"restrained", escape:10}, proj:"net", desc:"丟向 3 格內的敵人：敏捷豁免失敗就被束縛（不能移動；打他有優勢、他攻擊有劣勢），要花主要動作做力量檢定 10 才能掙脫。"},
   // 點心：商隊的報酬（大爺 10-03）。跟其他道具不同，吃要花「動作」；吃下去＝這一隻短休一次（熟練格每階回一半），也能餵貼身隊友
   {type:"consumable",n:"點心",en:"Snack",cat:"道具",cost:0,wt:0.5, noShop:true,
-   use:{kind:"eat", range:1, action:true}, desc:"花一個動作吃掉（或餵給貼身的隊友）：等於這一隻短休一次，熟練格每一階回一半。"},
+   use:{kind:"eat", range:1, action:true}, desc:"花一個主要動作吃掉（或餵給貼身的隊友）：等於這一隻短休一次，熟練格每一階回一半。"},
   {type:"gear",n:"材料包",en:"Material Pack",cat:"冒險用品",cost:5*GP,wt:2, desc:"重現特殊／天生能力用的通用材料。只要放在背包裡就能使用需要材料的怪招。"},
   // 套組（大爺 10-03，內容照 SRD 5.2）：視同帶著裡面的每一樣（hasGear），探索時查繩索、火把等都算有，不逐個消耗。
   //   contains 寫的名字跟單項物品一樣的，就能代替那個單項；有「背包」的套組可以放背包欄
@@ -124,6 +124,6 @@ const ITEMS = [
   PACK("學者套組","Scholar's Pack",40*GP,22,["背包","書","墨水","筆","油燈","油（10 瓶）","羊皮紙","火絨盒"],"羊皮紙 10 張"),
   {type:"gear",n:"聖徽",en:"Holy Symbol",cat:"冒險用品",cost:5*GP,wt:1,srd:true,desc:"祝福術所需的至少 5 gp 聖徽；不會因施法消耗。需要空手取用，法器不能代替這件有標價的材料。"}
   ,{type:"focus",n:"霜雷法杖",en:"Frost and Spark Staff",cat:"法器",cost:20*GP,wt:4,stat:"INT",art:"arcane_staff",elementFocus:true,grants:["ray_of_frost","shocking_grasp"],spells:"寒冷射線、電擊術",draft:"GPT",desc:"暫定：20 gp、4 lb，沿用奧術法杖外觀；兩種元素戲法。"}
-, {type:"gear",n:"火藥桶",en:"Powder Barrel",cat:"冒險用品",cost:0,wt:20,noShop:true,placeable:"powderBarrel",art:"powder_barrel",desc:"可放在相鄰空格。攻擊破壞或遇火焰會引爆：所在格與周圍八格，2d6 火焰傷害，敏捷 DC13 成功減半，敵我皆傷。戰棋收納與放置各用一個動作。"}
+, {type:"gear",n:"火藥桶",en:"Powder Barrel",cat:"冒險用品",cost:0,wt:20,noShop:true,placeable:"powderBarrel",art:"powder_barrel",desc:"可放在相鄰空格。攻擊破壞或遇火焰會引爆：所在格與周圍八格，2d6 火焰傷害，敏捷 DC13 成功減半，敵我皆傷。戰棋收納與放置各用一個主要動作。"}
 ].map((it,i)=>({...it,id:"it"+i}));
 const CATS = ["簡易近戰","簡易遠程","軍用近戰","軍用遠程","護甲","盾牌","法器","道具","冒險用品"];

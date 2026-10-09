@@ -687,7 +687,7 @@ function useItem(u, it, t){
     if(it.use.kind==="attack"){
       const r = attackRoll(u, t, {bonus:u.mods.DEX + 2, ranged:true});
       if(r.hit){ hurt(t, dmgRoll(it.use.dmg, 0, r.crit), it.use.type, u);
-        if(it.use.status==="burning" && !t.dead && !t.down){ addStatus(t, "burning", {}); blog(`　${t.name}燒起來了！（每回合開始 1d4，花動作撲滅）`, "skill"); } }
+        if(it.use.status==="burning" && !t.dead && !t.down){ addStatus(t, "burning", {}); blog(`　${t.name}燒起來了！（每回合開始 1d4，花主要動作撲滅）`, "skill"); } }
     } else {
       const ok = saveRoll(t, it.use.save, 8 + 2 + u.mods.DEX);
       if(!ok && it.use.dmg) hurt(t, rollDice(it.use.dmg).total, it.use.type, u);

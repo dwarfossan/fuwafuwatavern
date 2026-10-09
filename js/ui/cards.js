@@ -50,7 +50,7 @@ function itemCardHTML(it){
     rows.push(["說明", "法器提供普攻；明列的附帶技能不用學，施放仍需聲勢材。"]);
   } else if(it.type==="consumable"){
     rows.push(["效果", it.desc]);
-    rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉動作":"用掉一個免費動作（每回合共兩個）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
+    rows.push(["使用", `戰鬥中從「道具」選單使用，${it.use&&it.use.action?"用掉主要動作":"用掉一個免費動作（每回合共兩個）"}。用完就沒了。${it.use&&it.use.kind==="eat"?"":"丟給貼身的隊友＝交給他。"}`]);
   } else {
     rows.push(["說明", it.desc || "冒險用品，目前沒有戰鬥效果。"]);   // 套組、彈袋、箭袋等有寫 desc 的照寫（10-03）
   }

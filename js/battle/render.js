@@ -886,7 +886,7 @@ const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained
   blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離"};
 const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
   dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下或專注中斷。",
-  bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花動作撲滅。",
+  bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花主要動作撲滅。",
   frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害；回合結束體質豁免，成功解毒，失敗持續。探索每 6 秒結算一次。",
   blessed:"攻擊和豁免各多擲 1d4 加上去，直到施法者的專注中斷。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
   mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。"};
@@ -919,9 +919,9 @@ function statusExplain(v,s){
 }
 const TUTORIAL = [
   "輪到我方時，右下角的指令列就是這隻的指令。拖曳可以移動畫面，滾輪或兩指可以縮放。",
-  "「走位」裡有移動、衝刺、撤離、潛行，選移動之後藍色格子是能走到的地方；「動作」裡有攻擊、技能、閃避、協助。點任何角色可以看他的狀態。",
+  "「走位」裡有移動、衝刺、撤離、潛行，選移動之後藍色格子是能走到的地方；「招式」裡有攻擊、技能、閃避、協助。點任何角色可以看他的狀態。",
   "攻擊會擲 d20 ＋ 加值，大於等於敵人的 AC 就命中。戰場角落的紀錄條會寫結果，點一下可以看完整的擲骰過程。",
-  "每回合一次「動作」。離開敵人身邊會被藉機攻擊（每隻敵人每輪一次），先「撤離」就不會。做完選「待機」結束回合。"
+  "每回合一次「主要動作」。離開敵人身邊會被藉機攻擊（每隻敵人每輪一次），先「撤離」就不會。做完選「待機」結束回合。"
 ];
 
 // 狀態卡的三條（大爺 10-04）：名稱｜條｜數字，三條一樣長、左邊對齊。敵人只有生命
@@ -941,7 +941,7 @@ function infoBarsHTML(v, pct){
 // 燈號：動作、剩餘移動（只有輪到的那隻有）；探索不分回合，不顯示（10-04 修 移動 undefined）
 function econHTML(u, b, pts=true){
   if(!b || b.phase==="explore" || u!==cur()) return "";
-  return `<span class="eco ${b.actionUsed?"used":""}" title="動作">動作</span><span class="eco ${!freeLeft()?"used":""}" title="免費動作（每回合兩次）">免費 ${freeRemaining()}/2</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
+  return `<span class="eco ${b.actionUsed?"used":""}" title="主要動作（每回合一次）">主要</span><span class="eco ${!freeLeft()?"used":""}" title="免費動作（每回合兩次）">免費 ${freeRemaining()}/2</span><span class="eco mv">移動 <b>${b.moveLeft}</b></span>${pts?ptsHTML(u):""}`;
 }
 // 熟練格（大爺 2026-10-01 畫的）：直的一小塊，I 在最下面、高階往上疊；實心＝還剩的格子，空心＝用掉的
 // I 那一排留在燈號列裡；II 以上平常收成 I 上面一條隱藏條，點了才往上展開（絕對定位往上長，不會把燈號列撐高）
@@ -973,7 +973,7 @@ function skillTag(u, sk){
   if(turnLimitProblem(u,sk))return turnLimitProblem(u,sk);
   if(sk.def.turnLimit)return "免費動作 · 每回合一次";
   if(!skillReady(u, sk)) return "格子用完";
-  return sk.def.free ? (B() && u===cur() && !freeLeft() ? "用動作" : "免費動作") : "";
+  return sk.def.free ? (B() && u===cur() && !freeLeft() ? "用主要動作" : "免費動作") : "";
 }
 function skillBtn(u, sk, label){
   const b = B(), passive = sk.impl && sk.impl.passive;
@@ -995,26 +995,26 @@ function menuHTML(u, b, level=null){
   if(lv==="root"){
     const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
     const hasItems = u.items.length || u.spare.length || powderCount(u);
-    body = mbtn("act","動作", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
+    body = mbtn("act","招式", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
            mbtn("move","走位", !canWalk() && !act) +
-           mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "動作都用完了" : freeLeft() ? "免費動作" : "用掉動作") +
+           mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "主要、免費動作都用完了" : freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("status","狀態", false, u.name) +
            mbtn("wait","待機", false, "結束回合");
   } else if(lv==="move"){
     title = "走位";
     const hb = hideBlock(u);
-    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !act, `用掉動作，移動 +${b.baseMove}`) +
-           mbtn("disengage","撤離", !act, "用掉動作，不被藉機攻擊") +
+    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !act, `用掉主要動作，移動 +${b.baseMove}`) +
+           mbtn("disengage","撤離", !act, "用掉主要動作，不被藉機攻擊") +
            mbtn("hide","潛行", !act || !!hb, hb || `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
   } else if(lv==="act"){
-    title = "動作";
+    title = "招式";
     const atks = attackSkills(u);
     const foesNear = adjFoes(u).length;
     body = (grappled(u) ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
            (hasVia(u,"restrained","net") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${hasVia(u,"restrained","net").dc}`) : "") +
            (has(u,"burning") ? mbtn("douse","撲滅火焰", !act, "身上著火了") : "") +
            (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "被打有劣勢") +
-           mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉動作") +
+           mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "鄰格隊友攻擊優勢") +
            mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : "抓住就不能移動") +
            mbtn("shove","推撞", !act || !foesNear, "推開或推倒") +
@@ -1027,7 +1027,7 @@ function menuHTML(u, b, level=null){
     title = "道具";
     const groups = [...new Set(u.items)];
     body = groups.map(it=>{ const noAct = it.use.action && !canAct();   // 點心要花動作（10-03）
-      return `<button class="mn-b" data-item="${it.id}" ${noAct?"disabled":""}><span>${it.n} ×${u.items.filter(i=>i===it).length}</span><small>${noAct?"動作用完了":it.use.kind==="drink"?"喝或餵貼身隊友":it.use.kind==="eat"?"吃或餵貼身隊友（用掉動作）":`丟 ${it.use.range} 格內`}</small></button>`; }).join("") +
+      return `<button class="mn-b" data-item="${it.id}" ${noAct?"disabled":""}><span>${it.n} ×${u.items.filter(i=>i===it).length}</span><small>${noAct?"主要動作用完了":it.use.kind==="drink"?"喝或餵貼身隊友":it.use.kind==="eat"?"吃或餵貼身隊友（用掉主要動作）":`丟 ${it.use.range} 格內`}</small></button>`; }).join("") +
            (powderCount(u)?`<button class="mn-b" data-placebarrel ${!canAct()?"disabled":""}><span>${WORLD_OBJECT_TEXT.place} ×${powderCount(u)}</span><small>${WORLD_OBJECT_TEXT.placeAction}</small></button>`:"")+
            u.spare.slice(0,1).map((w,i)=>`<button class="mn-b" data-swap="${i}"><span>切換配置：${w.n}${u.offhand2?"＋"+u.offhand2.n:""}</span><small>主手與副手一起切換</small></button>`).join("") +
            `<button class="mn-back" data-cmd="root">← 返回</button>`;
