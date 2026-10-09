@@ -36,7 +36,7 @@ const BATTLES = {
     elev: [{x0:2, y0:17, x1:8, y1:22, h:2}, {x0:9, y0:20, x1:9, y1:22, h:1}],   // 商人躲在馬車後面（默默：「馬車後面，躲著一個人」）
     foes: [
       {type:"goblin", x:11, y:11, gear:["短棒","破布衣"], testSkill:"daze"},        // 震暈
-      {type:"goblin", x:10, y:13, testSkill:"double_strike"},                   // 連擊
+      {type:"goblin", x:10, y:13},                   // 10-09 連擊改成被動，不再當測試招式
       {type:"goblin_archer", x:9, y:14, testSkill:"suppress"},                 // 壓制射擊
       {type:"goblin_shaman", x:2, y:8, hidden:true, testSkill:"bane"} // 災禍術
     ]

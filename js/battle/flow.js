@@ -790,6 +790,15 @@ function answerReaction(choice){
   const c = B(); c.busy = true; refreshBattle();
   later(()=>{ c.busy = false; if(!checkResult()) endTurn(); }, settle(900));
 }
+// 戰士風格：連擊（大爺 10-09）：只有主要動作的普攻攻擊兩次，兩下都照常（不打折、各自觸發專精）；
+// 副手攻擊、免費動作、戲法、招式、藉機攻擊、反擊都不算；帶「裝填」的武器不能；目標第一下就倒了不轉移（暫定）
+function doubleStrikes(u, sk, t){
+  if(!passiveSkills(u).some(s=>s.key==="double_strike")) return false;
+  const basic = sk.def.basicAttack || (sk.idx===0 && HAS_BASIC(sk.group));
+  if(!basic || sk.def.components || sk.def.free || sk.def.turnLimit) return false;
+  if(u.weapon && hasProp(u.weapon,"裝填")) return false;
+  return !!t && !Array.isArray(t) && t!==u && !t.dead && !t.down;
+}
 function doSkillNow(u, sk, t){
   const b = B();
   const problem=componentProblem(u,sk)||turnLimitProblem(u,sk);if(problem){blog(`${sk.def.name}：${problem}`);refreshBattle();return;}
@@ -815,6 +824,7 @@ function doSkillNow(u, sk, t){
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
   sk.impl.run(u, t);
+  if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
   b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身

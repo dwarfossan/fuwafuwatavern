@@ -36,7 +36,7 @@ const SKILL_GROUPS = [
    skills:[
     {name:"斬擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
     {id:"counterattack", name:"反擊", style:"warrior", activation:"passive", kind:"被動", dmg:"物理", req:"weaponOrUnarmed", tier:0, statText:"依攻擊方式", text:"敵人的攻擊未命中你時，立刻攻擊一次。"},
-    {id:"double_strike", name:"連擊", kind:"近戰", req:"repeatAttack", tier:1,   text:"攻擊兩次，第二下不加屬性；仍遵守武器本身的攻擊次數限制。"}]},
+    {id:"double_strike", name:"連擊", style:"warrior", activation:"passive", kind:"被動", dmg:"物理", tier:0, statText:"依攻擊方式", text:"用主要動作普攻時攻擊兩次，兩下都照常計算。副手攻擊、藉機攻擊、反擊、招式、戲法不算；帶「裝填」的武器不能連擊。"}]},
 
   {id:"heavy", name:"雙手重武器", stat:"力量",
    weapons:["巨劍","巨斧","巨錘","巨棒"],

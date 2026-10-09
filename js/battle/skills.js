@@ -212,8 +212,8 @@ const SKILL_IMPL = {
   sword: [
     basicAttack,
     {passive:true},
-    // 連擊（連斬＋連打合併）：攻擊兩次，第二下不加屬性
-    {target:"enemy", range:u=>meleeOrRange(u), run:(u,t)=>{ weaponAttack(u,t,{}); if(!t.dead && !t.down) weaponAttack(u,t,{noMod:true}); }}
+    // 連擊（大爺 10-09 改成戰士風格被動）：效果在 flow.js doSkillNow 的 doubleStrikes
+    {passive:true}
   ],
   heavy: [
     basicAttack,
