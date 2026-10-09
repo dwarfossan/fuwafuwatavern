@@ -63,7 +63,7 @@ node tests/bgm-routing.mjs   # BGM 場景 routing：日常、放屁段落、大�
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
 node tests/perception.mjs     # 被動感知、搜索、敵人狀態卡
 node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變
-node tests/upgrades.mjs       # 升階效果（多傷害／多目標／多持續；範圍固定）、守護
+node tests/upgrades.mjs       # 升階效果（多傷害／多目標／多持續；範圍固定）、守護（10-09 守護改被動，另見 guard.mjs）
 node tests/shop.mjs           # 手機商店：分類、觸控滑頁、防誤買、買賣位置與固定導航
 node tests/mobile-ui.mjs      # 手機介面：封面、說明／角色泡泡、戰場與教學、大地圖、裝備標籤
 node tests/unconscious.mjs    # 昏迷（10-09 取代死亡豁免）：歸零昏迷、輪不到、協助／治療才醒、戰後醒 1 血、四隻昏迷才輸；重新挑戰三次；選回酒館才出現卡姆傳送詛咒
@@ -77,6 +77,8 @@ node tests/rule-bubbles.mjs  # 四隻不同見解、規則變色、移入／觸�
 node tests/passive-skills.mjs # 主／被動、總5主動3、暗視12格與手機勾選
 node tests/style-groups.mjs   # 風格：同類上限、混搭、上限加成、「戰士風格：反擊」名稱、被擋原因、敵我同一套
 node tests/double-strike.mjs  # 戰士風格：連擊：主要動作普攻兩下不打折；沒帶／招式／裝填／打倒後不觸發；敵我一致
+node tests/guard.mjs         # 戰士風格：守護：拿盾、1 格內隊友每輪第一次被攻擊劣勢；不保護自己；敵我一致
+node tests/weapon-mastery.mjs # 戰士風格：武器精通：帶了才觸發專精；普攻與招式都觸發；敵我一致
 node tests/spell-slot-turn.mjs # 每回合只能花一格熟練格施法：戲法與武器招式不算、下回合重置、敵我一致、按鈕原因
 node tests/reactions.mjs      # 反應：保留免費動作、敵人命中暫停詢問、護盾術 AC+5／化險減半／不用、同骰重跑、沒保留不問、敵人回合照常結束
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出

@@ -34,14 +34,14 @@ const SKILL_GROUPS = [
   {id:"sword", name:"劍類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["短劍","長劍","刺劍","彎刀"],
    skills:[
-    {name:"斬擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"斬擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"counterattack", name:"反擊", style:"warrior", activation:"passive", kind:"被動", dmg:"物理", req:"weaponOrUnarmed", tier:0, statText:"依攻擊方式", text:"敵人的攻擊未命中你時，立刻攻擊一次。"},
     {id:"double_strike", name:"連擊", style:"warrior", activation:"passive", kind:"被動", dmg:"物理", tier:0, statText:"依攻擊方式", text:"用主要動作普攻時攻擊兩次，兩下都照常計算。副手攻擊、藉機攻擊、反擊、招式、戲法不算；帶「裝填」的武器不能連擊。"}]},
 
   {id:"heavy", name:"雙手重武器", stat:"力量",
    weapons:["巨劍","巨斧","巨錘","巨棒"],
    skills:[
-    {name:"重擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"重擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"cleave", name:"橫掃", kind:"近戰", req:["twoHandMelee","longWeapon"], tier:1,   text:"對每個敵人各攻擊一次，傷害只算武器骰、不加屬性。"},
     {id:"power_strike", name:"蓄力重擊", kind:"近戰", req:"twoHandMelee", tier:1,   text:"這回合不能移動；攻擊一次，命中時多 1 顆武器骰。"},
     {id:"topple", name:"撞倒", kind:"近戰", req:["twoHandMelee","longWeapon","unarmed"], tier:1,   text:"攻擊一次；命中後目標選力量或敏捷豁免，失敗則倒地。"}]},
@@ -49,7 +49,7 @@ const SKILL_GROUPS = [
   {id:"axe", name:"斧類", stat:"力量",
    weapons:["手斧","戰斧","戰鎬"],
    skills:[
-    {name:"劈砍", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"劈砍", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"sunder", name:"破甲", kind:"近戰", req:"meleeWeapon", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次，命中則目標 AC −2，直到你下回合結束。"},
     {id:"bleed", name:"放血", kind:"近戰", req:"cutOrPierce", tier:1,   up:"每高一階多流血 1 次。", text:"攻擊一次；命中後目標接下來 2 次回合開始各受 1d4 流血傷害。"},
     {id:"shield_split", name:"劈盾", kind:"近戰", req:"slashWeapon", tier:1,   text:"攻擊一次；命中後目標盾牌失效（AC −2），直到你下回合開始。"}]},
@@ -57,7 +57,7 @@ const SKILL_GROUPS = [
   {id:"mace", name:"錘類", stat:"力量",
    weapons:["短棒","輕錘","硬頭錘","戰錘","釘頭錘","鏈枷"],
    skills:[
-    {name:"敲擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"敲擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"daze", name:"震暈", kind:"近戰", req:"bluntOrUnarmed", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標體質豁免，失敗則下回合只能移動或行動二選一。"},
     {id:"quake", name:"震地", kind:"豁免", dmg:"", req:"bluntOrUnarmed", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰傷害（範圍不變）。", text:"敵人敏捷豁免，失敗則倒地；不造成傷害。"},
     {id:"knockback", name:"擊退", kind:"近戰", req:"meleeOrUnarmed", tier:1,   text:"攻擊一次；命中後推開目標 1 格，你跟上一步。"}]},
@@ -65,13 +65,13 @@ const SKILL_GROUPS = [
   {id:"polearm", name:"長柄類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["長柄刀","戟","長矛","矛","三叉戟","長棍","鞭"],
    skills:[
-    {name:"突刺", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"突刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"guard_stance", name:"阻截", kind:"輔助", req:"longWeapon", tier:1,   free:true, text:"直到你下回合開始，第一個走進攻擊範圍的敵人會被你攻擊一次。"}]},
 
   {id:"dagger", name:"匕首類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["匕首","鐮刀"],
    skills:[
-    {name:"快刺", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精；有「投擲」屬性時也能投擲。"},
+    {name:"快刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；有「投擲」屬性時也能投擲。"},
     {id:"sneak_attack", name:"偷襲", kind:"近戰", req:"lightMelee", tier:1,   up:"每高一階，偷襲傷害多 1d6。", text:"攻擊一次，如果目標旁邊有你的隊友，命中時多 2d6 傷害。"},
     {id:"dash_stab", name:"閃身刺", kind:"近戰", req:"lightMelee", tier:1,   text:"先閃到 2 格內、目標身旁的空位（不會被藉機攻擊，不算移動），再攻擊一次。"},
     {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標下回合移動 −2 格。"}]},
@@ -79,7 +79,7 @@ const SKILL_GROUPS = [
   {id:"bow", name:"弓類", stat:"敏捷",
    weapons:["短弓","長弓","非凡長弓"],
    skills:[
-    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"aimed_shot", name:"瞄準射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"本回合不能移動；攻擊一次，命中 +2，傷害多 1 顆武器骰。"},
     {id:"arrow_rain", name:"箭雨", kind:"豁免", req:"bow", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰（範圍不變）。", text:"敵人敏捷豁免，失敗受 1 顆武器骰傷害。"},
     {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次；命中後目標削弱，下次攻擊有劣勢。"}]},
@@ -87,7 +87,7 @@ const SKILL_GROUPS = [
   {id:"crossbow", name:"弩類", stat:"敏捷",
    weapons:["輕弩","手弩","重弩"],
    skills:[
-    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，觸發武器專精；每回合只能射一次。"},
+    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；每回合只能射一次。"},
     {id:"pierce_shot", name:"貫穿", kind:"遠程", req:"piercingProjectile", tier:1,   text:"朝一個方向射出，直線上的每個敵人各攻擊一次。"},
     {id:"pin", name:"釘住", kind:"遠程", req:"piercingProjectile", tier:1,   text:"攻擊一次，命中的話目標到他自己的回合結束前都不能移動。"},
     {id:"point_blank", name:"近射", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，貼身射擊也沒有劣勢。"}]},
@@ -96,12 +96,12 @@ const SKILL_GROUPS = [
   {id:"firearm", name:"火槍類", stat:"敏捷",
    weapons:["火槍","手槍"],
    skills:[
-    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，觸發武器專精；每回合只能射一次。"}]},
+    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；每回合只能射一次。"}]},
 
   {id:"thrown", name:"投擲類", stat:"力量（有「靈巧」的取力量、敏捷高的；用彈藥的用敏捷）",
    weapons:["標槍","飛鏢","投石索","吹箭筒"],
    skills:[
-    {name:"投擲", kind:"遠程",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
+    {name:"投擲", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
     {id:"multi_throw", name:"連投", kind:"遠程", req:"thrown", tier:1,   up:"每高一階多投 1 個不同目標。", text:"對兩個不同目標各攻擊一次。"},
     {id:"precise_throw", name:"精準一擲", kind:"遠程", req:"thrown", tier:1,   text:"攻擊有優勢，命中的話目標削弱（下次攻擊有劣勢）。"}]},
 
@@ -115,7 +115,7 @@ const SKILL_GROUPS = [
   {id:"shield", name:"盾牌", stat:"—",
    weapons:["盾牌"],
    skills:[
-    {id:"shield_guard", name:"守護", kind:"輔助", req:"shield", tier:1,   free:true, up:"每高一階多 1 輪。", text:"直到你下回合開始，各貼身隊友受到的第一次攻擊有劣勢；你須仍在她身旁。"}]},
+    {id:"shield_guard", name:"守護", style:"warrior", activation:"passive", kind:"被動", dmg:"", req:"shield", tier:0, text:"拿著盾牌時，周圍 1 格內的隊友每輪第一次被攻擊，那一下有劣勢；每位隊友每輪一次。不保護自己。"}]},
 
   // 法器：法杖／法書／法球三種，每件法器綁定一組法術（法杖另外能敲人），以法術主題命名
   //       使用屬性：每件固定隨機 INT／WIS／CHA
@@ -200,7 +200,8 @@ SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"
 ]});
 // 風格被動（10-09）：不屬於任何武器組的放這裡；招式本身寫 style 決定是哪一類風格
 SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",skills:[
- {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"}
+ {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"},
+ {id:"weapon_mastery",name:"武器精通",style:"warrior",activation:"passive",kind:"被動",dmg:"",tier:0,text:"用武器攻擊時觸發武器專精（削弱、緩速、擦傷……）。沒帶就不會觸發專精。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
 

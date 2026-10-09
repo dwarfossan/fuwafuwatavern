@@ -24,7 +24,7 @@ function nextTurn(){
 
 function beginTurn(u){
   const b = B();
-  u.shockNoOA=false; u.reserveFree=0;
+  u.shockNoOA=false; u.reserveFree=0; u.guarded={};
   expire("start", u.id);
   u._cleaved = false;
   b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;u.slotSpellUsed=false;

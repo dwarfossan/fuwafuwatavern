@@ -44,14 +44,7 @@ try{
   dmgRoll=dr; saveRoll=sr;
   // 擊退 升 2 階：只推 1 格
   reset(); const ox=f.x; b.up=2; impl('knockback').run(u,f); out.push=Math.abs(f.x-ox)+Math.abs(f.y-(u.y));
-  // 守護：所有貼身隊友；升 1 階撐 2 輪，每輪擋一次
-  reset(); attackRoll=window.__atk; b.up=1; const g=U('tiger'), a1=U('fox'), a2=U('wolf');
-  a1.x=g.x; a1.y=g.y+1; a2.x=g.x; a2.y=g.y-1; f.x=a1.x+1; f.y=a1.y;
-  impl('shield_guard').run(g); out.guard={both:!!hasVia(a1,'dodge','guard') && !!hasVia(a2,'dodge','guard'), left:hasVia(a1,'dodge','guard')?.left};
-  attackRoll(f,a1,{}); out.guard.afterHit=!!hasVia(a1,'dodge','guard') && hasVia(a1,'dodge','guard').spent===true;
-  expire('start',g.id); out.guard.round2=!!hasVia(a1,'dodge','guard') && !hasVia(a1,'dodge','guard').spent;
-  attackRoll(f,a1,{}); expire('start',g.id); out.guard.gone=!hasVia(a1,'dodge','guard');
-  out.guardDef={name:def('shield_guard').name, tier:def('shield_guard').tier, free:!!def('shield_guard').free};
+  // 10-09 守護改成戰士風格被動，改由 tests/guard.mjs 驗
   b.up=0; return out;
  });
  assert(r.noRange);assert(r.defaults);ok('資料：沒有「範圍多 1 圈」；撞倒、擊退、閃身刺＝多武器骰');
@@ -62,8 +55,6 @@ try{
  assert(r.quake.near);assert(!r.quake.far);assert.equal(r.quake.rolls,2);assert(r.quake.hurt);ok('震地升 2 階：範圍還是 1 圈、倒地的多受 2 顆武器骰');
  assert.equal(r.rain.rolls,2);assert(!r.rain.far);assert(r.rain.near);ok('箭雨升 1 階：範圍不變、失敗的受 2 顆武器骰');
  assert.equal(r.push,1);ok('擊退升 2 階：還是推 1 格');
- assert(r.guard.both);assert.equal(r.guard.left,1);assert(r.guard.afterHit);assert(r.guard.round2);assert(r.guard.gone);
- assert.deepEqual(r.guardDef,{name:'守護',tier:1,free:true});ok('守護：一階、免費動作、所有貼身隊友；升 1 階撐 2 輪、每輪擋一次');
  const rest=await pg.evaluate(()=>{const b=B();const u=b.units.find(v=>v.id==='fox');u.level=5;u.slots=slotMax(u).map(()=>0);u.slots[1]=1;
    const was=b.result;b.result='win';takeRest('short');const a=JSON.stringify(state.proficiency.fox);
    u.learned=[{key:'x',name:'測試'}];eraseNote(u,'x');syncLearnedState();const e=JSON.stringify(state.proficiency.fox);b.result=was;return {a,e};});

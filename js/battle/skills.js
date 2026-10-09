@@ -208,7 +208,7 @@ function dashSpot(u, t, max){
 
 const SKILL_IMPL = {
   natural:[{passive:true}],
-  style:[{passive:true}],
+  style:[{passive:true},{passive:true}],   // 化險、武器精通
   sword: [
     basicAttack,
     {passive:true},
@@ -293,12 +293,8 @@ const SKILL_IMPL = {
        push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>!(s.k==="restrained"&&s.via==="grapple")); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }}
   ],
   shield: [
-    // 守護（原舉盾護友，大爺 10-01 定、10-02 做）：用一格、免費動作；所有貼身隊友各自被打的第一次攻擊劣勢，
-    // 到你下回合開始；升階每高一階多 1 輪（每輪各擋一次）。守護的人要還在旁邊（見 attackRoll）
-    {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>p!==u && !p.down && dist(p,u)===1), up = upNow();
-      if(!ps.length){ blog("　旁邊沒有隊友。"); return; }
-      ps.forEach(p=>addStatus(p,"dodge",{via:"guard", once:true, by:u.id, until:"start", of:u.id, left:up}));
-      blog(`　${u.name}舉盾守護${ps.map(p=>p.name).join("、")}${up?`（${1+up} 輪）`:""}`,"skill"); }}
+    // 守護（大爺 10-09 改成戰士風格被動）：效果在 engine.js attackRoll 的 guardOf
+    {passive:true}
   ],
   arcane_staff: [
     FOCUS_STRIKE_IMPLS.staff,

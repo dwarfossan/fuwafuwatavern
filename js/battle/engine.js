@@ -450,6 +450,11 @@ function panelRow(kind, t, rolls, used, total, res, a){
 }
 
 // 攻擊擲骰：回傳 {hit, crit}
+// 誰會守護 t：同陣營、帶守護、拿盾、沒倒、1 格內、這一輪還沒守護過 t（每輪＝守護者自己回合開始重置）
+function guardOf(t){
+  return B().units.find(g=>g!==t && g.side===t.side && !g.dead && !g.down && dist(g,t)<=1 && !(g.guarded||{})[t.id]
+    && (g.shield || g.offhand2?.type==="shield") && passiveSkills(g).some(s=>s.key==="shield_guard"));
+}
 function attackRoll(a, t, o={}){
   let adv = 0;
   const melee = !o.ranged;
@@ -466,6 +471,8 @@ function attackRoll(a, t, o={}){
       const by = once.map(s=>B().units.find(v=>v.id===s.by)).find(v=>v && !v.down && !v.dead && dist(v,t)<=1);
       if(by){ dis = true; sfx("shield_block", B().impact||0); blog(`　${by.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
     if(dis) adv--; }
+  // 戰士風格：守護（大爺 10-09）：拿盾、周圍 1 格內的隊友（不含自己），每輪每人第一次被攻擊那一下劣勢
+  { const g = guardOf(t); if(g){ (g.guarded ||= {})[t.id] = true; adv--; sfx("shield_block", B().impact||0); blog(`　${g.name}守護著${t.name}！（攻擊劣勢）`, "skill"); } }
   // 協助：下次攻擊優勢（困擾給的協助只對那個目標）
   const help = a.statuses.find(s=>s.k==="helped" && (!s.target || s.target===t.id));
   if(help){ adv++; a.statuses = a.statuses.filter(s=>s!==help); }
@@ -810,7 +817,8 @@ function weaponAttack(a, t, o={}){
   }
   const res = attackRoll(a, t, {bonus: mod + 2 + ((o.hitMod||0)+(w?.hitBonus||0)), adv:o.adv, dis:o.dis, ranged, pointBlank:o.pointBlank});
   const die = weaponDie(view) || "1d1";
-  const m = w ? w.mastery.split(" ")[0] : null;
+  // 戰士風格：武器精通（大爺 10-09）：帶了才觸發專精；普攻、招式、連擊每一下都算；敵我一致
+  const m = w && passiveSkills(a).some(s=>s.key==="weapon_mastery") ? w.mastery.split(" ")[0] : null;
   if(res.hit){
     const crit = res.crit || o.autoCrit || o.double;
     // 通用升階：施放中的人每高一階多 1 顆武器骰
@@ -821,8 +829,8 @@ function weaponAttack(a, t, o={}){
     const extra=w?.extraDamage, arrowHit=["bow","crossbow"].includes(ak);
     hurt(t, n, dmgType(view), a, arrowHit ? (extra ? false : "arrow_hit") : null);
     if(extra){if(!t.dead && !t.down)hurt(t,extra.amount,extra.type,a);groundReact(t.x,t.y,extra.type);}
-    if(o.mastery && m && !t.dead && !t.down) applyMastery(a, t, m, mod);
-  } else if(o.mastery && m==="擦傷" && mod>0){
+    if(m && !t.dead && !t.down) applyMastery(a, t, m, mod);
+  } else if(m==="擦傷" && mod>0){
     blog(`　擦傷：沒打中也造成 ${mod} 點傷害`, "skill"); hurt(t, mod, dmgType(view), a);
   }
   return res;
