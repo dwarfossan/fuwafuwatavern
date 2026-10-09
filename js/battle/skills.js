@@ -181,6 +181,10 @@ const enemiesOf = u => B().units.filter(x=>hostile(x,u) && !x.down && !x.dead &&
 // 範圍招（大爺 10-02）：打的是一塊地方，不是指定某一隻，躲在裡面的也會被波及。被波及的先現身再結算
 // （豁免、傷害都會攤在骰子面板上，藏不住）。要指定目標的招（多投、災禍術、橫掃專精）還是用 enemiesOf
 const caught = (u, es) => es.filter(x=>hostile(x,u) && !x.down && !x.dead).map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
+// 範圍法術（大爺 10-10，照 D&D）：範圍內除了施法者自己，敵我都會被打到（倒下的不算，跟「不打倒地的」一致）；
+// 超魔「謹慎」施放時（B().careful＝施法者）不打自己人。武器範圍招（橫掃、箭雨、貫穿……）照舊只打敵人
+const spellCaught = (u, es) => es.filter(x=>x!==u && !x.down && !x.dead && !x.fled && !(B().careful===u.id && x.side===u.side))
+  .map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
 const inArea = (u, at) => caught(u, B().units.filter(at));   // at：哪些格子算在範圍裡
 const alliesOf  = u => B().units.filter(x=>x.side===u.side && !x.dead);
 const stat = u => weaponStat(u);
@@ -208,7 +212,7 @@ function dashSpot(u, t, max){
 
 const SKILL_IMPL = {
   natural:[{passive:true}],
-  style:[{passive:true},{passive:true},{passive:true},{passive:true},{passive:true},{passive:true}],   // 化險、瞄準、狡詐、強化、博學、武器精通
+  style:[{passive:true},{passive:true},{passive:true},{passive:true},{passive:true},{passive:true},{passive:true}],   // 化險、瞄準、狡詐、強化、博學、超魔、武器精通
   sword: [
     basicAttack,
     {passive:true},
@@ -315,7 +319,7 @@ const SKILL_IMPL = {
   ],
   flame_orb: [
     FIRE_BOLT_IMPL,
-    {target:"cone", range:()=>1, run:(u,c)=>{ coneTiles(u,c,3).forEach(p=>groundReact(p.x,p.y,"火焰"));const es = caught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何敵人。");
+    {target:"cone", range:()=>1, run:(u,c)=>{ coneTiles(u,c,3).forEach(p=>groundReact(p.x,p.y,"火焰"));const es = spellCaught(u, coneUnits(u,c,3)); if(!es.length) blog("　火焰沒燒到任何人。");
       es.forEach(e=>{ const n=rollDice(`${3+upNow()}d6`).total; hurt(e, saveRoll(e,"DEX",dcOf(u,spellStat(u)),u) ? Math.floor(n/2) : n, "火焰", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"fireShield",{until:"battle", n:upNow()}); blog(`　${u.name}全身冒出火焰護盾！`,"skill"); }}
   ],

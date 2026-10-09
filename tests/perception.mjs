@@ -1,6 +1,6 @@
 // 感知與搜索（大爺 10-02）：被動感知 10＋感知、主動搜索 d20＋感知，DC＝10＋敵人敏捷＋2；看穿或打倒後敵人背包打得開
 import {chromium} from 'playwright';
-import {bootReady} from './boot.mjs';
+import {bootReady,noLuck} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ try{
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg); await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{ window.__nt=nextTurn; endTurn=()=>{}; nextTurn=()=>{}; B().flowEpoch=(B().flowEpoch||0)+1; B().tut=-1; });
 
  // 公式

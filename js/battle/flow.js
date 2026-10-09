@@ -240,12 +240,35 @@ function pickSkill(key){
   if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); refreshBattle(); return; }
   // 用最低階的格子；對自己放、又沒得選（不能升階或只剩一種格子）：直接施放；能選的先進瞄準列，選好用哪一階再按「施放」
   b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier); b.tierOpen = false;
-  if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1)){ doSkill(u, sk, u); return; }
+  if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1) && !metaOptions(u, sk).length){ doSkill(u, sk, u); return; }
   b.mode = (b.mode && b.mode.key===key) ? null : {key, darts:[]};
   b.menu = b.mode ? null : "act";
   refreshBattle();
 }
 // 瞄準列：直接點要用哪一階的格子（只能點還有格子的階）；已經點了幾發魔法飛彈就不能降到比那個少
+// ---------- 法師風格：超魔（大爺 10-09 定、10-10 範圍法術會打隊友） ----------
+// 施法時多花一個免費動作加一種加工（一次只能一種）：謹慎（範圍法術不打自己人）、瞬發（主要動作的法術改用免費動作放）、
+// 遠距（距離加倍，觸碰 1 格變 6 格）。在瞄準列選；選了才扣。敵人 AI 還不會用（暫定）
+const META_NAME = {careful:"謹慎", quick:"瞬發", far:"遠距"};
+function metaOptions(u, sk){
+  if(!sk || !isSpellSkill(sk) || !passiveSkills(u).some(s=>s.key==="metamagic")) return [];
+  const t = sk.impl.target, out = [];
+  if(["area","cone","line"].includes(t)) out.push("careful");
+  if(!sk.def.free) out.push("quick");
+  if(sk.impl.range && !["self","cone"].includes(t)) out.push("far");
+  return out;
+}
+// 選了這個加工夠不夠免費動作：加工本身一個；瞬發另外再一個（法術改用免費動作放）
+const metaAffordable = (u, sk, m) => freeRemaining() >= (m==="quick" ? 2 : 1);
+const metaOf = (u, sk) => { const b = B(), m = b.mode && b.mode.key===sk.key ? b.mode.meta : null; return m && metaOptions(u, sk).includes(m) ? m : null; };
+// 招式距離（含超魔遠距）
+function skillRange(u, sk){ const r = sk.impl.range ? sk.impl.range(u) : 0; return metaOf(u, sk)==="far" ? (r<=1 ? 6 : r*2) : r; }
+function aimMeta(m){
+  const b = B(), u = cur(); if(!b.mode || b.busy) return;
+  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!metaOptions(u, sk).includes(m)) return;
+  if(b.mode.meta===m) b.mode.meta = null; else if(metaAffordable(u, sk, m)) b.mode.meta = m; else return;
+  sfx("pop"); refreshBattle();
+}
 function aimTier(t){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;
@@ -269,7 +292,7 @@ function aimCancel(){ const b = B(), k = b.mode && b.mode.key;
 // 瞄準模式下，這格能不能當目標
 function validTarget(u, sk, x, y){
   if(!sk)return null;
-  const im = sk.impl, r = im.range ? im.range(u) : 0, object=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);
+  const im = sk.impl, r = skillRange(u, sk), object=B().def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);
   if(object&&im.target==="enemy"&&dist(u,object)<=r&&(sk.def.basicAttack||(sk.idx===0&&HAS_BASIC(sk.group))||sk.def.groundElement))return barrelTarget(object);
   const t = unitAt(x,y), p = {x,y}, enemy=t&&(hostile(t,u)||(B().explorationMap&&t.side!==u.side&&t.side!=="npc"&&!t.fled));
   switch(im.target){
@@ -842,10 +865,12 @@ function doSkillNow(u, sk, t){
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
+  const meta = u.side==="pc" ? metaOf(u, sk) : null;
+  if(meta){ blog(`　超魔：${META_NAME[meta]}（多花一個免費動作）`, "skill"); if(meta==="careful") b.careful = u.id; }
   const cantrip = isSpellSkill(sk) && !(sk.def.tier>0), emBonus = u.mods[spellStat(u)]||0;
   b.empower = cantrip && emBonus>0 && passiveSkills(u).some(s=>s.key==="empowered_cantrip") ? {by:u.id, bonus:emBonus, hit:new Set()} : null;
   sk.impl.run(u, t);
-  b.empower = null;
+  b.empower = null; b.careful = null;
   if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
   b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
@@ -853,7 +878,8 @@ function doSkillNow(u, sk, t){
   b.impact = 0;
   if(sk.def.turnLimit==="offhand")u.offhandAttackUsed=true;
   if(sk.def.turnLimit==="focusCantrip")u.focusCantripUsed=true;
-  if(sk.def.free) spendFree(u); else useAction(u);
+  if(meta) spendFree(u);                       // 超魔本身一個免費動作
+  if(sk.def.free || meta==="quick") spendFree(u); else useAction(u);
   b.mode = null;
   if(checkResult()) return;
   if(u.side==="pc") afterShow(u, Math.max(DOLL_DUR[k]||500, hitAt + 900, (b.impactEnd||0) - Date.now()));

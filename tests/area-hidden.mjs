@@ -1,6 +1,6 @@
 // 範圍招波及躲著的敵人（大爺 10-02：打的是一塊地方，躲在裡面的也會被打到，先現身再結算；指定目標的招還是打不到躲著的）
 import {chromium} from 'playwright';
-import {bootReady} from './boot.mjs';
+import {bootReady,noLuck} from './boot.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ try{
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(pg);
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg); await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{ endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });
 
  // 每次：把哥布林 A 放到香香旁邊、藏起來，其他敵人移遠

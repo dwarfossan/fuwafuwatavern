@@ -61,4 +61,6 @@ SKILL_THOUGHT_ROWS.push(['狡詐','手腳俐落的話，走位就不用占掉出
 // 10-09 香香草稿（強化、博學）
 SKILL_THOUGHT_ROWS.push(['強化','小法術也值得好好念，念準了就更痛。','小火花也能變大火花！','……戲法不是隨便丟的。','省下大法術，小的多加一點就夠用。','香香']);
 SKILL_THOUGHT_ROWS.push(['博學','書沒有白讀的，總有一天會認出來。','玲玲說的我都記不住……妳記就好！','……知道得多，就少走一點冤枉路。','認得出那是什麼，才知道值多少錢。','香香']);
+// 10-10 香香草稿（超魔）
+SKILL_THOUGHT_ROWS.push(['超魔','咒文的結構可以改，只是要多付一點代價。','我也想要火球轉彎！','……一次只改一個地方，貪心會念錯。','繞過自己人燒，聽起來就很划算。','香香']);
 const SKILL_THOUGHTS=Object.fromEntries(SKILL_THOUGHT_ROWS.map(([name,a,b,c,d,draft])=>[name,{draft:draft||'GPT',lines:Object.fromEntries(['fox','tiger','wolf','raccoon'].map((id,i)=>[id,[a,b,c,d][i]]))}]));

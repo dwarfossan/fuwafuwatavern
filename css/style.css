@@ -800,6 +800,9 @@ button.token:hover{transform:translateY(-2px)}
 .aim-tier span{font-family:var(--font-disp);font-size:16px}
 .aim-tier small{letter-spacing:1px;color:var(--honey);font-size:13px}.aim-tier small i{font-style:normal;color:var(--dim)}
 .aim-tier.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}
+/* 超魔（10-10 香香暫定）：三個加工一排，選中的同選階的蜂蜜色框 */
+.aim-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.aim-meta small{flex-basis:100%;opacity:.8;font-size:12px}
+.aim-meta .aim-m{flex:1;min-width:0;min-height:34px;justify-content:center}.aim-m.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}
 /* 技能頁的分組標題：階數＋那一階剩的格子 */
 .sk-tier{grid-column:1/-1;font-size:13px;color:var(--fur);margin-top:4px}.sk-tier b{letter-spacing:1px;color:var(--honey)}.sk-tier i{font-style:normal;color:var(--dim)}
 .aim-note{margin:0;font-size:13px;color:var(--fur)}.aim-note b{color:var(--honey)}

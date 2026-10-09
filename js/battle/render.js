@@ -31,7 +31,7 @@ function boardMarkState(){
   else if(myTurn && b.mode){
     const sk = unitSkills(u).find(s=>s.key===b.mode.key);
     if(!sk || !sk.impl){ b.mode=null; return boardMarkState(); }
-    range = sk.impl.range ? sk.impl.range(u) : 1;
+    range = sk.impl.range ? skillRange(u, sk) : 1;
     // 點地板的招（範圍、錐形）：整個射程淡紅，點哪都行；點人的招：只有打得到的敵人亮紅
     const pickFloor = ["area","cone"].includes(sk.impl.target);
     for(let x=0;x<d.w;x++) for(let y=0;y<d.h;y++) if(validTarget(u,sk,x,y)) (pickFloor ? areaSet : tgtSet).add(`${x},${y}`);
@@ -1078,7 +1078,8 @@ function aimHTML(u, b){
   const ts = canUp(sk) ? tiersFor(u, sk) : [], tier = ts.includes(b.tier) ? b.tier : ts[0];
   const up = upOf(u, sk, tier), self = sk.impl.target==="self";
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
-  if(ts.length < 2 && !up && !darts && !self) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
+  const metas = metaOptions(u, sk);
+  if(ts.length < 2 && !up && !darts && !self && !metas.length) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
   // 選階（大爺 2026-10-01）：平常只顯示選中的那一階＋「＋」；點「＋」往上展開其他階（高階在上），「＋」變「×」；選好就收起來
   if(ts.length > 1 || up){
@@ -1089,6 +1090,9 @@ function aimHTML(u, b){
     const toggle = ts.length > 1 ? `<button class="mn-b aim-tgl" data-aim="toggle" aria-label="${b.tierOpen?"收起":"展開"}其他階">${b.tierOpen?"×":"＋"}</button>` : "";
     rows.push(`${b.tierOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(tier)}${toggle}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
   }
+  // 超魔（大爺 10-09）：一次只能選一種，再點一次取消；免費動作不夠的灰掉。文字、外觀暫定（香香）
+  if(metas.length) rows.push(`<div class="aim-meta"><small>超魔（+1 免費動作）</small>${metas.map(m=>{ const on = b.mode.meta===m, ok = on || metaAffordable(u, sk, m);
+    return `<button class="mn-b aim-m ${on?"on":""}" data-aim="m:${m}" ${ok?"":"disabled"}><span>${META_NAME[m]}</span></button>`; }).join("")}</div>`);
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
   if(self) rows.push(`<button class="mn-b ok" data-aim="cast"><span>施放</span></button>`);
@@ -1488,7 +1492,7 @@ function bindBattle(){
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-sltoggle]").forEach(el=>battleListen(el,"click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
-    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
+    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a.startsWith("m:")) aimMeta(a.slice(2)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
   document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
   document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));

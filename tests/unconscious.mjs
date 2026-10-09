@@ -1,5 +1,5 @@
 // 昏迷（大爺 10-09，取代 10-02 的死亡豁免）＋重新挑戰／回酒館（卡姆傳送詛咒只在玩家選回酒館時出現）
-import {chromium} from 'playwright';
+import {chromium} from 'playwright';import {noLuck} from './boot.mjs';   // 10-09 好運：敵人回合小傢伙豁免失敗會停下來問，等輪到我方的測試先把好運用光
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg); await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{ window.__nt=nextTurn; nextTurn=()=>{}; B().tut=-1; });
 
  // 昏迷（大爺 10-09，取代死亡豁免）：歸零就昏迷、不擲骰、輪不到；協助或治療才醒；戰後自動醒 1 血；四隻都昏迷＝輸
@@ -58,7 +58,7 @@ try{
  await pg2.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg2.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg2.evaluate(()=>startBattle("ambush"));
- await pg2.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg2); await pg2.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const t=await pg2.evaluate(async()=>{ const b=B(); b.tut=-1;
    b.units.filter(v=>v.side==='pc').forEach(p=>{ p.hp=0; p.down=true; p.statuses=[]; });
    endTurn();
@@ -72,7 +72,7 @@ try{
  await pg3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg3.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg3.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg3); await pg3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const lose=()=>pg3.evaluate(()=>{ const b=B(); b.tut=-1; b.units.filter(v=>v.side==='pc').forEach(p=>{ p.hp=0; p.down=true; }); checkResult(); refreshBattle(); });
  const rt=await pg3.evaluate(()=>{ const out={};
    out.inv0=JSON.stringify(state.inv); out.prof0=JSON.stringify(state.proficiency);

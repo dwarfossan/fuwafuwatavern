@@ -1,5 +1,5 @@
 // 商隊戰後（10-03）：打贏伏擊 → 繼續 → 商人道謝 → 停在選項（不能跳過）→ 選一隻擲她擅長的屬性 → 報酬只發一次 → 繼續上路走到城鎮
-import {chromium} from 'playwright';
+import {chromium} from 'playwright';import {noLuck} from './boot.mjs';   // 10-09 好運：敵人回合小傢伙豁免失敗會停下來問，等輪到我方的測試先把好運用光
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ try{
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.waitForFunction(()=>!document.body.classList.contains('image-boot'));
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
- await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!B().busy,null,{timeout:60000});
+ await noLuck(pg); await pg.waitForFunction(()=>cur()&&cur().side==='pc'&&!B().busy,null,{timeout:60000});
  await pg.evaluate(()=>{B().units.filter(v=>v.side==='foe').forEach(v=>{v.dead=true;v.hp=0;});checkResult();});
  await pg.locator('#afterWin').click();
  assert.equal(await pg.evaluate(()=>state.page+':'+state.scene+':'+(state.battle===null)),'story:caravan:true');

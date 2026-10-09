@@ -1,5 +1,5 @@
 // 手機畫面回歸：封面、說明／角色泡泡；後續介面驗收也放這裡。
-import {chromium} from 'playwright';
+import {chromium} from 'playwright';import {noLuck} from './boot.mjs';   // 10-09 好運：敵人回合小傢伙豁免失敗會停下來問，等輪到我方的測試先把好運用光
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -105,7 +105,7 @@ try{
     await p3.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await p3.locator('#board-floor').waitFor();
  await p3.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
-    await p3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
+    await noLuck(p3); await p3.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
     await p3.evaluate(()=>{ endTurn=()=>{}; nextTurn=()=>{}; B().tut=-1; });
     for(const n of [3,4]){
       const top=await p3.evaluate(async n=>{ const b=B(), u=b.units.find(v=>v.id==='wolf'); b.panelHidden=false;
