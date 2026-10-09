@@ -14,7 +14,8 @@ try{
   await page.waitForTimeout(300);
   await page.locator('.cover:not(.cover-loading)').waitFor();
   assert(faceRequests.length>0,'首面須集中預載全表情圖');
-  assert(await page.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.has(src))),'全部圖片完成才進首頁');
+  assert(await page.evaluate(()=>COVER_IMAGES().every(src=>entryDecodedImages.has(src))),'封面這段圖片完成才開放');
+  await page.waitForFunction(()=>allImagesReady(),null,{timeout:60000});// 10-09 分段讀取：其餘在背景讀完
 
   await page.goto(file+'?perf=town#town',{waitUntil:'load'});
   await page.waitForTimeout(300);

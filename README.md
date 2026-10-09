@@ -136,7 +136,7 @@ node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；�
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。
-新測試開網頁後先 `await bootReady(page)`（`tests/boot.mjs`）：10-06 起開機先讀完全部圖片才進遊戲，沒等就讀 `state`／`B()` 會拿到 undefined。
+新測試開網頁後先 `await bootReady(page)`（`tests/boot.mjs`）：快速入口（`#battle`／`#town`／`#ambush`）開機先讀完全部圖片才進遊戲（封面則只等 8 張，其餘背景讀，10-09），沒等就讀 `state`／`B()` 會拿到 undefined。
 測試只能證明「沒壞」，不代表新功能正常：新功能要另外在瀏覽器實際操作、截圖確認，並把能自動檢查的部分補進測試。
 改了 `data/skills.js` 要跑 `node tools/skills_doc.mjs` 重新產生技能表。
 

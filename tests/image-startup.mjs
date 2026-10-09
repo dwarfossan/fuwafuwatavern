@@ -14,13 +14,19 @@ try{
  assert.equal(await p.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(0, 0, 0)');
  // Ignore rocking transform while measuring the reserved box coordinates.
  await p.addStyleTag({content:'.cover-party img{animation:none!important}'});const before=await p.locator('.cover-party').boundingBox();await p.screenshot({path:'/tmp/startup-black-heads.png'});
- await p.locator('#retryImages:not([hidden])').waitFor();assert(await p.locator('#start').isDisabled());assert.match(await p.locator('.image-startup label').textContent(),/失敗/);
- const total=await p.evaluate(()=>gameImageSources().length);assert.equal(await p.locator('progress').evaluate(e=>e.value),total-1,'失敗圖片不可計為完成');
- const count=requests.length;fail=false;await p.locator('#retryImages').tap();await p.locator('.cover:not(.cover-loading)').waitFor();assert(await p.locator('#start').isEnabled());assert.equal(await p.locator('.image-startup').count(),0);assert.deepEqual(await p.locator('.cover-party').boundingBox(),before,'頭像原位揭示首頁');
- assert.equal(requests.length-count,1,'只重新下載失敗圖');assert(await p.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.get(src)?.complete&&entryDecodedImages.get(src)?.naturalWidth)));
+ // 10-09 分段讀取：封面只等四頭像＋四張正常臉，商人圖失敗也不擋封面
+ await p.locator('.cover:not(.cover-loading)').waitFor();assert(await p.locator('#start').isEnabled());assert.equal(await p.locator('.image-startup').count(),0);assert.deepEqual(await p.locator('.cover-party').boundingBox(),before,'頭像原位揭示首頁');
+ assert(await p.evaluate(()=>COVER_IMAGES().every(src=>entryDecodedImages.get(src)?.naturalWidth)));const coverCount=await p.evaluate(()=>COVER_IMAGES().length);
  await p.waitForTimeout(550);await p.screenshot({path:'/tmp/startup-home-ready.png'});
+ // 背景讀完（商人圖失敗）後，擲完屬性按下一步：補等畫面顯示失敗與重試
+ const total=await p.evaluate(()=>gameImageSources().length);
+ await p.locator('#start').tap();await p.locator('#next').waitFor();for(let i=0;i<4;i++){await p.locator(`[data-tab="${i}"]`).tap();await p.locator('#rollAll').tap();await p.locator('#autoAssign').tap();}
+ await p.waitForFunction(t=>entryDecodedImages.size>=t-1&&entryImageFailures.size>0,total,{timeout:60000});
+ await p.locator('#next').tap();await p.locator('#retryImages:not([hidden])').waitFor();assert.match(await p.locator('.image-startup label').textContent(),/失敗/);assert.equal(await p.locator('progress').evaluate(e=>e.value),total-1,'失敗圖片不可計為完成');assert.equal(await p.locator('#stage').count(),0,'沒讀完不進劇情');
+ await p.screenshot({path:'/tmp/startup-gate-fail.png'});
+ const count=requests.length;fail=false;await p.locator('#retryImages').tap();await p.locator('#stage').waitFor();
+ assert.equal(requests.length-count,1,'只重新下載失敗圖');assert(await p.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.get(src)?.complete&&entryDecodedImages.get(src)?.naturalWidth)));
  const after=requests.length;
- await p.locator('#start').tap();await p.locator('#next').waitFor();for(let i=0;i<4;i++){await p.locator(`[data-tab="${i}"]`).tap();await p.locator('#rollAll').tap();await p.locator('#autoAssign').tap();}await p.locator('#next').tap();await p.locator('#stage').waitFor();
  for(const scene of ['prologue','farewell','ambush','caravan','townArrival','townSupplier']){
   await p.evaluate(async scene=>{state.page='story';state.scene=scene;state.line=0;render();for(let i=0;i<SCENES[scene].script.length;i++){state.line=i;await prepareStoryImages();render();}},scene);
  }
@@ -29,5 +35,5 @@ try{
  await p.waitForTimeout(250);assert.equal(requests.length,after,'預載完成後劇情全句／四店／送貨不可再下載圖片');assert.deepEqual(errors,[]);
  await p.close();
  for(const hash of ['#town','#ambush','#battle?phase=explore']){const q=await browser.newPage({viewport:{width:390,height:844}});await q.goto(url+hash);await q.locator(hash==='#town'?'[data-town-place]':hash==='#ambush'?'#stage':'#board-floor').first().waitFor();assert(await q.evaluate(()=>gameImageSources().every(src=>entryDecodedImages.has(src))));await q.close();}
- console.log(`PASS：黑底四頭原位讀取、${total}圖片全數解碼才開放、失敗僅重試缺圖、六劇情全句／四店零追加下載、三個快速入口一致`);
+ console.log(`PASS：黑底四頭原位讀取、封面只等 ${coverCount} 張、其餘背景讀、進劇情前補等（${total} 張）、失敗僅重試缺圖、六劇情全句／四店零追加下載、三個快速入口一致`);
 }finally{await browser.close();await new Promise(r=>server.close(r));}

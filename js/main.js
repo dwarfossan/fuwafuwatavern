@@ -195,7 +195,7 @@ function bind(){
   });
   $("back")?.addEventListener("click", ()=>{state.page="cover";render()});
   $("back2")?.addEventListener("click", ()=>{state.page="roll";render()});
-  $("next")?.addEventListener("click", ()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)});
+  $("next")?.addEventListener("click", ()=>imageGate(()=>{state.page="story";state.scene="prologue";state.line=0;state.info=null;render();window.scrollTo(0,0)}));
   const stage = $("stage");
   if(state.page==="story" && stage) showSpot(!!SCENES[state.scene].script[state.line].shake);   // 整頁重畫時補上被動感知
   const adv = async()=>{ if(state.page!=="story"||!stage)return; const sceneId=state.scene, lineNo=state.line, sc = SCENES[sceneId].script, ln = sc[lineNo];
@@ -405,21 +405,43 @@ function gameImageSources(){
 }
 // 開機同時下載幾張圖（10-08 大爺同意 4→12）：GitHub Pages 是 HTTP/2，本機模擬來回 0.2 秒時開機 4.9→2.3 秒；再加到 16 幾乎沒差
 const BOOT_IMAGE_WORKERS=12;
+// 分段讀取（大爺 10-09）：封面只等四頭像＋擲屬性頁的四張正常臉，按開始後其餘圖片在背景讀；
+// 擲完屬性進劇情前（imageGate）若還沒讀完才補等。#battle／#town／#ambush 快速入口照舊全部讀完才進。
+const COVER_IMAGES=()=>[...HOME_HEADS,...CRITTERS.map(c=>critterFaceSrc(c.id,'normal'))];
+let backgroundImages=null;
+function loadImageList(list,retry,onEach){let cursor=0;return Promise.all(Array.from({length:BOOT_IMAGE_WORKERS},async()=>{while(cursor<list.length){const src=list[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});onEach?.();}}));}
+function loadRestImages(retry=false){
+ if(!backgroundImages||retry)backgroundImages=loadImageList(gameImageSources().filter(src=>!entryDecodedImages.has(src)),retry);
+ return backgroundImages;
+}
+function allImagesReady(){return gameImageSources().every(src=>entryDecodedImages.has(src));}
+// 背景圖片還沒讀完：先換成讀取畫面（同封面），讀完再做 next；失敗給重試
+async function imageGate(next){
+ if(allImagesReady())return next();
+ const app=document.getElementById('app');app.innerHTML=renderCover(true);app.querySelector('#start')?.remove();app.querySelector('.cover-about')?.remove();adoptEntryImages();
+ const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages');
+ progress.max=sources.length;
+ const update=()=>{const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';};
+ const timer=setInterval(update,100);
+ const run=async retry=>{retryButton.hidden=true;label.firstChild.textContent='讀取中 ';update();await loadRestImages(retry);update();
+  if(!allImagesReady()){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;saveEntryImageReport();return;}
+  clearInterval(timer);next();};
+ retryButton.addEventListener('click',()=>run(true));await run(false);
+}
 async function prepareEntry(){
  const app=document.getElementById('app');app.innerHTML=renderCover(true);
- const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages'),reportButton=app.querySelector('#imageLoadReport');
+ const quick=!!location.hash,sources=quick?gameImageSources():COVER_IMAGES(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages'),reportButton=app.querySelector('#imageLoadReport');
  progress.max=sources.length;
  function update(){const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';}
  async function run(retry=false){
   retryButton.hidden=true;reportButton.hidden=true;label.firstChild.textContent='讀取中 ';update();
-  // 頭像先解碼並沿用其節點，再以 BOOT_IMAGE_WORKERS（12）個並行工作逐張準備其餘圖片。
+  // 頭像先解碼並沿用其節點，再以 BOOT_IMAGE_WORKERS（12）個並行工作逐張準備這一段的其餘圖片。
   await Promise.allSettled(HOME_HEADS.map(src=>loadEntryImage(src,retry,30000).then(()=>{adoptEntryImages();update();})));
-  const pending=sources.filter(src=>!entryDecodedImages.has(src)&&!HOME_HEADS.includes(src));let cursor=0;
-  await Promise.all(Array.from({length:BOOT_IMAGE_WORKERS},async()=>{while(cursor<pending.length){const src=pending[cursor++];await loadEntryImage(src,retry,30000).catch(()=>{});update();}}));
+  await loadImageList(sources.filter(src=>!entryDecodedImages.has(src)),retry,update);
   if(sources.some(src=>!entryDecodedImages.has(src))){label.firstChild.textContent='部分圖片讀取失敗，請重試 ';retryButton.hidden=false;reportButton.hidden=false;saveEntryImageReport();return;}
   saveEntryImageReport();document.body.classList.remove('image-boot');
-  const backdrop=document.getElementById('bootBackdrop');if(!location.hash){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
-  if(!location.hash){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();bindModal();}
+  const backdrop=document.getElementById('bootBackdrop');if(!quick){backdrop?.classList.add('ready');setTimeout(()=>backdrop?.remove(),550);}else backdrop?.remove();
+  if(!quick){app.querySelector('.cover').classList.remove('cover-loading');app.querySelector('.image-startup').remove();app.querySelector('#start').disabled=false;bind();bindModal();loadRestImages();}
   else startEntry();
  }
  retryButton.addEventListener('click',()=>run(true));reportButton.addEventListener('click',downloadEntryImageReport);
