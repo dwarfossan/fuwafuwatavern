@@ -18,15 +18,28 @@ function learnedSkillByKey(key){
 // 所有筆記配置入口共用同一限制；activeSkills 保留舊欄位以相容快照。
 const CARRIED_SKILL_MAX=5,ACTIVE_SKILL_MAX=3;
 const isPassiveSkill = s => s?.def?.activation==='passive'||s?.impl?.passive===true;
+// 風格：同類能帶幾個＝STYLE_GROUPS 的 max ＋ 角色身上的加成（u.styleBonus，之後裝備等用）。敵我同一套。
+const skillStyle = s => s?.def?.style && STYLE_GROUPS[s.def.style] ? s.def.style : null;
+const styleCap = (u,g) => (STYLE_GROUPS[g]?.max||1) + ((u.styleBonus||{})[g]||0);
+const skillLabel = def => def?.style && STYLE_GROUPS[def.style] ? `${STYLE_GROUPS[def.style].name}：${def.name}` : def?.name;
 function carriedSkillKeys(u){
- const keys=[],known=new Set((u.learned||[]).map(n=>n.key));let active=0;
- for(const k of u.activeSkills||[]){if(keys.includes(k)||!known.has(k))continue;const s=learnedSkillByKey(k);if(!isPassiveSkill(s)&&active>=ACTIVE_SKILL_MAX)continue;if(keys.length>=CARRIED_SKILL_MAX)break;keys.push(k);if(!isPassiveSkill(s))active++;}
+ const keys=[],known=new Set((u.learned||[]).map(n=>n.key)),styles={};let active=0;
+ for(const k of u.activeSkills||[]){if(keys.includes(k)||!known.has(k))continue;const s=learnedSkillByKey(k),g=skillStyle(s);if(!isPassiveSkill(s)&&active>=ACTIVE_SKILL_MAX)continue;if(g&&(styles[g]||0)>=styleCap(u,g))continue;if(keys.length>=CARRIED_SKILL_MAX)break;keys.push(k);if(!isPassiveSkill(s))active++;if(g)styles[g]=(styles[g]||0)+1;}
  return keys;
+}
+// 勾選被擋的原因（介面顯示用）；可以勾回傳空字串。
+function carryBlockReason(u,key){
+ const keys=carriedSkillKeys(u);if(keys.includes(key))return "";
+ const s=learnedSkillByKey(key),g=skillStyle(s);
+ if(keys.length>=CARRIED_SKILL_MAX)return `最多帶 ${CARRIED_SKILL_MAX} 個技能`;
+ if(!isPassiveSkill(s)&&keys.filter(k=>!isPassiveSkill(learnedSkillByKey(k))).length>=ACTIVE_SKILL_MAX)return `主動技能最多 ${ACTIVE_SKILL_MAX} 個`;
+ if(g&&keys.filter(k=>skillStyle(learnedSkillByKey(k))===g).length>=styleCap(u,g))return `${STYLE_GROUPS[g].name}只能帶 ${styleCap(u,g)} 個`;
+ return "";
 }
 function toggleCarriedSkill(u,key){
  if(!(u.learned||[]).some(n=>n.key===key))return false;
  const keys=carriedSkillKeys(u),i=keys.indexOf(key);
- if(i>=0)keys.splice(i,1);else {if(keys.length>=CARRIED_SKILL_MAX||(!isPassiveSkill(learnedSkillByKey(key))&&keys.filter(k=>!isPassiveSkill(learnedSkillByKey(k))).length>=ACTIVE_SKILL_MAX))return false;keys.push(key);}
+ if(i>=0)keys.splice(i,1);else {if(carryBlockReason(u,key))return false;keys.push(key);}
  u.activeSkills=keys;return true;
 }
 function passiveSkills(u){return carriedSkillKeys(u).map(learnedSkillByKey).filter(isPassiveSkill);}

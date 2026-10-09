@@ -23,12 +23,19 @@
    能力 stat："力量"、"敏捷"、"靈巧"（力量或敏捷取高）、"智力"、"感知"
    標 SRD 的法術取自 SRD 5.2（CC-BY-4.0），其餘為本作原創 */
 
+// 風格（大爺 10-09）：被動分三類，同類能帶的數量有上限（預設 1，之後裝備等可加，見 styleCap）；不同類可以混搭，不是職業。
+// 招式資料寫 style:"warrior" 就屬於那一類，名稱顯示成「戰士風格：反擊」。
+const STYLE_GROUPS = {
+  warrior:{name:"戰士風格", max:1},
+  rogue:{name:"俠盜風格", max:1},
+  mage:{name:"法師風格", max:1}
+};
 const SKILL_GROUPS = [
   {id:"sword", name:"劍類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["短劍","長劍","刺劍","彎刀"],
    skills:[
     {name:"斬擊", kind:"近戰",     tier:0,   text:"造成武器傷害，觸發武器專精。"},
-    {id:"counterattack", name:"反擊", activation:"passive", kind:"被動", dmg:"物理", req:"weaponOrUnarmed", tier:0, statText:"依攻擊方式", text:"敵人的攻擊未命中你時，立刻攻擊一次。"},
+    {id:"counterattack", name:"反擊", style:"warrior", activation:"passive", kind:"被動", dmg:"物理", req:"weaponOrUnarmed", tier:0, statText:"依攻擊方式", text:"敵人的攻擊未命中你時，立刻攻擊一次。"},
     {id:"double_strike", name:"連擊", kind:"近戰", req:"repeatAttack", tier:1,   text:"攻擊兩次，第二下不加屬性；仍遵守武器本身的攻擊次數限制。"}]},
 
   {id:"heavy", name:"雙手重武器", stat:"力量",

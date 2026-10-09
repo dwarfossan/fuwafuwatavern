@@ -1472,8 +1472,8 @@ function bindBattle(){
   document.querySelectorAll("[data-notepage]").forEach(el=>battleListen(el,"click", ()=>{ const [id,p]=el.dataset.notepage.split(":"); const b=B(); b.notePages=b.notePages||{}; b.notePages[id]=Math.max(1,+p||1); sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{
     const b=B(),u=b&&b.units.find(x=>x.id===b.info); if(!u)return;
-    if(!toggleCarriedSkill(u,el.dataset.noteskill)){sfx("bad");return;}
-    sfx("pop"); refreshBattle();
+    if(!toggleCarriedSkill(u,el.dataset.noteskill)){b.noteBlock={id:u.id,text:carryBlockReason(u,el.dataset.noteskill)};sfx("bad");refreshBattle();return;}
+    b.noteBlock=null; sfx("pop"); refreshBattle();
   }));
   document.querySelectorAll("[data-teach]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.teach.split(":"); const u=B().units.find(x=>x.id===id); if(u){learnFromLingling(u,key);refreshBattle();} }));
   document.querySelectorAll("[data-erase]").forEach(el=>battleListen(el,"click",()=>{ const [id,key]=el.dataset.erase.split(":"); const u=B().units.find(x=>x.id===id); if(u&&eraseNote(u,key)){syncLearnedState();refreshBattle();} }));

@@ -92,7 +92,7 @@ function skillCardHTML(groupId, idx, item, unit){
   if(idx===0 && item && item.type==="weapon"){ const m=item.mastery.split(" ")[0]; sections.push([`專精：${m}`, MASTERY_TEXT[m]||""]); }
   if(s.tier) sections.push(["升階", s.noUp ? "不能升階" : s.up || "每高一階，命中時多 1 顆武器骰。"]);
   return `<div class="sk-card">
-    <div class="sk-head">${skillIcon(groupId,s,im,30,false)}<h3>${s.name}</h3>${tag?`<span class="sk-tag">${tag}</span>`:""}</div>
+    <div class="sk-head">${skillIcon(groupId,s,im,30,false)}<h3>${skillLabel(s)}</h3>${tag?`<span class="sk-tag">${tag}</span>`:""}</div>
     <p class="sk-meta">${meta1.map(rulesHTML).join("・")}</p>
     <p class="sk-meta">${meta2.map(rulesHTML).join("・")}</p>
     <p class="md-effect sk-body">${rulesHTML(s.text)}</p>
