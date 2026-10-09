@@ -919,7 +919,7 @@ function statusExplain(v,s){
 }
 const TUTORIAL = [
   "輪到我方時，右下角的指令列就是這隻的指令。拖曳可以移動畫面，滾輪或兩指可以縮放。",
-  "「走位」裡有移動、衝刺、撤離、潛行，選移動之後藍色格子是能走到的地方；「招式」裡有攻擊、技能、閃避、協助。點任何角色可以看他的狀態。",
+  "「走位」裡有移動、衝刺、撤離、潛行，選移動之後藍色格子是能走到的地方；「行動」裡有攻擊、技能、閃避、協助。點任何角色可以看他的狀態。",
   "攻擊會擲 d20 ＋ 加值，大於等於敵人的 AC 就命中。戰場角落的紀錄條會寫結果，點一下可以看完整的擲骰過程。",
   "每回合一次「主要動作」。離開敵人身邊會被藉機攻擊（每隻敵人每輪一次），先「撤離」就不會。做完選「待機」結束回合。"
 ];
@@ -995,7 +995,7 @@ function menuHTML(u, b, level=null){
   if(lv==="root"){
     const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
     const hasItems = u.items.length || u.spare.length || powderCount(u);
-    body = mbtn("act","招式", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
+    body = mbtn("act","行動", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
            mbtn("move","走位", !canWalk() && !act) +
            mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "主要、免費動作都用完了" : freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("status","狀態", false, u.name) +
@@ -1007,7 +1007,7 @@ function menuHTML(u, b, level=null){
            mbtn("disengage","撤離", !act, "用掉主要動作，不被藉機攻擊") +
            mbtn("hide","潛行", !act || !!hb, hb || `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
   } else if(lv==="act"){
-    title = "招式";
+    title = "行動";
     const atks = attackSkills(u);
     const foesNear = adjFoes(u).length;
     body = (grappled(u) ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
