@@ -52,6 +52,7 @@ node tests/round-shield.mjs # 普通盾牌無附帶技能、圓木盾購買與�
 node tests/weapon-art-shared.mjs # 37普通武器一物一圖、魔法base、共用各介面／手持／掉落／投擲
 node tests/orc-art.mjs       # 歐克外觀、現有裝備／護甲、共用動作與390×844測試截圖
 node tests/forest-monster-art.mjs # 野豬、森林狼、食人草外觀／基本動作、共用戰場與狀態卡
+node tests/new-monster-looks.mjs # 10-09 五種新外觀（獸人薩滿／英雄／酋長、哥布林英雄／酋長）與成年龍倒下趴姿
 node tests/dragon-captain-art.mjs # 獨眼隊長、小龍、吐息到達時序／地面接續與手機截圖
 DRAGON_LOOK=dragon_adult MONSTER_SHOTS=/tmp/adult-review node tests/dragon-captain-art.mjs # 同一套驗成年龍、成年／幼龍對照
 node tests/equipment-shared.mjs # 裝備唯一讀寫、切組、卸裝／收納與跨場景保存

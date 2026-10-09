@@ -1338,3 +1338,4 @@ body.image-boot{background:#000}
 .bt-react{left:50%;top:50%;transform:translate(-50%,-50%);width:min(330px,88%);padding:16px;text-align:center;border-top-color:var(--bad)}
 .bt-react h3{margin:0 0 4px;font-size:17px}
 .bt-react p{margin:0}
+.doll.dragon-down-pose .dragon-prone{opacity:.55}
