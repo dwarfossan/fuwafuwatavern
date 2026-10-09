@@ -833,7 +833,10 @@ function doSkillNow(u, sk, t){
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
+  const cantrip = isSpellSkill(sk) && !(sk.def.tier>0), emBonus = u.mods[spellStat(u)]||0;
+  b.empower = cantrip && emBonus>0 && passiveSkills(u).some(s=>s.key==="empowered_cantrip") ? {by:u.id, bonus:emBonus, hit:new Set()} : null;
   sk.impl.run(u, t);
+  b.empower = null;
   if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
   b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();

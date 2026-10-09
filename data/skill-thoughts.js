@@ -58,4 +58,7 @@ SKILL_THOUGHT_ROWS.push(['武器精通','每把武器都有自己的脾氣，摸
 // 10-09 香香草稿（瞄準、狡詐）
 SKILL_THOUGHT_ROWS.push(['瞄準','站定了，風向和呼吸都算進去。','不動很難耶……但打中就值得！','……腳不動，眼睛先走。','他以為我在發呆，其實我在算。','香香']);
 SKILL_THOUGHT_ROWS.push(['狡詐','手腳俐落的話，走位就不用占掉出手。','跑來跑去還能打，太賺了！','……換位置的時候，別讓人看出來要去哪。','溜走、躲起來、再冒出來，都是同一口氣的事。','香香']);
+// 10-09 香香草稿（強化、博學）
+SKILL_THOUGHT_ROWS.push(['強化','小法術也值得好好念，念準了就更痛。','小火花也能變大火花！','……戲法不是隨便丟的。','省下大法術，小的多加一點就夠用。','香香']);
+SKILL_THOUGHT_ROWS.push(['博學','書沒有白讀的，總有一天會認出來。','玲玲說的我都記不住……妳記就好！','……知道得多，就少走一點冤枉路。','認得出那是什麼，才知道值多少錢。','香香']);
 const SKILL_THOUGHTS=Object.fromEntries(SKILL_THOUGHT_ROWS.map(([name,a,b,c,d,draft])=>[name,{draft:draft||'GPT',lines:Object.fromEntries(['fox','tiger','wolf','raccoon'].map((id,i)=>[id,[a,b,c,d][i]]))}]));

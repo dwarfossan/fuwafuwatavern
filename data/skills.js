@@ -125,7 +125,7 @@ const SKILL_GROUPS = [
     {name:"打擊", kind:"近戰", dmg:"物理",     tier:0,   text:"造成 1d6 + 力量調整值物理傷害。"},
     {id:"magic_missile", name:"魔法飛彈",  kind:"遠程", tier:1,   srd:true, multi:true, up:"每高一階多 1 發。", text:"射出 3 發必中飛彈，每發 1d4+1 力場傷害；每發各自點一個目標，可以分給不同敵人。"},
     {id:"shield_spell", name:"護盾術",  kind:"輔助",   tier:1,   srd:true, free:true, noUp:true, reaction:true, text:"敵人攻擊命中你時，花一個保留的免費動作施放：AC +5（可能讓這次攻擊變成沒中），直到你下回合開始。"},
-    {id:"mage_armor", name:"法師護甲",  kind:"輔助", tier:1, srd:true, noUp:true, text:"沒穿護甲或只穿布甲時，整場戰鬥的基礎 AC 變成 13 + 敏捷調整值。"}]},
+    {id:"mage_armor", name:"法師護甲", style:"mage", activation:"passive", kind:"被動", dmg:"", tier:0, srd:true, text:"沒穿護甲或只穿布甲時，基礎 AC 變成 13 + 敏捷調整值（可以拿盾）。"}]},
 
   {id:"healing_book", name:"治癒法書", stat:"感知",
    weapons:["治癒法書"],
@@ -162,7 +162,7 @@ const SKILL_GROUPS = [
 const SPELL_COMPONENTS = {
   "寒冷射線":{v:true,s:true},"電擊術":{v:true,s:true},
   "魔法飛彈":{v:true,s:true},"護盾術":{v:true,s:true},
-  "法師護甲":{v:true,s:true,m:{name:"鞣製皮革"}},
+  
   "治癒真言":{v:true},"治療傷口":{v:true,s:true},
   "祝福術":{v:true,s:true,m:{name:"聖徽",cost:5*GP}},
   "火焰箭":{v:true,s:true},"聖火術":{v:true,s:true},
@@ -203,6 +203,8 @@ SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",ski
  {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"},
  {id:"aim",name:"瞄準",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"這回合還沒移動時可以宣告瞄準：放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。"},
  {id:"cunning_action",name:"狡詐",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"每回合一次，衝刺、撤離或潛行改用免費動作，不用主要動作。"},
+ {id:"empowered_cantrip",name:"強化",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"戲法造成傷害時，加上施法屬性調整值（每個目標一次）。"},
+ {id:"lore",name:"博學",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"智力檢定有優勢（不含攻擊骰）。被動智力檢定（例如聽懂異族語）+5。"},
  {id:"weapon_mastery",name:"武器精通",style:"warrior",activation:"passive",kind:"被動",dmg:"",tier:0,text:"用武器攻擊時觸發武器專精（削弱、緩速、擦傷……）。沒帶就不會觸發專精。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));

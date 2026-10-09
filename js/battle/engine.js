@@ -374,7 +374,7 @@ function expire(when, unitId){
 function acOfUnit(u){
   let ac;
   if(u.side!=="pc") ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
-  else if(has(u,"mageArmor") && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
+  else if((has(u,"mageArmor") || passiveSkills(u).some(s=>s.key==="mage_armor")) && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
   else ac = armorAC(u.armor, u.shield, u.mods.DEX);   // 身上現在穿的（戰鬥中可以換裝）
   // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
   ac -= u.statuses.filter(s=>s.k==="acDown" && (!s.shield || u.shield)).reduce((m,s)=>Math.max(m, 2 + (s.n||0)), 0);
@@ -588,6 +588,7 @@ function hurt(t, n, type, src, hitSfx){
   if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
+  { const em = B().empower; if(em && src && src.id===em.by && n>0 && !em.hit.has(t.id)){ em.hit.add(t.id); n += em.bonus; blog(`　強化：+${em.bonus}`, "skill"); } }   // 法師風格：強化（戲法傷害加施法屬性）
   if(t.halveFrom && src && src.id===t.halveFrom && n>0){ const h=Math.floor(n/2); blog(`　化險：${n} → ${h}`, "skill"); n=h; }   // 化險：這次敵方招式的傷害減半（招式結束清掉）
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）
     if(row){ row.dmg = (row.dmg||0) + Math.max(0, n); row.type = type; row.faces.push(...(b._pend||[])); }
@@ -743,7 +744,8 @@ function barkOn(ev, about, delay=0){
 function understoodBy(lang){
   if(!lang || lang==="通用語") return {all:true};
   const dc = LANGS[lang] || 15;
-  const best = alive("pc").map(p=>({p, v:10 + p.mods.INT})).sort((a,c)=>c.v-a.v)[0];
+  // 法師風格：博學（大爺 10-09 智力檢定優勢）：被動檢定的優勢照 D&D 算 +5
+  const best = alive("pc").map(p=>({p, v:10 + p.mods.INT + (passiveSkills(p).some(s=>s.key==="lore")?5:0)})).sort((a,c)=>c.v-a.v)[0];
   return best && best.v >= dc ? {who:best.p, v:best.v, dc} : {v:best ? best.v : 0, dc};
 }
 function say(u, text, delay=0, lang=null){

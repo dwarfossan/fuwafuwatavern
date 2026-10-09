@@ -6,13 +6,13 @@ const r=await p.evaluate(()=>{
  const all=SKILL_GROUPS.flatMap(g=>g.skills).every(s=>['active','passive'].includes(s.activation));
  const four=b.units.filter(u=>u.side==='pc').every(u=>u.learned.some(n=>n.key==='darkvision')&&darkvisionRange(u)===12);
  // 上限驗收明確提供三個已學主動，不依賴起始角色自帶三招。
- for(const key of ['magic_missile','mage_armor'])if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:learnedSkillByKey(key).def.name});
+ for(const key of ['magic_missile','healing_word'])if(!u.learned.some(n=>n.key===key))u.learned.push({key,name:learnedSkillByKey(key).def.name});
  const existing=u.learned.map(n=>({...n}));
  for(let i=0;i<4;i++){const key='fixture_passive_'+i,def={id:key,name:'測試被動'+i,activation:'passive',kind:'被動',tier:0,text:'僅測試'};const g=SKILL_GROUPS.find(g=>g.id==='natural');g.skills.push(def);SKILL_BY_ID[key]={g,idx:g.skills.length-1};u.learned.push({key,name:def.name});}
- u.learned.push({key:'burning_hands',name:'燃燒之手'});u.activeSkills=['magic_missile','shield_spell','mage_armor','darkvision'];const fourth=!toggleCarriedSkill(u,'burning_hands'),fifth=toggleCarriedSkill(u,'fixture_passive_0'),sixth=!toggleCarriedSkill(u,'fixture_passive_1');syncLearnedState();const saved=state.activeSkills.fox.length===5;
+ u.learned.push({key:'burning_hands',name:'燃燒之手'});u.activeSkills=['magic_missile','shield_spell','healing_word','darkvision'];const fourth=!toggleCarriedSkill(u,'burning_hands'),fifth=toggleCarriedSkill(u,'fixture_passive_0'),sixth=!toggleCarriedSkill(u,'fixture_passive_1');syncLearnedState();const saved=state.activeSkills.fox.length===5;
  u.activeSkills=['magic_missile'];for(let i=0;i<4;i++)toggleCarriedSkill(u,'fixture_passive_'+i);const oneFour=carriedSkillKeys(u).length===5&&activeLearnedSkills(u).length===1;u.activeSkills=['darkvision',...Array.from({length:4},(_,i)=>'fixture_passive_'+i)];const zeroFive=activeLearnedSkills(u).length===0&&unitSkills(u).some(s=>s.def.basicAttack||s.idx===0)&&!unitSkills(u).some(isPassiveSkill);
  u.activeSkills=['darkvision'];b.def.blocks=[];b.def.elev=[];delete b.def._h;u.x=0;u.y=0;const t={x:12,y:0};const edge=visionAt(u,t,'dark');t.x=13;const far=visionAt(u,t,'dark');t.x=12;b.def.blocks=[{x:6,y:0,kind:'tree'}];const tree=visionAt(u,t,'dark');b.def.blocks=[{x:6,y:0,kind:'door'}];const door=visionAt(u,t,'dark');b.def.blocks=[];toggleCarriedSkill(u,'darkvision');const off=visionAt(u,t,'dark'),selfOff=visionAt(u,u,'dark');
- u.learned=existing;u.activeSkills=['magic_missile','shield_spell','mage_armor','darkvision'];refreshBattle();return {all,four,fourth,fifth,sixth,saved,oneFour,zeroFive,edge,far,tree,door,off,selfOff};
+ u.learned=existing;u.activeSkills=['magic_missile','shield_spell','healing_word','darkvision'];refreshBattle();return {all,four,fourth,fifth,sixth,saved,oneFour,zeroFive,edge,far,tree,door,off,selfOff};
 });for(const k of ['all','four','fourth','fifth','sixth','saved','oneFour','zeroFive'])assert(r[k],k);assert.equal(r.edge,'gray');assert.equal(r.far,'blind');assert.equal(r.tree,'blocked');assert.equal(r.door,'blocked');assert.equal(r.off,'blind');assert.equal(r.selfOff,'blind');
 const counter=await p.evaluate(()=>{
  const b=B(),d=b.units.find(u=>u.id==='fox'),a=b.units.find(u=>u.side==='foe');a.dead=false;a.down=false;d.dead=false;d.down=false;d.surprised=false;

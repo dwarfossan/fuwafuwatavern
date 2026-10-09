@@ -26,13 +26,13 @@ try{
  const cast=await pg.evaluate(async()=>{
   const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;window.nextTurn=()=>{};b.turn=b.units.indexOf(u);b.busy=false;b.actionUsed=b.freeUsed=false;u.dead=u.down=false;u.statuses=[];u.shield=false;u.weapon=u.focus=null;u.backpack=[ITEMS.find(it=>it.n==='材料包')];u.slots=[2];refreshBattle();
   const floor=document.querySelector('#board-floor').firstElementChild,token=document.querySelector(`.token[data-moving-unit="${u.id}"]`);
-  doSkill(u,learnedSkillByKey('mage_armor'),u);
+  doSkill(u,learnedSkillByKey('fire_shield'),u);
   await new Promise(r=>setTimeout(r,150));
   const active=!!token.querySelector('.act-cast');
   state.modal={kind:'item',id:ITEMS.find(it=>it.type==='focus'&&groupOf(it)?.id==='arcane_staff').id};refreshBattle();state.modal=null;refreshBattle();
   const retained=document.querySelector(`.token[data-moving-unit="${u.id}"]`)===token&&!!token.querySelector('.act-cast');
   await new Promise(r=>setTimeout(r,1000));refreshBattle();
-  return {active,retained,ended:!token.querySelector('.act-cast'),floor:floor===document.querySelector('#board-floor').firstElementChild,status:!!has(u,'mageArmor')};
+  return {active,retained,ended:!token.querySelector('.act-cast'),floor:floor===document.querySelector('#board-floor').firstElementChild,status:!!has(u,'fireShield')};
  });
  for(const [k,v]of Object.entries(cast)){assert(v,'cast layers '+k);console.log('✓ cast layers '+k);}
  assert.deepEqual(errors,[]);console.log('✓ no browser errors');

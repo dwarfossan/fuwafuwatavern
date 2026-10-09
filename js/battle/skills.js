@@ -208,7 +208,7 @@ function dashSpot(u, t, max){
 
 const SKILL_IMPL = {
   natural:[{passive:true}],
-  style:[{passive:true},{passive:true},{passive:true},{passive:true}],   // 化險、瞄準、狡詐、武器精通
+  style:[{passive:true},{passive:true},{passive:true},{passive:true},{passive:true},{passive:true}],   // 化險、瞄準、狡詐、強化、博學、武器精通
   sword: [
     basicAttack,
     {passive:true},
@@ -304,7 +304,7 @@ const SKILL_IMPL = {
       ts.forEach((t,i)=>{ if(t.dead){ blog(`　第 ${i+1} 發：${t.name}已經倒下了，飛彈散掉。`,"miss"); return; }
         B().impact = launch(u, t, "cast", i*140); hurt(t, rollDice("1d4+1").total, "力場", u); }); }},
     {target:"self", run:u=>{ addStatus(u,"shieldSpell",{until:"start", of:u.id}); blog(`　${u.name}施放護盾術：AC +5 直到下回合`,"skill"); }},   // 護盾術（免費動作）
-    {target:"self", can:u=>!u.armor || u.armor.cloth, why:"穿著輕甲以上時不能用", run:u=>{ addStatus(u,"mageArmor",{until:"battle"}); blog(`　法師護甲：${u.name}的 AC 變成 ${acOfUnit(u)}`,"skill"); }}
+    {passive:true}   // 法師護甲（大爺 10-09 改成法師風格被動）：效果在 engine.js acOfUnit
   ],
   healing_book: [
     HEALING_WORD_IMPL,
