@@ -3,12 +3,14 @@ import {chromium} from 'playwright';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {noLuck} from './boot.mjs';
 const br=await chromium.launch();
 try{
  const pg=await br.newPage({viewport:{width:390,height:844}});
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
  await pg.waitForFunction(()=>typeof B==="function"&&B()&&!document.body.classList.contains("image-boot"));
+ await noLuck(pg);   // 10-09 好運：沒中會停下來問，這支測的是動畫
  await pg.evaluate(()=>startBattle("ambush")); // 固定規則驗收 fixture；#battle 的隨機場另測
  await pg.waitForFunction(()=>cur().side==='pc'&&!B().busy,null,{timeout:60000});
  const r=await pg.evaluate(async()=>{

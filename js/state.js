@@ -20,7 +20,7 @@ const state = {
   info:null,  // 正在查看的角色
   sysPop:null, // 共用系統工具：volume / menu
   starterGranted:false, startingGear:{},
-  gold:{}, inv:{}, learned:{}, activeSkills:{}, proficiency:{}, shortRestsUsed:0, shopActive:0, shopCat:"簡易近戰", quip:"挑吧挑吧！",
+  gold:{}, inv:{}, learned:{}, activeSkills:{}, proficiency:{}, shortRestsUsed:0, luckUsed:{}, shopActive:0, shopCat:"簡易近戰", quip:"挑吧挑吧！",
   equipmentItems:{}, equipmentSerial:0, // 背景配發盾牌的固定物品造型
   focusItems:{}, focusSerial:0, shopFocusStock:{}, // 每件法器固定使用屬性與商店現貨
   shopScroll:{}, shopBagOpen:false, // 商店分類各自保留商品捲動位置

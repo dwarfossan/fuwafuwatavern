@@ -3,16 +3,19 @@
    距離用切比雪夫距離（斜走也算 1 格） */
 
 // ---------- 骰子 ----------
+// 所有規則骰都走 diceRand：反應／好運「快照重跑」時只重播規則骰，台詞、骰子動畫等其他亂數不影響（10-09：以前整個 Math.random 重播，
+// 機器忙時台詞冷卻依時間多抽一次亂數，重跑就錯位，重擲拿到舊的骰）
+let diceRand = () => Math.random();
 function rollDice(expr){           // "2d6+3" → {total, rolls, mod}
   const m = String(expr).match(/^(\d+)d(\d+)([+-]\d+)?$/);
   if(!m) return {total:+expr||0, rolls:[], mod:+expr||0};
-  const rolls = Array.from({length:+m[1]}, ()=>1+Math.floor(Math.random()*+m[2]));
+  const rolls = Array.from({length:+m[1]}, ()=>1+Math.floor(diceRand()*+m[2]));
   const mod = +(m[3]||0);
   const b = typeof B==="function" && B();                        // 骰子面板：擲出來的骰先放著，誰受了傷害就算誰那一列的（hurt 裡分）
   if(b && b.panel && !b._noCap) (b._pend = b._pend || []).push(...rolls.map(v=>({sides:+m[2], v})));
   return {total: rolls.reduce((a,b)=>a+b,0)+mod, rolls, mod};
 }
-const d20 = () => 1+Math.floor(Math.random()*20);
+const d20 = () => 1+Math.floor(diceRand()*20);
 // 距離（D&D 方格，2026-10-01 加入高度）：水平兩軸加上高度差，取最大。一層＝5 呎＝一格
 //   所以近戰（觸及 1）只打得到高度差一層以內的人；差兩層手就搆不到
 const dist = (a,b) => Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y), Math.abs(hAt(a.x,a.y)-hAt(b.x,b.y)));
@@ -408,14 +411,15 @@ const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 // ---------- 攻擊與傷害 ----------
 function saveRoll(t, stat, dc, source=null){
   const frz = stat==="DEX" && !!has(t,"frozen");      // 凍結：敏捷豁免有劣勢
-  const r1 = d20(), r2 = frz ? d20() : null;
+  let r1 = d20(), r2 = frz ? d20() : null;
   let r = frz ? Math.min(r1, r2) : r1, bonus = (t.mods[stat]||0)+(stat==="DEX"&&source?coverAC(coverOf(source,t)):0), extra = 0;
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   if(has(t,"blessed")) extra = rollDice("1d4").total;
   const bane = baned(t) ? rollDice("1d4").total : 0;
   B()._noCap = false;
-  const total = r + bonus + extra - bane;
-  const ok = total >= dc;
+  let total = r + bonus + extra - bane;
+  let ok = total >= dc;
+  if(!ok && luckHook(t, "豁免", {r, total, dc, stat})){ r1 = d20(); r2 = frz ? d20() : null; r = frz ? Math.min(r1, r2) : r1; total = r + bonus + extra - bane; ok = total >= dc; }   // 好運
   panelRow("save", t, frz ? [r1, r2] : [r], r, total, ok ? "save" : "fail");   // 骰子面板：豁免一列
   blog(`　${t.name} ${ABILITIES.find(a=>a.k===stat).n}豁免：d20=${r}${frz?`（凍結劣勢 ${r1}/${r2}）`:""}${fmtN(bonus)}${extra?` +祝福${extra}`:""}${bane?` −災禍${bane}`:""} = ${total} ${ok?"≥":"<"} DC ${dc} → ${ok?"成功":"失敗"}`, ok?"":"hit", `${t.name}${ok?"擋住了":"豁免失敗"}`);
   return ok;
@@ -488,18 +492,20 @@ function attackRoll(a, t, o={}){
   // 束縛（網子、擒抱）：打他有優勢、他攻擊有劣勢
   if(has(t,"restrained")) adv++;
   if(has(a,"restrained")) adv--;
-  const r1 = d20(), r2 = d20();
-  const r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1;
+  let r1 = d20(), r2 = d20();
+  let r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1;
   const bonus = o.bonus||0;
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   const bless = has(a,"blessed") ? rollDice("1d4").total : 0;
   const bane = baned(a) ? rollDice("1d4").total : 0;
   B()._noCap = false;
-  const total = r + bonus + bless - bane;
+  let total = r + bonus + bless - bane;
   let ac = acOfUnit(t);
   const cov = coverOf(a, t), covAC = coverAC(cov);
   ac += covAC;
   let hit = r===20 || (r!==1 && total >= ac);
+  // 好運：小傢伙攻擊沒中 → 問要不要重擲（優劣勢照舊兩顆取一）
+  if(!hit && luckHook(a, "攻擊", {r, total, ac})){ r1 = d20(); r2 = d20(); r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1; total = r + bonus + bless - bane; hit = r===20 || (r!==1 && total >= ac); }
   // 反應（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時，暫停問玩家（見 reactionHook）
   const react = reactionHook(a, t, {r, total, ac});
   if(react==="shield"){ ac += 5; hit = r===20 || (r!==1 && total >= ac); }
@@ -531,6 +537,21 @@ function reactOptions(t){
   if(sh && !has(t,"shieldSpell") && tiersFor(t, sh).length && !componentProblem(t, sh)) out.push("shield");
   if(passiveSkills(t).some(s=>s.key===REACT_HALVE)) out.push("halve");
   return out;
+}
+// ---------- 好運（毛球族天生，大爺 10-09） ----------
+// 每次長休後 2 顆；小傢伙的攻擊、豁免 d20 失敗時問要不要花 1 顆重擲、用新結果；用完不再問。
+// 跟反應共用「快照重跑」：問的那刻丟出暫停，選完同一組骰子重跑到同一個地方。重跑中用掉的先記在 REACT_RUN.luck，
+// 整個招式跑完才寫進 state.luckUsed（不然暫停、重跑會重複扣）。只在招式裡問（doSkill）；藉機攻擊、潛行等招式外的擲骰還不問（暫定）。
+const LUCK_MAX = 2;
+const luckLeft = u => u && u.side==="pc" ? Math.max(0, LUCK_MAX - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
+function luckHook(u, kind, info){
+  if(!REACT_RUN || luckLeft(u)<=0) return false;
+  const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
+  if(ans===undefined) throw {reactPause:true, info:{luck:true, t:u.id, kind, left:luckLeft(u), ...info}};
+  if(ans!=="luck") return false;
+  REACT_RUN.luck[u.id] = (REACT_RUN.luck[u.id]||0) + 1;
+  blog(`　${u.name}用了一顆好運骰重擲！（剩 ${luckLeft(u)}）`, "skill", "好運！"); sfx("pop", B().impact||0);
+  return true;
 }
 function reactionHook(a, t, roll){
   if(!REACT_RUN || !a || a.side!=="foe" || !t || t.side!=="pc") return null;

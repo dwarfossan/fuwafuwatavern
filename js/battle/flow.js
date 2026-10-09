@@ -495,7 +495,7 @@ function takeRest(kind, selections={},b=B()){
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
     state.proficiency[u.id]=u.slots.slice();
   });
-  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
+  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
   setTimeout(()=>{if(copyId!==b.noteCopyId)return;if(b!==B() && !(state.page==="town" && b===state.townRest))return;b.noteCopy=null;if(b===B())refreshBattle();else render();},1800);
@@ -766,30 +766,37 @@ function skillAnimBase(u, sk, t){
 }
 // 敵方招式包一層：有小傢伙能反應時，命中那刻暫停問玩家，選完用同一組骰子重跑（大爺 10-09，見 engine.js 反應）
 function doSkill(u, sk, t){
-  if(u.side==="foe" && !REACT_RUN && B().units.some(v=>reactOptions(v).length)) return runFoeSkill({actor:u.id, sk:sk.key, t:serReactT(t), answers:[], rec:null, snap:null});
+  const ask = (u.side==="foe" && B().units.some(v=>reactOptions(v).length)) || B().units.some(v=>luckLeft(v)>0);   // 反應或好運可能要問
+  if(!REACT_RUN && ask){ REACT_SK = sk; return runFoeSkill({actor:u.id, sk:sk.key, t:serReactT(t), answers:[], rec:null, snap:null}); }
   return doSkillNow(u, sk, t);
 }
-const serReactT = t => Array.isArray(t) ? {arr:t.map(serReactT)} : t && t.id ? {id:t.id} : t ? {x:t.x, y:t.y} : null;
-const deserReactT = o => !o ? o : o.arr ? o.arr.map(deserReactT) : o.id ? B().units.find(v=>v.id===o.id) : {x:o.x, y:o.y};
+const serReactT = t => Array.isArray(t) ? {arr:t.map(serReactT)} : t && t.id ? {id:t.id, x:t.x, y:t.y, barrel:!!t.worldObject} : t ? {x:t.x, y:t.y} : null;
+// 火藥桶這種場景物件不在 units 裡：重跑時從地圖上同一格的物件重新做目標
+const deserReactT = o => { if(!o) return o; if(o.arr) return o.arr.map(deserReactT);
+  if(o.barrel){ const blk = B().def.blocks.find(v=>v.kind==="powderBarrel" && v.x===o.x && v.y===o.y); return blk ? barrelTarget(blk) : {x:o.x, y:o.y}; }
+  return o.id ? B().units.find(v=>v.id===o.id) : {x:o.x, y:o.y}; };
+// 重跑用的招式本體：有些招式不是從小筆記查得到的（副手攻擊、測試直接組的招），整個詢問期間留著原物件（同時只會有一個詢問）
+let REACT_SK = null;
 function runFoeSkill(p){
   const snap = p.snap || JSON.stringify(B());
-  const real = Math.random, queue = (p.rec||[]).slice(), rec = [];
-  Math.random = () => { const v = queue.length ? queue.shift() : real(); rec.push(v); return v; };
-  REACT_RUN = {answers:p.answers, n:0};
+  const queue = (p.rec||[]).slice(), rec = [];
+  diceRand = () => { const v = queue.length ? queue.shift() : Math.random(); rec.push(v); return v; };
+  REACT_RUN = {answers:p.answers, n:0, luck:{}};
   try{
-    const u = B().units.find(v=>v.id===p.actor), sk = unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk);
+    const u = B().units.find(v=>v.id===p.actor), sk = REACT_SK || unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk);
     doSkillNow(u, sk, deserReactT(p.t));
     B().units.forEach(v=>delete v.halveFrom);
+    state.luckUsed ||= {}; for(const [id,n] of Object.entries(REACT_RUN.luck)) state.luckUsed[id] = (state.luckUsed[id]||0) + n;   // 跑完才扣好運
     return true;
   }catch(e){
     if(!e || !e.reactPause) throw e;
-    Math.random = real; REACT_RUN = null;
+    diceRand = () => Math.random(); REACT_RUN = null;
     const epoch = (B().flowEpoch||0)+1, nb = JSON.parse(snap); delete nb.def._h; nb.flowEpoch = epoch;   // 舊計時器全部失效
     state.battle = nb; refreshBattle.keys = null;
     nb.reactPending = {...p, rec, snap, info:e.info}; nb.busy = true;
     sfx("pop"); refreshBattle();
     return false;
-  }finally{ Math.random = real; REACT_RUN = null; }
+  }finally{ diceRand = () => Math.random(); REACT_RUN = null; }
 }
 function answerReaction(choice){
   const b = B(), p = b && b.reactPending; if(!p) return;
@@ -797,7 +804,9 @@ function answerReaction(choice){
   state.battle = nb; refreshBattle.keys = null;
   const done = runFoeSkill({actor:p.actor, sk:p.sk, t:p.t, answers:[...p.answers, choice], rec:p.rec, snap:p.snap});
   if(!done) return;
-  const c = B(); c.busy = true; refreshBattle();
+  const c = B(), actor = c.units.find(v=>v.id===p.actor);
+  if(actor?.side==="pc"){ refreshBattle(); return; }   // 自己的招式（好運）：doSkillNow 已照常收尾，不結束回合
+  c.busy = true; refreshBattle();
   later(()=>{ c.busy = false; if(!checkResult()) endTurn(); }, settle(900));
 }
 // 戰士風格：連擊（大爺 10-09）：只有主要動作的普攻攻擊兩次，兩下都照常（不打折、各自觸發專精）；

@@ -1,8 +1,8 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
-import {bootReady} from './boot.mjs';
+import {bootReady,noLuck} from './boot.mjs';
 const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errs=[];pg.on('pageerror',e=>errs.push(e.message));
 try{
- await pg.goto('file://'+path.resolve('index.html')+'#battle');await bootReady(pg);await pg.waitForTimeout(300);
+ await pg.goto('file://'+path.resolve('index.html')+'#battle');await bootReady(pg);await noLuck(pg);await pg.waitForTimeout(300);
  await pg.evaluate(()=>{state.modal=null;startBattle('ambush',false,'explore');const b=B(),u=b.units.find(v=>v.id==='raccoon'),t=b.units.find(v=>v.side==='foe');b.phase='combat';b.explorationMap=false;b.flowEpoch++;b.turn=b.units.indexOf(u);b.def.blocks=[];b.tut=-1;u.weapon=ITEMS.find(i=>i.n==='長劍');u.offhand=ITEMS.find(i=>i.n==='匕首');u.shield=false;u.focus=null;u.mods.STR=1;u.mods.DEX=4;u.statuses=[];t.x=u.x+1;t.y=u.y;t.hp=t.maxHp=200;t.dead=t.down=false;beginTurn(u);b.busy=false;b.menu='act';centerCam(u.x,u.y,true);refreshBattle();});
  assert.equal(await pg.locator('[data-skill="offhand_attack"]').count(),1);assert(await pg.locator('.eco').allTextContents().then(a=>a.includes('免費 2/2')));
  await pg.waitForTimeout(400);await pg.screenshot({path:'/tmp/free-offhand-options.png'});

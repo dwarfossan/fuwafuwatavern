@@ -4,3 +4,7 @@
 export async function bootReady(page, timeout = 60000) {
   await page.waitForFunction(() => document.body && !document.body.classList.contains('image-boot'), null, { timeout });
 }
+// 10-09 好運：小傢伙攻擊／豁免失敗時會暫停問要不要重擲。測別的規則、要招式馬上跑完的測試先把好運用光。
+export async function noLuck(page) {
+  await page.evaluate(() => { state.luckUsed = {fox: 99, tiger: 99, wolf: 99, raccoon: 99}; });
+}
