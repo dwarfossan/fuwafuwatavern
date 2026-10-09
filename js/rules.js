@@ -137,7 +137,7 @@ function levelUp(id){
   units.forEach(u=>{
     const max=maxHpAt(to,u.mods.CON,u.id), delta=max-u.maxHp;
     u.slots=grow(u.slots||oldMax);u.level=to;u.xp=critterXP(id);
-    if(u.hp>0&&!u.dead&&!u.gone)u.hp=Math.min(max,u.hp+delta);
+    if(u.hp>0&&!u.dead)u.hp=Math.min(max,u.hp+delta);
     u.maxHp=max;u.levelUpAt=at;
   });
   sfx("level_up");

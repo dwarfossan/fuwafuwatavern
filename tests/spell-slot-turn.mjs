@@ -15,8 +15,9 @@ try{
   const before=turnLimitProblem(u,missile);
   doSkill(u,shield,u);
   const after=turnLimitProblem(u,missile),slotsAfter=slotsOf(u)[0];
-  const cantrip=unitSkills(u).find(s=>s.def.components&&!(s.def.tier>0));
-  const cantripOk=cantrip?turnLimitProblem(u,cantrip):'(無戲法)';
+  // 直接拿法杖戲法驗規則；玲玲智力是隨機擲的，不到 13 時身上沒有法杖戲法（10-09 修偶發）
+  const cantrip=learnedSkillByKey('arcane_staff_cantrip');
+  const cantripOk=cantrip&&cantrip.def.components&&!(cantrip.def.tier>0)?turnLimitProblem(u,cantrip):'(無戲法)';
   // 武器招式不受限：嬌嬌破甲
   tiger.slotSpellUsed=true;const sunder=learnedSkillByKey('sunder');const weaponOk=turnLimitProblem(tiger,sunder);tiger.slotSpellUsed=false;
   // 下一回合重置

@@ -930,7 +930,7 @@ const STRESS_MAX = 100;
 const stressOf = v => Math.max(0, Math.min(STRESS_MAX, v.stress||0));
 function infoBarsHTML(v, pct){
   const row=(k,label,w,col,num)=>`<span class="ib-l">${label}</span><span class="ib-bar ib-${k}"><i style="width:${Math.max(0,Math.min(100,w*100))}%;background:${col}"></i></span><span class="ib-n">${num}</span>`;
-  const gone = v.gone==="teleport" || v.dead;
+  const gone = v.dead;
   let h = row("hp","生命",gone?0:pct,pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)",`${Math.max(0,v.hp)}/${v.maxHp}`);
   if(v.side==="pc"){
     const lv=v.level||1, need=xpNeed(lv), xp=v.xp||0;
@@ -1242,7 +1242,8 @@ function restChoiceHTML(b){return restNotebookHTML(b);}
 function battleInterfaceHTML(){
   const b = B();
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
-  const u = cur();
+  // 探索中四隻都昏迷時 cur() 挑不到人（10-09 昏迷規則才會走到）：輸掉畫面只需要一個參照，用第一隻
+  const u = cur() || b.units.find(v=>v.side==="pc");
   const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${v.side==="pc"?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
 
@@ -1265,11 +1266,15 @@ function battleInterfaceHTML(){
   if(b.result){
     // 勝利：保留標題，戰利品按指定背包分配（大爺 10-06）。
     if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-content"><div class="bv-title">${POP_TEXT.victory}</div>${battleLootHTML()}</div></div>`;   // 打完有後續劇情（伏擊→商隊，10-03）
+    // 輸了（大爺 10-09）：四隻都昏迷；玩家自己選「回酒館」才出現卡姆的傳送詛咒。文字暫定（香香）。
+    else if(b.leaving) ov = `<div class="bt-ov bt-result ${b.result}">
+      <h3>卡姆的傳送詛咒</h3>
+      <p>四小隻身上的龍角印記亮了起來——卡姆的傳送詛咒發動，把昏迷的四隻送回了酒館。</p>
+      <button class="btn" id="confirmTavern">回到酒館</button></div>`;
     else ov = `<div class="bt-ov bt-result ${b.result}">
-      <h3>${b.result==="win"?"勝利！":"傳送回酒館……"}</h3>
-      <p>卡姆的傳送魔法把四小隻送回酒館了。</p>
+      <h3>四隻都昏迷了……</h3>
       ${state.retriesLeft > 0 ? `<button class="btn" id="retry">重新挑戰（剩 ${state.retriesLeft} 次）</button>` : `<p class="dim">重新挑戰用完了，長休之後才能再用。</p>`}
-      <button class="btn ghost" id="toTavern">傳送回酒館</button></div>`;
+      <button class="btn ghost" id="toTavern">回酒館</button></div>`;
   } else {
     const iv = b.info && b.units.find(v=>v.id===b.info);
     if(iv) ov += StatusCard.render(iv, b);
@@ -1482,7 +1487,8 @@ function bindBattle(){
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
   battleListen(document.getElementById("longRest"),"click",()=>takeRest("long",restSelections()));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
-  battleListen(document.getElementById("toTavern"),"click", ()=>teleportHome());
+  battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });
+  battleListen(document.getElementById("confirmTavern"),"click", ()=>teleportHome());
   // 點一下往下一段：3 行 → 6 行 → 完整紀錄 → 3 行（完整紀錄裡捲動不算點）
   battleListen(document.getElementById("logOpen"),"click", ()=>{ const b = B(); b.logLv = ((b.logLv||0) + 1) % 3; if(b.logLv===2) b.logStick = true; sfx("pop"); refreshBattle(); });
   battleListen(document.getElementById("logPanel"),"click", ()=>{ B().logLv = 0; sfx("back"); refreshBattle(); });

@@ -40,7 +40,6 @@ const POP_TEXT = {
   crit:"CRITICAL!",     // 爆擊的大字
   victory:"VICTORY",    // 勝利標題（大爺 10-02）
   disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!", mark:"MARKED", yum:"YUM!",   // mark：狩印；yum：吃點心（10-03）
-  teleport:"TELEPORT"   // 死亡豁免失敗三次，被卡姆傳送回酒館（暫定字）
 };
 
 // 手機頁面的說明泡泡；集中放資料，之後可翻譯。

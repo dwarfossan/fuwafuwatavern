@@ -7,13 +7,11 @@ function nextTurn(){
   do {
     b.turn++;
     if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();}
-  } while(b.units[b.turn].dead || (b.units[b.turn].down && b.units[b.turn].side!=="pc") || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 倒下的小傢伙們照樣輪到：擲死亡豁免
+  } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 昏迷的輪不到（10-09 拿掉死亡豁免）
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
   if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=2;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
-  // 倒下的小傢伙們：擲死亡豁免；擲到 20 醒過來就照常行動
-  if(u.side==="pc" && u.down && !u.dead && deathSave(u)!=="up"){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 1500); return; }
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
@@ -82,10 +80,10 @@ function awardBattleXP(){
 function checkResult(){
   const b = B();
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
-  if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead)){b.result="lose";blog("四隻都被卡姆傳送回酒館了……","kill");refreshBattle();return true;}
-  if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
-  if(!b.units.some(u=>u.side==="pc" && !u.dead)){ b.result = "lose"; blog("四隻都被卡姆傳送回酒館了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 倒下還在擲死亡豁免的不算輸
+  if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead&&!u.down)){b.result="lose";blog("四隻都昏迷了……","kill");refreshBattle();return true;}
+  if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){wakeAfterBattle();finishExploreCombat();return true;}return false;}
+  if(!alive("foe").length){ wakeAfterBattle(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
+  if(!b.units.some(u=>u.side==="pc" && !u.dead && !u.down)){ b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
   return false;
 }
 
@@ -618,7 +616,7 @@ function doHelp(u, t){
     // 醫療檢定：d20 + 感知 ≥ 10 就把他扶起來（1 點生命、倒地）
     const r = d20(), total = r + u.mods.WIS, ok = r===20 || (r!==1 && total>=10);
     blog(`${u.name}想把${t.name}扶起來，醫療檢定：d20=${r}${fmtN(u.mods.WIS)} = ${total} ${total>=10?"≥":"<"} 10 → ${ok?"成功":"失敗"}`, ok?"heal":"miss");
-    if(ok){ t.hp = 1; t.down = false; t.dsFail = 0; sfx("heal"); addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
+    if(ok){ t.hp = 1; t.down = false; sfx("heal"); addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
   } else {
     addStatus(t, "helped", {until:"start", of:u.id}); sfx("help");
     blog(`${u.name}協助${t.name}：${t.name}下次攻擊有優勢`, "skill");
@@ -886,7 +884,7 @@ const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得�
 function aiTurn(e){
   const b = B();
   if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
-  if(!alive("pc").length){ endTurn(); return; }   // 小傢伙們全倒在地上擲死亡豁免：敵人沒事做
+  if(!alive("pc").length){ endTurn(); return; }   // 小傢伙們全昏迷：敵人沒事做（checkResult 會判輸）
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); later(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); later(endTurn, 800); return; }
