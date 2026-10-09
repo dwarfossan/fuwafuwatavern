@@ -208,7 +208,7 @@ function dashSpot(u, t, max){
 
 const SKILL_IMPL = {
   natural:[{passive:true}],
-  style:[{passive:true},{passive:true}],   // 化險、武器精通
+  style:[{passive:true},{passive:true},{passive:true},{passive:true}],   // 化險、瞄準、狡詐、武器精通
   sword: [
     basicAttack,
     {passive:true},
@@ -251,8 +251,8 @@ const SKILL_IMPL = {
   dagger: [
     // 有「投擲」屬性的武器可以丟出去（超出觸及就算遠程）
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown: dist(u,t)>reachOf(u)})},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>{ const ally = alliesOf(u).some(p=>p!==u && !p.down && dist(p,t)===1);
-      if(ally) blog("　隊友在旁邊牽制，偷襲！","skill"); weaponAttack(u,t,{bonusDmgDice: ally?`${2+upNow()}d6`:null}); }},
+    // 偷襲（大爺 10-09 改成俠盜風格被動）：效果在 engine.js weaponAttack 的 sneakDice
+    {passive:true},
     {target:"enemy", range:u=>reachOf(u)+2, run:(u,t)=>{
       if(dist(u,t) > reachOf(u)){
         const spot = dashSpot(u, t, 2);

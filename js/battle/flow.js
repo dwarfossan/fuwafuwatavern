@@ -24,7 +24,7 @@ function nextTurn(){
 
 function beginTurn(u){
   const b = B();
-  u.shockNoOA=false; u.reserveFree=0; u.guarded={};
+  u.shockNoOA=false; u.reserveFree=0; u.guarded={}; u.cunningUsed=false;
   expire("start", u.id);
   u._cleaved = false;
   b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;u.slotSpellUsed=false;
@@ -502,6 +502,15 @@ function takeRest(kind, selections={},b=B()){
   syncLearnedState(b); b.restDone=true; restMessage(b,kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`); if(atInn)render();else refreshBattle(); return true;
 }
 
+// 俠盜風格：狡詐（大爺 10-09）：每回合一次，衝刺／撤離／潛行改花免費動作；有就先用狡詐，主要動作留著出手
+const cunningReady = u => passiveSkills(u).some(s=>s.key==="cunning_action") && !u.cunningUsed && freeLeft();
+function payMoveAction(u){
+  if(cunningReady(u)){ spendFree(u); u.cunningUsed = true; blog(`　${skillLabel(learnedSkillByKey("cunning_action").def)}：改用免費動作`, "skill"); return true; }
+  if(!canAct()) return false; useAction(u); return true;
+}
+// 俠盜風格：瞄準（大爺 10-09）：還沒移動才能宣告；放棄這回合移動，這回合第一次攻擊優勢（attackRoll 用掉）；不花動作
+const aimReady = u => passiveSkills(u).some(s=>s.key==="aim") && !B().movedThisTurn && !has(u,"aiming") && u===cur();
+function doAim(u){ if(!aimReady(u)) return false; B().moveLeft = 0; addStatus(u, "aiming", {until:"end", of:u.id}); blog(`${u.name}${skillLabel(learnedSkillByKey("aim").def)}：放棄移動，這回合第一次攻擊有優勢`, "skill"); return true; }
 function battleCmd(c){
   const b = B(), u = cur();
   if(!b || b.busy || b.result || u.side!=="pc") return;
@@ -513,12 +522,13 @@ function battleCmd(c){
       if(b.info===u.id) b.info=null;
       else { b.info=u.id; b.infoPage="status"; }
       break;
+    case "aim": if(!doAim(u)) return; b.menu = null; b.moveMode = false; break;
     case "walk":  if(!canWalk()) return; b.menu = null; b.moveMode = true; break;
     case "dash":
-      if(!canAct()) return; useAction(u); b.moveLeft += b.baseMove;
+      if(!payMoveAction(u)) return; b.moveLeft += b.baseMove;
       blog(`${u.name}衝刺！（移動 +${b.baseMove} 格）`, "skill"); b.menu = null; b.moveMode = true; break;
     case "disengage":
-      if(!canAct()) return; useAction(u); addStatus(u, "disengage", {until:"end", of:u.id});
+      if(!payMoveAction(u)) return; addStatus(u, "disengage", {until:"end", of:u.id});
       blog(`${u.name}撤離：這回合移動不會被藉機攻擊`, "skill"); b.menu = null; b.moveMode = canWalk(); break;
     case "dodge":
       if(!canAct()) return; useAction(u); addStatus(u, "dodge", {until:"start", of:u.id});
@@ -532,7 +542,7 @@ function battleCmd(c){
       if(!canAct() || !helpList(u).length) return; b.menu = null; b.mode = {key:"help"}; break;
     case "wait": b.menu = null; endTurn(); return;
     case "hide":
-      if(!canAct() || hideBlock(u)) return; useAction(u);
+      if(hideBlock(u) || !payMoveAction(u)) return;
       blog(`${u.name}躲了起來……`, "skill"); u.anim = {k:"guard", t:Date.now()}; animSfx("guard");
       tryHide(u); afterShow(u, 800); return;
     case "grapple": case "shove_push": case "shove_prone": case "disarm":

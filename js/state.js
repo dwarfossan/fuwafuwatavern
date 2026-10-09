@@ -2,7 +2,7 @@
 const STARTER_NOTES = {
   fox:[{key:"shield_spell",name:"護盾術",innate:false,from:"起始技能",lv:1}],
   tiger:[{key:"sunder",name:"破甲",innate:false,from:"起始技能",lv:1}],
-  wolf:[{key:"aimed_shot",name:"瞄準射擊",innate:false,from:"起始技能",lv:1}],
+  wolf:[{key:"hunters_mark",name:"狩印",innate:false,from:"起始技能",lv:1}],   // 10-09 大爺：瞄準射擊改狩印
   raccoon:[{key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}]
 };
 const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"darkvision",name:"黑暗視覺",innate:true,from:"天生",lv:1}];

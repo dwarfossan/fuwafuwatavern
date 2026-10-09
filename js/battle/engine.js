@@ -462,6 +462,7 @@ function attackRoll(a, t, o={}){
   if(o.dis) adv--;
   if(has(t,"prone")) adv += melee ? 1 : -1;
   if(has(a,"prone")) adv--;
+  if(has(a,"aiming")) { adv++; a.statuses = a.statuses.filter(s=>s.k!=="aiming"); }   // 瞄準：這回合第一次攻擊優勢（用掉就沒）
   if(has(a,"sapped")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="sapped"); }   // 削弱：下次攻擊劣勢（用掉就沒）
   if(has(a,"poisoned")) adv--;                                         // 中毒：攻擊有劣勢
   // 閃避：打他有劣勢。守護給的閃避只擋第一次（用掉就沒），守護的人要還站在他旁邊
@@ -804,6 +805,14 @@ function fall(t, levels){
   if(!t.dead && !t.down) knockProne(t);
 }
 
+// 俠盜風格：偷襲（大爺 10-09）：武器攻擊命中、目標 1 格內有攻擊者的隊友（沒倒）就多骰 d6；
+// 骰數＝等級除以 2 進位（1 級 1d6、3 級 2d6，照 D&D）；每回合一次（任何人的回合都算一回合，反擊、藉機也可能用掉）
+const turnKey = () => `${B().round}:${B().turn}`;
+function sneakDice(a, t){
+  if(!passiveSkills(a).some(s=>s.key==="sneak_attack") || a.sneakTurn===turnKey()) return 0;
+  if(!B().units.some(p=>p!==a && p!==t && p.side===a.side && !p.dead && !p.down && dist(p,t)<=1)) return 0;
+  return Math.ceil(levelOf(a)/2);
+}
 // 一次標準武器攻擊（敵我通用）。o: {adv, dis, hitMod, extraDice, noMod, mastery, double, autoCrit, bonusDmgDice, pointBlank, counter}
 function weaponAttack(a, t, o={}){
   const w=o.weapon||a.weapon, view={...a,weapon:w};
@@ -825,6 +834,7 @@ function weaponAttack(a, t, o={}){
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
     let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
+    const sd = sneakDice(a, t); if(sd){ a.sneakTurn = turnKey(); const extraSneak = dmgRoll(`${sd}d6`, 0, crit); n += extraSneak; blog(`　${skillLabel(learnedSkillByKey("sneak_attack").def)}：隊友在旁邊牽制，多 ${sd}d6（${extraSneak}）`, "skill"); }
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
     const extra=w?.extraDamage, arrowHit=["bow","crossbow"].includes(ak);
     hurt(t, n, dmgType(view), a, arrowHit ? (extra ? false : "arrow_hit") : null);

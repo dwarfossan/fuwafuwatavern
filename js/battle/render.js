@@ -695,7 +695,7 @@ const STATUS_BADGE = {
   frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0], marked:["target",0],
   conc:["focus",1],   // 10-03 大爺：上限放寬到 17，加狩印（被標的）和專注（施法的）
   blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
-  prone:["fall",0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
+  prone:["fall",0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1], aiming:[null,1]
 };
 const badgeOf = s => (STATUS_BADGE[s.k]||[])[0];
 const hasBadge = v => v.statuses.some(badgeOf);
@@ -883,13 +883,13 @@ function equipKeys(v){
 // 狀態名稱、說明（2026-10-01 大爺：名字不能混淆；同一個狀態可能由不同招式造成，說明照 via 分）
 const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained:"束縛", sapped:"削弱", bane:"災禍", acDown:"破甲", bleed:"流血", burning:"燃燒",
   frozen:"凍結", paralyzed:"麻痺", poisoned:"中毒", marked:"狩印", conc:"專注",
-  blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離"};
+  blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離", aiming:"瞄準"};
 const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
   dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下或專注中斷。",
   bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花主要動作撲滅。",
   frozen:"不能移動，敏捷豁免有劣勢；被火焰打到立刻解凍。", paralyzed:"下一回合整個跳過。", poisoned:"攻擊有劣勢，每回合開始受 1d4 毒素傷害；回合結束體質豁免，成功解毒，失敗持續。探索每 6 秒結算一次。",
   blessed:"攻擊和豁免各多擲 1d4 加上去，直到施法者的專注中斷。", shieldSpell:"AC +5。", hidden:"躲起來了，敵人看不到；從藏身處攻擊有優勢。",
-  mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。"};
+  mageArmor:"沒穿護甲時，基礎 AC 變成 13 + 敏捷調整值，整場戰鬥。", disengage:"這回合移動不會被藉機攻擊。", aiming:"放棄這回合移動，這回合第一次攻擊有優勢。"};
 function statusLabel(v,s){return STATUS_NAME[s.k]||s.k;}
 function statusExplain(v,s){
   const who = id => (B().units.find(x=>x.id===id)||{}).name || "";
@@ -996,16 +996,17 @@ function menuHTML(u, b, level=null){
     const freeSk = canFree();   // 搜索只要有免費動作就能用（搜四周），所以免費動作還在就有事可做
     const hasItems = u.items.length || u.spare.length || powderCount(u);
     body = mbtn("act","行動", !act && !freeSk, !act && freeSk ? "只剩免費招式" : "") +
-           mbtn("move","走位", !canWalk() && !act) +
+           mbtn("move","走位", !canWalk() && !act && !cunningReady(u)) +
            mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "主要、免費動作都用完了" : freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("status","狀態", false, u.name) +
            mbtn("wait","待機", false, "結束回合");
   } else if(lv==="move"){
     title = "走位";
-    const hb = hideBlock(u);
-    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !act, `用掉主要動作，移動 +${b.baseMove}`) +
-           mbtn("disengage","撤離", !act, "用掉主要動作，不被藉機攻擊") +
-           mbtn("hide","潛行", !act || !!hb, hb || `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
+    const hb = hideBlock(u), cun = cunningReady(u), mv = act || cun, pay = cun ? "狡詐：免費動作" : "用掉主要動作";
+    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !mv, `${pay}，移動 +${b.baseMove}`) +
+           mbtn("disengage","撤離", !mv, `${pay}，不被藉機攻擊`) +
+           (passiveSkills(u).some(s=>s.key==="aim") ? mbtn("aim","瞄準", !aimReady(u), b.movedThisTurn ? "這回合已經移動過" : has(u,"aiming") ? "已經在瞄準" : "放棄移動，這回合第一次攻擊優勢") : "") +
+           mbtn("hide","潛行", !mv || !!hb, hb || (cun ? "狡詐：免費動作，" : "") + `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
   } else if(lv==="act"){
     title = "行動";
     const atks = attackSkills(u);

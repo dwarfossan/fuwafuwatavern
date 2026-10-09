@@ -72,7 +72,7 @@ const SKILL_GROUPS = [
    weapons:["匕首","鐮刀"],
    skills:[
     {name:"快刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；有「投擲」屬性時也能投擲。"},
-    {id:"sneak_attack", name:"偷襲", kind:"近戰", req:"lightMelee", tier:1,   up:"每高一階，偷襲傷害多 1d6。", text:"攻擊一次，如果目標旁邊有你的隊友，命中時多 2d6 傷害。"},
+    {id:"sneak_attack", name:"偷襲", style:"rogue", activation:"passive", kind:"被動", dmg:"物理", tier:0, text:"用武器攻擊命中時，如果目標 1 格內有你的隊友，多 1d6 傷害；1、3、5…級各多 1d6（等級除以 2 進位）。每回合一次。"},
     {id:"dash_stab", name:"閃身刺", kind:"近戰", req:"lightMelee", tier:1,   text:"先閃到 2 格內、目標身旁的空位（不會被藉機攻擊，不算移動），再攻擊一次。"},
     {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標下回合移動 −2 格。"}]},
 
@@ -201,6 +201,8 @@ SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"
 // 風格被動（10-09）：不屬於任何武器組的放這裡；招式本身寫 style 決定是哪一類風格
 SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",skills:[
  {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"},
+ {id:"aim",name:"瞄準",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"這回合還沒移動時可以宣告瞄準：放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。"},
+ {id:"cunning_action",name:"狡詐",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"每回合一次，衝刺、撤離或潛行改用免費動作，不用主要動作。"},
  {id:"weapon_mastery",name:"武器精通",style:"warrior",activation:"passive",kind:"被動",dmg:"",tier:0,text:"用武器攻擊時觸發武器專精（削弱、緩速、擦傷……）。沒帶就不會觸發專精。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
