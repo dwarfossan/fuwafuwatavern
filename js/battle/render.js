@@ -135,6 +135,7 @@ function battleNodeKey(n){
   if(n.nodeType!==1)return "";
   return n.id?`#${n.id}`:
     n.dataset?.sceneKey?`scene:${n.dataset.sceneKey}`:
+    n.dataset?.statusRow?`status-row:${n.dataset.statusRow}`:
     n.dataset?.ground?`ground:${n.dataset.ground}:${n.dataset.tile}`:
     n.dataset?.movingUnit?`moving:${n.dataset.movingUnit}:${n.classList.contains("hud")?"hud":"token"}`:
     n.dataset?.battleUi?`ui:${n.dataset.battleUi}`:
@@ -218,7 +219,8 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
   shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
-  // 血條、狀態圖示一律畫在最上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
+  // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
+  // 血條、狀態圖示畫在物件上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
   out.push(`<use href="#mark-tags"/>`);
@@ -686,53 +688,70 @@ function unitDoll(v, active){
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});
 }
-// 頭上的狀態小圖示：壞的紅底、好的綠底，最多五個；大小見 overlayK（跟著地圖縮放，有最小尺寸）
-// 有倒數的狀態，圖示上方標剩幾回合（流血＝剩幾次、到某人回合開始／結束＝1）；燒到撲滅、整場的不標
-// 圖示不用字，出其他語言版本也不用改
-// 17 個狀態（2026-10-01 大爺定上限 15，10-03 放寬到 17）：12 個掛圖示＋凍結、麻痺、中毒＋狩印、專注。icon 是 null 的不掛頭上（身上已經看得出來、或不用提醒），狀態卡照樣列出
+// 頭上／狀態卡共用18種狀態圖示：白色主體＋少量代表色，增益藍底、減益紅底。
+// 頭上仍最多顯示五個，縮放沿用原規則，圖示不顯示倒數；燃燒保留身上火焰且新增頭上提示。
 const STATUS_BADGE = {
   dazed:["daze",0], slowed:["slow",0], restrained:["net",0], sapped:["weak",0], bane:["skull",0], acDown:["crack",0], bleed:["drop",0],
   frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0], marked:["target",0],
   conc:["focus",1],   // 10-03 大爺：上限放寬到 17，加狩印（被標的）和專注（施法的）
   blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
-  prone:[null,0], burning:[null,0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
+  prone:[null,0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1]
 };
 const badgeOf = s => (STATUS_BADGE[s.k]||[])[0];
 const hasBadge = v => v.statuses.some(badgeOf);
-// 圖示畫在 20×20 的格子裡（白色）
+// 20×20共用圖形，僅此一份供戰場HUD與所有狀態卡使用。
 const ST_ICON = {
-  net:`<path d="M4 4l12 12M4 10l6 6M10 4l6 6M16 4L4 16M10 4L4 10M16 10l-6 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" fill="none"/>`,
-  drop:`<path d="M10 3c2.5 3.8 4.6 6.2 4.6 8.8a4.6 4.6 0 0 1-9.2 0C5.4 9.2 7.5 6.8 10 3z" fill="#fff"/>`,
-  daze:`<path d="M10 10m-1.6 0a1.6 1.6 0 1 1 3.2 0a3.6 3.6 0 1 1-7.2 0a5.6 5.6 0 1 1 11.2 0" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
-  slow:`<path d="M5 6l5 4 5-4M5 11l5 4 5-4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  weak:`<path d="M13.5 3.5l3 3-8 8-3-3zM6 12l2 2M4 16l2.5-2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3l14 14" stroke="#1f1a24" stroke-width="4"/><path d="M3.5 3.5l13 13" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`,
-  skull:`<path d="M10 3a6 6 0 0 0-6 6c0 2 1 3.4 2.3 4.2V16h7.4v-2.8C15 12.4 16 11 16 9a6 6 0 0 0-6-6z" fill="#fff"/><circle cx="7.6" cy="9.4" r="1.6" fill="#a33c32"/><circle cx="12.4" cy="9.4" r="1.6" fill="#a33c32"/><path d="M8.5 16v-2M11.5 16v-2" stroke="#a33c32" stroke-width="1.2"/>`,
-  grab:`<path d="M6 17v-6.5a1.4 1.4 0 0 1 2.8 0V9V4.5a1.4 1.4 0 0 1 2.8 0V9V5.5a1.4 1.4 0 0 1 2.8 0v5.5l.3-1.5a1.3 1.3 0 0 1 2.5.6L15.6 17z" fill="#fff"/>`,
-  crack:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/><path d="M11 3l-2.2 4.5 2.6 2-2.4 4.3 1.2 3.4" stroke="#a33c32" stroke-width="1.6" fill="none" stroke-linejoin="round"/>`,
-  sun:`<circle cx="10" cy="10" r="3.4" fill="#fff"/><path d="M10 2.5v2.4M10 15.1v2.4M2.5 10h2.4M15.1 10h2.4M4.7 4.7l1.7 1.7M13.6 13.6l1.7 1.7M4.7 15.3l1.7-1.7M13.6 6.4l1.7-1.7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`,
-  dodge:`<path d="M3 6h8M5 10h10M3 14h8" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4l3 2-3 2" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  parry:`<path d="M4 4l12 12M16 4L4 16" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M3 13l4 4M17 13l-4 4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`,
-  shieldStar:`<path d="M10 2.5l6 2.2v5c0 3.8-2.6 6.4-6 7.8-3.4-1.4-6-4-6-7.8v-5z" fill="#fff"/><path d="M10 6.2l1.1 2.4 2.5.3-1.9 1.7.5 2.5L10 11.9l-2.2 1.2.5-2.5-1.9-1.7 2.5-.3z" fill="#3f7a3a"/>`,
-  snow:`<path d="M10 2.5v15M3.5 6.2l13 7.6M3.5 13.8l13-7.6" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/><path d="M8 3.8l2 1.8 2-1.8M8 16.2l2-1.8 2 1.8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-  bolt:`<path d="M11.5 2.5L5 11h4.2L8 17.5 15 8.6h-4.3z" fill="#fff"/>`,
-  bubble:`<path d="M6 3H12M7 3V8L3 14Q2 17 6 17H14Q18 17 17 14L11 8V3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 13H15L16 15H4Z" fill="#fff"/><circle cx="16" cy="6" r="2" fill="#fff"/>`,
-  hand:`<path d="M10 3.5v13M3.5 10h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
-  target:`<circle cx="10" cy="10" r="5.6" stroke="#fff" stroke-width="1.9" fill="none"/><circle cx="10" cy="10" r="1.7" fill="#fff"/><path d="M10 2v3.2M10 14.8V18M2 10h3.2M14.8 10H18" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>`,
-  focus:`<path d="M2 10Q10 1 18 10Q10 19 2 10Z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="#fff"/>`,
+  daze:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="17" r="10" fill="#fff4df"/><path d="M10 16q2-3 4 0M19 16q2-3 4 0M12 23q4-3 8 0" fill="none" stroke="#211923" stroke-width="2"/><path d="M14 8q-8-2-5-6q4-4 8 0q3 4-2 6" fill="none" stroke="#211923" stroke-width="2.7"/></g>`,
+  slow:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 23H28Q28 17 23 17H21L19 13L16 17H9Z" fill="#fff4df"/><circle cx="12" cy="17" r="8" fill="#fff4df"/><path d="M12 17m-3 0a3 3 0 1 1 6 0a5 5 0 0 1-10 0" fill="none" stroke="#211923" stroke-width="2"/><path d="M23 17V11M27 18V12" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  net:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8 6L25 8L27 26L5 24Z" fill="#fff4df"/><path d="M8 6L27 26M6 15L15 25M17 7L26 16M25 8L5 24M16 7L6 17M26 17L17 25" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  weak:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M19 3L25 9L13 21L7 15Z" fill="#fff4df"/><path d="M6 20L12 26M4 28L9 23" fill="none" stroke="#211923" stroke-width="2"/><path d="M25 19V26H30L23 31L16 26H21V19Z" fill="#fff4df"/></g>`,
+  skull:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M7 6Q2 0 4 14L8 19L24 19L28 14Q30 0 25 6Q16-1 7 6Z" fill="#fff4df"/><path d="M8 11Q16 5 24 11V20L21 23V28H11V23L8 20Z" fill="#fff4df"/><circle cx="12" cy="16" r="2" fill="#211923"/><circle cx="20" cy="16" r="2" fill="#211923"/><path d="M14 25V28M18 25V28" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  crack:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3L26 7V16Q25 25 16 29Q7 25 6 16V7Z" fill="#fff4df"/><path d="M18 4L13 13L19 16L13 23L16 28" fill="none" stroke="#211923" stroke-width="3"/></g>`,
+  drop:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3Q7 14 7 21A9 9 0 0 0 25 21Q25 14 16 3Z" fill="#fff4df"/><path d="M11 21q0 4 4 5" fill="none" stroke="#df7478" stroke-width="2.5"/></g>`,
+  snow:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M6 8L19 3L27 11V25L14 29L5 22Z" fill="#fff4df"/><path d="M6 8L15 15L27 11M15 15L14 29M19 3L15 15" fill="none" stroke="#211923" stroke-width="2"/><path d="M7 19L12 23M18 19L24 17" fill="none" stroke="#a9dceb" stroke-width="2.7"/></g>`,
+  bolt:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5H14V16L23 22L19 28L7 22Z" fill="#fff4df"/><path d="M23 2L16 13H22L19 22L29 10H24L28 2Z" fill="#f3cf69"/></g>`,
+  bubble:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M11 3H21V8L26 17V27H6V17L11 8Z" fill="#fff4df"/><path d="M7 19Q12 16 17 19Q21 21 25 18V26H7Z" fill="#91bf77"/><circle cx="15" cy="22" r="2" fill="#fff4df"/><circle cx="26" cy="6" r="3" fill="#fff4df"/></g>`,
+  sun:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 6L19 12L26 13L21 18L22 25L16 22L10 25L11 18L6 13L13 12Z" fill="#f0d176"/><path d="M16 1V3M1 15H3M29 15H31M4 3L7 6M25 6L28 3" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  hand:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M2 10L8 5L15 12L10 19L2 15Z" fill="#fff4df"/><path d="M30 10L24 5L17 12L22 19L30 15Z" fill="#fff4df"/><path d="M8 12L13 9L18 10L25 17L19 25L8 17Z" fill="#fff4df"/><path d="M14 13L22 20M11 17L18 23" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  dodge:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><circle cx="23" cy="7" r="4" fill="#fff4df"/><path d="M22 12L16 19L24 25M17 18L8 27M19 14L11 13" fill="none" stroke="#fff4df" stroke-width="5"/><path d="M2 7H12M2 13H7M4 20H8" fill="none" stroke="#211923" stroke-width="2.5"/></g>`,
+  shieldStar:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3L26 7V16Q25 25 16 29Q7 25 6 16V7Z" fill="#fff4df"/><path d="M16 9L18 14L23 16L18 18L16 23L14 18L9 16L14 14Z" fill="#f0d176"/></g>`,
+  parry:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M20 3L26 9L14 21L8 15Z" fill="#fff4df"/><path d="M7 20L13 26M5 28L10 23" fill="none" stroke="#211923" stroke-width="2"/><path d="M5 4H11V12H5Z" fill="#fff4df"/><path d="M3 2V16" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  target:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><circle cx="16" cy="16" r="10" fill="#fff4df"/><circle cx="16" cy="16" r="6" fill="#fff4df"/><circle cx="16" cy="16" r="2" fill="#fff4df"/><path d="M16 1V9M16 23V31M1 16H9M23 16H31" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  focus:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3 16Q16 1 29 16Q16 31 3 16Z" fill="#fff4df"/><circle cx="16" cy="16" r="6" fill="#bba3d7"/><circle cx="16" cy="16" r="2.5" fill="#302137"/><path d="M16 1V4M16 28V31" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  fire:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 2C17 10 28 12 28 21A12 12 0 0 1 4 21C4 15 8 12 10 9C10 14 13 16 16 17C13 11 14 6 16 2Z" fill="#fff4df"/><path d="M16 15C17 19 22 20 22 24A6 6 0 0 1 10 24C10 21 12 19 14 18C14 21 16 22 17 22Z" fill="#f3a053"/></g>`,
+  grab:`<g fill="#fff4df" stroke="#211923" stroke-width="1" stroke-linejoin="round"><path d="M5 17V10a1.2 1.2 0 0 1 2.4 0V5a1.2 1.2 0 0 1 2.4 0V3.5a1.2 1.2 0 0 1 2.4 0V5a1.2 1.2 0 0 1 2.4 0v5l1-1a1.2 1.2 0 0 1 2 1L15 17Z"/></g>`,
 };
 // 剩幾回合：流血、中毒照次數；到某人回合開始／結束才消失＝1；其他（燒到撲滅、整場、掙脫才解）不標
 const stTurns = s => s.k==="bleed" ? s.n : (s.until==="start" || s.until==="end") ? 1 + (s.left||0) : null;   // left：升階多撐的輪數
+// 單列／雙列共用分組；只有一類時不產生空列。
+function statusRows(list){
+  return [0,1].map(good=>({good,items:list.filter(o=>!!o.good===!!good)})).filter(row=>row.items.length);
+}
+// 狀態表示唯一排版規則：尺寸只是比例，兩種呈現不能各自定間距。
+function statusIndicatorLayout(list,size=20){
+  const scale=size/20, gap=4*scale, radius=5*scale;
+  const rows=statusRows(list).map((row,r,all)=>{
+    const widths=row.items.map(o=>o.icon?size:Math.max(size,[...(o.label||'')].length*size*.45+size*.5));
+    const width=widths.reduce((a,n)=>a+n,0)+gap*(widths.length-1),y=(r-all.length)*size;let x=-width/2;
+    return {...row,width,y,items:row.items.map((o,i)=>{const entry={...o,x,y,width:widths[i]};x+=widths[i]+gap;return entry;})};
+  });
+  const style=`--status-size:${size}px;--status-gap:${gap}px;--status-radius:${radius}px;`;
+  return {size,gap,rows,height:rows.length*size,style};
+}
+function statusIndicatorFace(o){
+  return `<rect width="20" height="20" rx="5" fill="var(${o.good?"--status-good":"--status-bad"})" stroke="#1f1a24" stroke-width="2"/><g data-status-art="">${ST_ICON[o.icon]||""}</g>`;
+}
 function statusBadges(v, cx, y){
-  const by = new Map();                              // 同一個圖示只畫一次，回合數取大的
+  const by = new Map();                              // 同一個圖示只畫一次
   v.statuses.forEach(s=>{ const b = STATUS_BADGE[s.k]; if(!b || !b[0]) return;
-    const o = by.get(b[0]) || {icon:b[0], good:b[1], n:null}, t = stTurns(s);
-    if(t!=null) o.n = Math.max(o.n||0, t); by.set(b[0], o); });
+    const o = by.get(b[0]) || {icon:b[0], good:b[1]}; by.set(b[0], o); });
   const list = [...by.values()].slice(0,5);
   if(!list.length || v.dead) return "";
-  const k = badgeK(), W = 20, gap = 4, x0 = -(list.length*W + (list.length-1)*gap)/2;
-  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${list.map((o,i)=>`
-    <g data-st="${o.icon}" transform="translate(${x0 + i*(W+gap)} ${-W})"><rect width="${W}" height="${W}" rx="5" fill="${o.good?"#3f7a3a":"#a33c32"}" stroke="#1f1a24" stroke-width="2"/>
-    ${ST_ICON[o.icon]||""}${o.n!=null ? `<g transform="translate(${W/2} -4)"><circle r="6.5" fill="#fff4b0" stroke="#1f1a24" stroke-width="1.8"/><text y="3.6" text-anchor="middle" class="st-n">${o.n}</text></g>` : ""}</g>`).join("")}</g>`;
+  const k=badgeK(),layout=statusIndicatorLayout(list);
+  const icons=layout.rows.map(row=>`<g data-status-row="${row.good?"good":"bad"}">${row.items.map(o=>{
+    return `<g data-st="${o.icon}" transform="translate(${o.x} ${o.y})">${statusIndicatorFace(o)}</g>`;
+  }).join("")}</g>`).join("");
+  return `<g class="st-badges" transform="translate(${cx} ${y}) scale(${k.toFixed(3)})">${icons}</g>`;
 }
 // 燃燒：身上冒火（三團火焰在身體周圍閃動，躺下時貼著地面）
 // ---------- 骰子面板（戰場上方中央，參考索拉塔） ----------

@@ -209,7 +209,7 @@ console.log('規則');
     clr(); addStatus(tig,'poisoned',{dc:13}); const hp=tig.hp; beginTurn(tig); const damaged=tig.hp<hp, oldRandom=Math.random;Math.random=()=>0;poisonSave(tig);const kept=!!has(tig,'poisoned');Math.random=()=>.99;poisonSave(tig);o.poison=[damaged,kept,!has(tig,'poisoned')];Math.random=oldRandom;
     clr(); addStatus(tig,'paralyzed',{}); beginTurn(tig); o.para=[b.skipTurn, !has(tig,'paralyzed')]; b.skipTurn=false;
     clr(); return o; });
-  ok('狀態：頭上圖示剛好 17 種（10-03 大爺放寬：加狩印、專注）、不重複，舊的狀態代號都不在', r5.icons[0]===17 && r5.icons[1]===17 && r5.oldGone.length===0, JSON.stringify(r5.icons)+r5.oldGone);
+  ok('狀態：頭上圖示剛好 18 種（10-03 大爺放寬：加狩印、專注；10-09 加燃燒）、不重複，舊的狀態代號都不在', r5.icons[0]===18 && r5.icons[1]===18 && r5.oldGone.length===0, JSON.stringify(r5.icons)+r5.oldGone);
   ok('狀態：釘住＝緩速歸零；緩速、破甲同名不疊加取大的', r5.pin===0 && r5.slowMax===3 && r5.acMax===3, JSON.stringify([r5.pin,r5.slowMax,r5.acMax]));
   ok('狀態：擒抱＝束縛（認得抓的人、不能移動、離開就鬆開）', r5.grab.join()==='true,true,0' && r5.release, JSON.stringify(r5.grab));
   ok('狀態：困擾＝只對那個目標的協助；守護＝只擋一次的閃避', r5.vexKept && r5.vexUsed && r5.guardOnce, JSON.stringify(r5));

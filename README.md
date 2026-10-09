@@ -43,6 +43,8 @@ tools/skills_doc.mjs  從 data/skills.js 產生 docs/技能表.md
 npm i playwright              # 第一次才需要（雲端環境要裝 playwright@1.56.1；package.json 不要 commit）
 node tests/smoke.mjs          # 冒煙：封面→擲屬性→序章→商店、大地圖→伏擊→戰鬥、快速戰鬥，加關鍵規則
 node tests/layers.mjs         # 戰場分層：各層獨立更新、觸控點格、拖曳縮放、共用鏡頭
+node tests/status-rows.mjs   # 共用排版比例、正負上下排、不顯示倒數、即時演出優先、卡片橫捲與390×844截圖
+node tests/status-icons.mjs  # 18種共用圖示、藍紅底、燃燒說明、期限保留／解除與390×844截圖
 node tests/status-art.mjs    # 狀態身上演出、地面、解除、分層與手機提示
 node tests/status-card-shared.mjs # 劇情／城鎮／探索／戰鬥共用同一狀態卡
 node tests/equipment-art.mjs # 共用裝備外觀、哥布林裝備、敵我穿戴与手機卡
@@ -194,7 +196,7 @@ repo 的 `docs/` 是正本；claude.ai 專案裡放一模一樣的副本，改�
 | `docs/現況.md` | **先看這份**：做到哪、各系統、大爺的偏好、排隊中的、已知問題、環境 |
 | `docs/熟練格規格.md` | 技能資源（熟練格、升階、休息） |
 | `docs/小筆記規格.md` | 觀察學習、小筆記、小傢伙們特性 |
-| `docs/狀態規格.md` | 17 個掛頭圖示狀態與其他狀態規則 |
+| `docs/狀態規格.md` | 18 個掛頭圖示狀態與其他狀態規則 |
 | `docs/裝備與感知規格.md` | 被動感知、搜索、狀態卡、裝備三層與錨點、破布衣、+1 薩滿袍、AC |
 | `docs/授權與安全.md` | 借了 SRD 的什麼、不能碰的（D&D 名稱、商標、SRD 以外的內容）、類似遊戲的案例、出處標示怎麼放 |
 | `docs/技能表.md` | 每類武器的招式（`tools/skills_doc.mjs` 產生，不要手改） |
