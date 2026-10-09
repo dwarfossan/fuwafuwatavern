@@ -10,6 +10,8 @@ const explore=read('js/battle/explore.js');
 
 assert.equal(/\bnew Image\s*\(/.test(portraits),false,'表情圖不可在開機時用 Image 預載');
 assert.equal(/preload(?:Portraits|CritterFaces)/.test(portraits),false,'不可保留表情圖預載器');
+// 10-09：index.html 對圖片做 preload，開機 loadEntryImage 又 fetch 同網址，Chrome 合併時偶發 Failed to fetch → 開機卡 97～98%（只在 HTTP 發生）
+assert.equal(/rel\s*=\s*['"]?preload|\.rel\s*=\s*['"]preload/.test(read('index.html')),false,'index.html 不可預先下載開機程式會自己抓的圖片');
 
 const bind=render.slice(render.indexOf('function bindBattle(){'),render.indexOf('function bindModal(){'));
 assert.equal(/u\.side==="pc"\)\s*centerCam/.test(bind),false,'玩家回合不可無條件置中鏡頭');

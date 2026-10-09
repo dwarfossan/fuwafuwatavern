@@ -99,8 +99,9 @@ try{
    const e=b.units.find(v=>v.side==='foe'); b.turn=b.units.indexOf(e);
    b.units.filter(v=>v.side==='pc').forEach(p=>addStatus(p,'hidden',{val:30,roll:20}));   // 敵人找不到人：「東張西望」，0.7 秒後換回合
    aiTurn(e); });
- await lose(); await pg3.click('#retry');
- const t0=await pg3.evaluate(()=>{ aiTurn=()=>{}; return {turn:B().turn, round:B().round}; });   // 新一場的敵人先不動，只看回合有沒有被偷換
+ await lose(); await pg3.evaluate(()=>{ aiTurn=()=>{}; });   // 新一場的敵人先不動，只看回合有沒有被偷換（10-09：要在按重新挑戰前關，否則新一場敵人先攻時會在關掉前就出手換回合）
+ await pg3.click('#retry');
+ const t0=await pg3.evaluate(()=>({turn:B().turn, round:B().round}));
  await pg3.waitForTimeout(1500);
  const t1=await pg3.evaluate(()=>({turn:B().turn, round:B().round}));
  assert.deepEqual(t1,t0,'上一場的計時器讓新一場多換了一個回合');ok('馬上按重新挑戰：上一場排好的換回合不會跑進新的一場');

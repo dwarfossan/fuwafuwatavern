@@ -12,10 +12,6 @@ if(window.top===window.self && window.innerWidth>600) location.replace("phone.ht
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap">
 <link rel="stylesheet" href="css/style.css">
-<script>
-// 四隻首頁頭像優先請求，其他遊戲圖片由共用啟動流程統一準備。
-for(const id of ['fox','tiger','wolf','raccoon']){const link=document.createElement('link');link.rel='preload';link.as='fetch';link.crossOrigin='anonymous';link.href=`assets/portraits/home_${id}.webp`;link.fetchPriority='high';document.head.append(link);}
-</script>
 </head>
 <body class="image-boot">
 <div id="bootBackdrop" aria-hidden="true"></div>
