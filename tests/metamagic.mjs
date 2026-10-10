@@ -46,21 +46,14 @@ try{
  // 手機截圖：瞄準列的超魔
  await p.evaluate(()=>{const b=B(),u=b.units.find(v=>v.id==='fox');u.activeSkills=['burning_hands','shocking_grasp','metamagic'];b.turn=b.units.indexOf(u);beginTurn(u);b.busy=false;b.actionUsed=false;b.freeUsed=0;u.slots=[4,2];u.slotSpellUsed=false;pickSkill('burning_hands');aimMeta('careful');});
  await p.waitForTimeout(400);await p.screenshot({path:'/tmp/claude-0/meta.png'});
- assert.equal(await p.locator('.meta-stop.on[data-meta="careful"]').count(),1,'拖曳條停在謹慎');
- // 上下拖曳條（大爺 10-10）：四格都在；燃燒之手的遠距灰掉寫原因
- assert.deepEqual(await p.locator('.meta-stop').evaluateAll(s=>s.map(x=>[x.dataset.meta,x.disabled,x.querySelector('small')?.textContent||''])),
-  [['none',false,''],['careful',false,''],['quick',false,''],['far',true,'貼身或對自己放的不能加']]);
- // 實際拖：從謹慎拖到瞬發，放手才設定
- const box=async m=>{const b=await p.locator(`.meta-stop[data-meta="${m}"] i`).boundingBox();return {x:b.x+b.width/2,y:b.y+b.height/2};};
- const a=await box('careful'),q=await box('quick');await p.mouse.move(a.x,a.y);await p.mouse.down();await p.mouse.move(q.x,q.y,{steps:4});
- assert.equal(await p.evaluate(()=>B().mode.meta),'careful','拖的時候還沒設定');await p.mouse.up();
- assert.equal(await p.evaluate(()=>B().mode.meta),'quick','放手設定瞬發');
- // 拖到灰掉的遠距：停在最近可選的（瞬發）
- const f=await box('far');const q2=await box('quick');await p.mouse.move(q2.x,q2.y);await p.mouse.down();await p.mouse.move(f.x,f.y+20,{steps:4});await p.mouse.up();
- assert.equal(await p.evaluate(()=>B().mode.meta),'quick','灰掉的格子停不上去');
- // 拖回不用
- const n0=await box('none');const q3=await box('quick');await p.mouse.move(q3.x,q3.y);await p.mouse.down();await p.mouse.move(n0.x,n0.y,{steps:4});await p.mouse.up();
- assert.equal(await p.evaluate(()=>B().mode.meta),null,'拖回不用');
+ assert.equal(await p.locator('.meta-opt.on[data-aim="m:careful"]').count(),1,'謹慎選中');
+ // 可捲清單（大爺 10-10，像商店的捲軸）：三項都在；燃燒之手的遠距灰掉寫原因；清單會捲
+ assert.deepEqual(await p.locator('.meta-opt').evaluateAll(s=>s.map(x=>[x.dataset.aim,x.disabled,x.querySelector('small')?.textContent||''])),
+  [['m:careful',false,'範圍法術不打自己人'],['m:quick',false,'改用免費動作放（共 2 個免費動作）'],['m:far',true,'貼身或對自己放的不能加']]);
+ assert(await p.locator('.meta-list').evaluate(e=>e.scrollHeight>e.clientHeight&&getComputedStyle(e).overflowY==='auto'),'清單可以上下捲');
+ // 實際點：點瞬發換掉謹慎，再點取消
+ await p.locator('[data-aim="m:quick"]').scrollIntoViewIfNeeded();await p.locator('[data-aim="m:quick"]').tap();assert.equal(await p.evaluate(()=>B().mode.meta),'quick');
+ await p.locator('[data-aim="m:quick"]').tap();assert.equal(await p.evaluate(()=>B().mode.meta),null,'再點取消');
  // 法器戲法（火焰箭這類免費戲法）：只有遠距能選，其他灰掉寫原因
  const cantrip=await p.evaluate(()=>{const u=cur();const sk={...learnedSkillByKey('shocking_grasp'),def:{...learnedSkillByKey('shocking_grasp').def,free:true}};return META_ALL.map(m=>metaReason(u,sk,m));});
  assert.deepEqual(cantrip,['只對範圍法術有用','本來就是免費動作','']);
