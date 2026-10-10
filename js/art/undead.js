@@ -34,7 +34,7 @@ ARMOR_ART["吸血鬼禮服"] = {body:UNDEAD_ART.vampDress, neck:UNDEAD_ART.vampP
 // 殭屍、幽靈：整隻一張圖，共用紙娃娃的外框（左右、走路、受傷、倒下）
 function undeadStaticDollSVG(o){
   const kind=o.look.kind, hurt=o.down||o.anim?.k==="hurt";
-  let art=UNDEAD_ART[kind];
+  let art=o.look.art||UNDEAD_ART[kind];   // o.look.art：beasts.js 的六隻（10-10）
   if(hurt) art=art.replace(/<ellipse cx="(59|81)" cy="(4[68])"[^>]*\/>/g,(m,x,y)=>`<path d="M${x-6} ${y-6} L${+x+6} ${+y+6} M${+x+6} ${y-6} L${x-6} ${+y+6}" stroke="#2a2630" stroke-width="3" stroke-linecap="round"/>`).replace(/<circle cx="(61|83)" cy="4[78]" r="[0-9.]+" fill="#(f0d398|e8fbf1)"[^>]*\/>/g,"");
   const act=o.walking?"act-walk":o.anim?`act-${o.anim.k}`:"";
   return `<svg class="doll undead-static ${o.down?"dl-down":o.prone?"dl-prone":""}" data-monster="${kind}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face<0?'transform="translate(140 0) scale(-1 1)"':""}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms"><g class="dl-bob">${art}</g></g></g></g></svg>`;
