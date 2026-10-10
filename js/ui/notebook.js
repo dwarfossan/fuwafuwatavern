@@ -21,7 +21,7 @@ function notebookPageHTML(u,b,rest=false){
 }
 function restNotebookHTML(b){
  b.restWho=b.restWho||'fox';const u=b.units.find(u=>u.id===b.restWho&&u.side==='pc');
- return `<div class="rest-box"><div class="tabs rest-heads" role="tablist">${CRITTERS.map(c=>`<button class="tab ${c.id===b.restWho?'on':''}" data-rest-who="${c.id}" role="tab" aria-selected="${c.id===b.restWho}">${critterHead(c.id)}<span>${c.name}</span></button>`).join('')}</div><div class="gear-tabs"><span class="gear-tab on">小筆記</span></div>${notebookPageHTML(u,b,true)}${campPickerHTML(b)}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?'disabled':''}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
+ return `<div class="rest-box">${campPickerHTML(b)}<div class="tabs rest-heads" role="tablist">${CRITTERS.map(c=>`<button class="tab ${c.id===b.restWho?'on':''}" data-rest-who="${c.id}" role="tab" aria-selected="${c.id===b.restWho}">${critterHead(c.id)}<span>${c.name}</span></button>`).join('')}</div><div class="gear-tabs"><span class="gear-tab on">小筆記</span></div>${notebookPageHTML(u,b,true)}<div class="rest-actions"><button class="btn small" id="shortRest" ${state.shortRestsUsed>=2?'disabled':''}>短休：熟練格每階回一半（今日 ${state.shortRestsUsed}/2）</button><button class="btn small" id="longRest">長休：熟練格回滿</button></div></div>`;
 }
 function restPickSelections(b){
  const out={};b.units.filter(u=>u.side==='pc').forEach(u=>out[u.id]=b.restPicks?.[u.id]??(u.pendingLearned||[]).map(n=>n.key));return out;

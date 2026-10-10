@@ -14,7 +14,7 @@ const br=await chromium.launch();try{
  // 進城第一晚：進旅店直接到休息畫面、只能長休、不能離開
  await p.evaluate(()=>{state.innNightDone=false;state.townPlace=null;state.townPanel=null;render();});
  await p.locator('[data-town-place="inn"]').tap();
- assert.equal(await p.locator('.inn-first-hint').count(),1);assert(await p.locator('#longRest').isVisible());assert(!(await p.locator('#shortRest').isVisible()));assert(!(await p.locator('#townServiceBack').isVisible()));assert(!(await p.locator('#townStreet').isVisible()));
+ assert.equal(await p.locator('.inn-tutor-tip').count(),1);assert.equal(await p.locator('.inn-tutor-mask').count(),1);assert(await p.locator('#longRest').isVisible());assert(!(await p.locator('#shortRest').isVisible()));assert(!(await p.locator('#townServiceBack').isVisible()));assert(!(await p.locator('#townStreet').isVisible()));
  await p.waitForTimeout(1000);assert.equal(await p.evaluate(()=>B()),null);assert.deepEqual(errors,[]);
  if(process.env.REVIEW_SHOT)await p.screenshot({path:process.env.REVIEW_SHOT});console.log('✓ #town直達四店、準備屬性裝備／旅店資料、購物／商人事件／休息、沒有戰場計時器');
 }finally{await br.close();}

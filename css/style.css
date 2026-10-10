@@ -1369,11 +1369,16 @@ body.image-boot{background:#000}
 
 /* 進城第一晚（10-10）：只能長休，不能離開旅店 */
 .inn-first-night #shortRest,.inn-first-night #townServiceBack,.inn-first-night #townStreet{display:none}
-.inn-first-hint{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:rgba(242,180,65,.18);color:var(--honey,#f2b441);font-weight:700}
+.inn-tutor-mask{position:fixed;inset:0;background:rgba(10,8,14,.62);z-index:50}
+.inn-tutor-tip{position:fixed;left:16px;right:16px;top:30%;z-index:52;padding:12px 14px;border-radius:14px;background:#fffaf0;color:#2a2630;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.inn-tutor-tip b{display:block;margin-bottom:4px;color:#b36b1f}.inn-tutor-tip p{margin:0;line-height:1.5;color:#2a2630}
+.inn-first-night #longRest{position:relative;z-index:51;box-shadow:0 0 0 4px #f2b441,0 0 18px 4px #f2b441}
 .scene-art[data-art="inn"]{background:radial-gradient(circle at 50% 40%,#5a4636 0%,#3a2c26 55%,#241c1a 100%)}
 /* 露營（10-10）：休息框裡挑一隻去找食材；露營 CG 的夜晚營地底色 */
 .camp-pick{margin:8px 0;font-size:13px}
 .camp-pick .camp-heads{display:flex;gap:6px;margin-top:4px}
-.camp-pick .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px}
-.camp-pick .tab .c-head{width:34px;height:34px}
+.camp-pick{padding:6px 8px;border-radius:10px;background:rgba(242,180,65,.14)}
+.camp-pick .camp-who{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;padding:3px 2px;border:2px solid transparent;border-radius:999px;background:#fff;font-size:12px;color:#2a2630}
+.camp-pick .camp-who .c-head{width:24px;height:24px}
+.camp-pick .camp-who.on{border-color:#f2b441;background:#fff1cf;font-weight:700}
 .scene-art[data-art^="camp"]{background:radial-gradient(circle at 50% 55%,#5a3a22 0%,#2c2230 55%,#18151f 100%)}

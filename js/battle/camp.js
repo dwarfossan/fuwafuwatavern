@@ -13,7 +13,7 @@ const campWild = b => !!b && b===B() && b.phase==="explore";
 function campPickerHTML(b){
   if(!campWild(b)) return "";
   b.campWho ||= "wolf";
-  return `<div class="camp-pick"><b>${CAMP_TEXT.pick}</b><div class="camp-heads">${CRITTERS.map(c=>`<button class="tab ${c.id===b.campWho?"on":""}" data-camp-who="${c.id}">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div></div>`;
+  return `<div class="camp-pick"><b>${CAMP_TEXT.pick}</b><div class="camp-heads">${CRITTERS.map(c=>`<button class="camp-who ${c.id===b.campWho?"on":""}" data-camp-who="${c.id}" aria-pressed="${c.id===b.campWho}">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div></div>`;
 }
 // 長休結算完才擲：先結算（清掉上一餐），再決定這一餐
 function startCamp(b){

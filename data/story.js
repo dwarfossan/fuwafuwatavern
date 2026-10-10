@@ -310,7 +310,7 @@ const TOWN_WHERE_NEXT = [
 // 旅店長休（大爺 10-10）：按長休後切旅店 CG，四隻交換心得，隔天早上回城鎮。台詞全是香香的草稿（draft），等大爺改
 const INN_REST = [
   {who:"narr", art:"inn", draft:"香香", text:"旅店的床鋪軟呼呼的。今天發生的事，好像還在腦袋裡打轉。"},
-  {who:"tiger", art:"inn", draft:"香香", mood:"happy", text:"床！是床！比酒館的稻草堆軟一百倍！"},
+  {who:"tiger", art:"inn", draft:"香香", mood:"happy", text:"床！是床！整個人都陷下去了——！"},
   {who:"fox", art:"inn", draft:"香香", mood:"content", text:"今天看到的招式，我都記在小筆記裡了。誰要抄，排隊。"},
   {who:"wolf", art:"inn", draft:"香香", mood:"sigh", text:"……先說好，抄完就睡。明天還要早起。"},
   {who:"raccoon", art:"inn", draft:"香香", mood:"sly", text:"我比較想知道，明天的早餐有什麼。"},
