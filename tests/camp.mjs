@@ -12,9 +12,10 @@ try{
  const openRest=async()=>{await p.evaluate(()=>{const b=B();b.exploreRest=true;b.busy=false;b.exploreStopped=false;refreshBattle();});};
  // 成功：Math.random 固定 → d20=20、食材抽第 2 種（香草湯）
  await openRest();
- assert.equal(await p.locator('[data-camp-who]').count(),4);await p.locator('[data-camp-who="fox"]').tap();
+ assert.equal(await p.locator('[data-camp-who]').count(),0);await p.locator('#longRest').tap();   // 按長休之後才問誰去找食材
+ assert.equal(await p.locator('[data-camp-who]').count(),4);
  await p.evaluate(()=>{window.__r=Math.random;let n=0;Math.random=()=>[.99,.3][n++]??.5;});
- await p.locator('#longRest').tap();await p.evaluate(()=>{Math.random=window.__r;});
+ await p.locator('[data-camp-who="fox"]').tap();await p.evaluate(()=>{Math.random=window.__r;});
  const g=await p.evaluate(()=>({page:state.page,scene:state.scene,camp:state.camp,buff:state.cookBuff,meal:B().units.filter(u=>u.side==='pc').every(u=>u.statuses.some(s=>s.k==='meal'&&s.food==='soup'))}));
  assert.deepEqual([g.page,g.scene,g.camp.who,g.camp.result,g.camp.food],['story','camp','fox','good','soup']);assert(g.meal);assert.equal(Object.values(g.buff).length,4);
  assert.equal(await p.locator('.scene-art.on[data-art="campGood"]').count(),1);ok('玲玲找到香草：吃得好的 CG、全隊得到香草湯');
@@ -31,7 +32,7 @@ try{
  assert.equal(fx.ac,1);assert.equal(fx.luck,3);assert.equal(fx.badge,'meal');assert.match(fx.explain,/香草湯/);assert(fx.downGone);
  ok('野莓派 AC +1、蘑菇燉菜好運 +1、料理圖示與說明、生命歸零效果消失');
  // 擲出 1：煮砸 CG、沒有效果；長休清掉上一餐
- await openRest();await p.evaluate(()=>{window.__r=Math.random;Math.random=()=>0;});await p.locator('#longRest').tap();await p.evaluate(()=>{Math.random=window.__r;});
+ await openRest();await p.locator('#longRest').tap();await p.evaluate(()=>{window.__r=Math.random;Math.random=()=>0;});await p.locator('[data-camp-who="tiger"]').tap();await p.evaluate(()=>{Math.random=window.__r;});
  const bad=await p.evaluate(()=>({r:state.camp.result,buff:Object.keys(state.cookBuff||{}).length}));assert.deepEqual(bad,{r:'bad',buff:0});
  assert.equal(await p.locator('.scene-art.on[data-art="campBad"]').count(),1);ok('擲出 1：煮砸 CG、沒有料理效果（上一餐也在長休時結束）');
  assert.deepEqual(errors,[]);ok('沒有錯誤');

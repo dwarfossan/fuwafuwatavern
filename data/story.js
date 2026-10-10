@@ -335,7 +335,7 @@ const CAMP_FOODS = {
   mushroom:{ingredient:"幸運蘑菇", dish:"蘑菇燉菜", effect:"好運骰 +1 顆"}
 };
 const CAMP_TEXT = {draft:"香香",
-  pick:"長休時，誰去找食材？（感知檢定 DC 12）",
+  pick:"誰去找食材？（感知檢定 DC 12）",
   go:{fox:"我去。照書上寫的，這種林子邊最好找東西。", tiger:"我去我去！我鼻子超靈的！", wolf:"……我去。你們把火顧好。", raccoon:"我去。找東西，我最拿手。"},
   // 找到了：每隻帶回來的說法（{i}＝食材）
   found:{fox:"我照書上說的找，{i}就長在那裡。很合理。", tiger:"我找到{i}了！還順便追了一隻松鼠！牠跑掉了！", wolf:"……{i}。氣味沒錯，可以吃。", raccoon:"{i}。不要問我從哪拿的。"},

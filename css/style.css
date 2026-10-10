@@ -1375,10 +1375,7 @@ body.image-boot{background:#000}
 .inn-first-night #longRest{position:relative;z-index:51;box-shadow:0 0 0 4px #f2b441,0 0 18px 4px #f2b441}
 .scene-art[data-art="inn"]{background:radial-gradient(circle at 50% 40%,#5a4636 0%,#3a2c26 55%,#241c1a 100%)}
 /* 露營（10-10）：休息框裡挑一隻去找食材；露營 CG 的夜晚營地底色 */
-.camp-pick{margin:8px 0;font-size:13px}
-.camp-pick .camp-heads{display:flex;gap:6px;margin-top:4px}
-.camp-pick{padding:6px 8px;border-radius:10px;background:rgba(242,180,65,.14)}
-.camp-pick .camp-who{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;padding:3px 2px;border:2px solid transparent;border-radius:999px;background:#fff;font-size:12px;color:#2a2630}
-.camp-pick .camp-who .c-head{width:24px;height:24px}
-.camp-pick .camp-who.on{border-color:#f2b441;background:#fff1cf;font-weight:700}
+.camp-ask .camp-heads{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.camp-ask .camp-who{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid #f2b441;border-radius:12px;background:#fff8e8;font-size:15px;font-weight:700;color:#2a2630}
+.camp-ask .camp-who .c-head{width:40px;height:40px}
 .scene-art[data-art^="camp"]{background:radial-gradient(circle at 50% 55%,#5a3a22 0%,#2c2230 55%,#18151f 100%)}

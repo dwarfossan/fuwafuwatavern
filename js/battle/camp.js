@@ -10,11 +10,13 @@ function clearMeals(b){ state.cookBuff = {}; (b?.units||[]).forEach(u=>{ u.statu
 // 生命歸零：這隻的料理效果消失（狀態在昏迷時已經整個清掉）
 function loseMeal(u){ if(state.cookBuff && state.cookBuff[u.id]) delete state.cookBuff[u.id]; }
 const campWild = b => !!b && b===B() && b.phase==="explore";
+// 按長休之後才問誰去找食材（大爺 10-10）：結算完跳出四隻頭像，選了才擲骰、進露營劇情
 function campPickerHTML(b){
-  if(!campWild(b)) return "";
-  b.campWho ||= "wolf";
-  return `<div class="camp-pick"><b>${CAMP_TEXT.pick}</b><div class="camp-heads">${CRITTERS.map(c=>`<button class="camp-who ${c.id===b.campWho?"on":""}" data-camp-who="${c.id}" aria-pressed="${c.id===b.campWho}">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div></div>`;
+  if(!b?.campChoosing) return "";
+  return `<div class="bt-ov bt-react camp-ask" role="dialog" aria-live="assertive"><h3>${CAMP_TEXT.pick}</h3><div class="camp-heads">${CRITTERS.map(c=>`<button class="camp-who" data-camp-who="${c.id}">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div></div>`;
 }
+function askCamp(b){ b.campChoosing = true; refreshBattle(); }
+function pickCamp(id){ const b = B(); if(!b?.campChoosing) return; b.campChoosing = false; b.campWho = id; startCamp(b); }
 // 長休結算完才擲：先結算（清掉上一餐），再決定這一餐
 function startCamp(b){
   const u = b.units.find(v=>v.id===b.campWho && v.side==="pc") || b.units.find(v=>v.side==="pc");
