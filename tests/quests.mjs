@@ -53,7 +53,7 @@ const br=await chromium.launch();try{
 
  // 怪物技能：每一招放一次，看效果、沒有錯誤
  await noLuck(p);
- const keys=await p.evaluate(()=>Object.values(ENEMIES).filter(e=>e.special).map(e=>e.special).filter((k,i,a)=>a.indexOf(k)===i));
+ const keys=await p.evaluate(()=>Object.values(ENEMIES).filter(e=>e.special&&e.stars).map(e=>e.special).filter((k,i,a)=>a.indexOf(k)===i));
  for(const key of keys){
   const res=await p.evaluate(async key=>{
    const type=Object.keys(ENEMIES).find(k=>ENEMIES[k].special===key);

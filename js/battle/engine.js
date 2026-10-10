@@ -78,11 +78,11 @@ function startBattle(id, retry=false, phase="combat"){
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
       id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
-      x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
+      x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, testSkill:f.testSkill||null, testSkillUsed:false,
       resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
-      learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name,innate:true})), activeSkills:[...(e.passives||[])],
+      learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])],
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
     });
   });
@@ -93,7 +93,7 @@ function startBattle(id, retry=false, phase="combat"){
     const d = NPCS[n.type];
     units.push({
       id:"npc"+i, side:"npc", type:n.type, name:d.name, look:d.look,
-      x:n.x, y:n.y, hp:d.hp, maxHp:d.hp, scores:{...d.scores}, mods:abilityMods(d), baseAc:d.ac, innate:[],
+      x:n.x, y:n.y, hp:d.hp, maxHp:d.hp, scores:{...d.scores}, mods:abilityMods(d), baseAc:d.ac,
       weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpack:[], backpackEquip:null,
       speed:d.speed, statuses:[], level:1, down:false, face:n.face||1, oaUsed:false, slots:[0]
     });

@@ -1,9 +1,9 @@
 /* ======================== 狀態 ======================== */
 const STARTER_NOTES = {
-  fox:[{key:"shield_spell",name:"護盾術",innate:false,from:"起始技能",lv:1}],
-  tiger:[{key:"sunder",name:"破甲",innate:false,from:"起始技能",lv:1}],
-  wolf:[{key:"hunters_mark",name:"狩印",innate:false,from:"起始技能",lv:1}],   // 10-09 大爺：瞄準射擊改狩印
-  raccoon:[{key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}]
+  fox:[{key:"shield_spell",name:"護盾術",from:"起始技能",lv:1}],
+  tiger:[{key:"sunder",name:"破甲",from:"起始技能",lv:1}],
+  wolf:[{key:"hunters_mark",name:"狩印",from:"起始技能",lv:1}],   // 10-09 大爺：瞄準射擊改狩印
+  raccoon:[{key:"hamstring",name:"扎腿",from:"起始技能",lv:1}]
 };
 // 10-10：黑暗視覺是毛球族天生（RACE），移出小筆記、不占名額；舊存檔裡的那一筆讀進來時拿掉（raceFreeNotes）
 const starterNotes = id => (STARTER_NOTES[id]||[]).map(x=>({...x}));
@@ -12,7 +12,9 @@ const RACE_NOTE_KEYS = ["darkvision"];
 // 10-10 大爺：舊技能整理，這 20 招刪掉；舊存檔小筆記裡的那幾筆讀進來時一起拿掉
 const REMOVED_SKILL_KEYS = ["power_strike","shield_split","aimed_shot","point_blank","multi_throw","precise_throw","suplex","cure_wounds",
   "cleave","quake","arrow_rain","pierce_shot","guard_stance","bleed","knockback","dash_stab","pin","daze","suppress","topple"];
-const DROPPED_NOTE_KEYS = [...RACE_NOTE_KEYS, ...REMOVED_SKILL_KEYS];
+// 10-10 大爺：天生技能學不走；舊存檔觀察學到的靈巧脫逃讀進來時拿掉
+const INNATE_NOTE_KEYS = ["innate:nimble"];
+const DROPPED_NOTE_KEYS = [...RACE_NOTE_KEYS, ...REMOVED_SKILL_KEYS, ...INNATE_NOTE_KEYS];
 const raceFreeNotes = notes => (notes||[]).filter(n=>!DROPPED_NOTE_KEYS.includes(n.key));
 const raceFreeKeys = keys => (keys||[]).filter(k=>!DROPPED_NOTE_KEYS.includes(k));
 

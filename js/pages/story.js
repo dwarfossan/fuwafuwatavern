@@ -47,7 +47,7 @@ function pickStarterStyle(id, key){
   const st = STARTER_STYLE[id]; if(!st || !st.answers[key]) return;
   state.starterStyle ||= {}; const old = state.starterStyle[id]; state.starterStyle[id] = key;
   let notes = (state.learned[id] || starterNotes(id)).filter(n=>n.key!==old || n.key===key);
-  if(!notes.some(n=>n.key===key)) notes = [...notes, {key, name:learnedSkillByKey(key).def.name, innate:false, from:"起始風格", lv:1}];
+  if(!notes.some(n=>n.key===key)) notes = [...notes, {key, name:learnedSkillByKey(key).def.name, from:"起始風格", lv:1}];
   state.learned[id] = notes;
   const carry = (state.activeSkills[id] || notes.slice(0,5).map(n=>n.key)).filter(k=>k!==old);
   state.activeSkills[id] = carry.includes(key) ? carry : [...carry, key];

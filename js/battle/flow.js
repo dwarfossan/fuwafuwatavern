@@ -464,7 +464,7 @@ function knownOrUnderstood(p,key){
   p.pendingLearned=p.pendingLearned||[];
   return p.learned.some(x=>x.key===key) || p.pendingLearned.some(x=>x.key===key);
 }
-function observedSkill(e,key,name,innate=false){
+function observedSkill(e,key,name){
   const b=B(); if(!b || !e || e.side!=="foe" || !canPerceiveSkill(e))return;
   // 本輪第一個「可學技能」使用者成為一般三隻的觀察對象。
   if(b.observeRound!==b.round){ b.observeRound=b.round; b.observeFoe=null; }
@@ -473,7 +473,7 @@ function observedSkill(e,key,name,innate=false){
   const dc=observeDC(e),party=b.units.filter(v=>v.side==="pc"&&!v.dead);
   const watchers=party.filter(p=>p.id==="raccoon" || e.id===b.observeFoe);
   if(!watchers.length)return;
-  blog(`大家注意到${e.name}使出【${name}】（${innate?"天生能力":"招式"}，學習 DC ${dc}）`,"skill");
+  blog(`大家注意到${e.name}使出【${name}】（招式，學習 DC ${dc}）`,"skill");
 
   watchers.forEach(p=>{
     if(knownOrUnderstood(p,key)){
@@ -485,14 +485,14 @@ function observedSkill(e,key,name,innate=false){
     const r1=d20(), r2=p.id==="wolf"?d20():null, roll=r2===null?r1:Math.max(r1,r2);
     const total=roll+(p.mods.WIS||0),ok=total>=dc;
     if(ok){
-      const learned={key,name,innate,from:e.type||e.name,lv:Math.max(1,e.level||1)}; // lv：學到時那隻怪的等級，之後向玲玲學沿用這個難度
+      const learned={key,name,from:e.type||e.name,lv:Math.max(1,e.level||1)}; // lv：學到時那隻怪的等級，之後向玲玲學沿用這個難度
       p.pendingLearned.push(learned);
     }
     blog(`　${ok?"!":"?"} ${p.name}：${ok?"理解了！":"沒看懂"}`,ok?"skill":"miss");
     obsMark(p,ok?"ok":"fail");
   });
 }
-function observeInnate(e,key,name){observedSkill(e,`innate:${key}`,name,true);}
+// 天生技能（哥布林的靈巧脫逃、委託怪物的技能）小傢伙們觀察學不走（大爺 10-10），不呼叫 observedSkill
 
 
 // ---------- 休息／小筆記 ----------
@@ -796,9 +796,9 @@ function doUnnet(u){
   if(u.side==="pc") afterShow(u, 700); else refreshBattle();
 }
 // 靈巧脫逃（哥布林的天生能力，免費動作）：撤離或躲藏
-const nimble = u => (u.innate||[]).includes("nimble") && freeLeft() && u===cur();   // 只用免費那格，主動作留著出手
-function nimbleDisengage(u){ if(!nimble(u) || !freeLeft()) return false; observeInnate(u,"nimble","靈巧脫逃"); spendFree(u); addStatus(u, "disengage", {until:"end", of:u.id}); blog(`${u.name}靈巧脫逃：撤離！`, "skill"); return true; }
-function nimbleHide(u){ if(!nimble(u) || !freeLeft() || u.dead || u.down || hideBlock(u)) return false; observeInnate(u,"nimble","靈巧脫逃"); spendFree(u); blog(`${u.name}靈巧脫逃：躲起來！`, "skill"); tryHide(u); return true; }
+const nimble = u => u.special==="nimble" && freeLeft() && u===cur();   // 只用免費那格，主動作留著出手
+function nimbleDisengage(u){ if(!nimble(u) || !freeLeft()) return false; spendFree(u); addStatus(u, "disengage", {until:"end", of:u.id}); blog(`${u.name}靈巧脫逃：撤離！`, "skill"); return true; }
+function nimbleHide(u){ if(!nimble(u) || !freeLeft() || u.dead || u.down || hideBlock(u)) return false; spendFree(u); blog(`${u.name}靈巧脫逃：躲起來！`, "skill"); tryHide(u); return true; }
 
 // 招式的動作：照「出處」那組的動作；但學來的招用不同類的武器做時（例如拿弓用扎腿），改用手上武器的動作，
 // 這樣遠程才會射出箭、近戰才會揮出去
@@ -880,7 +880,7 @@ function doSkillNow(u, sk, t){
   if(b.explorationMap&&u.side==="pc"&&sk.def.kind!=="輔助"){const targets=Array.isArray(t)?t:sk.impl.target==="cone"?coneUnits(u,t,3):sk.impl.target==="area"?b.units.filter(v=>dist(v,t)<=(sk.impl.radius||1)):sk.impl.target==="line"?lineUnits(u,t,sk.impl.range(u)):[t];targets.forEach(v=>{if(v?.side==="foe")engageExploreSquad(v,u);});}
   if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
-  if(u.side==="foe" && !sk.def.monster && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);
+  if(u.side==="foe" && !sk.def.innate && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
   // 狩印：標記的目標倒下後，改標下一個不用再花格子（SRD：之後的回合可以轉移印記）
   const tier = remarkFree(u, sk) || frenzyFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);

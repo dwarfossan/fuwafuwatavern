@@ -5,8 +5,7 @@
    hp、ac、speed：屬性表數字（AC 直接寫，不照護甲算）
    scores：完整六項屬性值，調整值由共用 modOf 算出；passives：被動技能代號清單（選填）
    resistances、damageImmunities：原始傷害類型的陣列，選填；foes 同名欄位可覆寫。現有敵人未新增抗性。
-   innate：天生能力（跟裝備無關）
-     nimble＝靈巧脫逃（SRD 5.2 哥布林的種族特性）：花免費動作撤離或躲藏 */
+   special：天生技能代號，例如 nimble＝靈巧脫逃（SRD 5.2 哥布林的種族特性：花免費動作撤離或躲藏） */
 /* NPC：站在戰場上、不屬於任何一方（不能被當成目標、不參與先攻、不行動）。行為之後跟劇情一起定
    數值先用 SRD 5.2 的平民（Commoner）：AC 10、生命 4、屬性全 +0 */
 const NPCS = {
@@ -16,18 +15,18 @@ const NPCS = {
 const ENEMIES = {
   // 寶箱怪測試配置 GPT 暫定，原創數值；只沿用徒手與通用動作「推倒」（10-10 大爺：撞倒刪了，改用推撞），不借新版怪物能力。
   world_mimic:{detectRange:6,name:"寶箱怪",look:"mimic",gear:[],hp:7,ac:12,speed:6,xp:0,
-    scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6},innate:[]},
+    scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6}},
   // xp：打倒給的經驗，照 SRD 5.2 挑戰等級（哥布林 1/4＝50）；薩滿血量同哥布林，先同樣 50（暫定，大爺 10-04）
   goblin: {
     detectRange:5, name:"哥布林", look:"goblin", shieldArt:"round_shield", gear:["短劍","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
-    innate:["nimble"],
+    special:"nimble",
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
   },
   goblin_archer: {
     detectRange:7, name:"哥布林弓手", look:"goblin", shieldArt:"round_shield", gear:["短弓","箭袋","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
-    innate:["nimble"],
+    special:"nimble",
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
   },
   // 哥布林薩滿：躲在草叢裡施法（火焰箭、治癒真言、災禍術都來自薩滿圖騰；圖騰被打掉就不能施法）
@@ -35,14 +34,14 @@ const ENEMIES = {
   goblin_shaman: {
     detectRange:6, name:"哥布林薩滿", look:"goblin_shaman", shieldArt:"round_shield", gear:["薩滿圖騰","+1 薩滿袍"],
     hp:7, ac:12, speed:6, xp:50,
-    innate:["nimble"],
+    special:"nimble",
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:14, CHA:10}
   },
 
   /* ===== 10-10 委託用怪物（大爺 10-10：面板＋一個技能，香香定、全部暫定） =====
      本作原創數值（量級參考 SRD 5.1／5.2 的挑戰等級，配合 1～3 級的四小隻調低）；不照抄 SRD 怪物能力
      natural：天生攻擊（沒拿武器時用這個，不會被繳械、不會掉落）{name, dmg:"骰 傷害種類", stat:命中與傷害用的屬性}
-     special：怪物技能代號（data/skills.js 的「怪物技能」組，js/battle/monster.js 實作）；小傢伙們學不走
+     special：天生技能代號（data/skills.js 的「天生技能」組，js/battle/monster.js 實作）；小傢伙們學不走
      stars：委託星等（data/quests.js 用） */
   bat:{detectRange:6,name:"蝙蝠",look:"bat",gear:[],hp:5,ac:12,speed:8,xp:25,stars:1,
     natural:{name:"咬",dmg:"1d4 穿刺",stat:"DEX"},special:"bat_drain",

@@ -311,7 +311,7 @@ function quickBattle(battleId="ambush",phase="combat"){
     // 只影響 #battle；正式進度與固定商隊遭遇不動。
     if(battleId==="random"){
       const notes=raceFreeNotes(state.learned[c.id] || starterNotes(c.id)).map(x=>({...x}));
-      if(!notes.some(x=>x.key==="counterattack")) notes.push({key:"counterattack",name:"反擊",innate:false,from:"測試戰鬥",lv:1});
+      if(!notes.some(x=>x.key==="counterattack")) notes.push({key:"counterattack",name:"反擊",from:"測試戰鬥",lv:1});
       state.learned[c.id]=notes;
       let carried=state.activeSkills[c.id] ? state.activeSkills[c.id].slice() : notes.filter(x=>x.key!=="counterattack").slice(0,4).map(x=>x.key);
       carried=carried.filter((k,i,a)=>k!=="counterattack"&&a.indexOf(k)===i);
@@ -321,7 +321,7 @@ function quickBattle(battleId="ambush",phase="combat"){
       }
       carried.push("counterattack");
       // 10-09：化險（俠盜風格，反應）目前沒有地方學，測試場一起加上；滿了就不加
-      if(!notes.some(x=>x.key==="turn_danger")) notes.push({key:"turn_danger",name:"化險",innate:false,from:"測試戰鬥",lv:1});
+      if(!notes.some(x=>x.key==="turn_danger")) notes.push({key:"turn_danger",name:"化險",from:"測試戰鬥",lv:1});
       if(carried.length<5) carried.push("turn_danger");
       state.activeSkills[c.id]=carried;
     }

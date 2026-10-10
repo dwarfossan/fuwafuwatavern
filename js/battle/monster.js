@@ -1,12 +1,12 @@
-/* 怪物技能（10-10，大爺：每隻怪物一個技能，香香定、全部暫定）
-   資料：data/skills.js 的「怪物技能」組（id、名稱、說明）；怪物身上寫 special（data/enemies.js）
-   這裡：結算（SKILL_IMPL.monster）、動作外觀（SKILL_ANIM.monster）、AI 什麼時候用（MONSTER_AI）
+/* 天生技能（10-10，大爺：每隻怪物一個技能，香香定、全部暫定；怪物技能就是天生技能）
+   資料：data/skills.js 的「天生技能」組（id、名稱、說明）；怪物身上寫 special（data/enemies.js）
+   這裡：結算（SKILL_IMPL.natural）、動作外觀（SKILL_ANIM.natural）、AI 什麼時候用（MONSTER_AI）
    充能：用過後，之後每輪輪到牠時擲 d6，5～6 充好（第一次一定能用）；每場一次（once）用過就沒了
-   小傢伙們觀察學不走（doSkillNow 看 def.monster 跳過觀察） */
+   小傢伙們觀察學不走（doSkillNow 看 def.innate 跳過觀察） */
 const MONSTER_DC = (u, stat) => dcOf(u, stat);
 // 攻擊後看實際扣了多少血（吸血用）
 function hpLost(t, fn){ const before = t.hp; fn(); return Math.max(0, before - t.hp); }
-SKILL_IMPL.monster = [
+SKILL_IMPL.natural = [
   // 吸血（蝙蝠）：咬，命中回復傷害的一半
   {target:"enemy", range:()=>1, run:(u,t)=>{ let r; const lost = hpLost(t, ()=>{ r = weaponAttack(u,t,{}); });
     if(r.hit && lost>1 && !u.dead){ heal(u, Math.floor(lost/2)); blog(`　${u.name}吸了血，回復 ${Math.floor(lost/2)}`, "skill"); } }},
@@ -53,9 +53,11 @@ SKILL_IMPL.monster = [
     hurt(t, saveRoll(t,"CON",MONSTER_DC(u,"INT"),u) ? Math.floor(n/2) : n, "死靈", u); }},
   // 獄火斬（死亡騎士）
   {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
-    if(r.hit && !t.dead && !t.down){ hurt(t, dmgRoll("2d6",0,r.crit), "火焰", u); groundReact(t.x,t.y,"火焰"); } }}
+    if(r.hit && !t.dead && !t.down){ hurt(t, dmgRoll("2d6",0,r.crit), "火焰", u); groundReact(t.x,t.y,"火焰"); } }},
+  {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
+  {passive:true}    // 黑暗視覺：darkvisionRange
 ];
-SKILL_ANIM.monster = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash"];
+SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash"];
 
 // 殭屍：不死韌性（hurt() 打到 0 時呼叫；光耀不能撐）
 function undeadFortitude(t, n, type){

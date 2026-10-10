@@ -174,10 +174,6 @@ const dmgShown = t => DMG_SHOWN[t] || t;
 // 地面反應沿用法術傷害類型，沒有另外一套施法規則。
 Object.values(SKILL_GROUPS).forEach(g=>g.skills.forEach(s=>{if(["火焰箭","寒冷射線","電擊術"].includes(s.name))s.groundElement=true;}));
 
-// 主／被動以是否需要玩家施展分類；天生技能仍使用同一技能資料。
-SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"—",skills:[
- {id:"darkvision",name:"黑暗視覺",activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
-]});
 // 風格被動（10-09）：不屬於任何武器組的放這裡；招式本身寫 style 決定是哪一類風格
 SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",skills:[
  {id:"turn_danger",name:"化險",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,reaction:true,text:"敵人攻擊命中你時，花一個保留的免費動作，讓這次傷害減半。"},
@@ -188,23 +184,26 @@ SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",ski
  {id:"metamagic",name:"超魔",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"施法時多花一個免費動作，加一種加工（一次只能一種）：謹慎（範圍法術不打自己人）、瞬發（主要動作的法術改用免費動作放）、遠距（距離加倍，觸碰變 6 格）。"},
  {id:"weapon_mastery",name:"武器精通",style:"warrior",activation:"passive",kind:"被動",dmg:"",tier:0,text:"用武器攻擊時觸發武器專精（削弱、緩速、擦傷……）。沒帶就不會觸發專精。"}
 ]});
-// 怪物技能（10-10，香香定、數值全部暫定）：只有怪物用；monster:true＝小傢伙們觀察學不走。
+// 天生技能（大爺 10-10：怪物技能就是天生技能）：種族或怪物本身的能力，innate:true＝小傢伙們觀察學不走。
+// 怪物身上用 special 帶（data/enemies.js）；小傢伙們的黑暗視覺是毛球族天生（RACE，js/state.js）。數值全部暫定
 // 「充能」＝用過後每回合開始擲 d6，5～6 再充好（第一次一定能用）。實作在 js/battle/monster.js
-SKILL_GROUPS.push({id:"monster",name:"怪物技能",trait:true,weapons:[],stat:"—",skills:[
- {id:"bat_drain",name:"吸血",monster:true,kind:"近戰",dmg:"物理",tier:0,text:"咬一口；命中後回復造成傷害的一半。"},
- {id:"slime_spit",name:"酸液噴吐",monster:true,kind:"豁免",dmg:"強酸",tier:0,recharge:true,text:"3 格內一個敵人敏捷豁免；失敗受 2d6 強酸傷害，成功減半。充能。免疫強酸。"},
- {id:"loose_bones",name:"散骨",monster:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"箭和刺穿過骨頭縫：穿刺抗性。"},
- {id:"undead_fortitude",name:"不死韌性",monster:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"被打到 0 血時體質豁免（DC＝5＋這次傷害），成功就剩 1 血站著。光耀傷害不能撐。"},
- {id:"bandit_sand",name:"撒沙",monster:true,kind:"豁免",dmg:"",tier:0,once:true,text:"往貼身的敵人臉上撒沙：體質豁免，失敗則下次攻擊有劣勢。每場一次。"},
- {id:"orc_charge",name:"蠻衝",monster:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"衝向 3 格以外的敵人並攻擊；命中後目標力量豁免，失敗倒地。充能。"},
- {id:"ghost_wail",name:"驚嚇哀號",monster:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"4 格內的敵人感知豁免；失敗壓力 +15。充能。"},
- {id:"spider_web",name:"蛛網",monster:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"6 格內一個敵人敏捷豁免；失敗被蛛網纏住（跟網子一樣，花動作力量檢定掙脫）。充能。"},
- {id:"griffin_dive",name:"俯衝",monster:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"飛向 3 格以外的敵人並攻擊，有優勢；命中多 1d8。充能。"},
- {id:"owlbear_hug",name:"熊抱",monster:true,kind:"近戰",dmg:"物理",tier:0,text:"利爪攻擊；命中後目標力量或敏捷豁免，失敗被抓住。已經抓著人時不用。"},
- {id:"chimera_breath",name:"火焰吐息",monster:true,kind:"豁免",dmg:"火焰",tier:0,recharge:true,text:"前方 3 格錐形敏捷豁免；失敗受 3d6 火焰傷害，成功減半。充能。"},
- {id:"vampire_bite",name:"吸血鬼之咬",monster:true,kind:"近戰",dmg:"死靈",tier:0,recharge:true,text:"咬貼身的敵人；命中多 2d6 死靈傷害，並回復同樣的生命值。充能。"},
- {id:"lich_whisper",name:"死亡低語",monster:true,kind:"豁免",dmg:"死靈",tier:0,recharge:true,text:"8 格內一個看得到的敵人體質豁免；失敗受 3d8 死靈傷害，成功減半。充能。"},
- {id:"dk_hellstrike",name:"獄火斬",monster:true,kind:"近戰",dmg:"火焰",tier:0,recharge:true,text:"騎士劍攻擊；命中多 2d6 火焰傷害。充能。"}
+SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"—",skills:[
+ {id:"bat_drain",name:"吸血",innate:true,kind:"近戰",dmg:"物理",tier:0,text:"咬一口；命中後回復造成傷害的一半。"},
+ {id:"slime_spit",name:"酸液噴吐",innate:true,kind:"豁免",dmg:"強酸",tier:0,recharge:true,text:"3 格內一個敵人敏捷豁免；失敗受 2d6 強酸傷害，成功減半。充能。免疫強酸。"},
+ {id:"loose_bones",name:"散骨",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"箭和刺穿過骨頭縫：穿刺抗性。"},
+ {id:"undead_fortitude",name:"不死韌性",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"被打到 0 血時體質豁免（DC＝5＋這次傷害），成功就剩 1 血站著。光耀傷害不能撐。"},
+ {id:"bandit_sand",name:"撒沙",innate:true,kind:"豁免",dmg:"",tier:0,once:true,text:"往貼身的敵人臉上撒沙：體質豁免，失敗則下次攻擊有劣勢。每場一次。"},
+ {id:"orc_charge",name:"蠻衝",innate:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"衝向 3 格以外的敵人並攻擊；命中後目標力量豁免，失敗倒地。充能。"},
+ {id:"ghost_wail",name:"驚嚇哀號",innate:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"4 格內的敵人感知豁免；失敗壓力 +15。充能。"},
+ {id:"spider_web",name:"蛛網",innate:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"6 格內一個敵人敏捷豁免；失敗被蛛網纏住（跟網子一樣，花動作力量檢定掙脫）。充能。"},
+ {id:"griffin_dive",name:"俯衝",innate:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"飛向 3 格以外的敵人並攻擊，有優勢；命中多 1d8。充能。"},
+ {id:"owlbear_hug",name:"熊抱",innate:true,kind:"近戰",dmg:"物理",tier:0,text:"利爪攻擊；命中後目標力量或敏捷豁免，失敗被抓住。已經抓著人時不用。"},
+ {id:"chimera_breath",name:"火焰吐息",innate:true,kind:"豁免",dmg:"火焰",tier:0,recharge:true,text:"前方 3 格錐形敏捷豁免；失敗受 3d6 火焰傷害，成功減半。充能。"},
+ {id:"vampire_bite",name:"吸血鬼之咬",innate:true,kind:"近戰",dmg:"死靈",tier:0,recharge:true,text:"咬貼身的敵人；命中多 2d6 死靈傷害，並回復同樣的生命值。充能。"},
+ {id:"lich_whisper",name:"死亡低語",innate:true,kind:"豁免",dmg:"死靈",tier:0,recharge:true,text:"8 格內一個看得到的敵人體質豁免；失敗受 3d8 死靈傷害，成功減半。充能。"},
+ {id:"dk_hellstrike",name:"獄火斬",innate:true,kind:"近戰",dmg:"火焰",tier:0,recharge:true,text:"騎士劍攻擊；命中多 2d6 火焰傷害。充能。"},
+ {id:"nimble",name:"靈巧脫逃",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"免費動作撤離或躲藏（每回合用免費動作那格）。"},
+ {id:"darkvision",name:"黑暗視覺",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
 
