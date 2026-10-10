@@ -1091,10 +1091,13 @@ function aimHTML(u, b){
     rows.push(`${b.tierOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(tier)}${toggle}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
   }
   // 超魔（大爺 10-09）：一次只能選一種，再點一次取消；免費動作不夠的灰掉。文字、外觀暫定（香香）
-  // 超魔（大爺 10-10）：三種都列在一個可以上下捲的小清單（像商店清單的捲軸），點一下選、再點取消；用不到的灰掉寫原因
-  if(metas){ const desc = {careful:"範圍法術不打自己人", quick:"改用免費動作放（共 2 個免費動作）", far:"距離加倍，觸碰變 6 格"};
-    rows.push(`<div class="aim-meta"><small>超魔（+1 免費動作）</small><div class="meta-list">${META_ALL.map(m=>{ const why = metaReason(u, sk, m), on = b.mode.meta===m;
-      return `<button class="mn-b meta-opt ${on?"on":""}" data-aim="m:${m}" ${why?"disabled":""}><span>${META_NAME[m]}</span><small>${why||desc[m]}</small></button>`; }).join("")}</div></div>`); }
+  // 超魔（大爺 10-10）：跟選階同一套折疊（aim-tiers／aim-cur／aim-tgl）：平常一行顯示選了什麼，點「＋」往上展開三項；
+  // 選好就收起來，選中的再點一次取消；用不到的灰掉，右邊寫原因
+  if(metas){ const m0 = b.mode.meta, desc = {careful:"不打隊友", quick:"2 免費動作", far:"距離×2"};
+    const chip = m => { const why = m ? metaReason(u, sk, m) : "";
+      return `<button class="mn-b aim-tier ${m===m0||(!m&&!m0)?"on":""}" data-aim="m:${m||"none"}" ${why?"disabled":""}><span>${m?META_NAME[m]:"不用"}</span><small>${m?(why||desc[m]):"超魔"}</small></button>`; };
+    const others = [...META_ALL].reverse().filter(m=>m!==m0).map(chip); if(m0) others.push(chip(null));
+    rows.push(`${b.metaOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(m0)}<button class="mn-b aim-tgl" data-aim="mtoggle" aria-label="${b.metaOpen?"收起":"展開"}超魔">${b.metaOpen?"×":"＋"}</button></div>`); }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
   if(self) rows.push(`<button class="mn-b ok" data-aim="cast"><span>施放</span></button>`);
@@ -1494,7 +1497,7 @@ function bindBattle(){
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-sltoggle]").forEach(el=>battleListen(el,"click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
-    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a.startsWith("m:")) aimMeta(a.slice(2)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
+    if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a==="mtoggle") aimMetaToggle(); else if(a.startsWith("m:")) aimMeta(a.slice(2)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));
   document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
   document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));

@@ -239,7 +239,7 @@ function pickSkill(key){
   if(!sk || sk.impl.passive || !skillReady(u,sk)) return;
   if(sk.impl.can && !sk.impl.can(u)){ blog(`${sk.def.name}：${sk.impl.why}`); refreshBattle(); return; }
   // 用最低階的格子；對自己放、又沒得選（不能升階或只剩一種格子）：直接施放；能選的先進瞄準列，選好用哪一階再按「施放」
-  b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier); b.tierOpen = false;
+  b.tier = lowestTier(u, sk); b.up = upOf(u, sk, b.tier); b.tierOpen = false; b.metaOpen = false;
   if(sk.impl.target==="self" && !(canUp(sk) && tiersFor(u, sk).length > 1) && !metaOptions(u, sk).length){ doSkill(u, sk, u); return; }
   b.mode = (b.mode && b.mode.key===key) ? null : {key, darts:[]};
   b.menu = b.mode ? null : "act";
@@ -262,8 +262,9 @@ function metaOptions(u, sk){
 const META_ALL = ["careful","quick","far"];
 const metaShown = (u, sk) => !!sk && isSpellSkill(sk) && passiveSkills(u).some(s=>s.key==="metamagic");
 function metaReason(u, sk, m){
-  if(!metaOptions(u, sk).includes(m)) return m==="careful" ? "只對範圍法術有用" : m==="quick" ? "本來就是免費動作" : "貼身或對自己放的不能加";
-  return metaAffordable(u, sk, m) ? "" : `免費動作不夠（要 ${m==="quick"?2:1} 個）`;
+  // 原因要塞進選階同款的小按鈕，寫短（大爺 10-10 用折疊）
+  if(!metaOptions(u, sk).includes(m)) return m==="careful" ? "限範圍法術" : m==="quick" ? "已是免費動作" : "不能加距離";
+  return metaAffordable(u, sk, m) ? "" : "免費動作不夠";
 }
 // 選了這個加工夠不夠免費動作：加工本身一個；瞬發另外再一個（法術改用免費動作放）
 const metaAffordable = (u, sk, m) => freeRemaining() >= (m==="quick" ? 2 : 1);
@@ -272,10 +273,12 @@ const metaOf = (u, sk) => { const b = B(), m = b.mode && b.mode.key===sk.key ? b
 function skillRange(u, sk){ const r = sk.impl.range ? sk.impl.range(u) : 0; return metaOf(u, sk)==="far" ? (r<=1 ? 6 : r*2) : r; }
 function aimMeta(m){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
-  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!metaOptions(u, sk).includes(m)) return;
-  if(b.mode.meta===m) b.mode.meta = null; else if(metaAffordable(u, sk, m)) b.mode.meta = m; else return;
-  sfx("pop"); refreshBattle();
+  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk) return;
+  if(m==="none" || b.mode.meta===m) b.mode.meta = null;          // 選「不用」或再點一次：取消
+  else if(!metaReason(u, sk, m)) b.mode.meta = m; else return;
+  b.metaOpen = false; sfx("pop"); refreshBattle();              // 跟選階一樣：選好就收起來
 }
+function aimMetaToggle(){ const b = B(); if(!b.mode || b.busy) return; b.metaOpen = !b.metaOpen; sfx("pop"); refreshBattle(); }
 function aimTier(t){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk || !canUp(sk) || !tiersFor(u, sk).includes(t)) return;

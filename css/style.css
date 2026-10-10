@@ -800,11 +800,6 @@ button.token:hover{transform:translateY(-2px)}
 .aim-tier span{font-family:var(--font-disp);font-size:16px}
 .aim-tier small{letter-spacing:1px;color:var(--honey);font-size:13px}.aim-tier small i{font-style:normal;color:var(--dim)}
 .aim-tier.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}
-/* 超魔（大爺 10-10；外觀香香暫定）：三項放在可上下捲的小清單，捲軸同商店清單；選中的蜂蜜色框 */
-.aim-meta{display:flex;flex-direction:column;gap:3px}.aim-meta>small{opacity:.8;font-size:12px}
-.meta-list{display:flex;flex-direction:column;gap:4px;max-height:118px;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-width:thin;padding-right:2px}
-.meta-opt{flex:none;flex-direction:column;align-items:flex-start;gap:1px;min-height:44px;text-align:left}
-.meta-opt small{font-size:11px;opacity:.75}.meta-opt.on{border-color:var(--honey);box-shadow:inset 0 0 0 1px var(--honey)}.meta-opt[disabled]{opacity:.45}
 /* 技能頁的分組標題：階數＋那一階剩的格子 */
 .sk-tier{grid-column:1/-1;font-size:13px;color:var(--fur);margin-top:4px}.sk-tier b{letter-spacing:1px;color:var(--honey)}.sk-tier i{font-style:normal;color:var(--dim)}
 .aim-note{margin:0;font-size:13px;color:var(--fur)}.aim-note b{color:var(--honey)}
