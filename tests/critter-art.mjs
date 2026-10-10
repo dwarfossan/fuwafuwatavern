@@ -34,9 +34,9 @@ try{
   const hurt=document.querySelector('#board-scene [data-expression="hurt"]')!==null;
   u.anim=null;b.result='win';refreshBattle();
   const happy=document.querySelector('#board-scene [data-expression="happy"]')!==null;
-  return {checks,changed,sameFloor,hurt,happy};
+  return {checks,moodCount:SVG_CRITTER_MOODS.length,changed,sameFloor,hurt,happy};
  });
- assert.deepEqual(r.checks,[12,12,12,12]);assert(r.changed&&r.sameFloor);assert(r.hurt&&r.happy);
+ assert.deepEqual(r.checks,Array(4).fill(r.moodCount*2));assert(r.changed&&r.sameFloor);assert(r.hurt&&r.happy);
  console.log('✓ 四隻 × 正側臉 × 六表情；紙娃娃、受傷／勝利、只更新場景');
  // 實際手機點角色 HUD，打開原本狀態卡。
  await pg.evaluate(()=>{const b=B();b.result=null;b.phase='explore';b.exploreWho='fox';b.units.forEach(v=>{v.anim=null;v.down=false;v.dead=false;v.svgMood='normal';});refreshBattle();});

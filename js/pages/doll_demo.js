@@ -18,7 +18,7 @@ function renderDollDemo(){
     <div class="demo-ctl">
       <div><b>動作</b>${DEMO_ACT.map(k=>`<button class="btn small" data-demo="anim:${k}">${ACT_NAME[k]}</button>`).join("")}
         <button class="btn small ghost" data-demo="down:">${d.down?"站起來":"倒下"}</button></div>
-      <div><b>表情（暫定）</b>${chips(SVG_CRITTER_MOODS,d.mood||"normal","mood",v=>({normal:"平常",happy:"開心",hurt:"受傷",angry:"生氣",surprised:"驚訝",nervous:"緊張"})[v])}</div>
+      <div><b>表情（暫定）</b>${chips(SVG_CRITTER_MOODS,d.mood||"normal","mood",v=>({normal:"平常",happy:"開心",hurt:"受傷",angry:"生氣",surprised:"驚訝",stressed:"壓力",nervous:"緊張"})[v])}</div>
       <div><b>角色</b>${chips(["party","goblin"], d.who||"party", "who", v=>v==="goblin"?"哥布林":"毛絨絨小隊")}</div>
       <div><b>主手</b>${chips(DEMO_MAIN, d.main, "main", GROUP_NAME)}</div>
       <div><b>副手</b>${chips(DEMO_OFF, d.off, "off", v=>v?GROUP_NAME(v):"空手")}</div>

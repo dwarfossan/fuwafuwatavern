@@ -16,9 +16,47 @@ function browSVG(id, view){
 
 /* 四小隻 SVG 重畫：外觀暫定 GPT（10-03）。平塗、粗黑框，頭部仍為100×100。
    六表情共用 front／side 五官；不更動圖片立繪、裝備錨點或戰鬥規則。 */
-const SVG_CRITTER_MOODS = ["normal","happy","hurt","angry","surprised","nervous"];
+const SVG_CRITTER_MOODS = ["normal","happy","hurt","angry","surprised","nervous","stressed"];
+// 壓力 50 以上的臉（大爺 10-10 給參考圖）：每隻各自一張，失控（100）沿用同一張臉再加紅光、晃動
+function stressedFace(id, side){
+  const ink="#292530", eyes=side?[[39,49,5],[68,47,4.2]]:[[35,51,5],[65,51,5]];
+  const path=(d,color=ink,w=2.8)=>`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const dot=([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r}" fill="${ink}"/><circle cx="${x+1.3}" cy="${y-1.3}" r="1.5" fill="#fff"/>`;
+  const [[lx,ly,lr],[rx,ry,rr]]=eyes;
+  const nx=side?(id==="tiger"?61:86):50, ny=side?(id==="tiger"?64:60):67;
+  const mx=side?(id==="tiger"?61:69):50, my=side?(id==="tiger"?ny+9:76):ny+10;   // 嘴的中心（側臉在口鼻下方）
+  let f=`<ellipse cx="${side?23:25}" cy="63" rx="5" ry="2.5" fill="#e99b9e" opacity=".65"/><ellipse cx="${side?82:75}" cy="${side?59:63}" rx="${side?3.5:5}" ry="2.5" fill="#e99b9e" opacity=".65"/>`;
+  const openMouth=(cx,cy,w,h,fangs)=>`<path d="M${cx-w} ${cy-h*.35}Q${cx} ${cy-h*.6} ${cx+w} ${cy-h*.35}Q${cx+w*.85} ${cy+h} ${cx} ${cy+h}Q${cx-w*.85} ${cy+h} ${cx-w} ${cy-h*.35}Z" fill="#6b2b3a" stroke="${ink}" stroke-width="2.2" stroke-linejoin="round"/>`
+    +`<ellipse cx="${cx}" cy="${cy+h*.68}" rx="${w*.5}" ry="${h*.28}" fill="#e88a9a"/>`
+    +(fangs?`<path d="M${cx-w*.62} ${cy-h*.42}l${w*.18} ${h*.5}l${w*.18} ${-h*.52}Z M${cx+w*.26} ${cy-h*.52}l${w*.18} ${h*.5}l${w*.18} ${-h*.4}Z" fill="#fff" stroke="${ink}" stroke-width="1.1" stroke-linejoin="round"/>`:"");
+  if(id==="fox"){   // 玲玲：一邊挑眉一邊壓眉，咬牙
+    f+=dot(eyes[0])+dot(eyes[1]);
+    f+=path(`M${lx-6} ${ly-8}Q${lx} ${ly-14} ${lx+6} ${ly-9}`)+path(`M${rx-6} ${ry-7}L${rx+6} ${ry-12}`);
+    const w=side?7:9.5, h=side?4:5, x=mx-w, y=my-h;
+    f+=`<rect x="${x}" y="${y}" width="${w*2}" height="${h*2}" rx="1.6" fill="#fff" stroke="${ink}" stroke-width="2.2"/>`;
+    f+=path(`M${x} ${my}h${w*2}`,ink,1.4)+[1,2,3].map(i=>path(`M${x+w*2*i/4} ${y}v${h*2}`,ink,1.4)).join("");
+  }else if(id==="wolf"){   // 香香：平眉、圓眼、波浪嘴、臉頰兩條緊張線（不畫汗滴）
+    f+=dot(eyes[0])+dot(eyes[1]);
+    f+=path(`M${lx-6} ${ly-9}h12`,ink,3)+path(`M${rx-6} ${ry-9}h12`,ink,3);
+    const w=side?3:4;
+    f+=path(`M${mx-w*1.5} ${my}q${w*.375} -2.4 ${w*.75} 0t${w*.75} 0t${w*.75} 0t${w*.75} 0`,ink,2);
+    const cx=side?20:18, cy=side?52:55;
+    f+=path(`M${cx} ${cy}l2.5 5.5M${cx+4} ${cy-1}l2.5 5.5`,ink,1.8);
+  }else if(id==="tiger"){   // 嬌嬌：>< 眼、張大嘴吼、露獠牙
+    f+=path(`M${lx-lr} ${ly-lr}L${lx+lr} ${ly}L${lx-lr} ${ly+lr}`,ink,3)+path(`M${rx+rr} ${ry-rr}L${rx-rr} ${ry}L${rx+rr} ${ry+rr}`,ink,3);
+    f+=openMouth(mx,my,side?9:11,side?8:9,true);
+  }else{   // 默默：死魚眼、O 嘴
+    const brow="#2a1c16";
+    f+=eyes.map(([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r+1.8}" ry="${r}" fill="#f6f0e2" stroke="${ink}" stroke-width="1.8"/>`+path(`M${x-r} ${y-1}h${r*2}`,ink,1.8)+path(`M${x-r+.8} ${y+1.8}h${r*2-1.6}`,ink,1.6)).join("");
+    f+=path(`M${lx-6} ${ly-9}Q${lx} ${ly-11} ${lx+6} ${ly-9}`,brow,2.6)+path(`M${rx-6} ${ry-9}Q${rx} ${ry-11} ${rx+6} ${ry-9}`,brow,2.6);
+    f+=openMouth(mx,my+1,side?3.4:4.2,side?5:6,false);
+  }
+  f+=`<path d="M${nx-4} ${ny-2}Q${nx} ${ny-4} ${nx+4} ${ny-2}Q${nx+3} ${ny+2} ${nx} ${ny+3}Q${nx-3} ${ny+2} ${nx-4} ${ny-2}Z" fill="${id==="tiger"?'#c77e82':ink}"/>`;
+  return `<g class="critter-expression" data-expression="stressed">${f}</g>`;
+}
 function critterExpression(id, view, mood="normal"){
   mood=SVG_CRITTER_MOODS.includes(mood)?mood:"normal";
+  if(mood==="stressed")return stressedFace(id, view==="side");
   const side=view==="side", mask=id==="raccoon", ink="#292530", line=mask?"#fff3dd":ink;
   const eyes=side?[[39,49,5],[68,47,4.2]]:[[35,51,5],[65,51,5]];
   const path=(d,color=line,w=2.8)=>`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
