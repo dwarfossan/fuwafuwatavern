@@ -208,7 +208,10 @@ button.token:hover{transform:translateY(-2px)}
 }
 .stage:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .fp-page .stage{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}   /* 手機點劇情時不要閃一塊點擊底色 */
-.story-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;min-height:38px}\n.sys-tools--story{margin-left:auto;gap:4px}\n.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:45px}\n.wall{position:absolute;inset:0;
+.story-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;min-height:38px}
+.sys-tools--story{margin-left:auto;gap:4px}
+.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:45px}
+.wall{position:absolute;inset:0;
   background:
     radial-gradient(ellipse 45% 55% at 50% 30%, rgba(242,180,65,.28), transparent 70%),
     repeating-linear-gradient(90deg,#3b2a20 0 70px,#33241b 70px 72px,#3f2d22 72px 142px,#2c1f18 142px 144px);}

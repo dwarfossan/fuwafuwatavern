@@ -22,7 +22,8 @@ const SFX = (()=>{
   let muted = false, volume = .7, lastVolume = .7;
   try {
     muted = localStorage.getItem("fuwa-mute")==="1";
-    const v = Number(localStorage.getItem("fuwa-volume"));
+    // 沒存過（第一次玩）就維持預設 .7；以前 Number(null)=0 會讓新玩家整個沒聲音（10-10 修）
+    const raw = localStorage.getItem("fuwa-volume"), v = raw===null ? NaN : Number(raw);
     if(Number.isFinite(v) && v>=0 && v<=1) volume=v;
     if(volume>0) lastVolume=volume;
   } catch(e){}

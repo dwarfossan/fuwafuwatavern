@@ -60,6 +60,7 @@ node tests/critter-art.mjs    # 四隻SVG六表情、換裝相容、受傷／勝
 node tests/impact-timing.mjs # 投射命中時序、地面／身上效果延遲與到期整層清除
 node tests/sfx-routing.mjs   # 實體音效依實際傷害／治療、弓弩命中與守護防禦事件路由
 node tests/bgm-routing.mjs   # BGM 場景 routing：日常、放屁段落、大地圖、戰鬥與勝利
+node tests/system-volume.mjs  # 共用喇叭：第一次玩預設 70%、靜音字樣、拖滑桿三處同步；劇情／戰鬥同一套；酒館牆 CSS
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
 node tests/perception.mjs     # 被動感知、搜索、敵人狀態卡
 node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變
