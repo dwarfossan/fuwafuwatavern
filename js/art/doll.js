@@ -192,10 +192,10 @@ function dollSVG(o){
       <g class="dl-bob">
         <g class="dl-backpack" transform="translate(42 74) scale(.42)">${o.backpack?ITEM_RAW.backpack:""}</g>
         ${L.tail}
-        <path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>
+        ${L.bodyArt ?? `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>`}
         ${L.belly?`<ellipse cx="70" cy="113" rx="13" ry="14" fill="#fbf4ee" opacity=".85"/>`:""}
         ${L.extra||""}
-        <g class="dl-gear-body">${gear.body||""}</g>
+        <g class="dl-gear-body"${L.gearFit?` transform="${L.gearFit}"`:""}>${gear.body||""}</g>
         <g class="dl-gear-neck">${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}</g>
         ${L.head.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}
         ${cheer && L.headHappy ? `<g>${L.headHappy.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}</g>` : ""}
