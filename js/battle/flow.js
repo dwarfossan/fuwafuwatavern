@@ -17,9 +17,10 @@ function nextTurn(){
   if(u.dead || u.down){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）
   if(B().skipTurn){ B().busy = true; refreshBattle(); later(()=>{ if(!B()) return; B().busy = false; if(!checkResult() && cur()===u) endTurn(); }, 1100); return; }
+  if(u.side==="pc" && !u.frenzy && u.stress>=STRESS_MAX) startFrenzy(u);   // 壓力到頂的輪到自己才爆（10-10）
   if(u.side==="pc") sfx("turn");
   refreshBattle();
-  if(u.side==="foe") later(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
+  if(u.side==="foe" || u.frenzy) later(()=>aiTurn(u), foeHid(u) ? 0 : 650);   // 失控的小傢伙也由 AI 接手   // 躲著的不停頓，不然停一下就等於告訴玩家有東西
 }
 
 function beginTurn(u){
@@ -59,9 +60,10 @@ function endTurn(){
   const b = B();
   if(!b || b.result || b.reactPending) return;                 // 傳送回酒館後戰鬥已經不在：還沒跑完的計時器直接收掉
   const u = cur();
-  if(u.side==="pc") u.reserveFree = Math.max(0, 2-(b.freeUsed||0));   // 沒用完的免費動作留到敵人回合當反應（10-09）
+  if(u.side==="pc") u.reserveFree = u.frenzy ? 0 : Math.max(0, 2-(b.freeUsed||0));   // 沒用完的免費動作留到敵人回合當反應（10-09）
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
   groundStatusSave(u);
+  frenzyTurnEnd(u);                                 // 失控的回合結束：擲感知豁免回神（10-10）
   expire("end", u.id);
   b.mode = null;
   if(b.tut===2) b.tut = 3; else if(b.tut===3) b.tut = 4;
@@ -84,7 +86,7 @@ function checkResult(){
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
   if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead&&!u.down)){b.result="lose";blog("四隻都昏迷了……","kill");refreshBattle();return true;}
   if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){wakeAfterBattle();finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ wakeAfterBattle(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
+  if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead && !u.down)){ b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
   return false;
 }
@@ -199,7 +201,7 @@ function checkGuards(e, prev){
 // ---------- 玩家操作 ----------
 function pcMove(x, y){
   const b = B(), u = cur();
-  if(b.busy || b.result || u.side!=="pc") return;
+  if(b.busy || b.result || !playerControlled(u)) return;
   if(b.dazed && b.actionUsed) return;
   const path = reachable(u, b.moveLeft).get(`${x},${y}`);
   if(!path) return;
@@ -232,7 +234,7 @@ function confirmMove(ok){
 // 選技能 → 進入瞄準模式；self 類直接施放
 function pickSkill(key){
   const b = B(), u = cur();
-  if(b.busy || b.result || u.side!=="pc") return;
+  if(b.busy || b.result || !playerControlled(u)) return;
   const sk = unitSkills(u).find(s=>s.key===key);
   if(sk && !skillCanUse(u, sk)) return;
   if(sk && fromTwoHanded(u, sk) && inGrapple(u)){ blog(`${sk.def.name}：擒抱中不能用雙手武器`); refreshBattle(); return; }
@@ -319,7 +321,7 @@ function clickTile(x, y){
   const b = B(); if(!b) return;
   if(b.phase==="explore"){exploreClick(x,y);return;}
   const u = cur(), t0 = unitAt(x, y), t = t0 && foeHid(t0) ? null : t0;
-  const myTurn = u.side==="pc" && !b.busy && !b.result;
+  const myTurn = playerControlled(u) && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
   if(myTurn && b.mode){
     if(b.mode.key==="placeBarrel"){placeBarrel(x,y);return;}
@@ -528,6 +530,7 @@ function takeRest(kind, selections={},b=B()){
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);
     state.proficiency[u.id]=u.slots.slice();
   });
+  restStress(kind);   // 壓力：短休 −10、長休 −30（10-10，暫定）
   if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
@@ -546,7 +549,7 @@ const aimReady = u => passiveSkills(u).some(s=>s.key==="aim") && !B().movedThisT
 function doAim(u){ if(!aimReady(u)) return false; B().moveLeft = 0; addStatus(u, "aiming", {until:"end", of:u.id}); blog(`${u.name}${skillLabel(learnedSkillByKey("aim").def)}：放棄移動，這回合第一次攻擊有優勢`, "skill"); return true; }
 function battleCmd(c){
   const b = B(), u = cur();
-  if(!b || b.busy || b.result || u.side!=="pc") return;
+  if(!b || b.busy || b.result || !playerControlled(u)) return;
   if(b.tut===0) b.tut = 1;
   switch(c){
     case "move": case "act": case "root": case "skills":
@@ -665,6 +668,7 @@ function doHelp(u, t){
     if(ok){ t.hp = 1; t.down = false; sfx("heal"); addStatus(t, "prone", {}); fxFloat(t, "+1", "heal"); fxHit(t, "heal"); blog(`　${t.name}被扶起來了！（生命 1，倒地）`, "heal"); }
   } else {
     addStatus(t, "helped", {until:"start", of:u.id}); sfx("help");
+    if(t.frenzy) t.frenzy.helped = true;   // 失控的隊友被協助：回神豁免有優勢（10-10）
     blog(`${u.name}協助${t.name}：${t.name}下次攻擊有優勢`, "skill");
   }
   afterShow(u, t.down ? 700 : 1000);
@@ -672,7 +676,7 @@ function doHelp(u, t){
 // ---------- 道具（免費動作） ----------
 // 喝的：自己或貼身隊友；丟的：射程內看得到的敵人，或貼身隊友（＝交給他）
 function syncBattleBag(u){
-  if(!u || u.side!=="pc") return;
+  if(!playerControlled(u)) return;
   u.backpack=u.backpack||[];
   // 「道具」不是第二個背包，只是同一背包中可在戰鬥使用的消耗品檢視。
   u.items=u.backpack.filter(it=>it.type==="consumable");
@@ -918,7 +922,7 @@ const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && (s.d
 // 不升階（一律用最低階的格子）；之後頭目會省格子，再加判斷
 function foePick(e, t){
   const sks = foeUsable(e);
-  const aoe = sks.find(s=>AOE_SELF[s.key] && seenPcs().filter(p=>dist(p,e)<=AOE_SELF[s.key](e)).length >= 2);
+  const aoe = sks.find(s=>AOE_SELF[s.key] && seenFoes(e).filter(p=>dist(p,e)<=AOE_SELF[s.key](e)).length >= 2);
   if(aoe) return {sk:aoe, t:e};
   const onT = t ? sks.filter(s=>["enemy","line"].includes(s.impl.target) && validTarget(e, s, t.x, t.y)) : [];
   if(!onT.length) return null;
@@ -928,7 +932,7 @@ function foePick(e, t){
 }
 // 回合開始的免費動作：補血（同伴血掉一半）、舉盾護著被貼身的同伴、敵人靠近時開護盾術、有人要靠近時擺阻截架式
 function foeFreePick(e){
-  const pcs = seenPcs();
+  const pcs = seenFoes(e);
   for(const s of foeUsable(e).filter(s=>s.def.free)){
     if(s.group.id==="shield"){ if(alive(e.side).some(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1))) return {sk:s, t:e}; continue; }   // 守護：旁邊有被貼著的同伴就開
     if(s.impl.target==="ally"){ const t = alive(e.side).filter(o=>o.hp<=o.maxHp/2 && validTarget(e,s,o.x,o.y)).sort((a,c)=>a.hp-c.hp)[0]; if(t) return {sk:s, t}; continue; }
@@ -946,7 +950,7 @@ function foeHit(e, t){
 }
 // 魔法飛彈分目標：每發打「還沒被分到足以打倒的傷害、血最少的」，大家都分夠了就補在血最少的身上（每發平均算 3.5）
 function foeDarts(e, sk, t){
-  const n = sk.impl.darts(), pool = seenPcs().filter(p=>validTarget(e, sk, p.x, p.y)).sort((a,c)=>a.hp-c.hp);
+  const n = sk.impl.darts(), pool = seenFoes(e).filter(p=>validTarget(e, sk, p.x, p.y)).sort((a,c)=>a.hp-c.hp);
   if(!pool.length) return Array(n).fill(t);
   const got = new Map(), out = [];
   for(let i=0;i<n;i++){
@@ -974,7 +978,7 @@ function foeManeuver(e, adj){
   if(freeHand(e) && !victimsOf(e).length){ const m = pick("grapple", shooters); if(m) return m; }
   const casters = adj.filter(p=>!p.weapon && p.focus);
   { const m = pick("disarm", casters); if(m) return m; }
-  const ganged = adj.filter(p=>!has(p,"prone") && alive("foe").some(o=>o!==e && dist(o,p)<=1));
+  const ganged = adj.filter(p=>!has(p,"prone") && alive(e.side).some(o=>o!==e && dist(o,p)<=1));
   { const m = pick("shove_prone", ganged); if(m) return m; }
   return null;
 }
@@ -985,13 +989,14 @@ function foeMelee(e, adj){
   return foeHit(e, adj.sort((a,c)=>a.hp-c.hp)[0]) || 600;
 }
 
-// ---------- 敵人 AI：走向最近的角色，貼身就打 ----------
-const seenPcs = () => alive("pc").filter(p=>!isHid(p));        // 敵人看得到的角色（躲著的不算）
+// ---------- AI：走向最近的對手，貼身就打（敵人＋失控的小傢伙共用，10-10） ----------
+// 看得到的對手（躲著的不算）。AI 敵我共用（10-10：失控的小傢伙也走這套，不打隊友）
+const seenFoes = e => B().units.filter(x=>hostile(x,e) && !x.down && !x.dead && !isHid(x));
 function aiTurn(e){
   if(B()?.reactPending) return;
   const b = B();
   if(!b || b.result || e.dead || !b.units.includes(e)) return;   // 戰鬥不在、或是上一場留下的計時器（重新挑戰後）
-  if(!alive("pc").length){ endTurn(); return; }   // 小傢伙們全昏迷：敵人沒事做（checkResult 會判輸）
+  if(!B().units.some(x=>hostile(x,e) && !x.down && !x.dead)){ endTurn(); return; }   // 對手全倒：沒事做（checkResult 會判輸贏）
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); later(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); later(endTurn, 800); return; }
@@ -1013,13 +1018,13 @@ function aiTurn(e){
       if(sk.impl.target==="self") t=e;
       else if(sk.impl.target==="enemy"){
         const r=sk.impl.range?sk.impl.range(e):1;
-        t=seenPcs().filter(p=>dist(p,e)<=r).sort((a,c)=>a.hp-c.hp)[0]||null;
+        t=seenFoes(e).filter(p=>dist(p,e)<=r).sort((a,c)=>a.hp-c.hp)[0]||null;
       }
       if(t){ e.testSkillUsed=true; doSkill(e,sk,t); later(endTurn,settle(1000)); return; }
     }
   }
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
-  const pcs = seenPcs();
+  const pcs = seenFoes(e);
   if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
   const holder = grapplerOf(e);
   if(holder){
@@ -1037,7 +1042,7 @@ function aiTurn(e){
       blog(`${e.name}衝去撿${grab.d.name}！`);
       b.busy = true;
       walk(e, grab.path, ()=>{ b.busy = false;
-        const r = foeRange(e) || reachOf(e), t = seenPcs().filter(p=>dist(p,e)<=r)[0];
+        const r = foeRange(e) || reachOf(e), t = seenFoes(e).filter(p=>dist(p,e)<=r)[0];
         let wait = 700;
         if(t && !e.dead) wait = foeHit(e, t) || 700;
         refreshBattle(); later(endTurn, wait); });
@@ -1061,7 +1066,7 @@ function aiTurn(e){
   b.busy = true;
   walk(e, steps, ()=>{
     b.busy = false;
-    const near = seenPcs().filter(p=>dist(p,e)<=reachOf(e));
+    const near = seenFoes(e).filter(p=>dist(p,e)<=reachOf(e));
     let wait = 700;
     if(near.length && !e.dead && !(b.dazed && steps.length)){
       // 走過去之後優先處理原本鎖定的那隻（戰技的判斷一樣適用）
@@ -1076,13 +1081,13 @@ function aiTurn(e){
 // 遠程（弓、法器）：被貼身就找一格離大家都至少 2 格、而且最遠的地方退過去；射程內挑好打的出手
 function aiRanged(e, pcs, R){
   const b = B();
-  const nearest = p => Math.min(...seenPcs().map(q=>dist(q,p)));
+  const nearest = p => Math.min(...seenFoes(e).map(q=>dist(q,p)));
   const shoot = ()=>{
     // 跳開途中被打倒（藉機攻擊）或戰鬥已經結束：不射、不留遺言；戰鬥還沒結束就照常換人
     if(e.dead || e.down || b.result){ refreshBattle(); if(!b.result) later(endTurn, settle(700)); return; }
     // 挑好打的：沒掩護、沒躲草叢的優先，再挑血少的
     const hard = p => coverAC(coverOf(e,p)) + (hidden(p) ? 5 : 0);
-    const inRange = seenPcs().filter(p=>dist(p,e)<=R).sort((a,c)=>hard(a)-hard(c) || a.hp-c.hp);
+    const inRange = seenFoes(e).filter(p=>dist(p,e)<=R).sort((a,c)=>hard(a)-hard(c) || a.hp-c.hp);
     let wait = 700;
     if(inRange.length && !e.dead){ wait = foeHit(e, inRange[0]) || 700; nimbleHide(e); }
     else blog(`${e.name}找不到可以射的目標。`);
@@ -1116,7 +1121,7 @@ function aiRanged(e, pcs, R){
 // 4. 射程內看得到角色 → 火焰箭（被貼身先跳開，跟弓手一樣）
 // 5. 都沒有：躲著就靜靜等，現身了就往前靠
 function aiShaman(e){
-  const pcs = seenPcs(), spell = n => foeUsable(e).find(s=>s.def.name===n);
+  const pcs = seenFoes(e), spell = n => foeUsable(e).find(s=>s.def.name===n);
   if(!isHid(e) && e.castLast && !hideBlock(e)){
     e.castLast = false;
     blog(`${e.name}縮回藏身處……`, "skill"); e.anim = {k:"guard", t:Date.now()}; animSfx("guard");
@@ -1146,7 +1151,7 @@ function fxFloat(u, text, cls){ (B().floats = B().floats || []).push({x:u.x, y:u
 
 // 陷阱使用現有 blocks，不新增頁面；AI 暫定在我方離 2～4 格時放在接近路線上。
 function enemyTrapTarget(e){
- if(e.side!=='foe'||e.down||e.dead||!(e.trapCharges>0))return null;const t=seenPcs().filter(p=>dist(e,p)>=2&&dist(e,p)<=4&&exploreSight(e,p)).sort((a,b)=>dist(e,a)-dist(e,b))[0];if(!t)return null;
+ if(e.side!=='foe'||e.down||e.dead||!(e.trapCharges>0))return null;const t=seenFoes(e).filter(p=>dist(e,p)>=2&&dist(e,p)<=4&&exploreSight(e,p)).sort((a,b)=>dist(e,a)-dist(e,b))[0];if(!t)return null;
  return DIRS.map(([dx,dy])=>({x:e.x+dx,y:e.y+dy})).filter(p=>!blocked(p.x,p.y)&&!unitAt(p.x,p.y)&&!B().def.blocks.some(o=>o.x===p.x&&o.y===p.y)&&!groundAvoid(e,p.x,p.y)).sort((a,b)=>dist(a,t)-dist(b,t))[0]||null;
 }
 function placeEnemyTrap(e,p){

@@ -20,7 +20,7 @@ function boardMarkState(){
   const b=B(), d=b.def, u=cur();
   // 可移動／可選目標
   let moveSet = new Map(), tgtSet = new Set(), areaSet = new Set(), range = -1;
-  const myTurn = u && u.side==="pc" && !b.busy && !b.result;
+  const myTurn = playerControlled(u) && !b.busy && !b.result;
   if(myTurn && !b.mode && b.moveMode && !(b.dazed && b.actionUsed)) moveSet = reachable(u, b.moveLeft);
   if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
   else if(myTurn && b.mode && b.mode.key==="placeBarrel"){ range=1;for(let x=0;x<d.w;x++)for(let y=0;y<d.h;y++)if(placeableCell(worldActor(),x,y))tgtSet.add(`${x},${y}`); }
@@ -860,12 +860,14 @@ function tokenSVG(v, active){
   const now = Date.now(), pct = v.hp/v.maxHp;
   const aimed = B().mode && B().aimHover===v.id;
   const doll = unitDoll(v, active);
-  const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>` : doll;
+  const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>`
+    : v.frenzy ? `<g class="frenzy-shake">${doll}</g>` : doll;   // 失控：晃動（10-10）
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
   return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""} ${aimed?"aimed-foe":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
-    <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="#2a2630" stroke="${ring}" stroke-width="3"/>
+    ${v.frenzy?`<ellipse class="frenzy-glow" cx="${cx}" cy="${cy-2}" rx="40" ry="18" fill="#e0443a" opacity=".45"/>`:""}
+    <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="${v.frenzy?"#7a1c1c":"#2a2630"}" stroke="${v.frenzy?"#ff5a4a":ring}" stroke-width="3"/>
     ${body}
     ${burnFX(v, cx, cy)}${statusBodyFX(v,cx,cy)}${fireShieldFX(v, cx, cy)}
   </g>`;
@@ -1256,13 +1258,13 @@ function battleInterfaceHTML(){
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   // 探索中四隻都昏迷時 cur() 挑不到人（10-09 昏迷規則才會走到）：輸掉畫面只需要一個參照，用第一隻
   const u = cur() || b.units.find(v=>v.side==="pc");
-  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""}" style="--c:${v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
+  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""} ${v.frenzy?"frenzy":""}" style="--c:${v.frenzy?"#e0443a":v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${v.side==="pc"?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
   let hint = "";
   const teaching = b.tut>=0 && b.tut<TUTORIAL.length;   // 操作提示只在教學期間顯示
-  if(teaching && u.side==="pc" && !b.busy){
+  if(teaching && playerControlled(u) && !b.busy){
     if(b.pendingMove) hint = "確認移動，或取消回到原位";
     else if(b.mode && b.mode.key==="item") hint = "點紅色格子：敵人＝丟過去，貼身隊友＝交給他（喝的＝餵他）";
     else if(b.mode && GEN_ACT[b.mode.key]) hint = `點紅色格子裡的敵人${GEN_ACT[b.mode.key].name}（點其他地方取消）`;
@@ -1271,7 +1273,7 @@ function battleInterfaceHTML(){
   }
   const hud = b.result || foeHid(u) ? "" : `<div class="bt-hud" style="--c:${u.side==="pc"?u.color:"var(--bad)"}">
     <svg viewBox="0 0 60 60" width="34" height="34">${faceSVG(u,4,4,52)}</svg>
-    <b>${nameFor(u)}${u.side==="foe"?"行動中……":"的回合"}</b>
+    <b>${nameFor(u)}${u.side==="foe"?"行動中……":u.frenzy?"失控中……":"的回合"}</b>
     ${hint?`<span class="hud-hint">${hint}</span>`:""}</div>`;
 
   let ov = "";
@@ -1314,7 +1316,7 @@ function battleInterfaceHTML(){
   }
   // 右下角指令列：我方回合一直在（演出中變淡、不能按）；敵人回合收起來不擋畫面
   let dock = "";
-  const mine = u.side==="pc" && !b.result;
+  const mine = playerControlled(u) && !b.result;
   if(mine){
     if(b.pendingMove && !b.busy) dock = confirmHTML(u, b);
     else if(b.mode && !b.busy) dock = aimHTML(u, b);
@@ -1367,7 +1369,7 @@ function battleLayerKeys(){
   const animPhase=v=>{ const a=v.anim; if(!a) return 0; const el=Date.now()-a.t; return el<0?1:el<(DOLL_DUR[a.k]||0)?2:3; };
   // svgMood 在 b.units 中，場景、先攻介面與狀態卡更新鍵均涵蓋表情。
   const scene=battleDataKey([b.turn,b.result,b.aimHover,camZoom(),b.units,b.units.map(animPhase),b.units.map(leveling),b.units.map(v=>v.statuses.map(s=>(s.visualAt||0)<=Date.now())),Object.values(b.groundEffects||{}).map(f=>(f.visualAt||0)<=Date.now()),(b.fx||[]).map(f=>f.t<=Date.now()),(b.proj||[]).map(p=>Date.now()<p.t?0:Date.now()<p.t+p.dur?1:2),b.def.blocks,b.drops,b.proj,b.fx,b.floats,b.marks,b.bubbles,b.phase,b.exploreMarks,b.groundEffects,b.objectTip,b.objectTip?b.cam:null]);
-  const selectable=u?.side==="pc" && !b.busy && !b.result && (b.mode || b.moveMode);
+  const selectable=playerControlled(u) && !b.busy && !b.result && (b.mode || b.moveMode);
   const marks=selectable?battleDataKey([b.turn,b.phase,b.mode,b.moveMode,b.moveLeft,b.actionUsed,b.dazed,units,b.def.blocks,b.groundEffects]):"none";
   const ui=battleDataKey([b,state.xp,state.level,b.units.map(leveling),state.inv,state.equipmentItems,state.focusItems,state.magicItems,state.rolls,state.retriesLeft,slotLightsOpen,SFX.isMuted(),SFX.getVolume()],
     ["objectTip","def","cam","zoom","focusReq","units","drops","proj","fx","floats","marks","bubbles","impact","logScroll","logStick","x","y","face","anim"])

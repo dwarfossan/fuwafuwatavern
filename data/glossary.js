@@ -39,7 +39,7 @@ const POP_TEXT = {
   miss:"MISS",          // 沒打中、豁免成功沒被抓住／沒被打掉、躲開道具
   crit:"CRITICAL!",     // 爆擊的大字
   victory:"VICTORY",    // 勝利標題（大爺 10-02）
-  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!", mark:"MARKED", yum:"YUM!",   // mark：狩印；yum：吃點心（10-03）
+  disarm:"DISARM!", bound:"BOUND", bane:"BANE", spotted:"SPOTTED!", mark:"MARKED", yum:"YUM!", frenzy:"FRENZY!",   // mark：狩印；yum：吃點心（10-03）；frenzy：壓力爆表失控（10-10）
 };
 
 // 手機頁面的說明泡泡；集中放資料，之後可翻譯。

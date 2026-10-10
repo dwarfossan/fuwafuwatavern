@@ -24,7 +24,7 @@ js/rules.js         擲骰、調整值、裝備規則
 js/art/             手寫 SVG 美術：小傢伙們、大地圖、裝備圖示、紙娃娃、怪物、劇情背景；portraits.js 是大爺、卡姆的新畫風立繪（無臉底圖＋表情）
 js/sfx.js           音效／BGM（實體檔優先，未對應事件維持 Web Audio 合成）
 js/pages/           封面、擲屬性、劇情、商店、大地圖、紙娃娃測試頁（網址加 #doll）
-js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flow.js 回合、移動、AI → render.js 戰場畫面
+js/battle/          engine.js 規則與流程 → stress.js 壓力與失控 → skills.js 技能實作 → flow.js 回合、移動、AI（敵我共用） → render.js 戰場畫面
 js/ui/cards.js      裝備卡、技能卡、彈出視窗
 js/ui/status-card.js 共用狀態卡（劇情／城鎮／探索／戰鬥）
 js/equipment.js     裝備唯一讀寫／切組／換裝入口
@@ -146,6 +146,7 @@ node tests/starter-skills.mjs # 一個起始主動＋黑暗視覺、原配裝與
 node tests/shared-focus-skills.mjs # 法器提供內容共用、同名法術距離／結算、手機卡片
 node tests/focus-instance.mjs # 法器逐件固定隨機屬性、現貨、裝備卡與重試
 node tests/resistance.mjs    # 抗性／傷害免疫、取整、原始類型、面板、專注、資料覆寫
+node tests/stress.mjs        # 壓力：加減、50 換臉、100 失控（紅光晃動、AI 接手不打隊友）、回神、戰鬥結束、休息、回酒館
 node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
 ```
 

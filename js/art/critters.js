@@ -16,9 +16,9 @@ function browSVG(id, view){
 
 /* 四小隻 SVG 重畫：外觀暫定 GPT（10-03）。平塗、粗黑框，頭部仍為100×100。
    六表情共用 front／side 五官；不更動圖片立繪、裝備錨點或戰鬥規則。 */
-const SVG_CRITTER_MOODS = ["normal","happy","hurt","angry","surprised","nervous","stressed"];
+const SVG_CRITTER_MOODS = ["normal","happy","hurt","angry","surprised","nervous","stressed","frenzy"];
 // 壓力 50 以上的臉（大爺 10-10 給參考圖）：每隻各自一張，失控（100）沿用同一張臉再加紅光、晃動
-function stressedFace(id, side){
+function stressedFace(id, side, label="stressed"){
   const ink="#292530", eyes=side?[[39,49,5],[68,47,4.2]]:[[35,51,5],[65,51,5]];
   const path=(d,color=ink,w=2.8)=>`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const dot=([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r}" fill="${ink}"/><circle cx="${x+1.3}" cy="${y-1.3}" r="1.5" fill="#fff"/>`;
@@ -52,11 +52,11 @@ function stressedFace(id, side){
     f+=openMouth(mx,my+1,side?3.4:4.2,side?5:6,false);
   }
   f+=`<path d="M${nx-4} ${ny-2}Q${nx} ${ny-4} ${nx+4} ${ny-2}Q${nx+3} ${ny+2} ${nx} ${ny+3}Q${nx-3} ${ny+2} ${nx-4} ${ny-2}Z" fill="${id==="tiger"?'#c77e82':ink}"/>`;
-  return `<g class="critter-expression" data-expression="stressed">${f}</g>`;
+  return `<g class="critter-expression" data-expression="${label}">${f}</g>`;
 }
 function critterExpression(id, view, mood="normal"){
   mood=SVG_CRITTER_MOODS.includes(mood)?mood:"normal";
-  if(mood==="stressed")return stressedFace(id, view==="side");
+  if(mood==="stressed"||mood==="frenzy")return stressedFace(id, view==="side", mood);   // 失控（frenzy）用同一張臉；嬌嬌額頭在 critterDrawing 換「王」
   const side=view==="side", mask=id==="raccoon", ink="#292530", line=mask?"#fff3dd":ink;
   const eyes=side?[[39,49,5],[68,47,4.2]]:[[35,51,5],[65,51,5]];
   const path=(d,color=line,w=2.8)=>`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -97,7 +97,7 @@ function critterDrawing(id,view,mood){
   const round=id==="tiger";
   s+=shape(round?"M16 43Q18 24 48 23Q78 22 85 44L90 55L84 57L89 65L82 65Q76 87 51 89Q25 88 17 68L10 65L15 58L10 54Z":side?"M12 42Q15 23 45 23Q78 21 87 43L90 50Q99 55 92 65Q78 84 54 91Q31 90 20 73L11 69L15 61L8 56Z":"M14 42Q18 24 50 24Q82 24 86 42L93 53L86 58L91 65L81 68Q72 86 50 91Q28 86 19 68L9 65L14 58L7 53Z");
   if(id==="tiger"){
-    s+=`<ellipse cx="${side?61:50}" cy="70" rx="19" ry="14" fill="#fffaf0"/><path d="M42 26L50 37L58 26M17 46l12 5M14 58l13 1M83 46l-9 5M87 58l-11 1" fill="none" stroke="#48434b" stroke-width="4" stroke-linecap="round"/>`;
+    s+=`<ellipse cx="${side?61:50}" cy="70" rx="19" ry="14" fill="#fffaf0"/><path d="${mood==="frenzy"?"M41 25H59M43 31H57M40 37H60M50 25V37":"M42 26L50 37L58 26"}M17 46l12 5M14 58l13 1M83 46l-9 5M87 58l-11 1" fill="none" stroke="#48434b" stroke-width="4" stroke-linecap="round"/>`;
   }else if(id==="raccoon"){
     s+=`<path d="M47 27Q52 27 54 44L49 41Z" fill="#f3e2c8"/><path d="M16 47Q31 40 47 49Q46 63 27 68L19 62Z M${side?'58 45Q70 38 82 45Q83 58 68 63L59 56':'53 49Q69 40 84 47L81 62L73 68Q54 63 53 49'}Z" fill="#4a3226"/><ellipse cx="${side?74:50}" cy="72" rx="${side?18:23}" ry="14" fill="#f3e2c8"/>`;
   }else{

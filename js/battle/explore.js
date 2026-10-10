@@ -140,7 +140,7 @@ function exploreTraps(u){
   if(!o.found&&[exploreUnit()].filter(Boolean).some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
   if(u&&u.side==="pc"&&!u.down&&mapCell(u.x)===o.x&&mapCell(u.y)===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;hit=true;
    if(b.phase==='explore'){b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;}else b.moveRolled=true;
-   blog(EXPLORE_ACTION_TEXT.trapHit);hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
+   blog(EXPLORE_ACTION_TEXT.trapHit);addStress(u,STRESS.trap,"踩到陷阱");hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
  }return hit;
 }
 function exploreInteract(action){
@@ -205,7 +205,7 @@ function exploreReinforcements(){
  // 只在新一輪開始重排；保留原本單位的先攻，不重擲。
  b.units.sort((a,c)=>c.init-a.init);
 }
-function finishExploreCombat(){const b=B();if(!b.explorationMap)return;awardBattleXP();syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
+function finishExploreCombat(){const b=B();if(!b.explorationMap)return;stressBattleEnd();awardBattleXP();syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
 
 // 手動戰棋只是回合模式；被看到或主動攻擊才把敵方小隊加入先攻。
 function engageExploreSquad(target,attacker=null){

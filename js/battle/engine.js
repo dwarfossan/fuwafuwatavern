@@ -25,7 +25,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","equipmentItems","equipmentSerial","focusItems","focusSerial","shopFocusStock","magicItems","market"];
+const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","equipmentItems","equipmentSerial","focusItems","focusSerial","shopFocusStock","magicItems","market","stress"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -36,6 +36,7 @@ function retryBattle(){
 }
 // 傳送回酒館：回到大地圖、站在酒館（代價還沒定，先不扣東西）
 function teleportHome(){
+  tavernStress();   // 回到大爺的酒館：壓力歸零（10-10）
   state.battle = null; state.scout = null; state.travel = null; state.mapSel = null;
   state.location = "tavern"; state.page = "map"; render(); window.scrollTo(0,0);
 }
@@ -115,6 +116,7 @@ function startBattle(id, retry=false, phase="combat"){
   // NPC 不擲先攻，排在最後，輪到時直接跳過
   units.forEach(u=> u.init = u.side==="npc" ? -Infinity : phase==="explore" ? 0 : d20() + u.mods.DEX + Math.random()*.1);
   units.sort((a,b)=>b.init-a.init);
+  units.forEach(initStress);                        // 壓力（10-10）：帶上存著的值
   state.battle = {
     id, def, phase, units, turn:-1, round:0, log:[], mode:null, result:null,
     tut: def.tutorial ? 0 : -1, busy:false
@@ -218,6 +220,8 @@ function wakeAfterBattle(){
 const HIDE_DC = 13;
 const isHid = u => !!has(u,"hidden");
 // 敵對：雙方陣營不同、而且都不是 NPC。NPC（商人等）站在戰場上但不屬於任何一方，不能被當成目標、也不會攻擊人
+// 玩家操作的單位：小傢伙、而且沒有失控（失控的由 AI 接手，10-10）
+const playerControlled = u => !!u && u.side==="pc" && !u.frenzy;
 const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc" && inCombat(a) && inCombat(b);
 const sideColor = v => v.side==="pc" ? v.color : v.side==="npc" ? "#c9b7a6" : "#e0766e";
 const foeHid = u => u.side==="foe" && isHid(u);                 // 玩家看不到的敵人
@@ -510,7 +514,7 @@ function attackRoll(a, t, o={}){
   const react = reactionHook(a, t, {r, total, ac});
   if(react==="shield"){ ac += 5; hit = r===20 || (r!==1 && total >= ac); }
   panelRow("atk", t, adv ? [r1, r2] : [r1], r, total, r===20 ? "crit" : hit ? "hit" : r===1 ? "fumble" : "miss", a);   // 沒中就不會擲傷害骰
-  if(hit && r===20) critMoment(t);
+  if(hit && r===20){ critMoment(t); stressOnCrit(a, t); }
   // 狩印：打中自己標記的目標，這一擊多 1d6 力場（爆擊骰加倍）；傷害在 hurt 裡補上
   if(hit && t.statuses.some(s=>s.k==="marked" && s.src===a.id)) B().markHit = {a:a.id, t:t.id, crit:r===20};
   const advTxt = adv>0?`（優勢 ${r1}/${r2}）`:adv<0?`（劣勢 ${r1}/${r2}）`:"";
@@ -531,7 +535,7 @@ function attackRoll(a, t, o={}){
 let REACT_RUN = null;   // {answers:[...], n:第幾次可反應的命中}
 const REACT_SHIELD = "shield_spell", REACT_HALVE = "turn_danger";
 function reactOptions(t){
-  if(!t || t.side!=="pc" || t.down || t.dead || !(t.reserveFree>0)) return [];
+  if(!t || t.side!=="pc" || t.frenzy || t.down || t.dead || !(t.reserveFree>0)) return [];   // 失控的 AI 接手，不問
   const out = [];
   const sh = activeLearnedSkills(t).find(s=>s.key===REACT_SHIELD);
   if(sh && !has(t,"shieldSpell") && tiersFor(t, sh).length && !componentProblem(t, sh)) out.push("shield");
@@ -543,7 +547,7 @@ function reactOptions(t){
 // 跟反應共用「快照重跑」：問的那刻丟出暫停，選完同一組骰子重跑到同一個地方。重跑中用掉的先記在 REACT_RUN.luck，
 // 整個招式跑完才寫進 state.luckUsed（不然暫停、重跑會重複扣）。只在招式裡問（doSkill）；藉機攻擊、潛行等招式外的擲骰還不問（暫定）。
 const LUCK_MAX = 2;
-const luckLeft = u => u && u.side==="pc" ? Math.max(0, LUCK_MAX - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
+const luckLeft = u => u && u.side==="pc" && !u.frenzy ? Math.max(0, LUCK_MAX - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
 function luckHook(u, kind, info){
   if(!REACT_RUN || luckLeft(u)<=0) return false;
   const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
@@ -634,7 +638,8 @@ function hurt(t, n, type, src, hitSfx){
   else endConc(t, "倒下了");
   if(t.hp===0){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
-    else { t.down = true; t.statuses = []; blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); }
+    else { t.down = true; t.statuses = []; blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
+    stressOnDown(t, src);
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
     // 看得到的敵人全倒、還有躲著的（大爺 10-02）：小傢伙們覺得怪怪的，提示玩家去搜索。不講位置、不講是誰

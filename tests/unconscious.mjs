@@ -18,7 +18,7 @@ try{
  const r=await pg.evaluate(()=>{ const b=B(), rnd=Math.random, out={};
    const u=b.units.find(v=>v.id==='fox'), w=b.units.find(v=>v.id==='wolf');
    const down=()=>{ u.hp=1; u.down=false; u.dead=false; hurt(u, 99, "物理", null); };
-   down(); out.down=u.down; out.dead=u.dead; out.log=b.log.slice(-3).map(l=>l.t).join('|');
+   down(); out.down=u.down; out.dead=u.dead; out.log=b.log.slice(-8).map(l=>l.t).join('|');
    out.noDeathSave=typeof deathSave==='undefined';
    // 輪不到昏迷的：把回合放在她前一位，換回合時會跳過她
    b.turn=(b.units.indexOf(u)-1+b.units.length)%b.units.length; window.__nt(); out.skipped=cur()!==u;
