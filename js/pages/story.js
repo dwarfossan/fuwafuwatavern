@@ -226,7 +226,7 @@ function renderStory(){
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
-    <div class="story-head"><span></span>${renderSystemTools({context:"story",pop:state.sysPop})}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
+    <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
       ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img draggable="false" src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}

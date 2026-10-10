@@ -10,6 +10,6 @@ function renderCover(loading=false){
     <div class="cover-party">${HOME_HEADS.map((src,i)=>`<img fetchpriority="high" decoding="async" ${loading?`data-image-source="${src}"`:`src="${src}"`} width="${i<2?150:170}" height="200" alt="${CRITTERS[i].name}">`).join('')}</div>
     ${loading?'<div class="image-startup" role="status"><label>讀取中 <span id="imageProgressText">0%</span></label><progress aria-label="圖片讀取進度" value="0" max="1"></progress><button class="btn small" id="retryImages" hidden>重試</button><button class="btn small ghost" id="imageLoadReport" hidden>下載讀取紀錄</button></div>':''}
     <button class="btn" id="start" ${loading?'disabled':''}>推開酒館大門</button>
-    <button class="btn small ghost cover-about" data-about>關於／授權</button>
+    ${pageToolsHTML()}
       </section>`;
 }

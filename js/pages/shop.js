@@ -1,6 +1,6 @@
 function venueHeaderHTML(venue,quip,help=''){
  const portrait=venue?TOWN_PORTRAIT[venue.id]:'dwarf';
- return `<div class="head"><h2>${venue?venue.name:'大爺的裝備牆'}</h2>${help}</div><div class="quip"><div class="quip-face ${portrait}-icon">${portraitHTML(portrait,venue?'smile':undefined)}</div><p>${quip}</p></div>`;
+ return `<div class="head"><h2>${venue?venue.name:'大爺的裝備牆'}</h2>${pageToolsHTML(help)}</div><div class="quip"><div class="quip-face ${portrait}-icon">${portraitHTML(portrait,venue?'smile':undefined)}</div><p>${quip}</p></div>`;
 }
 function shopCategories(){return state.shopContext==="smith"?CATS.filter(k=>!["法器","道具","冒險用品"].includes(k)):state.shopContext==="items"?[...CATS.filter(k=>["法器","道具","冒險用品"].includes(k)),MAGIC_SHOP_UI.cat]:CATS;}
 function renderShop(){

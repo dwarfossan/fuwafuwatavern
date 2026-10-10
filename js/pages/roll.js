@@ -51,7 +51,7 @@ function renderRoll(){
   return `<section class="page">
     <div class="head"><div>
       <h2>替小動物擲屬性</h2>
-    </div>${pageHelpHTML("roll")}</div>
+    </div>${pageToolsHTML(pageHelpHTML("roll"))}</div>
     <div class="tabs" role="tablist">${tabs}</div>
     <div class="sheet">
       <div class="sheet-top">

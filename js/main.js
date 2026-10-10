@@ -182,7 +182,7 @@ function bind(){
   adoptEntryImages();
   bindPortraitLoading();
   const $ = id => document.getElementById(id);
-  if(state.page==="story") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.page="cover";render();window.scrollTo(0,0);}});
+  if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.sysPop=null;state.page="cover";render();window.scrollTo(0,0);}});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",enterWorldLocation);
@@ -420,7 +420,7 @@ function allImagesReady(){return gameImageSources().every(src=>entryDecodedImage
 // 背景圖片還沒讀完：先換成讀取畫面（同封面），讀完再做 next；失敗給重試
 async function imageGate(next){
  if(allImagesReady())return next();
- const app=document.getElementById('app');app.innerHTML=renderCover(true);app.querySelector('#start')?.remove();app.querySelector('.cover-about')?.remove();adoptEntryImages();
+ const app=document.getElementById('app');app.innerHTML=renderCover(true);app.querySelector('#start')?.remove();app.querySelector('.page-tools')?.remove();adoptEntryImages();
  const sources=gameImageSources(),progress=app.querySelector('progress'),label=app.querySelector('.image-startup label'),text=app.querySelector('#imageProgressText'),retryButton=app.querySelector('#retryImages');
  progress.max=sources.length;
  const update=()=>{const done=sources.filter(src=>entryDecodedImages.has(src)).length;progress.value=done;text.textContent=Math.floor(done/sources.length*100)+'%';};

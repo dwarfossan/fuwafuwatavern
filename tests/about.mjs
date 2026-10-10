@@ -14,7 +14,7 @@ const check=async()=>{
   assert(!(await pg.evaluate(()=>document.documentElement.scrollWidth>390)),'沒有橫向捲動');
 };
 try{
-  await pg.goto('file://'+root);await bootReady(pg);await pg.locator('[data-about]').click();await check();await pg.waitForTimeout(400);if(shots)await pg.screenshot({path:shots+'/about-cover.png'});
+  await pg.goto('file://'+root);await bootReady(pg);/* 10-10 首頁的關於收進齒輪 */await pg.locator('.cover [data-system-menu]').click();await pg.locator('[data-system-action="about"]').click();await check();await pg.waitForTimeout(400);if(shots)await pg.screenshot({path:shots+'/about-cover.png'});
   await pg.locator('.md-x').click();assert.equal(await pg.locator('.modal').count(),0);
   await pg.goto('file://'+root+'#battle?seed=123');await bootReady(pg);await pg.reload();await bootReady(pg);await pg.waitForTimeout(600);
   await pg.locator('.sys-tools--battle [data-system-menu]').click();await pg.locator('[data-system-action="about"]').click();await check();await pg.waitForTimeout(400);if(shots)await pg.screenshot({path:shots+'/about-battle.png'});

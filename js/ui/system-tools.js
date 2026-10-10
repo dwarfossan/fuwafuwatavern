@@ -12,8 +12,9 @@ function syncSystemVolume(root=document){
   const n=t.querySelector("[data-system-number]");if(n)n.textContent=systemVolumeText();
  });
 }
-function renderSystemTools({context="default",pop=null}={}){
- return `<div class="sys-tools sys-tools--${context}" data-system-tools><button class="snd ${SFX.isMuted()?"off":""}" data-system-volume aria-label="主音量" title="主音量">${systemToolsSpeakerSVG()}</button><button class="gear-btn" data-system-menu aria-label="主選單" title="主選單">${SYSTEM_TOOLS_GEAR_SVG}</button>${pop==="volume"?`<div class="vol-pop"><button class="snd ${SFX.isMuted()?"off":""}" data-system-mute aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input data-system-slider type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" data-system-number>${systemVolumeText()}</span></div>`:""}${pop==="menu"?`<div class="sys-menu"><h3>主選單</h3><button data-system-action="continue">繼續遊戲</button><button data-system-action="party">隊伍</button><button data-system-action="about">關於／授權</button><button data-system-action="title">回到標題</button></div>`:""}</div>`;
+const SYSTEM_MENU_LABEL={continue:"繼續遊戲",party:"隊伍",about:"關於／授權",title:"回到標題"};
+function renderSystemTools({context="default",pop=null,items=["continue","party","about","title"]}={}){
+ return `<div class="sys-tools sys-tools--${context}" data-system-tools><button class="snd ${SFX.isMuted()?"off":""}" data-system-volume aria-label="主音量" title="主音量">${systemToolsSpeakerSVG()}</button><button class="gear-btn" data-system-menu aria-label="主選單" title="主選單">${SYSTEM_TOOLS_GEAR_SVG}</button>${pop==="volume"?`<div class="vol-pop"><button class="snd ${SFX.isMuted()?"off":""}" data-system-mute aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input data-system-slider type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" data-system-number>${systemVolumeText()}</span></div>`:""}${pop==="menu"?`<div class="sys-menu"><h3>主選單</h3>${items.map(k=>`<button data-system-action="${k}">${SYSTEM_MENU_LABEL[k]}</button>`).join("")}</div>`:""}</div>`;
 }
 function bindSystemTools(root,{getPop,setPop,refresh,party,about,title,listen=(el,ev,fn)=>el.addEventListener(ev,fn)}){
  const q=s=>root.querySelector(s),on=(s,ev,fn)=>{const el=q(s);if(el)listen(el,ev,fn);};
@@ -22,4 +23,11 @@ function bindSystemTools(root,{getPop,setPop,refresh,party,about,title,listen=(e
  on("[data-system-mute]","click",e=>{e.stopPropagation();SFX.toggleMuted();if(!SFX.isMuted())sfx("pop");syncSystemVolume(root);});
  on("[data-system-slider]","input",e=>{e.stopPropagation();SFX.setVolume(+e.target.value/100);syncSystemVolume(root);});
  root.querySelectorAll("[data-system-action]").forEach(el=>listen(el,"click",e=>{e.stopPropagation();const a=el.dataset.systemAction;setPop(null);if(a==="continue")refresh();else if(a==="party")party();else if(a==="about")about();else if(a==="title")title();}));
+}
+
+// 戰場以外每一頁右上角的同一組工具（10-10 大爺：每頁都要有）；extra 放在左邊（例如「說明」）。
+// 選單只列這一頁用得到的：首頁只有關於，擲屬性還沒有隊伍可看。
+function pageToolsHTML(extra=""){
+ const items=state.page==="cover"?["about"]:state.page==="roll"?["about","title"]:undefined;
+ return `<div class="page-tools">${extra}${renderSystemTools({context:"page",pop:state.sysPop,items})}</div>`;
 }

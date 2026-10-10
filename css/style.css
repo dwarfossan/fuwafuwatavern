@@ -209,8 +209,11 @@ button.token:hover{transform:translateY(-2px)}
 .stage:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
 .fp-page .stage{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}   /* 手機點劇情時不要閃一塊點擊底色 */
 .story-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;min-height:38px}
-.sys-tools--story{margin-left:auto;gap:4px}
-.sys-tools--story .vol-pop,.sys-tools--story .sys-menu{top:45px}
+/* 戰場以外每頁共用的右上工具列（10-10）：說明在左、喇叭齒輪在右；位置照原本劇情頁 */
+.page-tools{display:flex;align-items:center;gap:6px;margin-left:auto;flex:none}
+.sys-tools--page{gap:4px}
+.sys-tools--page .vol-pop,.sys-tools--page .sys-menu{top:45px}
+.cover>.page-tools{position:absolute;top:0;right:0;z-index:5}
 .wall{position:absolute;inset:0;
   background:
     radial-gradient(ellipse 45% 55% at 50% 30%, rgba(242,180,65,.28), transparent 70%),
@@ -1126,7 +1129,6 @@ button.token:hover{transform:translateY(-2px)}
 @media(prefers-reduced-motion:reduce){.act-walk .dl-foot-left,.act-walk .dl-foot-right,.act-walk .dl-bob{animation:none}}
 
 /* 關於／授權（10-04）：英文官方原句小字、網址可斷行 */
-.cover-about{margin-top:6px;font-size:13px;opacity:.85}
 .about p{margin:6px 0;line-height:1.55}
 .about-en{font-size:12.5px;color:var(--dim);overflow-wrap:anywhere}
 .about-en a{color:var(--honey)}
@@ -1215,12 +1217,12 @@ body.image-boot{background:#000}
 /* 默默的圖左邊多留白，跟香香的空隙 35、其他兩組約 20：往左挪 15／170 讓間距一致（大爺 10-10） */
 .cover-party img:nth-child(4){margin-left:-8.8%}
 .cover-loading{position:relative}
-.cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading .cover-about{visibility:hidden;pointer-events:none}
+.cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading>.page-tools{visibility:hidden;pointer-events:none}
 .cover-loading .cover-party img{animation:head-load-sway 2.4s ease-in-out infinite;transform-origin:50% 85%}
 .cover-loading .cover-party img:nth-child(2){animation-delay:-.6s}.cover-loading .cover-party img:nth-child(3){animation-delay:-1.2s}.cover-loading .cover-party img:nth-child(4){animation-delay:-1.8s}
 .cover-loading .image-startup{position:absolute;bottom:16px;left:10%;width:80%;min-height:0;align-content:start;display:grid;gap:8px;text-align:center;padding:0;color:var(--fur)}
 .cover-loading .image-startup progress{width:100%;accent-color:var(--honey)}
-.cover:not(.cover-loading) .lanterns,.cover:not(.cover-loading) .sign,.cover:not(.cover-loading) .sub,.cover:not(.cover-loading) #start,.cover:not(.cover-loading) .cover-about{animation:cover-reveal .5s ease both}
+.cover:not(.cover-loading) .lanterns,.cover:not(.cover-loading) .sign,.cover:not(.cover-loading) .sub,.cover:not(.cover-loading) #start,.cover:not(.cover-loading)>.page-tools{animation:cover-reveal .5s ease both}
 @keyframes head-load-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
 @keyframes cover-reveal{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.cover-loading .cover-party img{animation:none}.cover:not(.cover-loading)>*{animation:none}}
