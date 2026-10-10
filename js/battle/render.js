@@ -1304,7 +1304,7 @@ function battleInterfaceHTML(){
   }
   else if(b.result){
     // 勝利：保留標題，戰利品按指定背包分配（大爺 10-06）。
-    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-content"><div class="bv-title">${POP_TEXT.victory}</div>${battleLootHTML()}</div></div>`;   // 打完有後續劇情（伏擊→商隊，10-03）
+    if(b.result==="win") ov = `<div class="bt-victory" aria-live="polite"><div class="bv-band"></div><div class="bv-content"><div class="bv-title">${POP_TEXT.victory}</div>${questRewardHTML()}${battleLootHTML()}</div></div>`;   // 打完有後續劇情（伏擊→商隊，10-03）
     // 輸了（大爺 10-09）：四隻都昏迷；玩家自己選「回酒館」才出現卡姆的傳送詛咒。文字暫定（香香）。
     else if(b.leaving) ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>卡姆的傳送詛咒</h3>

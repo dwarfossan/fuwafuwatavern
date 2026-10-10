@@ -17,12 +17,12 @@ function generateRandomBattle(seed,options={}){
   const cfg={...RANDOM_MAP,...options},requestedSeed=seed>>>0;
   for(let attempt=0;attempt<100;attempt++){
     const used=(requestedSeed+attempt)>>>0,r=mapRng(used),int=(a,b)=>a+Math.floor(r()*(b-a+1));
-    const d={name:"隨機測試場",seed:used,requestedSeed,w:cfg.w,h:cfg.h,tutorial:true,road:[],blocks:[],elev:[],party:[],foes:[],npcs:[]};
+    const d={name:cfg.name||"隨機測試場",seed:used,requestedSeed,w:cfg.w,h:cfg.h,tutorial:cfg.tutorial??true,road:[],blocks:[],elev:[],party:[],foes:[],npcs:[]};
     const reserved=new Set(),pick=(x0,x1,y0,y1)=>{for(let n=0;n<2000;n++){const p=[int(x0,x1),int(y0,y1)],k=p.join(',');if(!reserved.has(k)){reserved.add(k);return p;}}throw Error("地圖空間不足");};
     // 出生區在兩側，預留周圍空格，避免一出生就被包住。
     for(let i=0;i<4;i++)d.party.push(pick(cfg.w-5,cfg.w-2,8,cfg.h-8));
-    const types=Object.keys(ENEMIES);
-    for(let i=0;i<cfg.foes;i++){const [x,y]=pick(1,7,6,cfg.h-6),type=types[int(0,types.length-1)],hidden=r()<.35;d.foes.push({type,x,y,hidden,trapCharges:ENEMY_TRAPS.count,squad:Math.floor(i/2)});if(hidden)d.blocks.push({x,y,kind:"bush"});}
+    const types=cfg.foeTypes||RANDOM_TEST_FOES;
+    for(let i=0;i<cfg.foes;i++){const [x,y]=pick(1,7,6,cfg.h-6),type=cfg.foeList?cfg.foeList[i]:types[int(0,types.length-1)],hidden=r()<.35;d.foes.push({type,x,y,hidden,trapCharges:ENEMY_TRAPS.count,squad:Math.floor(i/2)});if(hidden)d.blocks.push({x,y,kind:"bush"});}
     for(const [x,y] of [...d.party,...d.foes.map(q=>[q.x,q.y])])for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)reserved.add(`${x+dx},${y+dy}`);
     const row=int(10,15);d.road=roadRow([row,row+1],cfg.w);
     for(const kind of ["bush","tree","crate","wagon"]){const range=cfg[kind],count=Array.isArray(range)?int(...range):range;

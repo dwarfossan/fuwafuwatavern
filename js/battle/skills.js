@@ -59,7 +59,8 @@ function activeLearnedSkills(u){
 function unitSkills(u){
   const held=u.weapon||u.focus||null;
   const unarmed=SKILL_GROUPS.find(g=>g.id==="unarmed");
-  const out=held?equipmentSkills(held,u):[{key:"unarmed_0",group:unarmed,idx:0,def:basicDef(unarmed,unarmed.skills[0],u),impl:SKILL_IMPL.unarmed[0]}];
+  const fist=basicDef(unarmed,unarmed.skills[0],u), nat=u.natural;   // 怪物天生攻擊（10-10）：名稱、說明換成牠的
+  const out=held?equipmentSkills(held,u):[{key:"unarmed_0",group:unarmed,idx:0,def:nat?{...fist,name:nat.name,text:`造成 ${nat.dmg.split(" ")[0]} + 屬性調整值${dmgShown(nat.dmg.split(" ")[1])}傷害。`}:fist,impl:SKILL_IMPL.unarmed[0]}];
   equippedMagic(u).filter(it=>it!==held).forEach(it=>out.push(...equipmentSkills(it,u).filter(s=>s.equipmentGrant)));
   const off=offhandAttackSkill(u);if(off)out.push(off);
   if(u.side==="pc") out.push(...activeLearnedSkills(u));

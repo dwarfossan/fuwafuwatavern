@@ -8,7 +8,8 @@ function worldRoute(from,to){
 }
 function renderMap(){
  const tr=state.travel,sel=WORLD.locations.find(l=>l.id===state.mapSel)||WORLD.locations.find(l=>l.id===state.location),here=sel.id===state.location;
- return `<section class="page fp-page map-page"><div class="story-head"><h2>大地圖</h2>${pageToolsHTML(pageHelpHTML('map'))}</div><div class="stage map-frame">${worldMapSVG(sel.id,state.location,tr?worldTravelPosition(tr):null,tr?.alert)}<div id="world-place-hint" class="world-place-hint" role="tooltip" hidden></div></div><div id="map-party">${storyPartyHTML(worldPartyLine())}</div><div class="map-info"><div id="map-message"><h3>${tr?(tr.alert?'前面有狀況！':`前往${WORLD.locations.find(l=>l.id===tr.to).name}途中……`):sel.name}</h3><p>${tr?'沿著道路前進。':sel.desc}</p></div><div id="map-actions">${state.worldArrival?'<button class="btn small" id="worldEnter">進入</button><button class="btn small ghost" id="worldSkip">略過對話</button>':tr?`<button class="btn small" id="worldStop" ${!tr.route||tr.alert?'disabled':''}>${tr.paused?'繼續走':'停下'}</button>`:here?`<button class="btn small" id="${sel.id==='town'?'enterTown':'worldEnter'}">進入</button>`:'<button class="btn small" id="worldGo">前往</button>'}</div></div></section>`;
+ const qs=!tr&&!state.worldArrival&&state.questSel?questOpen().find(q=>q.id===state.questSel):null;   // 點了委託泡泡（10-10）
+ return `<section class="page fp-page map-page"><div class="story-head"><h2>大地圖</h2>${pageToolsHTML(pageHelpHTML('map'))}</div><div class="stage map-frame">${worldMapSVG(sel.id,state.location,tr?worldTravelPosition(tr):null,tr?.alert)}<div id="world-place-hint" class="world-place-hint" role="tooltip" hidden></div></div><div id="map-party">${storyPartyHTML(worldPartyLine())}</div><div class="map-info"><div id="map-message">${qs?`<h3>${QUEST_UI.pin}：${questTpl(qs).title} <span class="quest-stars">${questStars(qs.stars)}</span></h3><p>${questTpl(qs).text}</p>`:`<h3>${tr?(tr.alert?'前面有狀況！':tr.quest?`前往委託「${questTpl(questById(tr.quest)||{tpl:''})?.title||''}」途中……`:`前往${WORLD.locations.find(l=>l.id===tr.to).name}途中……`):sel.name}</h3><p>${tr?'沿著道路前進。':sel.desc}</p>`}</div><div id="map-actions">${qs?`<button class="btn small" id="questGo">${QUEST_UI.go}</button><button class="btn small ghost" id="questCancel">取消</button>`:state.worldArrival?'<button class="btn small" id="worldEnter">進入</button><button class="btn small ghost" id="worldSkip">略過對話</button>':tr?`<button class="btn small" id="worldStop" ${!tr.route||tr.alert?'disabled':''}>${tr.paused?'繼續走':'停下'}</button>`:here?`<button class="btn small" id="${sel.id==='town'?'enterTown':'worldEnter'}">進入</button>`:'<button class="btn small" id="worldGo">前往</button>'}</div></div></section>`;
 }
 function worldZoomMin(frame){return Math.max(frame.clientWidth/WORLD.width,frame.clientHeight/WORLD.height)*1.2;}
 function applyWorldCamera(){
@@ -42,7 +43,7 @@ function bindMap(){
  const hint=document.getElementById('world-place-hint');let touchPreview=null;
  const show=id=>{if(state.travel||state.worldArrival)return;const l=WORLD.locations.find(x=>x.id===id),c=state.worldCamera;hint.innerHTML=`<b>${townText(l.name)}</b><span>${townText(l.desc)}</span>`;hint.hidden=false;hint.style.left=Math.max(8,Math.min(frame.clientWidth-228,c.cam.x+l.x*c.zoom-110))+'px';hint.style.top=Math.max(8,Math.min(frame.clientHeight-90,c.cam.y+(l.y-160)*c.zoom-70))+'px';};
  const hide=()=>{touchPreview=null;hint.hidden=true;};
- const go=id=>{if(state.travel||state.worldArrival)return;state.mapSel=id;if(id===state.location)enterWorldLocation();else beginWorldTravel(id);};
+ const go=id=>{if(state.travel||state.worldArrival)return;state.questSel=null;state.mapSel=id;if(id===state.location)enterWorldLocation();else beginWorldTravel(id);};
  document.querySelectorAll('[data-loc]').forEach(el=>{
   el.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch')show(el.dataset.loc);});
   el.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')hide();});
@@ -52,6 +53,10 @@ function bindMap(){
  });
  frame.addEventListener('pointermove',e=>{if(points.has(e.pointerId)&&(drag?.moved||pinch))hide();});
  document.getElementById('worldGo')?.addEventListener('click',()=>beginWorldTravel(state.mapSel));
+ // 委託泡泡（10-10）：點一下看內容，按「出發」走過去
+ document.querySelectorAll('[data-quest]').forEach(el=>{const pick=()=>{if(state.travel||state.worldArrival)return;hide();state.questSel=el.dataset.quest;render();};el.addEventListener('click',pick);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});});
+ document.getElementById('questGo')?.addEventListener('click',()=>beginQuestTravel(state.questSel));
+ document.getElementById('questCancel')?.addEventListener('click',()=>{state.questSel=null;render();});
  document.getElementById('worldStop')?.addEventListener('click',()=>{const tr=state.travel;if(!tr?.route||tr.alert)return;tr.paused=!tr.paused;render();if(!tr.paused)startWorldTravel(tr);});
  document.getElementById('worldSkip')?.addEventListener('click',()=>{state.worldLine=null;state.worldArrival.done=true;render();});
  document.getElementById('worldEnter')?.addEventListener('click',enterWorldLocation);
@@ -85,6 +90,7 @@ function startWorldTravel(tr){
    state.worldLine=tr.chat[tr.chatIndex++];updateWorldParty();
    if(tr.chatIndex===tr.chat.length){tr.chat=null;tr.banterAt=tr.elapsed+8;}else tr.banterAt=tr.elapsed+3;
   }
+  if(tr.quest&&tr.leg===tr.route.length-2&&tr.t>=tr.stopT){tr.running=false;arriveQuest(tr);return;}   // 委託：走到泡泡的位置就開打（10-10）
   if(tr.t>=1){if(tr.leg<tr.route.length-2){tr.leg++;tr.t=0;}else{tr.running=false;state.location=tr.to;state.mapSel=tr.to;state.travel=null;state.worldLine=null;state.worldVisits||={};const seen=state.worldVisits[tr.to];state.worldVisits[tr.to]=true;state.worldArrival={index:0,done:!!seen};render();showWorldArrivalLine();return;}}
   requestAnimationFrame(step);
  };

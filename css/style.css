@@ -1382,3 +1382,22 @@ body.image-boot{background:#000}
 /* 店內對話（10-10）：功能按鈕＋對話並排；話題三選一 */
 .town-talk-topics{display:flex;gap:6px}.town-talk-topics .btn{flex:1;min-width:0;white-space:nowrap;padding-left:6px;padding-right:6px;font-size:14px}
 .town-dialog .next{display:block;text-align:right;font-size:12px;opacity:.7}
+/* 每日委託（10-10，外觀暫定）：公會委託板、大地圖 ❗ 泡泡、勝利畫面報酬 */
+.town-service-body .quest-board{height:100%;overflow-y:auto;overscroll-behavior:contain;padding:8px;background:var(--plank);border-radius:12px}
+.quest-board h3{margin:0 0 2px;font-size:17px}.quest-board h3 small{font-size:12px;color:var(--dim);font-weight:normal}
+.quest-note{margin:0 0 8px;font-size:12px;color:var(--dim)}
+.quest-card{background:var(--plank-2);border:2px solid #5a4a5a;border-radius:12px;padding:8px 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:3px}
+.quest-card.done{opacity:.55}
+.quest-card p{margin:0;font-size:13px;line-height:1.45}.quest-card small{font-size:11.5px;color:var(--dim)}
+.quest-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.quest-stars{color:var(--honey);letter-spacing:1px;font-size:14px;white-space:nowrap}
+.quest-card .btn{align-self:flex-end;margin-top:4px}
+.quest-state{align-self:flex-end;font-size:12px;color:var(--moss);margin-top:2px}.quest-state.done{color:var(--dim)}
+.quest-draft{display:block;font-size:11px;color:var(--dim);margin-top:4px}
+.quest-pin{cursor:pointer}.quest-pin:focus{outline:none}
+.quest-bob{animation:questBob 1.4s ease-in-out infinite}
+.quest-pin.on .quest-bob path:first-child{fill:#ffe9a8}
+@keyframes questBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media (prefers-reduced-motion:reduce){.quest-bob{animation:none}}
+.quest-reward{margin:6px auto 4px;padding:6px 14px;width:max-content;max-width:90%;text-align:center;font-weight:bold;color:var(--honey);background:rgba(31,26,36,.9);border:2px solid var(--honey);border-radius:12px}
+.monster-line{margin-top:2px}

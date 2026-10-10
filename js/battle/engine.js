@@ -42,6 +42,7 @@ function teleportHome(){
 }
 // 打贏後接劇情：熟練格、筆記存回去，戰鬥收掉（計時器都會檢查 B()，不會再動）
 function leaveBattleTo(scene){
+  if(scene==="questDone"){ finishQuest(); return; }   // 委託打完回大地圖（10-10，js/quests.js）
   if(B()?.id==="worldMimic"){
     if(B().result!=="win"||scene!=="worldChest"||state.worldChest?.status!=="fighting")return;
     syncLearnedState();state.worldChest.status="defeated";state.battle=null;state.scout=null;
@@ -76,7 +77,7 @@ function startBattle(id, retry=false, phase="combat"){
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
-      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"?"":"ABCD"[i]), look:e.look,
+      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, innate:e.innate||[], testSkill:f.testSkill||null, testSkillUsed:false,
       resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
@@ -337,7 +338,7 @@ function launch(a, t, k, delay=0, thing=null){
   return release + delay + flight;
 }
 function fxHit(t, kind){ (B().fx = B().fx || []).push({x:t.x, y:t.y, kind, t:impactAt()}); }
-const FX_OF_TYPE = {"寒冷":"spark", "閃電":"spark", "毒素":"spark", "揮砍":"slash", "穿刺":"pierce", "鈍擊":"burst", "火焰":"fire", "力場":"spark", "光耀":"spark", "流血":"pierce", "強酸":"spark"};
+const FX_OF_TYPE = {"寒冷":"spark", "閃電":"spark", "毒素":"spark", "揮砍":"slash", "穿刺":"pierce", "鈍擊":"burst", "火焰":"fire", "力場":"spark", "光耀":"spark", "流血":"pierce", "強酸":"spark", "死靈":"spark"};
 // 戰鬥紀錄：t 全文（開頭全形空白＝細節），cls 顏色，s 給縮小條用的短結果（例如「命中」「8 點穿刺」）
 // at：這行在畫面上成立的時間（打中那一刻）。縮小條、紀錄面板到了這個時間才顯示，骰子還在滾時不會先劇透結果
 function blog(t, cls="", s=""){ B().log.push({t, cls, s, at: Date.now() + (B().impact||0)}); if(B().log.length>400) B().log.shift(); }
@@ -391,7 +392,7 @@ function acOfUnit(u){
 }
 // 武器用哪個屬性：彈藥武器用敏捷；靈巧取高；其餘用力量
 function weaponStat(u){
-  const w = u.weapon; if(!w) return "STR";
+  const w = u.weapon; if(!w) return u.natural?.stat || "STR";   // 怪物天生攻擊（10-10）
   if((w.props||[]).some(p=>p.startsWith("彈藥"))) return "DEX";
   if((w.props||[]).includes("靈巧")) return u.mods.DEX>u.mods.STR ? "DEX" : "STR";
   return "STR";
@@ -402,7 +403,7 @@ function weaponDie(u){
   if(v && !u.shield) return v.split(" ")[1];      // 沒拿盾就雙手握，用多用傷害骰
   return u.weapon.dmg.split(" ")[0];
 }
-const dmgType = u => u.weapon ? u.weapon.dmg.split(" ")[1] : "鈍擊";
+const dmgType = u => u.weapon ? u.weapon.dmg.split(" ")[1] : u.natural ? u.natural.dmg.split(" ")[1] : "鈍擊";
 const reachOf = u => u.weapon && (u.weapon.props||[]).includes("觸及") ? 2 : 1;
 function rangeOf(u){        // 遠程或投擲的射程（格）
   if(!u.weapon) return 0;
@@ -622,6 +623,7 @@ function hurt(t, n, type, src, hitSfx){
     b._pend = []; }
   if(n<=0 || t.down || t.dead) return;
   t.hp = Math.max(0, t.hp - n);
+  if(t.hp===0) undeadFortitude(t, n, type);   // 殭屍：不死韌性（10-10，monster.js）
   reveal(t);
   if(type==="火焰" && has(t,"frozen")){ t.statuses = t.statuses.filter(s=>s.k!=="frozen"); blog(`　${t.name}被火一烤，解凍了！`, "skill"); }
   blog(`　${t.name}受到 ${n} 點${dmgShown(type)}傷害（${t.hp}/${t.maxHp}）`, "dmg", `${n} 點${dmgShown(type)}`);   // 揮砍、穿刺、鈍擊都顯示成物理（音效、特效照舊分）
@@ -715,6 +717,7 @@ function equip(u,it){return Equipment.equipHeld(u,it);}
 // 撿不撿得起來（敵我一樣）：武器欄／法器欄是空的，而且手夠（盾、法器、武器各佔一隻手，雙手武器佔兩隻）
 // 哥布林撿到玲玲的法杖也照樣會用
 function canPick(u, it){
+  if(u.natural) return false;   // 用爪子、牙齒的怪物不撿武器（10-10）
   if(u.down || u.dead || equipmentRequirement(it,k=>abilityScore(u,k))) return false;
   if(inGrapple(u) && it.props && it.props.includes("雙手")) return false;   // 擒抱中撿不起雙手武器
   const hands = it2 => it2 ? (it2.props && it2.props.includes("雙手") ? 2 : 1) : 0;
@@ -863,7 +866,8 @@ function weaponAttack(a, t, o={}){
     const crit = res.crit || o.autoCrit || o.double;
     // 通用升階：施放中的人每高一階多 1 顆武器骰
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
-    let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
+    const nat = !w && a.natural;   // 怪物天生攻擊（10-10）：照天生攻擊的骰＋屬性
+    let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : nat ? dmgRoll(nat.dmg.split(" ")[0], o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(w?.dmgBonus) n += w.dmgBonus;   // +1 武器的傷害加值（10-10）
     if(mealOf(a)==="skewer") n += 1;   // 露營料理：烤肉串（10-10）

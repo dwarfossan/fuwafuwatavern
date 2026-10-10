@@ -85,7 +85,10 @@ function checkResult(){
   const b = B();
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
   if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead&&!u.down)){b.result="lose";blog("四隻都昏迷了……","kill");refreshBattle();return true;}
-  if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;if(!b.manualCombat){wakeAfterBattle();finishExploreCombat();return true;}return false;}
+  if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;
+    // 委託（10-10）：地圖上的敵人全倒（或逃走）＝委託完成，跳勝利畫面
+    if(b.def.quest&&!b.units.some(u=>u.side==="foe"&&!u.dead&&!u.fled)){wakeAfterBattle();stressBattleEnd();awardBattleXP();b.result="win";grantQuestReward();blog(QUEST_UI.cleared,"kill");sfx("win",900);syncBGM();refreshBattle();return true;}
+    if(!b.manualCombat){wakeAfterBattle();finishExploreCombat();return true;}return false;}
   if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
   if(!b.units.some(u=>u.side==="pc" && !u.dead && !u.down)){ b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
   return false;
@@ -862,7 +865,7 @@ function doSkillNow(u, sk, t){
   if(b.explorationMap&&u.side==="pc"&&sk.def.kind!=="輔助"){const targets=Array.isArray(t)?t:sk.impl.target==="cone"?coneUnits(u,t,3):sk.impl.target==="area"?b.units.filter(v=>dist(v,t)<=(sk.impl.radius||1)):sk.impl.target==="line"?lineUnits(u,t,sk.impl.range(u)):[t];targets.forEach(v=>{if(v?.side==="foe")engageExploreSquad(v,u);});}
   if(sk.def.components?.v)reveal(u,"詠唱，現身了！");
   // 普通基本攻擊不觸發學習；法器第 0 招若本身不是基本攻擊（如火焰箭）仍可學。
-  if(u.side==="foe" && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);
+  if(u.side==="foe" && !sk.def.monster && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
   // 狩印：標記的目標倒下後，改標下一個不用再花格子（SRD：之後的回合可以轉移印記）
   const tier = remarkFree(u, sk) || frenzyFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
@@ -1025,6 +1028,7 @@ function aiTurn(e){
       if(t){ e.testSkillUsed=true; doSkill(e,sk,t); later(endTurn,settle(1000)); return; }
     }
   }
+  if(e.special && monsterTurn(e)) return;                               // 怪物技能（10-10，monster.js）
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
   const pcs = seenFoes(e);
   if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
