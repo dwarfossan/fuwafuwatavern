@@ -52,3 +52,37 @@ const TOWN_TALK = {draft:"香香",
           ["你們的小筆記……很有意思。看別人一眼就學走，這種事，可不是每個人都做得到。"]]
   }
 };
+
+/* 酒館（大爺 10-11）：回家劇情演完後的酒館，跟店家同一套版面。台詞全是香香草稿，大爺看過再改。
+   吃飯：每天一次，全隊吃到一道隨機料理（效果同露營料理，到下次長休）；睡覺：長休＋旅店那張 CG；
+   聊天：選大爺或卡姆，再挑話題；摸摸頭：跳出四隻頭像，點一下壓力 −PET_STRESS */
+const PET_STRESS = 2;   // 暫定
+const TAVERN_UI = {idle:"回來啦。要吃飯、睡覺，還是陪大爺聊聊？", eat:"吃飯", sleep:"睡覺", talk:"聊天", pet:"摸摸頭", leave:"出門",
+  ate:"今天已經吃過了", noBed:"進城之後才有床位資料", talkWho:"要跟誰聊？", petTitle:"摸摸頭（點頭像）", petDone:"摸好了", stress:"壓力",
+  meal:"大爺今天煮了{food}！大家吃得肚子圓滾滾。", dwarfName:"矮人大爺", kamName:"卡姆", draft:"香香"};
+const TAVERN_TALK_TOPICS = {recent:"最近怎樣", chat:"閒聊"};
+const TAVERN_TALK = {draft:"香香",
+  dwarf:{
+    recent:[{text:"外面好玩嗎？受傷了沒？……沒有就好，大爺可是很擔心的。哈哈！", face:"grin"},{text:"錢不夠就說，大爺這裡別的沒有，酒跟飯管夠。", face:"smile"}],
+    chat:[
+      [{text:"你們知道嗎？大爺年輕的時候，一個人扛過三桶麥酒走上山！", face:"grin"},{text:"……好啦，是兩桶。第三桶在半路喝掉了。", face:"shy"}],
+      [{text:"卡姆又在嫌大爺的鬍子了。這可是頭髮編的，很難得的！", face:"smirk"}],
+      [{text:"吧檯底下那箱？什麼箱？大爺不知道你們在說什麼。", face:"gritted"}]
+    ]},
+  kam:{
+    recent:[{text:"傷，給我看。", face:"annoyed"},{text:"……沒事就好。下次別逞強。", face:"smile"}],
+    chat:[
+      [{text:"詛咒還在。放心。", face:"smile"},{text:"倒下了就回來。這裡是家。", face:"smile"}],
+      [{text:"老大今天又偷喝庫存。三瓶。我數了。你們別學他。", face:"annoyed"}],
+      [{text:"外面的東西，不能亂吃。", face:"annoyed"},{text:"……老大煮的，可以。", face:"shy"}]
+    ]}
+};
+/* 睡覺：長休後的 CG（沿用旅店那張，台詞換成在家的版本） */
+const TAVERN_REST = [
+  {who:"narr", art:"inn", draft:"香香", text:"酒館樓上的小房間，被子是大爺曬過的味道。"},
+  {who:"tiger", art:"inn", draft:"香香", mood:"happy", text:"還是家裡的枕頭最好抱——！"},
+  {who:"fox", art:"inn", draft:"香香", mood:"content", text:"明天出門前，先把小筆記整理好。"},
+  {who:"wolf", art:"inn", draft:"香香", mood:"content", text:"……樓下大爺的打呼聲，好安心。"},
+  {who:"raccoon", art:"inn", draft:"香香", mood:"sly", text:"……（抱著從吧檯底下摸來的東西睡著了）"},
+  {who:"narr", art:"inn", draft:"香香", text:"一夜好眠。"}
+];

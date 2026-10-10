@@ -549,7 +549,7 @@ function learnFromLingling(student,key,b=B()){
   if(b===B())blog(text,ok?"skill":"miss");else state.restMessage=text; return ok;
 }
 function takeRest(kind, selections={},b=B()){
-  const atInn=b && b===state.townRest && state.page==="town" && state.townPlace==="inn";
+  const atInn=b && b===state.townRest && ((state.page==="town" && state.townPlace==="inn") || state.page==="tavern");   // 旅店或酒館（10-11）都能在戰鬥外休息
   if(!b || (!["short","long"].includes(kind)) || (!atInn && (b!==B() || (b.result!=="win" && b.phase!=="explore"))) || b.busy || b.exploreStopped)return false;
   if(kind==="short" && state.shortRestsUsed>=2)return false;
   b.noteCopy={};

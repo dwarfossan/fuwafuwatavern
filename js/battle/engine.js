@@ -36,7 +36,6 @@ function retryBattle(){
 }
 // 傳送回酒館：回到大地圖、站在酒館（代價還沒定，先不扣東西）
 function teleportHome(){
-  tavernStress();   // 回到大爺的酒館：壓力歸零（10-10）
   state.battle = null; state.scout = null; state.travel = null; state.mapSel = null;
   state.location = "tavern"; state.page = "map"; render(); window.scrollTo(0,0);
 }

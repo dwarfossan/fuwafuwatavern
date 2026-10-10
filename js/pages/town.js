@@ -87,3 +87,72 @@ function bindTownImageReadiness(){
   });
  });
 }
+
+// ---------- 酒館（大爺 10-11）：回家劇情演完後，跟店家同一套版面 ----------
+// state.tavern＝{talkWho:"dwarf"|"kam"|null(在選要跟誰聊), topicOpen, lines, i, pet, msg}；不存檔
+const tavernDay = () => ensureMarket().day;
+function openTavern(){ state.tavern = {}; state.page = "tavern"; state.info = null; render(); window.scrollTo(0,0); }
+function tavernLine(){ const t = state.tavern||{}; return t.lines ? t.lines[t.i] : null; }
+function petPopHTML(){
+  return `<div class="pop-choices tavern-pet" role="dialog" id="tavernPetPop"><b class="pet-title">${TAVERN_UI.petTitle}</b><div class="pet-heads">${CRITTERS.map(c=>{
+    const s = stressNow(c.id), happy = (state.tavern?.petAt?.[c.id]||0) > Date.now();
+    return `<button class="pet-head" data-pet="${c.id}" aria-label="摸摸${c.name}的頭">${happy?`<span class="pet-bubble">${obsBubbleHTML("note")}</span>`:""}${critterHead(c.id, happy ? "happy" : "normal")}<span>${c.name}</span><small>${TAVERN_UI.stress} ${s}</small></button>`;
+  }).join("")}</div><button class="btn ghost" id="tavernPetDone">${TAVERN_UI.petDone}</button></div>`;
+}
+function tavernButtons(){
+  const t = state.tavern||{};
+  if(t.lines) return "";
+  if(t.pet) return petPopHTML();
+  if(t.talkWho===null) return `<div class="town-talk-topics pop-choices" role="dialog"><b class="pet-title">${TAVERN_UI.talkWho}</b><button class="btn" data-tavern-who="dwarf">${TAVERN_UI.dwarfName}</button><button class="btn" data-tavern-who="kam">${TAVERN_UI.kamName}</button><button class="btn ghost" id="tavernTalkClose">不聊了</button></div>`;
+  if(t.topicOpen) return `<div class="town-talk-topics pop-choices" role="dialog">${Object.entries(TAVERN_TALK_TOPICS).map(([k,n])=>`<button class="btn" data-tavern-topic="${k}">${n}</button>`).join("")}<button class="btn ghost" id="tavernTalkClose">不聊了</button></div>`;
+  const ate = state.tavernMealDay===tavernDay();
+  return `<div class="town-talk-topics"><button class="btn" id="tavernEat" ${ate?"disabled":""}>${TAVERN_UI.eat}${ate?`<small>${TAVERN_UI.ate}</small>`:""}</button><button class="btn" id="tavernSleep" ${state.townRest?"":"disabled"}>${TAVERN_UI.sleep}${state.townRest?"":`<small>${TAVERN_UI.noBed}</small>`}</button><button class="btn" id="tavernTalk">${TAVERN_UI.talk}</button><button class="btn" id="tavernPet">${TAVERN_UI.pet}</button></div>`;
+}
+function renderTavern(){
+  const t = state.tavern || (state.tavern = {}), line = tavernLine();
+  const who = (line && line.who) || t.talkWho || t.speaker || "dwarf";
+  const face = line ? line.face : (t.face || "smile");
+  return `<section class="page fp-page town-page town-conversation tavern-page" aria-label="酒館"><div class="story-head"><span></span>${pageToolsHTML()}</div><div class="stage"><div class="wall"></div><div class="actor ${who}">${portraitHTML(who, face||"smile")}</div><div class="dialog town-dialog" ${line?'id="tavernNext" role="button" tabindex="0"':''}><b>${who==="kam"?TAVERN_UI.kamName:TAVERN_UI.dwarfName}</b><p>${line?line.text:(t.msg||TAVERN_UI.idle)}</p>${line?'<span class="next">▼ 點一下繼續</span>':''}</div></div>${storyPartyHTML()}${tavernButtons()}<div class="nav"><button class="btn ghost" id="tavernLeave">${TAVERN_UI.leave}</button></div></section>`;
+}
+function tavernEat(){
+  if(state.tavernMealDay===tavernDay()) return;
+  const keys = Object.keys(CAMP_FOODS), food = keys[Math.floor(Math.random()*keys.length)];
+  state.tavernMealDay = tavernDay();
+  CRITTERS.forEach(c=>{ (state.cookBuff ||= {})[c.id] = food; });
+  if(food==="honey") changeStressAll(v=>v-10);   // 蜂蜜麵包：壓力額外 −10（同露營）
+  Object.assign(state.tavern, {msg:TAVERN_UI.meal.replace("{food}", CAMP_FOODS[food].dish)+`（${CAMP_FOODS[food].effect}，到下次長休）`, speaker:"dwarf", face:"grin"});
+  sfx("win"); render(); autoSave();
+}
+function tavernSleep(){
+  const b = state.townRest; if(!b) return;
+  if(!takeRest("long", restPickSelections(b), b)) return;
+  state.page = "story"; state.scene = "tavernRest"; state.line = 0; state.info = null; render(); window.scrollTo(0,0);
+}
+function petCritter(id){
+  const t = state.tavern; if(!t?.pet) return;
+  state.stress ||= {}; state.stress[id] = Math.max(0, stressNow(id) - PET_STRESS);
+  (t.petAt ||= {})[id] = Date.now() + 900;
+  sfx("pop");
+  const pop = document.getElementById("tavernPetPop"); if(pop){ pop.outerHTML = petPopHTML(); bindTavernPet(); }   // 只換跳出框，不整頁重畫
+  clearTimeout(petCritter.timer); petCritter.timer = setTimeout(()=>{ const p = document.getElementById("tavernPetPop"); if(p && state.page==="tavern"){ p.outerHTML = petPopHTML(); bindTavernPet(); } }, 950);
+}
+function bindTavernPet(){
+  document.querySelectorAll("[data-pet]").forEach(el=>el.addEventListener("click", ()=>petCritter(el.dataset.pet)));
+  document.getElementById("tavernPetDone")?.addEventListener("click", ()=>{ state.tavern.pet = false; render(); autoSave(); });
+}
+function bindTavern(){
+  const t = state.tavern || (state.tavern = {}), $ = id => document.getElementById(id);
+  $("tavernEat")?.addEventListener("click", tavernEat);
+  $("tavernSleep")?.addEventListener("click", tavernSleep);
+  $("tavernTalk")?.addEventListener("click", ()=>{ t.talkWho = null; t.msg = null; render(); });
+  $("tavernPet")?.addEventListener("click", ()=>{ t.pet = true; t.msg = null; render(); });
+  $("tavernTalkClose")?.addEventListener("click", ()=>{ t.talkWho = undefined; t.topicOpen = false; render(); });
+  document.querySelectorAll("[data-tavern-who]").forEach(el=>el.addEventListener("click", ()=>{ t.talkWho = el.dataset.tavernWho; t.speaker = t.talkWho; t.face = "smile"; t.topicOpen = true; render(); }));
+  document.querySelectorAll("[data-tavern-topic]").forEach(el=>el.addEventListener("click", ()=>{
+    const T = TAVERN_TALK[t.talkWho], k = el.dataset.tavernTopic, src = k==="chat" ? T.chat[Math.floor(Math.random()*T.chat.length)] : T[k];
+    t.lines = src.map(l=>({...l, who:t.talkWho})); t.i = 0; t.topicOpen = false; render();
+  }));
+  $("tavernNext")?.addEventListener("click", ()=>{ if(t.i < t.lines.length-1) t.i++; else { t.face = t.lines[t.i].face; t.lines = null; t.topicOpen = true; } render(); });
+  $("tavernLeave")?.addEventListener("click", ()=>{ state.tavern = null; state.page = "map"; state.location = "tavern"; state.mapSel = null; state.travel = null; render(); window.scrollTo(0,0); });
+  if(t.pet) bindTavernPet();
+}

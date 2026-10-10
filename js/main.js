@@ -25,7 +25,7 @@ function render(){
   app.classList.toggle('shop-screen',state.page==='shop'||(state.page==='town'&&!!state.townPanel));
   app.classList.toggle('battle-screen',state.page==='battle');
   app.classList.toggle('map-screen',state.page==='map');
-  app.innerHTML = cachedImageHTML(state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory());
+  app.innerHTML = cachedImageHTML(state.page==="cover" ? renderCover() : state.page==="roll" ? renderRoll() : state.page==="shop" ? renderShop() : state.page==="map" ? renderMap() : state.page==="town" ? renderTown() : state.page==="tavern" ? renderTavern() : state.page==="battle" ? renderBattle() : state.page==="doll" ? renderDollDemo() : renderStory());
   if(state.page==="battle" && B()){ document.getElementById("board-floor").terrainKey=boardTerrainKey(); refreshBattle.battle=B(); refreshBattle.keys=null; }
   app.insertAdjacentHTML("beforeend", cachedImageHTML(renderModal()));
   if(entering) app.firstElementChild?.classList.add("enter");
@@ -187,11 +187,14 @@ function bind(){
   if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:goTitle});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishCamp")?.addEventListener("click",finishCamp);   // 露營完回探索（10-10）
+  $("toTavern")?.addEventListener("click", openTavern);   // 回家劇情演完進酒館（10-11）
+  $("finishTavernRest")?.addEventListener("click",()=>{openTavern();autoSave();});   // 酒館睡覺完：隔天早上回酒館
   $("finishInnRest")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;state.townPanel=null;render();autoSave();window.scrollTo(0,0);});   // 旅店長休完：隔天早上回街上（10-10）
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",enterWorldLocation);
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);
   if(state.page==="town")bindTown();
+  if(state.page==="tavern")bindTavern();   // 酒館（10-11）
   $("continueGame")?.addEventListener("click",()=>{const s=latestSaveSlot();if(s)loadFrom(s);});
   $("start")?.addEventListener("click", async e=>{
     if(readSave("auto")&&!Object.keys(state.sets||{}).length&&!confirm("開新遊戲？之後的自動存檔會蓋掉現在的自動存檔（手動存檔不受影響）。"))return;

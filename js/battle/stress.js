@@ -9,7 +9,7 @@ const STRESS = {
   warn:50, cranky:75, afterFrenzy:50,
   battleEnd:5, critTaken:5, selfDown:15, allyDown:10, trap:5,   // 加
   relief:3, reliefMax:10,                                         // 自己爆擊或打倒敵人：每次 −3，每場最多 −10
-  shortRest:10, longRest:30,                                      // 減；回到大爺的酒館直接歸零
+  shortRest:10, longRest:30,                                      // 減；酒館裡摸摸頭、睡覺再減（10-11 起回酒館不自動歸零）
   recoverStat:"WIS", recoverDC:10, frenzyMaxRounds:3
 };
 const isCritter = u => !!u && u.side==="pc" && CRITTERS.some(c=>c.id===u.id);   // 跟著冒險的 NPC 沒有壓力
@@ -36,7 +36,6 @@ function changeStressAll(fn){
   B()?.units.filter(isCritter).forEach(u=>{ u.stress = stressNow(u.id); u.svgMood = stressMood(u); });
 }
 const restStress = kind => changeStressAll(v => v - (kind==="short" ? STRESS.shortRest : STRESS.longRest));
-const tavernStress = () => changeStressAll(() => 0);
 // 開戰時單位帶上存著的壓力（到頂的進戰鬥時不立刻失控，輪到她時才爆）
 function initStress(u){ if(!isCritter(u)) return; u.stress = stressNow(u.id); u.frenzy = null; u.svgMood = stressMood(u); }
 

@@ -124,10 +124,10 @@ assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接�
   state.stress={fox:60,tiger:100,wolf:5,raccoon:40};const o={};
   restStress('short');o.short={...state.stress};restStress('long');o.long={...state.stress};
   state.stress.fox=70;const bk=state.battle,tr=state.townRest;state.battle=null;state.townRest=null;o.snap=critterStatusUnit('fox').svgMood;state.battle=bk;state.townRest=tr;
-  tavernStress();o.tavern=Object.values(state.stress);return o;});
+  state.stress.fox=20;state.tavern={pet:true};petCritter('fox');o.tavern=[20,stressNow('fox'),PET_STRESS];state.tavern=null;return o;});
  assert.deepEqual(out.short,{fox:50,tiger:90,wolf:0,raccoon:30});assert.deepEqual(out.long,{fox:20,tiger:60,wolf:0,raccoon:0});ok('短休 −10、長休 −30（不會低於 0）');
  assert.equal(out.snap,'stressed');ok('劇情／城鎮狀態卡也照壓力換臉');
- assert(out.tavern.every(v=>v===0));ok('回到大爺的酒館壓力歸零');
+ assert.equal(out.tavern[1],out.tavern[0]-out.tavern[2]);ok('酒館摸摸頭：點一下壓力減少（10-11 起回酒館不自動歸零）');
  // 測試戰鬥（#battle 隨機場）的齒輪有「壓力拉到 95」；救援商隊沒有
  assert.equal(await pg.locator('[data-system-action="stressTest"]').count(),0);
  const p2=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});p2.on('pageerror',e=>errors.push(e.message));

@@ -3,7 +3,8 @@ const SCENES = {
   worldChest:{get script(){return worldChestScript();},bg:'road',back:null,get next(){return state.worldChest?.status==='mimic'?['startWorldMimic','戰鬥開始！']:['resumeWorldTravel','繼續上路'];}},
   prologue: {script: SCRIPT,   bg:"tavern", back:["back2","回去重骰"],    next:["toShop","去看裝備"]},
   farewell: {script: FAREWELL, bg:"tavern", back:["backShop","回裝備"], next:["toMap","出門！"]},
-  tavernReturn: {script: TAVERN_RETURN, bg:"tavern", actors:["dwarf"], back:["backShop","回裝備"], next:["toMap","出門！"]},   // 過夜後回酒館（10-11）
+  tavernReturn: {script: TAVERN_RETURN, bg:"tavern", actors:["dwarf"], back:null, next:["toTavern","進酒館"]},
+  tavernRest: {script: TAVERN_REST, bg:"town", back:null, next:["finishTavernRest","隔天早上"]},   // 酒館睡覺：旅店 CG＋在家的台詞（10-11）   // 過夜後回酒館（10-11）
   ambush:   {get script(){ return ambushScript(); }, bg:"road", back:null, next:["toBattle","戰鬥開始！"]},
   caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
   townSupplier: {script:TOWN_SUPPLIER,bg:"town",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},

@@ -7,7 +7,7 @@ const SAVE_NS = /\/dev\//.test(location.pathname) ? "dev:" : "";
 const saveKey = slot => `${SAVE_NS}fuwa-save-${slot}`;
 const MARKET_KEY = `${SAVE_NS}fuwa-market-v1`;
 // 不存的：戰場、畫面上暫時開著的東西
-const SAVE_SKIP = ["townTalk","battle","battleSnap","modal","info","sysPop","statusCardUI","levelUpAt","sel","restMessage","travel","questSel"];
+const SAVE_SKIP = ["townTalk","tavern","battle","battleSnap","modal","info","sysPop","statusCardUI","levelUpAt","sel","restMessage","travel","questSel"];
 // 新遊戲用：載入時的乾淨狀態
 const STATE_PRISTINE = JSON.stringify(state);
 
@@ -16,11 +16,12 @@ function saveBlockReason(){
   if(state.page==="story") return "劇情進行中不能存檔";
   if(state.page==="cover"||state.page==="roll") return "還沒開始冒險";
   if(state.page==="map"&&state.travel) return "移動中不能存檔";
-  if(!["town","map","shop"].includes(state.page)) return "這裡不能存檔";
+  if(!["town","map","shop","tavern"].includes(state.page)) return "這裡不能存檔";
   return "";
 }
 function savePlaceLabel(s){
   if(s.page==="town") return s.townPlace ? (TOWN_PLACES.find(p=>p.id===s.townPlace)?.name||"城鎮") : "城鎮";
+  if(s.page==="tavern") return "酒館";
   if(s.page==="map") return WORLD.locations.find(l=>l.id===s.location)?.name||"大地圖";
   if(s.page==="shop") return s.shopContext ? (TOWN_PLACES.find(p=>p.id===s.shopContext)?.name||"商店") : "大爺的裝備牆";
   return "";
