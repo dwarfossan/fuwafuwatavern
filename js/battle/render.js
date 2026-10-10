@@ -1078,8 +1078,8 @@ function aimHTML(u, b){
   const ts = canUp(sk) ? tiersFor(u, sk) : [], tier = ts.includes(b.tier) ? b.tier : ts[0];
   const up = upOf(u, sk, tier), self = sk.impl.target==="self";
   const darts = sk.impl.multi ? b.mode.darts||[] : null;
-  const metas = metaOptions(u, sk);
-  if(ts.length < 2 && !up && !darts && !self && !metas.length) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
+  const metas = metaShown(u, sk);
+  if(ts.length < 2 && !up && !darts && !self && !metas) return plain(k===(attackSkill(u)||{}).key ? "攻擊" : sk.def.name, "點紅色格子選目標");
   const rows = [];
   // 選階（大爺 2026-10-01）：平常只顯示選中的那一階＋「＋」；點「＋」往上展開其他階（高階在上），「＋」變「×」；選好就收起來
   if(ts.length > 1 || up){
@@ -1091,8 +1091,11 @@ function aimHTML(u, b){
     rows.push(`${b.tierOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(tier)}${toggle}</div>${up?`<p class="aim-note">升 <b>${up}</b> 階</p>`:""}`);
   }
   // 超魔（大爺 10-09）：一次只能選一種，再點一次取消；免費動作不夠的灰掉。文字、外觀暫定（香香）
-  if(metas.length) rows.push(`<div class="aim-meta"><small>超魔（+1 免費動作）</small>${metas.map(m=>{ const on = b.mode.meta===m, ok = on || metaAffordable(u, sk, m);
-    return `<button class="mn-b aim-m ${on?"on":""}" data-aim="m:${m}" ${ok?"":"disabled"}><span>${META_NAME[m]}</span></button>`; }).join("")}</div>`);
+  // 上下拖曳條（大爺 10-10）：不用／謹慎／瞬發／遠距四格，拖或點；用不到的灰掉寫原因，圓鈕不會停在那裡
+  if(metas){ const cur = b.mode.meta || "none";
+    rows.push(`<div class="aim-meta" data-meta-slider><small>超魔（+1 免費動作）</small><div class="meta-track">${["none",...META_ALL].map(m=>{
+      const why = m==="none" ? "" : metaReason(u, sk, m);
+      return `<button class="meta-stop ${m===cur?"on":""}" data-meta="${m}" ${why?"disabled":""}><i></i><span>${m==="none"?"不用":META_NAME[m]}</span>${why?`<small>${why}</small>`:""}</button>`; }).join("")}</div></div>`); }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
   else if(!self) rows.push(`<p class="aim-note">點紅色格子選目標</p>`);
   if(self) rows.push(`<button class="mn-b ok" data-aim="cast"><span>施放</span></button>`);
@@ -1491,6 +1494,17 @@ function bindBattle(){
   document.querySelectorAll("[data-swap]").forEach(el=>battleListen(el,"click", ()=>{ swapWeapon(cur(), +el.dataset.swap); }));
   document.querySelectorAll("[data-skill]").forEach(el=>battleListen(el,"click", ()=>{ sfx("pop"); pickSkill(el.dataset.skill); }));
   document.querySelectorAll("[data-sltoggle]").forEach(el=>battleListen(el,"click", ()=>{ slotLightsOpen = !slotLightsOpen; sfx("pop"); refreshBattle(); }));
+  // 超魔拖曳條：按下後上下拖，圓鈕跟著停在最近、可以選的那格；放手才真的設定（拖的時候不重畫，免得手指脫離）
+  document.querySelectorAll("[data-meta-slider]").forEach(el=>{
+    const stops = () => [...el.querySelectorAll(".meta-stop:not([disabled])")];
+    const near = y => stops().reduce((best,s)=>{ const r = s.getBoundingClientRect(), d = Math.abs(r.top + r.height/2 - y); return !best || d < best.d ? {s,d} : best; }, null)?.s;
+    const show = s => { if(!s) return; el.querySelectorAll(".meta-stop").forEach(x=>x.classList.toggle("on", x===s)); };
+    let drag = false;
+    battleListen(el, "pointerdown", e=>{ const s = near(e.clientY); if(!s) return; drag = true; el.setPointerCapture?.(e.pointerId); show(s); e.preventDefault(); });
+    battleListen(el, "pointermove", e=>{ if(drag) show(near(e.clientY)); });
+    const end = e=>{ if(!drag) return; drag = false; const s = near(e.clientY); if(s) aimMetaSet(s.dataset.meta); };
+    battleListen(el, "pointerup", end); battleListen(el, "pointercancel", ()=>{ drag = false; refreshBattle(); });
+  });
   document.querySelectorAll("[data-aim]").forEach(el=>battleListen(el,"click", ()=>{ const a = el.dataset.aim;
     if(/^t\d$/.test(a)) aimTier(+a.slice(1)); else if(a.startsWith("m:")) aimMeta(a.slice(2)); else if(a==="toggle") aimTierToggle(); else if(a==="cast") aimCast(); else aimCancel(); }));
   document.querySelectorAll("[data-move]").forEach(el=>battleListen(el,"click", ()=>{ sfx(el.dataset.move==="ok"?"pop":"back"); confirmMove(el.dataset.move==="ok"); }));

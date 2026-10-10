@@ -258,11 +258,25 @@ function metaOptions(u, sk){
   if(sk.impl.range && !["self","cone"].includes(t)) out.push("far");
   return out;
 }
+// 拖曳條每一格為什麼不能選（空字串＝可以選）；三格永遠都列出來（大爺 10-10）
+const META_ALL = ["careful","quick","far"];
+const metaShown = (u, sk) => !!sk && isSpellSkill(sk) && passiveSkills(u).some(s=>s.key==="metamagic");
+function metaReason(u, sk, m){
+  if(!metaOptions(u, sk).includes(m)) return m==="careful" ? "只對範圍法術有用" : m==="quick" ? "本來就是免費動作" : "貼身或對自己放的不能加";
+  return metaAffordable(u, sk, m) ? "" : `免費動作不夠（要 ${m==="quick"?2:1} 個）`;
+}
 // 選了這個加工夠不夠免費動作：加工本身一個；瞬發另外再一個（法術改用免費動作放）
 const metaAffordable = (u, sk, m) => freeRemaining() >= (m==="quick" ? 2 : 1);
 const metaOf = (u, sk) => { const b = B(), m = b.mode && b.mode.key===sk.key ? b.mode.meta : null; return m && metaOptions(u, sk).includes(m) ? m : null; };
 // 招式距離（含超魔遠距）
 function skillRange(u, sk){ const r = sk.impl.range ? sk.impl.range(u) : 0; return metaOf(u, sk)==="far" ? (r<=1 ? 6 : r*2) : r; }
+// 拖曳條放手：直接設定（"none"＝不用），不是切換
+function aimMetaSet(m){
+  const b = B(), u = cur(); if(!b.mode || b.busy) return;
+  const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!sk) return;
+  const v = m==="none" ? null : m; if(v && metaReason(u, sk, v)) return;
+  if((b.mode.meta||null)===v) return; b.mode.meta = v; sfx("pop"); refreshBattle();
+}
 function aimMeta(m){
   const b = B(), u = cur(); if(!b.mode || b.busy) return;
   const sk = unitSkills(u).find(s=>s.key===b.mode.key); if(!metaOptions(u, sk).includes(m)) return;
