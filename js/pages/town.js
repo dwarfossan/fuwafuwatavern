@@ -22,19 +22,31 @@ function renderTown(){
  const p=townPlace();
  if(p && state.townPanel)return `<section class="page shop-page town-service-page${p.id==='inn'&&innFirstNight()?' inn-first-night':''}" aria-label="${p.name}">${venueHeaderHTML(p,p.line)}<div class="shop-list town-service-body">${state.townPanel==='rest'?`<div class="town-rest">${p.id==='inn'&&innFirstNight()?`<div class="inn-tutor-mask" aria-hidden="true"></div><div class="inn-tutor-tip" role="note"><b>${TOWN_UI.innFirstNightTitle}</b><p>${TOWN_UI.innFirstNight}</p></div>`:''}${state.townRest?restChoiceHTML(state.townRest):`<p>${TOWN_UI.restUnavailable}</p>`}<p>${TOWN_UI.rest}</p>${state.restMessage?`<p role="status">${state.restMessage}</p>`:''}</div>`:`<p class="town-panel">${TOWN_UI.guild}</p>`}</div><div class="nav"><button class="btn ghost" id="townServiceBack">回到${p.name}</button><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
  if(!p)return `<section class="page town-page town-street-page"><div class="story-head"><h2>${TOWN_UI.title}</h2>${pageToolsHTML()}</div><div class="stage town-street town-street-art"><img class="town-street-background" src="${SCENE_ART.town}" alt="城鎮街景"><p class="town-street-caption">${TOWN_UI.subtitle}</p>${TOWN_PLACES.map(p=>`<button class="town-building" data-town-place="${p.id}" style="--venue:${p.color}">${townSymbolSVG(p.symbol)}<b>${p.name}</b><span>${p.owner}</span>${townShopEventHTML(p.id)}</button>`).join('')}${townEventBubbleHTML()}</div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><div class="nav"><button class="btn ghost town-map-button" id="townMap" aria-label="${TOWN_UI.map}"><img src="${SCENE_ART.mapMarker}" alt=""><span class="town-hint" role="tooltip">${TOWN_UI.map}</span></button></div></section>`;
- return `<section class="page fp-page town-page town-conversation" aria-label="${p.name}"><div class="story-head"><span></span>${pageToolsHTML()}</div><div class="stage"><div class="actor ${TOWN_PORTRAIT[p.id]}">${portraitHTML(TOWN_PORTRAIT[p.id],"smile")}</div><div class="dialog town-dialog"><b>${p.owner} · ${p.role}</b><p>${p.line}</p></div></div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><button class="btn" id="townAction">${p.action}</button><div class="nav"><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
+ return `<section class="page fp-page town-page town-conversation" aria-label="${p.name}"><div class="story-head"><span></span>${pageToolsHTML()}</div><div class="stage"><div class="actor ${TOWN_PORTRAIT[p.id]}">${portraitHTML(TOWN_PORTRAIT[p.id],"smile")}</div><div class="dialog town-dialog" ${talkLine(p)?'id="townTalkNext" role="button" tabindex="0"':''}><b>${p.owner} · ${p.role}</b><p>${talkLine(p)||p.line}</p>${talkLine(p)?'<span class="next">▼ 點一下繼續</span>':''}</div></div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small>${townTalkButtons(p)}<div class="nav"><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
 }
 // 進城第一晚（大爺 10-10）：逛到旅店就直接進休息、只能長休，長休完看旅店 CG；之後照常讓玩家選
 const innFirstNight = () => !state.innNightDone;
-function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=id==='inn'&&innFirstNight()&&state.townRest?'rest':null;state.restMessage=null;render();window.scrollTo(0,0);}
+// 店內對話（10-10）：state.townTalk＝{place, topic, lines, i}；topic 為 null＝正在挑話題
+const talkLine = p => { const t=state.townTalk; return t && t.place===p.id && t.lines ? t.lines[t.i] : null; };
+function townTalkButtons(p){
+  const t=state.townTalk;
+  if(t && t.place===p.id && !t.lines) return `<div class="town-talk-topics">${Object.entries(TOWN_TALK_TOPICS).map(([k,n])=>`<button class="btn" data-talk-topic="${k}">${n}</button>`).join("")}<button class="btn ghost" id="townTalkClose">不聊了</button></div>`;
+  if(t && t.place===p.id) return "";
+  return `<div class="town-talk-topics"><button class="btn" id="townAction">${p.action}</button><button class="btn ghost" id="townTalk">對話</button></div>`;
+}
+function openTownPlace(id){state.townTalk=null;if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=id==='inn'&&innFirstNight()&&state.townRest?'rest':null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
  bindTownImageReadiness();
  document.getElementById('townServiceBack')?.addEventListener('click',()=>{state.townPanel=null;render();});
+ document.getElementById('townTalk')?.addEventListener('click',()=>{state.townTalk={place:state.townPlace,lines:null,i:0};render();});
+ document.getElementById('townTalkClose')?.addEventListener('click',()=>{state.townTalk=null;render();});
+ document.querySelectorAll('[data-talk-topic]').forEach(el=>el.addEventListener('click',()=>{const T=TOWN_TALK[state.townPlace],k=el.dataset.talkTopic;const lines=k==='chat'?T.chat[Math.floor(Math.random()*T.chat.length)]:T[k];state.townTalk={place:state.townPlace,topic:k,lines,i:0};render();}));
+ document.getElementById('townTalkNext')?.addEventListener('click',()=>{const t=state.townTalk;if(!t?.lines)return;if(t.i<t.lines.length-1)t.i++;else{t.lines=null;t.topic=null;}render();});
  if(state.townPlace==='items'&&!state.supplierSeen)loadEntryImage(PORTRAITS.merchant.base).catch(()=>{});
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',e=>{if(e.pointerType==='touch'&&el.querySelector('.town-hint')&&!el.classList.contains('hint-open')){el.classList.add('hint-open');return;}openTownPlace(el.dataset.townPlace);}));
  document.getElementById('townMap')?.addEventListener('click',e=>{if(e.pointerType==='touch'&&!e.currentTarget.classList.contains('hint-open')){e.currentTarget.classList.add('hint-open');return;}state.page='map';state.mapSel='town';render();});
  document.querySelectorAll('[data-town-event]').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('hint-open')));
- document.getElementById('townStreet')?.addEventListener('click',()=>{if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
+ document.getElementById('townStreet')?.addEventListener('click',()=>{state.townTalk=null;if(state.townPlace==='items'&&!state.supplierSeen){state.page='story';state.scene='townSupplier';state.line=0;state.info=null;state.townPanel=null;render();window.scrollTo(0,0);return;}state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
  document.getElementById('townAction')?.addEventListener('click',()=>{
   const p=townPlace();if(p.id==='smith'||p.id==='items'){
    state.shopContext=p.id;state.page='shop';state.shopCat=shopCategories()[0];state.quip=p.line;render();

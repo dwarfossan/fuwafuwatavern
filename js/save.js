@@ -7,7 +7,7 @@ const SAVE_NS = /\/dev\//.test(location.pathname) ? "dev:" : "";
 const saveKey = slot => `${SAVE_NS}fuwa-save-${slot}`;
 const MARKET_KEY = `${SAVE_NS}fuwa-market-v1`;
 // 不存的：戰場、畫面上暫時開著的東西
-const SAVE_SKIP = ["battle","battleSnap","modal","info","sysPop","statusCardUI","levelUpAt","sel","restMessage","travel"];
+const SAVE_SKIP = ["townTalk","battle","battleSnap","modal","info","sysPop","statusCardUI","levelUpAt","sel","restMessage","travel"];
 // 新遊戲用：載入時的乾淨狀態
 const STATE_PRISTINE = JSON.stringify(state);
 

@@ -1379,3 +1379,6 @@ body.image-boot{background:#000}
 .camp-ask .camp-who{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid #f2b441;border-radius:12px;background:#fff8e8;font-size:15px;font-weight:700;color:#2a2630}
 .camp-ask .camp-who .c-head{width:40px;height:40px}
 .scene-art[data-art^="camp"]{background:radial-gradient(circle at 50% 55%,#5a3a22 0%,#2c2230 55%,#18151f 100%)}
+/* 店內對話（10-10）：功能按鈕＋對話並排；話題三選一 */
+.town-talk-topics{display:flex;gap:6px}.town-talk-topics .btn{flex:1;min-width:0;white-space:nowrap;padding-left:6px;padding-right:6px;font-size:14px}
+.town-dialog .next{display:block;text-align:right;font-size:12px;opacity:.7}

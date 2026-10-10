@@ -33,6 +33,15 @@ try{
   assert(layout.order);delete layout.order;assert.deepEqual(layout,opening);
   await page.locator('.party [data-info="fox"]').tap();assert.equal(await page.locator('.modal').count(),1);await page.locator('.md-x').tap();
   await shot(`town-${id}.png`);
+  // 對話：自我介紹逐句點完回到話題列，不聊了回到原本按鈕
+  await page.locator('#townTalk').tap();
+  await page.locator('[data-talk-topic="intro"]').tap();
+  const intro=await page.evaluate(i=>TOWN_TALK[i].intro,id);
+  assert.equal(await page.locator('.town-dialog p').textContent(),intro[0]);
+  for(let k=0;k<intro.length;k++)await page.locator('#townTalkNext').tap();
+  assert.equal(await page.locator('[data-talk-topic]').count(),3);
+  await page.locator('#townTalkClose').tap();
+  assert.equal(await page.locator('#townAction').count(),1);
   if(id==='inn'){
    await page.locator('#townAction').tap();
    assert.equal(await page.locator('[data-restpick="fox:burning_hands"]').count(),1);
