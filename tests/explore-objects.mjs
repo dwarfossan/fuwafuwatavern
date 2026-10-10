@@ -1,5 +1,5 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';import {fileURLToPath} from 'node:url';
-const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];pg.on('pageerror',e=>errors.push(e.message));
+const br=await chromium.launch(),pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[];await pg.addInitScript(()=>{window.NO_LUCK_ASK=true;});pg.on('pageerror',e=>errors.push(e.message));
 const shot=async n=>{if(process.env.OBJECT_SHOTS)await pg.screenshot({path:process.env.OBJECT_SHOTS+'/'+n+'.png'});};
 const tap=async(x,y)=>{const p=await pg.evaluate(({x,y})=>{centerCam(x,y);const r=document.querySelector('.board-wrap').getBoundingClientRect(),p=iso(x,y),z=camZoom();return {x:r.left+B().cam.x+p.x*z,y:r.top+B().cam.y+(p.y+TH/2)*z};},{x,y});await pg.touchscreen.tap(p.x,p.y);};
 try{

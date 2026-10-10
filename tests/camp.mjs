@@ -6,7 +6,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 const br=await chromium.launch();const ok=n=>console.log('✓ '+n);
 try{
- const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+ const p=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});await p.addInitScript(()=>{window.NO_LUCK_ASK=true;});const errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(p);
  await p.waitForFunction(()=>B()&&B().phase==='explore');
  const openRest=async()=>{await p.evaluate(()=>{const b=B();b.exploreRest=true;b.busy=false;b.exploreStopped=false;refreshBattle();});};

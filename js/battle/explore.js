@@ -143,7 +143,7 @@ function exploreTraps(u){
    blog(EXPLORE_ACTION_TEXT.trapHit);addStress(u,STRESS.trap,"踩到陷阱");hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
  }return hit;
 }
-function exploreInteract(action){
+async function exploreInteract(action){
  const b=B(),o=b.exploreObject,u=exploreUnit();if(!exploring()||b.busy||b.exploreStopped||!o||!u||u.down||u.dead||dist(u,o)>1||!EXPLORE_OBJECTS[o.kind]?.actions.includes(action))return;
  if(action==="pickup"){pickupBarrel(o,u);return;}
  const text=EXPLORE_ACTION_TEXT;
@@ -152,7 +152,9 @@ function exploreInteract(action){
  else if(action==="search"){o.searched=true;blog(text.searched);if(o.opened){if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}
  else {if(o.kind==="chest"&&o.opened){blog(text.opened);refreshBattle();return;}
  const rule=EXPLORE_CHECKS[action];if(rule.tool&&!hasGear([u.backpackEquip,...u.backpack],rule.tool)){blog(text.needTool);refreshBattle();return;}
- const roll=d20(),value=roll+u.mods[rule.ability],ok=value>=rule.dc;blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${rule.dc}，${ok?"OK":text.failed}`);
+ let roll=d20(),value=roll+u.mods[rule.ability],ok=value>=rule.dc;
+ if(!ok&&await luckReroll(u.id,`${text[action]} ${roll}${fmtN(u.mods[rule.ability])}＝${value}，沒到 DC ${rule.dc}`)){roll=d20();value=roll+u.mods[rule.ability];ok=value>=rule.dc;}
+ blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${rule.dc}，${ok?"OK":text.failed}`);
  if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);}}}
  exploreTraps();exploreDetect();refreshBattle();
 }

@@ -23,9 +23,10 @@ function worldChestChoices(){
  return `<div class="choice-list">${CRITTERS.map(c=>{const used=e.attempts.some(a=>a.id===c.id),m=modOf(finalScore(c.id,'DEX'));return `<button class="choice" data-chest-pick="${c.id}" style="--c:${c.color}" ${used?'disabled':''}><b>${c.name}${used?'（已試）':''}</b><small>敏捷 ${fmt(m)}・難度 ${e.dc}</small></button>`;}).join('')}</div>`;
 }
 function worldChestRollHTML(a){return `<div class="check-row">敏捷檢定 ${diceFormulaHTML({dice:dieFace(20,a.roll,0,DICE_TUMBLE,a.flick,false),base:a.roll,total:a.total,result:a.ok?'hit':'miss',land:DICE_TUMBLE})}<span class="check-vs">${a.ok?'≥':'<'} ${state.worldChest.dc}　${a.ok?'成功！':'失敗'}</span></div>`;}
-function worldChestPick(id,roll){
- const e=state.worldChest;if(state.page!=='story'||state.scene!=='worldChest'||e?.status!=='locked'||!SCENES.worldChest.script[state.line]?.worldChestChoice||!CRITTERS.some(c=>c.id===id)||e.attempts.some(a=>a.id===id))return;
- roll??=d20();const mod=modOf(finalScore(id,'DEX')),total=roll+mod,ok=total>=e.dc,index=5+e.attempts.length*2;
+async function worldChestPick(id,roll){
+ const e=state.worldChest;if(e?.asking)return;if(state.page!=='story'||state.scene!=='worldChest'||e?.status!=='locked'||!SCENES.worldChest.script[state.line]?.worldChestChoice||!CRITTERS.some(c=>c.id===id)||e.attempts.some(a=>a.id===id))return;
+ roll??=d20();const mod=modOf(finalScore(id,'DEX')),index=5+e.attempts.length*2;let total=roll+mod,ok=total>=e.dc;
+ if(!ok&&!e.mimic){e.asking=true;if(await luckReroll(id,`敏捷檢定 ${roll}${fmtN(mod)}＝${total}，沒到 DC ${e.dc}`)){roll=d20();total=roll+mod;ok=total>=e.dc;}e.asking=false;}
  e.attempts.push({id,roll,mod,total,ok,flick:[0,1,2].map(()=>d20())});
  if(e.mimic)e.status='mimic';
  else if(ok){e.status='opened';if(!e.paid){e.paid=true;grantPartyGold(e.gold);}}

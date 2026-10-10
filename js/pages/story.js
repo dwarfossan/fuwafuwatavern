@@ -24,11 +24,12 @@ function caravanScript(){
   return [...CARAVAN_INTRO, {who:c.pick, text:p.say, roll:true}, ...CARAVAN_RESULT[c.pick][c.ok?"win":"lose"], ...CARAVAN_OUTRO];
 }
 // 選好誰出面：擲 d20＋那一項的調整值，發報酬（只發一次），接著往下演
-function caravanPick(id, roll=d20()){   // roll：測試可以指定
+async function caravanPick(id, roll=d20()){   // roll：測試可以指定
   const c = state.caravan = state.caravan || {};
-  if(c.pick) return;
+  if(c.pick || c.asking) return;
   const p = CARAVAN_PICKS.find(x=>x.id===id); if(!p) return;
-  const mod = modOf(finalScore(id, p.stat)), total = roll + mod, ok = total >= CARAVAN_DC;
+  const mod = modOf(finalScore(id, p.stat)); let total = roll + mod, ok = total >= CARAVAN_DC;
+  if(!ok){ c.asking = true; if(await luckReroll(id, `檢定 ${roll}${fmtN(mod)}＝${total}，沒到 DC ${CARAVAN_DC}`)){ roll = d20(); total = roll + mod; ok = total >= CARAVAN_DC; } c.asking = false; }
   Object.assign(c, {pick:id, stat:p.stat, roll, mod, total, ok, flick:[0,1,2].map(()=>1+Math.floor(Math.random()*20))});
   const r = CARAVAN_REWARD[id][ok ? "win" : "lose"];
   grantPartyGold(r.gold);

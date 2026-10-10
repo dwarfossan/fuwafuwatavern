@@ -899,3 +899,22 @@ function applyMastery(a, t, m, mod){
 // 中毒：大爺 10-03 定，傷害在回合開始；結束時體質豁免，沒過持續。
 function poisonDamage(u){const po=has(u,"poisoned");if(!po||u.dead)return false;blog(`${u.name}中毒了……`,"dmg");hurt(u,rollDice(po.dice||"1d4").total,"毒素",null);return true;}
 function poisonSave(u){const poisons=u.statuses.filter(s=>s.k==="poisoned");if(!poisons.length||u.dead)return false;panelStart(`${u.name}【解毒】`);const ok=saveRoll(u,"CON",Math.max(...poisons.map(s=>s.dc??13)));panelEnd();if(ok){u.statuses=u.statuses.filter(s=>s.k!=="poisoned");blog(`${u.name}體質豁免成功，解毒了。`,"skill");}return true;}
+
+// 戰鬥以外的檢定也能用好運（大爺 10-10）：寶箱、探索開鎖／撬開／拆陷阱、商隊、露營。
+// 失敗時跳出詢問框，回答前流程等著（呼叫的地方用 await）；用了才扣，長休回滿。戰鬥中招式以外的擲骰還不問
+function askLuck(id, text){
+  if(window.NO_LUCK_ASK) return Promise.resolve(false);   // 測試用：不跳詢問、直接當「不用」
+  return new Promise(res=>{
+    const c = CRITTERS.find(x=>x.id===id), el = document.createElement("div");
+    el.className = "luck-ask";
+    el.innerHTML = `<div class="luck-box" role="dialog" aria-live="assertive"><b>${c ? c.name : ""}：${text}</b><p>要用好運重擲嗎？（還剩 ${luckLeft({id, side:"pc"})} 顆）</p><div class="luck-btns"><button class="btn" data-luck="1">好運：重擲</button><button class="btn" data-luck="0">不用</button></div></div>`;
+    el.addEventListener("click", ev=>{
+      const v = ev.target.closest("[data-luck]")?.dataset.luck; if(v===undefined) return;
+      el.remove();
+      if(v==="1"){ (state.luckUsed ||= {})[id] = (state.luckUsed[id]||0) + 1; sfx("pop"); }
+      res(v==="1");
+    });
+    document.body.appendChild(el);
+  });
+}
+const luckReroll = async (id, text) => luckLeft({id, side:"pc"})>0 && await askLuck(id, text);

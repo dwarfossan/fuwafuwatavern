@@ -1401,3 +1401,9 @@ body.image-boot{background:#000}
 @media (prefers-reduced-motion:reduce){.quest-bob{animation:none}}
 .quest-reward{margin:6px auto 4px;padding:6px 14px;width:max-content;max-width:90%;text-align:center;font-weight:bold;color:var(--honey);background:rgba(31,26,36,.9);border:2px solid var(--honey);border-radius:12px}
 .monster-line{margin-top:2px}
+
+/* 戰鬥以外的好運詢問（10-10） */
+.luck-ask{position:fixed;inset:0;z-index:200;background:rgba(10,8,14,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.luck-box{background:#fffaf0;color:#2a2630;border-radius:14px;padding:14px;width:100%;max-width:358px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.luck-box b{display:block;color:#b36b1f;margin-bottom:4px}.luck-box p{margin:0 0 10px;line-height:1.5}
+.luck-btns{display:flex;gap:8px}.luck-btns .btn{flex:1}

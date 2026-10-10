@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const br=await chromium.launch();
 const ok=n=>console.log('✓ '+n);
 try{
- const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});
+ const pg=await br.newPage({viewport:{width:390,height:844},hasTouch:true});await pg.addInitScript(()=>{window.NO_LUCK_ASK=true;});
  await pg.addInitScript(()=>{ try{ localStorage.setItem('fuwa-help-seen','{"roll":1,"shop":1,"map":1}'); }catch(e){} });
  const errors=[];pg.on('pageerror',e=>errors.push(e.message));
  await pg.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');
@@ -28,14 +28,14 @@ try{
  assert.equal(await pg.evaluate(()=>state.line),line);assert(await pg.locator('#toRoad').isDisabled());
  assert.equal(await pg.locator('[data-pick]').count(),4);ok('停在選項：點畫面不會跳過、「繼續上路」不能按、四個選項');
  // 每個選項的成功／失敗報酬（直接指定骰子）
- const res=await pg.evaluate(()=>{
+ const res=await pg.evaluate(async ()=>{
   const want={fox:['INT'],tiger:['STR'],wolf:['WIS'],raccoon:['DEX']}, out={};
   const snap=()=>JSON.stringify([state.gold,state.inv]);
   const base=snap();
   for(const id of Object.keys(want)) for(const r of [20,1]){
    const [g,inv]=JSON.parse(base); state.gold=g; state.inv=inv; state.caravan={}; state.line=SCENES.caravan.script.findIndex(l=>l.choice);
    const g0={...state.gold}, n0=Object.fromEntries(CRITTERS.map(c=>[c.id,state.inv[c.id].length]));
-   caravanPick(id,r); caravanPick(id,r);   // 第二次不能重複領
+   await caravanPick(id,r); await caravanPick(id,r);   // 第二次不能重複領
    const c=state.caravan; const items=Object.fromEntries(CRITTERS.map(x=>[x.id,state.inv[x.id].slice(n0[x.id]).map(i=>ITEMS.find(t=>t.id===i).n)]));
    out[id+r]={stat:c.stat, ok:c.ok, gold:CRITTERS.map(x=>(state.gold[x.id]-g0[x.id])/GP), items, rollLine:!!SCENES.caravan.script.find(l=>l.roll)};
   }

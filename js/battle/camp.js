@@ -18,9 +18,10 @@ function campPickerHTML(b){
 function askCamp(b){ b.campChoosing = true; refreshBattle(); }
 function pickCamp(id){ const b = B(); if(!b?.campChoosing) return; b.campChoosing = false; b.campWho = id; startCamp(b); }
 // 長休結算完才擲：先結算（清掉上一餐），再決定這一餐
-function startCamp(b){
+async function startCamp(b){
   const u = b.units.find(v=>v.id===b.campWho && v.side==="pc") || b.units.find(v=>v.side==="pc");
-  const r = d20(), total = r + (u.mods.WIS||0);
+  let r = d20(), total = r + (u.mods.WIS||0);
+  if((r===1 || total<CAMP_DC) && await luckReroll(u.id, `感知 ${r}${fmtN(u.mods.WIS||0)}＝${total}，沒到 DC ${CAMP_DC}`)){ r = d20(); total = r + (u.mods.WIS||0); }
   const result = r===1 ? "bad" : total>=CAMP_DC ? "good" : "plain";
   const keys = Object.keys(CAMP_FOODS), food = result==="good" ? keys[Math.floor(Math.random()*keys.length)] : null;
   if(food){
