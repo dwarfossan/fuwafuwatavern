@@ -55,7 +55,12 @@ function exploreDockHTML(){
  if(b.mode?.key==="placeBarrel")return dockWrap(exploreUnit(),b,"dk-pick",WORLD_OBJECT_TEXT.place,`<p>${WORLD_OBJECT_TEXT.placeHint}</p><button class="mn-b" data-explore-cmd="cancelPlace">${WORLD_OBJECT_TEXT.cancel}</button>`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
  if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
- return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
+ if(b.exploreMenu==="act"){   // 探索的行動（大爺 10-11）：直接用戰鬥同一份行動選單，探索時用不了的變灰；搜索直接搜四周
+  return menuHTML(exploreUnit(),b,"act").replace(/<button /g,"<button disabled ")
+   .replace(/<button disabled class="mn-b" data-cmd="search"[^>]*>/,`<button class="mn-b" data-explore-cmd="actSearch" ${b.busy?"disabled":""}>`)
+   .replace(/<button disabled class="mn-back" data-cmd="root">/,`<button class="mn-back" data-explore-cmd="actBack">`);
+ }
+ return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
