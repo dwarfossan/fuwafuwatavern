@@ -163,7 +163,9 @@ function tiersFor(u, sk){
 const lowestTier = (u, sk) => tiersFor(u, sk)[0];
 // 用第 tier 階的格子放，效果升了幾階
 const upOf = (u, sk, tier) => canUp(sk) && tier ? Math.max(0, tier - baseTierOf(sk)) + freeUp(u, sk) : 0;
-function skillReady(u, sk){ return tiersFor(u, sk).length > 0 || remarkFree(u, sk); }
+function skillReady(u, sk){ return tiersFor(u, sk).length > 0 || remarkFree(u, sk) || frenzyFree(u, sk); }
+// 香香失控【同一招到底】：鎖定的那招不花格子（10-10）
+const frenzyFree = (u, sk) => !!u?.frenzy?.lock && u.frenzy.lock.key===sk.key;
 // 狩印正在專注、標記的目標已經倒下：改標不花格子
 const remarkFree = (u, sk) => sk.key==="hunters_mark" && (concOf(u)||{}).key==="hunters_mark"
   && !B().units.some(v=>!v.dead && !v.down && v.statuses.some(s=>s.k==="marked" && s.src===u.id));
@@ -183,7 +185,7 @@ const enemiesOf = u => B().units.filter(x=>hostile(x,u) && !x.down && !x.dead &&
 const caught = (u, es) => es.filter(x=>hostile(x,u) && !x.down && !x.dead).map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
 // 範圍法術（大爺 10-10，照 D&D）：範圍內除了施法者自己，敵我都會被打到（倒下的不算，跟「不打倒地的」一致）；
 // 超魔「謹慎」施放時（B().careful＝施法者）不打自己人。武器範圍招（橫掃、箭雨、貫穿……）照舊只打敵人
-const spellCaught = (u, es) => es.filter(x=>x!==u && !x.down && !x.dead && !x.fled && !(B().careful===u.id && x.side===u.side))
+const spellCaught = (u, es) => es.filter(x=>x!==u && !x.down && !x.dead && !x.fled && !((B().careful===u.id || (u.frenzy && u.id==="fox")) && x.side===u.side))   // 玲玲失控：範圍招不打自己人
   .map(x=>{ if(isHid(x)) reveal(x, "被波及，現身！"); return x; });
 const inArea = (u, at) => caught(u, B().units.filter(at));   // at：哪些格子算在範圍裡
 const alliesOf  = u => B().units.filter(x=>x.side===u.side && !x.dead);

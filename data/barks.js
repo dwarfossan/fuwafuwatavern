@@ -22,10 +22,19 @@ const BARKS = [
   {on:"down", speaker:{type:"goblin", holds:"短棒"}, about:{type:"goblin", born:"短劍"}, lang:"哥布林語",
    lines:["……短劍也沒比較好嘛。"]},
   // 還有躲著的：每隻用自己的方式覺得不對勁（草稿，大爺 10-02 要的提示）
-  {on:"hunch", speaker:{id:"wolf"},    draft:"香香", lines:["鼻子癢癢的……附近還有哥布林的味道。"]},
-  {on:"hunch", speaker:{id:"fox"},     draft:"香香", lines:["太安靜了吧？這種時候通常還有一隻。"]},
-  {on:"hunch", speaker:{id:"tiger"},   draft:"香香", lines:["打完了？不對，我背後毛毛的。"]},
-  {on:"hunch", speaker:{id:"raccoon"}, draft:"香香", lines:["……有人在偷看。"]}
+  {on:"hunch", speaker:{id:"wolf", cranky:false},    draft:"香香", lines:["鼻子癢癢的……附近還有哥布林的味道。"]},
+  {on:"hunch", speaker:{id:"fox", cranky:false},     draft:"香香", lines:["太安靜了吧？這種時候通常還有一隻。"]},
+  {on:"hunch", speaker:{id:"tiger", cranky:false},   draft:"香香", lines:["打完了？不對，我背後毛毛的。"]},
+  {on:"hunch", speaker:{id:"raccoon", cranky:false}, draft:"香香", lines:["……有人在偷看。"]},
+  // 壓力 75 以上的煩躁台詞（大爺 10-10 要的，草稿）：cranky:true＝說話的那隻壓力 75 以上
+  {on:"hunch", speaker:{id:"wolf", cranky:true},    draft:"香香", lines:["……又來。還有一隻，我聞得到，煩死了。"]},
+  {on:"hunch", speaker:{id:"fox", cranky:true},     draft:"香香", lines:["還有？到底要躲到什麼時候，快點出來啦。"]},
+  {on:"hunch", speaker:{id:"tiger", cranky:true},   draft:"香香", lines:["出來！不要躲！我現在超不爽的！"]},
+  {on:"hunch", speaker:{id:"raccoon", cranky:true}, draft:"香香", lines:["……躲啊，繼續躲。等一下就輪到你。"]},
+  {on:"down", speaker:{id:"wolf", cranky:true},    about:{side:"pc"}, draft:"香香", lines:["起來……拜託，不要現在倒。"]},
+  {on:"down", speaker:{id:"fox", cranky:true},     about:{side:"pc"}, draft:"香香", lines:["又一個！這樣下去根本算不完！"]},
+  {on:"down", speaker:{id:"tiger", cranky:true},   about:{side:"pc"}, draft:"香香", lines:["誰打的！給我站好不要跑！"]},
+  {on:"down", speaker:{id:"raccoon", cranky:true}, about:{side:"pc"}, draft:"香香", lines:["……好，這筆我記下了。"]}
 ];
 
 /* 大地圖對話：GPT 草稿；每趟間隔、不連續重複，到達可略過。 */

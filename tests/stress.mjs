@@ -73,6 +73,35 @@ try{
   return {ended,foeHurt:foes.some((v,i)=>v.hp<fhp[i])||b.log.slice(n0).some(l=>/^嬌嬌(使用|推|擒抱|繳械)/.test(l.t)),alliesSame:pcs.every((p,i)=>p.hp===hp0[i])};});
 assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接手：對敵人出手、不打隊友，回合自己結束');
 
+ // 第二批：四招失控技能（直接驗規則，不重開瀏覽器）
+ const sk2=await pg.evaluate(async()=>{
+  const b=B(),U=id=>b.units.find(v=>v.id===id),out={};
+  const wait=async()=>{for(let i=0;i<60&&b.busy;i++)await new Promise(r=>setTimeout(r,100));await new Promise(r=>setTimeout(r,300));};
+  endTurn=()=>{};later=(fn)=>{};   // 只看這一下，不接後面的流程
+  const tig=U('tiger'),rac=U('raccoon'),foe=b.units.find(v=>v.side==='foe'&&!v.dead);
+  [tig,rac].forEach(u=>{setStress(u,100);startFrenzy(u);});
+  out.adv=[frenzyAdv(tig,foe),frenzyAdv(foe,tig),frenzyAdv(rac,foe),frenzyAdv(foe,rac)];
+  [tig,rac].forEach(u=>endFrenzy(u,'測試'));
+  // 香香：鎖定一招、不花格子
+  const w=U('wolf');w.hp=99;w.down=false;w.statuses=[];w.slots=slotMax(w).slice();w.learned=[{key:'hamstring',name:'扎腿'}];w.activeSkills=['hamstring'];
+  const e=b.units.filter(v=>v.side==='foe'&&!v.dead&&!foeHid(v))[0];e.hp=e.maxHp=99;
+  const free=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({x:e.x+dx,y:e.y+dy})).find(p=>!unitAt(p.x,p.y)&&!blocked(p.x,p.y));w.x=free.x;w.y=free.y;
+  setStress(w,100);startFrenzy(w);b.turn=b.units.indexOf(w);beginTurn(w);b.busy=false;
+  const s0=slotsOf(w)[0];frenzyTurn(w);await wait();
+  out.wolf={lock:w.frenzy.lock?.key,slots:s0-slotsOf(w)[0]};endFrenzy(w,'測試');
+  // 嬌嬌：挑生命最多的
+  const foes=seenFoes(tig);foes.forEach((v,i)=>v.hp=10+i);const big=foes.at(-1);
+  setStress(tig,100);startFrenzy(tig);out.tigerLog=(()=>{const n0=b.log.length;b.turn=b.units.indexOf(tig);beginTurn(tig);b.busy=false;frenzyTurn(tig);return b.log.slice(n0).some(l=>l.t.includes('衝向最兇的'+big.name));})();
+  endFrenzy(tig,'測試');
+  // 煩躁台詞：75 以上才配 cranky
+  setStress(w,74);const c74=barkMatch(w,{id:'wolf',cranky:true});setStress(w,75);out.cranky=[c74,barkMatch(w,{id:'wolf',cranky:true}),barkMatch(w,{id:'wolf',cranky:false})];
+  const fox=U('fox'),ally=U('wolf');setStress(fox,100);startFrenzy(fox);out.foxAoe=spellCaught(fox,[ally,e]).map(v=>v.side);endFrenzy(fox,'測試');out.foxAoeCalm=spellCaught(fox,[ally,e]).map(v=>v.side);
+  return out;});
+ assert.deepEqual(sk2.foxAoe,['foe']);assert.deepEqual(sk2.foxAoeCalm,['pc','foe']);ok('玲玲效率至上：失控時範圍法術不打自己人（平常會）');
+ assert.deepEqual(sk2.adv,[1,1,1,-1]);ok('嬌嬌魯莽打擊：攻擊優勢、被打優勢；默默高等隱形：攻擊優勢、被打劣勢');
+ assert.equal(sk2.wolf.lock,'hamstring');assert.equal(sk2.wolf.slots,0);ok('香香同一招到底：鎖定扎腿，不花熟練格');
+ assert(sk2.tigerLog);ok('嬌嬌衝向生命最多的敵人');
+ assert.deepEqual(sk2.cranky,[false,true,false]);ok('壓力 75 以上換煩躁台詞');
  // 回神：豁免成功→壓力 50；連續失敗第 3 回合一定回神
  const rec=await pg.evaluate(()=>{
   const b=B(),t=b.units.find(v=>v.id==='tiger');const out={};

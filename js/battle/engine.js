@@ -496,6 +496,7 @@ function attackRoll(a, t, o={}){
   // 束縛（網子、擒抱）：打他有優勢、他攻擊有劣勢
   if(has(t,"restrained")) adv++;
   if(has(a,"restrained")) adv--;
+  adv += frenzyAdv(a, t);   // 失控：嬌嬌魯莽打擊、默默高等隱形（stress.js）
   let r1 = d20(), r2 = d20();
   let r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1;
   const bonus = o.bonus||0;
@@ -754,7 +755,8 @@ function barkMatch(u, sel){
   if(!sel) return true;
   const holds = [u.weapon && u.weapon.n, u.focus && u.focus.n];
   return (!sel.side || u.side===sel.side) && (!sel.id || u.id===sel.id) && (!sel.type || u.type===sel.type)
-      && (!sel.holds || holds.includes(sel.holds)) && (!sel.born || u.born===sel.born);
+      && (!sel.holds || holds.includes(sel.holds)) && (!sel.born || u.born===sel.born)
+      && (sel.cranky===undefined || ((u.stress||0)>=STRESS.cranky)===sel.cranky);   // 壓力 75 以上換煩躁台詞（10-10）
 }
 function barkOn(ev, about, delay=0){
   const b = B(); b.barked = b.barked || [];

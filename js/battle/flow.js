@@ -864,7 +864,7 @@ function doSkillNow(u, sk, t){
   if(u.side==="foe" && (sk.def.components || (!sk.def.basicAttack && !(sk.idx===0 && HAS_BASIC(sk.group))))) observedSkill(u,sk.def.id||sk.key,sk.def.name,false);
   // 用哪一階的格子：瞄準列選的（還拿得出來的話），不然用最低的；升階＝高出要求幾階（嬌嬌物理招再 +1）
   // 狩印：標記的目標倒下後，改標下一個不用再花格子（SRD：之後的回合可以轉移印記）
-  const tier = remarkFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
+  const tier = remarkFree(u, sk) || frenzyFree(u, sk) ? 0 : tiersFor(u, sk).includes(b.tier) ? b.tier : lowestTier(u, sk), up = upOf(u, sk, tier);
   const names = Array.isArray(t) ? [...new Set(t.map(x=>x.name))].join("、") : (t && t.name && t!==u ? t.name : "");
   const paid = spendSlot(u, sk, tier);
   if(paid && isSpellSkill(sk)) u.slotSpellUsed = true;
@@ -1005,6 +1005,7 @@ function aiTurn(e){
   { const f = foeFreePick(e);
     if(f && (freeLeft() || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
   if(!canAct()){ refreshBattle(); later(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
+  if(e.frenzy && frenzyTurn(e)) return;                                 // 失控的小傢伙：各自的失控技能（stress.js）
   const trapTarget=enemyTrapTarget(e);if(trapTarget&&placeEnemyTrap(e,trapTarget)){later(endTurn,settle(900));return;}
   // 開場招（foes 的 testSkill）：第一次用得上時先用一次。可以是技能代號，或通用動作（GEN_ACT，例如寶箱怪的推倒 shove_prone）
   if(!e.testSkillUsed && GEN_ACT[e.testSkill]){
