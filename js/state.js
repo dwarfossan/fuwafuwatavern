@@ -5,7 +5,12 @@ const STARTER_NOTES = {
   wolf:[{key:"hunters_mark",name:"狩印",innate:false,from:"起始技能",lv:1}],   // 10-09 大爺：瞄準射擊改狩印
   raccoon:[{key:"hamstring",name:"扎腿",innate:false,from:"起始技能",lv:1}]
 };
-const starterNotes = id => [...(STARTER_NOTES[id]||[]).map(x=>({...x})),{key:"darkvision",name:"黑暗視覺",innate:true,from:"天生",lv:1}];
+// 10-10：黑暗視覺是毛球族天生（RACE），移出小筆記、不占名額；舊存檔裡的那一筆讀進來時拿掉（raceFreeNotes）
+const starterNotes = id => (STARTER_NOTES[id]||[]).map(x=>({...x}));
+const RACE = {name:"毛球族", size:"小型", darkvision:12};
+const RACE_NOTE_KEYS = ["darkvision"];
+const raceFreeNotes = notes => (notes||[]).filter(n=>!RACE_NOTE_KEYS.includes(n.key));
+const raceFreeKeys = keys => (keys||[]).filter(k=>!RACE_NOTE_KEYS.includes(k));
 
 const state = {
   page:"cover",

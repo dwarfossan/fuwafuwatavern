@@ -43,7 +43,7 @@ try{
  for(const [id,st] of [['fox','INT'],['tiger','STR'],['wolf','WIS'],['raccoon','DEX']]){ assert.equal(res[id+20].stat,st); assert(res[id+20].ok); assert(!res[id+1].ok); assert(res[id+20].rollLine); }
  assert.deepEqual(res.fox20.gold,[50,50,50,50]);assert.deepEqual(res.fox1.gold,[25,25,25,25]);
  assert.deepEqual(res.tiger20.items,{fox:['點心','點心'],tiger:['點心','點心'],wolf:['點心','點心'],raccoon:['點心','點心']});
- assert.deepEqual(res.wolf20.items.wolf,['非凡長弓']);assert.deepEqual(res.raccoon20.items.raccoon,['次元背包']);
+ assert.deepEqual(res.wolf20.items.wolf,['+1 長弓']);assert.deepEqual(res.raccoon20.items.raccoon,['次元背包']);
  assert.deepEqual(res.raccoon1.gold,[12.5,12.5,12.5,12.5]);assert.deepEqual(res.wolf1.items.wolf,[]);
  ok('四個選項用各自擅長的屬性；成功、失敗的報酬照表，只發一次');
  await pg.evaluate(()=>render());

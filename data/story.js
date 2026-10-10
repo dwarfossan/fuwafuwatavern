@@ -196,7 +196,7 @@ const CARAVAN_PICKS = [   // stat：擲哪一項（大爺 10-03：照小傢伙�
 const CARAVAN_REWARD = {
   fox:     {win:{gold:200}, lose:{gold:100}},
   tiger:   {win:{gold:100, items:{all:["點心","點心"]}}, lose:{gold:100}},
-  wolf:    {win:{gold:100, items:{wolf:["非凡長弓"]}}, lose:{gold:100}},
+  wolf:    {win:{gold:100, items:{wolf:["+1 長弓"]}}, lose:{gold:100}},   // 10-10：非凡長弓改 +1 長弓（大爺 10-09）
   raccoon: {win:{gold:100, items:{raccoon:["次元背包"]}}, lose:{gold:50}}
 };
 const CARAVAN_INTRO = [
@@ -238,7 +238,7 @@ const CARAVAN_RESULT = {
          {who:"merchant", text:"！", mark:"ok"},
          {who:"wolf", text:"……我們可以什麼都沒看到。", mood:"smile"},
          {who:"merchant", text:"這、這把弓本來是要賣給貴族的……拿去吧，拜託……", mark:"sweat"},
-         {who:"narr", text:"香香拿到【非凡長弓】（裝備時可以用狩印），小傢伙們還各分到 25 金幣。"}],
+         {who:"narr", text:"香香拿到【+1 長弓】（命中與傷害各 +1），小傢伙們還各分到 25 金幣。"}],
     lose:[{who:"narr", text:"香香盯著貨箱看了半天，只看到一堆稻草。"},
           {who:"wolf", text:"……看不出來。", mood:"sigh"},
           {who:"merchant", text:"都是些普通貨啦，哈哈。", mark:"note"},

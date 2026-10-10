@@ -83,6 +83,7 @@ function statusCardHTML(v, b, embedded=false){
   return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     ${embedded?"":`<button class="inf-x" data-closeinfo aria-label="關閉">✕</button>`}
     <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　${levelButtonHTML(v.id)}`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?(v.side==="pc"?"昏迷（隊友協助或治療才醒） · ":"倒下了 · "):""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    ${v.side==="pc"?`<div class="dim race-line" data-tip="體型${RACE.size}。天生黑暗視覺 ${RACE.darkvision} 格（黑暗看成黑白）。好運：每次長休後 ${LUCK_MAX} 顆，攻擊、豁免失敗時可以花 1 顆重擲。" data-tip-title="${RACE.name}">${RACE.name} · 黑暗視覺 ${RACE.darkvision} 格 · 好運 ${luckLeft(v)}/${LUCK_MAX}</div>`:""}
     ${infoBarsHTML(v, pct)}
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
     ${v.side==="pc"?slotGridHTML(v,b):""}

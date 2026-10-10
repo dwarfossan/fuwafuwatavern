@@ -85,6 +85,7 @@ node tests/luck.mjs            # 好運：沒中／豁免失敗暫停問、重�
 node tests/metamagic.mjs       # 範圍法術打到隊友（不打自己）；超魔：謹慎、瞬發、遠距、一次一種、免費動作不夠灰掉
 node tests/starter-style.mjs   # 起始風格：序章大爺挨個問、四隻各自類別四選一、回答對應、寫進小筆記並帶著、改選換掉、進戰鬥生效
 node tests/button-tips.mjs     # 按鈕說明泡泡：代價留按鈕、效果放泡泡；電腦移上跳出點下消失；手機按住看說明不觸發、短按照常
+node tests/plus-one-bow.mjs    # +1 長弓：命中 +1、傷害 +1、不給狩印、商店不賣、商隊報酬改這把
 node tests/spell-slot-turn.mjs # 每回合只能花一格熟練格施法：戲法與武器招式不算、下回合重置、敵我一致、按鈕原因
 node tests/reactions.mjs      # 反應：保留免費動作、敵人命中暫停詢問、護盾術 AC+5／化險減半／不用、同骰重跑、沒保留不問、敵人回合照常結束
 node tests/notebook.mjs      # 狀態／休息共用筆記、四頭像、選取保存與抄寫演出

@@ -67,7 +67,7 @@ function startBattle(id, retry=false, phase="combat"){
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
       ...Equipment.read(c.id),items:[],
-      speed:6, statuses:[], learned:(state.learned&&state.learned[c.id]?state.learned[c.id].map(x=>({...x})):starterNotes(c.id)), activeSkills:(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id].slice():((state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key))), down:false, face:-1, oaUsed:false
+      speed:6, statuses:[], learned:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).map(x=>({...x})), activeSkills:raceFreeKeys(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id]:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key)), down:false, face:-1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{
@@ -857,6 +857,7 @@ function weaponAttack(a, t, o={}){
     const upD = B().upBy===a.id && !o.counter ? (B().upDice||0) : 0;
     let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
+    if(w?.dmgBonus) n += w.dmgBonus;   // +1 武器的傷害加值（10-10）
     const sd = sneakDice(a, t); if(sd){ a.sneakTurn = turnKey(); const extraSneak = dmgRoll(`${sd}d6`, 0, crit); n += extraSneak; blog(`　${skillLabel(learnedSkillByKey("sneak_attack").def)}：隊友在旁邊牽制，多 ${sd}d6（${extraSneak}）`, "skill"); }
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
     const extra=w?.extraDamage, arrowHit=["bow","crossbow"].includes(ak);

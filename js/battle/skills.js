@@ -43,7 +43,7 @@ function toggleCarriedSkill(u,key){
  u.activeSkills=keys;return true;
 }
 function passiveSkills(u){return carriedSkillKeys(u).map(learnedSkillByKey).filter(isPassiveSkill);}
-const darkvisionRange=u=>Math.max(0,...passiveSkills(u).map(s=>s.def.darkvision||0));
+const darkvisionRange=u=>Math.max(u.side==="pc"?RACE.darkvision:0,...passiveSkills(u).map(s=>s.def.darkvision||0));   // 小傢伙＝毛球族天生（10-10）；敵人照被動
 // 場景未指定光照時沿用明亮；不自訂日夜循環／火把半徑。
 function visionAt(u,t,light=B()?.def.lighting||"bright"){
  if(coverOf(u,t).v>=.75)return "blocked";

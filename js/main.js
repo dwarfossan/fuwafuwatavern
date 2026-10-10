@@ -304,7 +304,7 @@ function quickBattle(battleId="ambush",phase="combat"){
     // 隨機測試場暫時讓小傢伙們都帶著被動反擊，方便大爺直接實機驗收。
     // 只影響 #battle；正式進度與固定商隊遭遇不動。
     if(battleId==="random"){
-      const notes=state.learned[c.id] ? state.learned[c.id].map(x=>({...x})) : starterNotes(c.id);
+      const notes=raceFreeNotes(state.learned[c.id] || starterNotes(c.id)).map(x=>({...x}));
       if(!notes.some(x=>x.key==="counterattack")) notes.push({key:"counterattack",name:"反擊",innate:false,from:"測試戰鬥",lv:1});
       state.learned[c.id]=notes;
       let carried=state.activeSkills[c.id] ? state.activeSkills[c.id].slice() : notes.filter(x=>x.key!=="counterattack").slice(0,4).map(x=>x.key);
