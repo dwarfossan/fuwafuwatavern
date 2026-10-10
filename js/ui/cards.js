@@ -70,7 +70,6 @@ function skillCardHTML(groupId, idx, item, unit){
   let s = extra?.def || g.skills[idx];
   if(idx===0 && HAS_BASIC(g) && g.id!=="shield")        // 基本攻擊名稱看武器；沒指定武器（技能總表）就列出這組可能的名稱
     s = {...s, name: g.id==="arcane_staff" || g.id==="unarmed" ? "打擊" : item && item.type==="weapon" ? basicName(g, item) : basicNames(g)};
-  if(item?.type==="focus" && s.components && (s.tier||0)===0)s={...s,free:true,turnLimit:"focusCantrip"};
   const u = probeUnit(item, unit), passive = !!(s.activation==="passive" || im?.passive);
   // 10-09 大爺定的卡面：名稱＋階數標籤、兩行小字（類型・動作・屬性／距離・目標・條件…）、本文、升階等段落
   const range = passive ? (s.darkvision ? `${s.darkvision} 格` : "") : im && im.range ? `${im.range(u)} 格` : "";

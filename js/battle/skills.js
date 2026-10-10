@@ -94,7 +94,7 @@ function equipmentSkills(it,u){
   const g=groupOf(it),out=[];
   if(g&&(it.type==="weapon"||it.type==="focus")){
     let def=basicDef(g,g.skills[0],u);
-    if(it.type==="focus"&&def.components&&(def.tier||0)===0)def={...def,free:true,turnLimit:"focusCantrip"};
+    // 法器附的戲法照一般戲法花主要動作（大爺 10-11，原本是免費動作、每回合一次）
     out.push({key:`${g.id}_0`,group:g,idx:0,def,impl:SKILL_IMPL[g.id][0]});
     if(FOCUS_GROUPS.includes(g.id)){
       if(g.id!=="arcane_staff")out.push(focusStrikeSkill(g));
@@ -102,7 +102,7 @@ function equipmentSkills(it,u){
     }
   }
   for(const key of it.grants||[]){const sk=learnedSkillByKey(key);if(!sk)continue;
-    out.push({...sk,equipmentGrant:true,def:it.type==="focus"&&sk.def.components&&(sk.def.tier||0)===0?{...sk.def,free:true,turnLimit:"focusCantrip"}:sk.def});
+    out.push({...sk,equipmentGrant:true,def:sk.def});
   }
   return out;
 }
@@ -115,7 +115,7 @@ function focusCantripSkill(g){
   const impl=sacred
     ? {target:"enemy",range:()=>12,run:(u,t)=>{if(!saveRoll(t,"DEX",dcOf(u,spellStat(u))))hurt(t,dmgRoll("1d8",0,false),"光耀",u);}}
     : FIRE_BOLT_IMPL;
-  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def:{...def,free:true,turnLimit:"focusCantrip"},impl};
+  return {key:`${g.id}_cantrip`,group:g,idx:-1,synthetic:true,anim:"cast",def,impl};
 }
 
 // 副手按該武器的既有命中、傷害與彈藥規則結算，不交換角色實際裝備。

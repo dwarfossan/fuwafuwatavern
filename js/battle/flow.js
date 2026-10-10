@@ -28,7 +28,7 @@ function beginTurn(u){
   u.shockNoOA=false; u.reserveFree=0; u.guarded={}; u.cunningUsed=false;
   expire("start", u.id);
   u._cleaved = false;
-  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.focusCantripUsed=false;u.slotSpellUsed=false;
+  b.mode = null; b.up = 0; b.tier = 0; b.actionUsed = false; b.movedThisTurn = false; b.freeUsed = 0; u.offhandAttackUsed=false;u.slotSpellUsed=false;
   u.oaUsed = false;                         // 藉機攻擊每輪一次，輪到自己時恢復
   b.menu = null; b.moveMode = false; b.info = null; b.pendingMove = null;b.worldObject=null;b.objectTip=null;
   b.focusReq = true;                        // 鏡頭滑到這隻身上（敵人只在畫面外時才跟過去）
@@ -378,7 +378,6 @@ function turnLimitProblem(u,sk){
  if(!sk.def.turnLimit)return "";
  if(sk.def.turnLimit==="offhand" && (!u.offhand || u.offhand.type!=="weapon"))return "沒有副手武器";
  if(sk.def.turnLimit==="offhand" && u.offhandAttackUsed)return "本回合已用副手攻擊";
- if(sk.def.turnLimit==="focusCantrip" && u.focusCantripUsed)return "本回合已用法器戲法";
  return freeLeft()?"":"免費動作用完了";
 }
 const reqText = r => (Array.isArray(r) ? r : [r]).map(x=>REQ_TEXT[x]||x).join("或");
@@ -910,7 +909,6 @@ function doSkillNow(u, sk, t){
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身
   b.impact = 0;
   if(sk.def.turnLimit==="offhand")u.offhandAttackUsed=true;
-  if(sk.def.turnLimit==="focusCantrip")u.focusCantripUsed=true;
   if(meta) spendFree(u);                       // 超魔本身一個免費動作
   if(sk.def.free || meta==="quick") spendFree(u); else useAction(u);
   b.mode = null;
