@@ -66,10 +66,10 @@ function checkMarkTransfer(u){
   if(!markTransferReady(u)) return;
   const ts = markTransferTargets(u);
   if(u.side!=="pc" || u.frenzy){ doMarkTransfer(u, ts[0]); return; }
-  B().markAsk = {who:u.id, ids:ts.map(t=>t.id)};
+  B().markAsk = {who:u.id, ids:ts.map(t=>t.id)}; B().busy = true;   // 先回答才能動
 }
 function answerMarkTransfer(id){
-  const b = B(), a = b && b.markAsk; if(!a) return; b.markAsk = null;
+  const b = B(), a = b && b.markAsk; if(!a) return; b.markAsk = null; b.busy = false;
   const u = b.units.find(v=>v.id===a.who), t = id && b.units.find(v=>v.id===id);
   if(u && t && !t.dead && !t.down) doMarkTransfer(u, t); else refreshBattle();
 }

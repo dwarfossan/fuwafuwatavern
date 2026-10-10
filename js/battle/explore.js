@@ -182,7 +182,7 @@ function exploreAlignCombat(){
  if(!assign(0)){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;b.exploreStopped=false;blog(EXPLORE_UI.alignmentBlocked);refreshBattle();return false;}
  units.forEach((u,i)=>{u.x=positions[i].x;u.y=positions[i].y;delete u.exploreWalking;});return true;
 }
-function enterExploreCombat(targetId,manual=false){
+function enterExploreCombat(targetId,manual=false){B().exploreMenu=null;
  const b=B();if(!exploring()||b.exploreStopReason==="trap")return;const target=b.units.find(u=>u.id===targetId&&u.side==="foe"&&!u.fled&&!u.dead&&!u.down),leader=exploreUnit();
  // 探索只顯示目前選中的角色；切入戰棋時，另外三隻才從同一隊伍位置展開。
  for(const p of exploreParty())if(p!==leader){p.x=leader.x;p.y=leader.y;p.face=leader.face;}

@@ -56,7 +56,7 @@ function exploreDockHTML(){
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
  if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
  if(b.exploreMenu==="act"){   // 探索的行動（大爺 10-11）：直接用戰鬥同一份行動選單，探索時用不了的變灰；搜索直接搜四周
-  return menuHTML(exploreUnit(),b,"act").replace(/<button /g,"<button disabled ")
+  return menuHTML(exploreUnit(),b,"act").replace(/<button (?!class="sk-info")/g,"<button disabled ")
    .replace(/<button disabled class="mn-b" data-cmd="search"[^>]*>/,`<button class="mn-b" data-explore-cmd="actSearch" ${b.busy?"disabled":""}>`)
    .replace(/<button disabled class="mn-back" data-cmd="root">/,`<button class="mn-back" data-explore-cmd="actBack">`);
  }
