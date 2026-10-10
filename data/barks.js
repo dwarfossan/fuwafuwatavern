@@ -57,35 +57,47 @@ WORLD_CHAT.chestTry={
 };
 WORLD_CHAT.chestEnd={draft:'GPT',choose:'誰來試著開鎖？每隻只能試一次。',gold:'箱裡有 {gold} 枚金幣，四隻各分 {share}。',reveal:'箱蓋突然張開，露出一排牙齒！',unlockMimic:'鎖鬆了……箱子怎麼在動？',lockedMimic:'鎖沒開……箱子怎麼在動？',failed:'四隻都試過了。記下位置，先走吧。',mimic:'寶箱長牙了！？',defeated:'這次確認了。它不會再咬人。',resume:'回到剛才停下的位置，繼續走。'};
 
-/* 戰後閒聊（大爺 10-11）：打贏後挑最多 2 件笑點，每件 2 句。全部香香草稿，大爺看過再改。
-   who:"self"＝發生這件事的那隻，"other"＝隨機另一隻；{self}{other}換名字，{t}＝對象（敵人或撿到的東西） */
+/* 戰後閒聊（大爺 10-11：每隻一套）：打贏後挑最多 2 件笑點，每件 2 句：當事的那隻（self）講自己、旁邊隨機一隻（other）回應。
+   兩邊都照那隻的個性寫；order:"other" 表示旁邊那隻先開口。{self}＝當事那隻的名字，{t}＝對象（敵人或撿到的東西）。全部香香草稿，大爺看過再改 */
 const AFTER_TALK = {draft:"香香",
-  crit:[
-    [{who:"other", mood:"surprised", text:"{self}剛剛那一下，{t}整個飛出去了耶！"}, {who:"self", mood:"smug", text:"嘿嘿，手感來了擋都擋不住。"}],
-    [{who:"self", mood:"happy", text:"看到沒看到沒？剛剛那下超準的！"}, {who:"other", mood:"sigh", text:"看到了看到了，回去再說一百遍好不好。"}]
-  ],
-  fumble:[
-    [{who:"other", mood:"sly", text:"{self}，你剛剛是在跟空氣打架嗎？"}, {who:"self", mood:"resigned", text:"……那是戰術性揮空。"}],
-    [{who:"self", mood:"confused", text:"手滑了啦！是武器自己跑掉的！"}, {who:"other", mood:"smug", text:"武器表示：不關我的事。"}]
-  ],
-  down:[
-    [{who:"other", mood:"serious", text:"{self}，還好嗎？剛剛直接趴下去了。"}, {who:"self", mood:"resigned", text:"我只是……躺下來看看天空。"}],
-    [{who:"self", mood:"confused", text:"頭還在嗡嗡叫……我們贏了嗎？"}, {who:"other", mood:"happy", text:"贏了啦，就你睡最久。"}]
-  ],
-  lastKill:[
-    [{who:"self", mood:"happy", text:"最後一隻是我收的！記下來記下來！"}, {who:"other", mood:"smile", text:"好啦好啦，記在你的功勞簿上。"}],
-    [{who:"other", mood:"smile", text:"最後那下漂亮喔，{self}。"}, {who:"self", mood:"smug", text:"那當然，壓軸的都是我。"}]
-  ],
-  pickup:[
-    [{who:"other", mood:"confused", text:"{self}，那把{t}是剛剛敵人掉的吧？"}, {who:"self", mood:"sly", text:"現在是我的了。撿到就是我的。"}]
-  ],
-  prone:[
-    [{who:"other", mood:"sly", text:"{self}剛剛那一跤，摔得好響喔。"}, {who:"self", mood:"resigned", text:"是地板先動手的，不是我的錯。"}]
-  ],
-  luck:[
-    [{who:"self", mood:"happy", text:"差一點就沒中……還好運氣站在我這邊！"}, {who:"other", mood:"smile", text:"毛球族的好運，真的很好用呢。"}]
-  ],
-  frenzy:[
-    [{who:"other", mood:"surprised", text:"{self}……你剛剛是不是有點恐怖？"}, {who:"self", mood:"sigh", text:"……我不記得了。我們回去找大爺摸摸頭好不好。"}]
-  ]
+  crit:{order:"other",
+    self:{fox:{mood:"smug",text:"弱點、角度、力道，全部算好的。這叫效率。"}, tiger:{mood:"fierce",text:"哈！看到沒！一拳……不對，一刀就飛啦！"},
+          wolf:{mood:"serious",text:"……瞄準的時候，有想著大家。所以中了。"}, raccoon:{mood:"sly",text:"……順手。"}},
+    other:{fox:{mood:"surprised",text:"{self}那一下的傷害，夠付三天房錢了。"}, tiger:{mood:"happy",text:"{self}好帥！下次換我！我也要那樣！"},
+          wolf:{mood:"surprised",text:"{self}，剛剛那一下……好厲害。"}, raccoon:{mood:"surprised",text:"……{t}，飛好遠。"}}},
+  fumble:{order:"other",
+    self:{fox:{mood:"awkward",text:"……那是測試。我在測試空氣的阻力。"}, tiger:{mood:"angry",text:"那隻怪偷偷動了！不然我一定打中！"},
+          wolf:{mood:"sigh",text:"……抱歉。下一次，一定打中。"}, raccoon:{mood:"caught",text:"……沒看到。什麼都沒發生。"}},
+    other:{fox:{mood:"smug",text:"{self}，剛剛那一下的命中率，我記下來了喔。"}, tiger:{mood:"happy",text:"哈哈哈！{self}打到空氣了！空氣痛不痛！"},
+          wolf:{mood:"serious",text:"{self}，沒關係。我也有揮空過。"}, raccoon:{mood:"sly",text:"……揮空。我看到了。"}}},
+  down:{order:"other",
+    self:{fox:{mood:"guilty",text:"……醫藥費，可以算公帳嗎？"}, tiger:{mood:"confused",text:"咦？我怎麼躺在地上？我們贏了嗎？贏了吧！"},
+          wolf:{mood:"resigned",text:"……讓大家擔心了。下次我會站得更穩。"}, raccoon:{mood:"down",text:"……睡了一下。"}},
+    other:{fox:{mood:"confused",text:"{self}，你倒下的時候，我的計畫全部要重算耶。"}, tiger:{mood:"angry",text:"{self}！誰打你的！我去揍他！……啊，已經揍完了。"},
+          wolf:{mood:"serious",text:"{self}，還好嗎？哪裡痛要說。"}, raccoon:{mood:"surprised",text:"……{self}，還活著？"}}},
+  lastKill:{order:"self",
+    self:{fox:{mood:"smug",text:"最後一擊是我的，戰利品分配的時候記得算進去。"}, tiger:{mood:"fierce",text:"最後一隻是我的！我是最強的！"},
+          wolf:{mood:"smile",text:"……結束了。大家都平安就好。"}, raccoon:{mood:"sly",text:"……收尾。順便看看牠身上有什麼。"}},
+    other:{fox:{mood:"content",text:"好吧，這次算你的功勞。"}, tiger:{mood:"angry",text:"不公平！那隻我也要打！"},
+          wolf:{mood:"smile",text:"{self}，辛苦了。"}, raccoon:{mood:"normal",text:"……嗯。"}}},
+  pickup:{order:"other",
+    self:{fox:{mood:"smug",text:"免費的裝備，不撿白不撿。省下來的錢可多了。"}, tiger:{mood:"happy",text:"撿到了！這個看起來比較大！比較強！"},
+          wolf:{mood:"serious",text:"……能用的東西，不能浪費。"}, raccoon:{mood:"sly",text:"……現在是我的了。"}},
+    other:{fox:{mood:"smug",text:"{self}，那把{t}拿去店裡大概能賣個好價錢。"}, tiger:{mood:"confused",text:"{self}，那是誰的{t}？好像是敵人的耶？"},
+          wolf:{mood:"confused",text:"{self}，那把{t}……要先擦乾淨喔。"}, raccoon:{mood:"surprised",text:"……{self}，搶我的工作。"}}},
+  prone:{order:"other",
+    self:{fox:{mood:"awkward",text:"……我是故意蹲低，降低被擊中的面積。"}, tiger:{mood:"angry",text:"地板偷襲我！地板是壞人！"},
+          wolf:{mood:"resigned",text:"……腳滑了。不會再有下次。"}, raccoon:{mood:"down",text:"……地板，很硬。"}},
+    other:{fox:{mood:"smug",text:"{self}剛剛那一跤，摔得很有學術價值。"}, tiger:{mood:"happy",text:"{self}剛剛咚的一聲！好大聲！"},
+          wolf:{mood:"serious",text:"{self}，有沒有撞到頭？"}, raccoon:{mood:"sly",text:"……咚。"}}},
+  luck:{order:"self",
+    self:{fox:{mood:"smug",text:"運氣也是實力的一部分。這很合理。"}, tiger:{mood:"happy",text:"再來一次就中了！我就說我很強吧！"},
+          wolf:{mood:"smile",text:"……運氣好。下次要靠自己。"}, raccoon:{mood:"sly",text:"……運氣，也是偷來的。"}},
+    other:{fox:{mood:"content",text:"毛球族的好運，真的很划算呢。"}, tiger:{mood:"happy",text:"好運好運！分我一點！"},
+          wolf:{mood:"smile",text:"{self}，太好了。"}, raccoon:{mood:"normal",text:"……好運。"}}},
+  frenzy:{order:"other",
+    self:{fox:{mood:"guilty",text:"……剛剛的熟練格，好像全部燒光了。我不想看帳本。"}, tiger:{mood:"blank",text:"……我剛剛做了什麼？為什麼大家都退那麼遠？"},
+          wolf:{mood:"sigh",text:"……我好像，一直在用同一招。對不起。"}, raccoon:{mood:"caught",text:"……口袋，怎麼這麼重。"}},
+    other:{fox:{mood:"confused",text:"{self}……你剛剛是不是有點恐怖？"}, tiger:{mood:"surprised",text:"{self}剛剛好兇！比我還兇！"},
+          wolf:{mood:"serious",text:"{self}，回去找大爺摸摸頭吧。"}, raccoon:{mood:"surprised",text:"……{self}，嚇人。"}}}
 };

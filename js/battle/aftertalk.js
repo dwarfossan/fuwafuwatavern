@@ -8,13 +8,13 @@ function funNote(k, u, extra){
 function afterTalkLines(b){
   const seen = new Set(), pick = [], name = id => CRITTERS.find(c=>c.id===id).name;
   [...(b.fun||[])].sort((x,y)=>(FUN_RANK[y.k]||0)-(FUN_RANK[x.k]||0)).forEach(f=>{
-    if(pick.length<2 && !seen.has(f.k) && AFTER_TALK[f.k]){ seen.add(f.k); pick.push(f); } });
+    if(pick.length<2 && !seen.has(f.k) && AFTER_TALK[f.k]?.self){ seen.add(f.k); pick.push(f); } });
   const lines = [];
-  pick.forEach(f=>{
-    const sets = AFTER_TALK[f.k], set = sets[Math.floor(Math.random()*sets.length)];
-    const others = CRITTERS.map(c=>c.id).filter(id=>id!==f.who), other = others[Math.floor(Math.random()*others.length)];
-    set.forEach(l=>lines.push({who:l.who==="self"?f.who:other, mood:l.mood,
-      text:l.text.replace(/\{self\}/g,name(f.who)).replace(/\{other\}/g,name(other)).replace(/\{t\}/g,f.t||"敵人")}));
+  pick.forEach(f=>{   // 每隻一套（10-11）：當事那隻講自己的，旁邊隨機一隻照自己的個性回應
+    const T = AFTER_TALK[f.k], others = CRITTERS.map(c=>c.id).filter(id=>id!==f.who), other = others[Math.floor(Math.random()*others.length)];
+    const fill = (id, l) => ({who:id, mood:l.mood, text:l.text.replace(/\{self\}/g,name(f.who)).replace(/\{t\}/g,f.t||"敵人")});
+    const a = fill(f.who, T.self[f.who]), b2 = fill(other, T.other[other]);
+    lines.push(...(T.order==="other" ? [b2, a] : [a, b2]));
   });
   return lines;
 }
