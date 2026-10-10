@@ -1509,7 +1509,7 @@ function bindBattle(){
   document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
   document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));
   document.querySelectorAll("[data-cmd]").forEach(el=>battleListen(el,"click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
-  bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:()=>{state.page="cover";refreshBattle();window.scrollTo(0,0);},listen:battleListen});
+  bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:goTitle,listen:battleListen});
   battleListen(document.querySelector("[data-closeinfo]"),"click", ()=>{ B().info = null; refreshBattle(); });
   StatusCard.bind(document);
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{

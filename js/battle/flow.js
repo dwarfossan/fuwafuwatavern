@@ -532,7 +532,7 @@ function takeRest(kind, selections={},b=B()){
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
   setTimeout(()=>{if(copyId!==b.noteCopyId)return;if(b!==B() && !(state.page==="town" && b===state.townRest))return;b.noteCopy=null;if(b===B())refreshBattle();else render();},1800);
-  syncLearnedState(b); b.restDone=true; restMessage(b,kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`); if(atInn)render();else refreshBattle(); return true;
+  syncLearnedState(b); b.restDone=true; restMessage(b,kind==="short"?`短休完成（今天 ${state.shortRestsUsed}/2）`:`長休完成，熟練格全部恢復。`); if(atInn){render();autoSave();}else refreshBattle(); return true;   // 旅店休息完自動存檔（探索中露營不能存）
 }
 
 // 俠盜風格：狡詐（大爺 10-09）：每回合一次，衝刺／撤離／潛行改花免費動作；有就先用狡詐，主要動作留著出手

@@ -28,6 +28,7 @@ js/battle/          engine.js 規則與流程 → skills.js 技能實作 → flo
 js/ui/cards.js      裝備卡、技能卡、彈出視窗
 js/ui/status-card.js 共用狀態卡（劇情／城鎮／探索／戰鬥）
 js/equipment.js     裝備唯一讀寫／切組／換裝入口
+js/save.js          存檔／讀檔（1 自動＋3 手動、匯出入；測試版與正式版分開存）
 js/main.js          頁面切換、事件綁定、快速戰鬥
 tests/              測試（見第 2 節）
 tools/skills_doc.mjs  從 data/skills.js 產生 docs/技能表.md
@@ -61,6 +62,7 @@ node tests/impact-timing.mjs # 投射命中時序、地面／身上效果延遲�
 node tests/sfx-routing.mjs   # 實體音效依實際傷害／治療、弓弩命中與守護防禦事件路由
 node tests/bgm-routing.mjs   # BGM 場景 routing：日常、放屁段落、大地圖、戰鬥與勝利
 node tests/system-volume.mjs  # 共用喇叭：第一次玩預設 70%、靜音字樣、拖滑桿三處同步；劇情／戰鬥同一套；酒館牆 CSS
+node tests/save-load.mjs     # 存讀檔：自動＋手動 3 格、安全的地方才能存、讀回、匯出入、首頁繼續冒險、回到標題開新局
 node tests/layers-anim.mjs    # 攻擊者擲完骰會揮手（動作開始時場景層自己更新）
 node tests/perception.mjs     # 被動感知、搜索、敵人狀態卡
 node tests/ac.mjs             # 戰鬥中換裝 AC 跟著變

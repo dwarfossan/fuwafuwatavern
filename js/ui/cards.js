@@ -127,6 +127,7 @@ function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
   if(["seal","sealIntro"].includes(m.kind))body=sealModalHTML(m);
+  if(m.kind==="save") body = saveModalHTML(m);
   if(m.kind==="item") body = itemCardHTML(itemById(m.id));
   if(m.kind==="help"){
     const h=PAGE_UI.helpPages[m.id];
@@ -158,6 +159,7 @@ function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else r
 function bindModal(){
   StatusCard.bind(document);
   bindNotePages(document);
+  bindSaveModal();
   document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
     e.stopPropagation();
     if(levelUp(el.dataset.levelup))afterLevelChange(el.dataset.levelup);

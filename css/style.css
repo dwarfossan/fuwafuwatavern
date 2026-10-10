@@ -1218,12 +1218,12 @@ body.image-boot{background:#000}
 /* 默默的圖左邊多留白，跟香香的空隙 35、其他兩組約 20：往左挪 15／170 讓間距一致（大爺 10-10） */
 .cover-party img:nth-child(4){margin-left:-8.8%}
 .cover-loading{position:relative}
-.cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading>.page-tools{visibility:hidden;pointer-events:none}
+.cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading #continueGame,.cover-loading>.page-tools{visibility:hidden;pointer-events:none}
 .cover-loading .cover-party img{animation:head-load-sway 2.4s ease-in-out infinite;transform-origin:50% 85%}
 .cover-loading .cover-party img:nth-child(2){animation-delay:-.6s}.cover-loading .cover-party img:nth-child(3){animation-delay:-1.2s}.cover-loading .cover-party img:nth-child(4){animation-delay:-1.8s}
 .cover-loading .image-startup{position:absolute;bottom:16px;left:10%;width:80%;min-height:0;align-content:start;display:grid;gap:8px;text-align:center;padding:0;color:var(--fur)}
 .cover-loading .image-startup progress{width:100%;accent-color:var(--honey)}
-.cover:not(.cover-loading) .lanterns,.cover:not(.cover-loading) .sign,.cover:not(.cover-loading) .sub,.cover:not(.cover-loading) #start,.cover:not(.cover-loading)>.page-tools{animation:cover-reveal .5s ease both}
+.cover:not(.cover-loading) .lanterns,.cover:not(.cover-loading) .sign,.cover:not(.cover-loading) .sub,.cover:not(.cover-loading) #start,.cover:not(.cover-loading) #continueGame,.cover:not(.cover-loading)>.page-tools{animation:cover-reveal .5s ease both}
 @keyframes head-load-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
 @keyframes cover-reveal{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.cover-loading .cover-party img{animation:none}.cover:not(.cover-loading)>*{animation:none}}
@@ -1348,3 +1348,10 @@ body.image-boot{background:#000}
 .bt-react h3{margin:0 0 4px;font-size:17px}
 .bt-react p{margin:0}
 .doll.dragon-down-pose .dragon-prone{opacity:.55}
+
+/* 存檔／讀檔（10-10） */
+.save-panel{display:grid;gap:8px}.save-panel h3{margin:0 0 4px}
+.save-slot{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#39303d;border-radius:10px;padding:8px 10px}
+.save-info{display:grid;gap:2px;min-width:0}.save-info small{font-size:11px;color:var(--dim)}.save-info .save-bad{color:#ff8a7a}
+.save-acts{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.save-block,.save-msg{font-size:12px;margin:0;color:var(--honey)}

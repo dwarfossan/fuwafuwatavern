@@ -32,6 +32,8 @@ function render(){
   bind();
   bindModal();
   if(state.page==="battle" && B()) refreshBattle.keys=battleLayerKeys();
+  // 自動存檔：進到能存檔的地方（城鎮、大地圖、商店；劇情結束回到這些地方也算）
+  if(entering && !quickEntryBooting()) autoSave();
 }
 
 // 大地圖：棋子沿路走到 stop 的位置停下，跳出驚嘆號，接著切到第一人稱伏擊劇情
@@ -182,13 +184,15 @@ function bind(){
   adoptEntryImages();
   bindPortraitLoading();
   const $ = id => document.getElementById(id);
-  if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:()=>{state.sysPop=null;state.page="cover";render();window.scrollTo(0,0);}});
+  if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:goTitle});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",enterWorldLocation);
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);
   if(state.page==="town")bindTown();
+  $("continueGame")?.addEventListener("click",()=>{const s=latestSaveSlot();if(s)loadFrom(s);});
   $("start")?.addEventListener("click", async e=>{
+    if(readSave("auto")&&!Object.keys(state.sets||{}).length&&!confirm("開新遊戲？之後的自動存檔會蓋掉現在的自動存檔（手動存檔不受影響）。"))return;
     const button=e.currentTarget;button.disabled=true;const text=button.textContent;button.textContent='圖片準備中…';
     await Promise.allSettled(CRITTERS.map(c=>loadEntryImage(critterFaceSrc(c.id,'normal'))));
     if(state.page==='cover'){state.page='roll';render();}else{button.disabled=false;button.textContent=text;}

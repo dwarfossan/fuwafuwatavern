@@ -1,8 +1,8 @@
 /* 長休推進遊戲日，有限現貨與逐件屬性固定；商店帳本持久保存，不是全遊戲存檔。 */
-function saveMarket(){try{localStorage.setItem('fuwa-market-v1',JSON.stringify({...state.market,items:state.magicItems}));}catch(e){}}
+function saveMarket(){try{localStorage.setItem(MARKET_KEY,JSON.stringify({...state.market,items:state.magicItems}));}catch(e){}}
 function ensureMarket(){
  if(!state.market){
-  let saved;try{saved=JSON.parse(localStorage.getItem('fuwa-market-v1')||'null');}catch(e){}
+  let saved;try{saved=JSON.parse(localStorage.getItem(MARKET_KEY)||'null');}catch(e){}
   if(saved&&Number.isInteger(saved.day)&&saved.day>=1&&Number.isInteger(saved.seed)&&saved.items&&typeof saved.items==='object'){
    state.market=saved;state.magicItems={...saved.items,...state.magicItems};
   }else state.market={day:1,seed:crypto.getRandomValues(new Uint32Array(1))[0],stockDay:0,stock:[],marks:0,pity:0,totalDraws:0};
