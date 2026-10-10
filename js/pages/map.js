@@ -107,7 +107,7 @@ function enterWorldLocation(){
  if(state.worldArrival&&!state.worldArrival.done){state.worldArrival.index++;showWorldArrivalLine();return;}
  const id=state.location;state.worldArrival=null;state.worldLine=null;
  if(id==='town'&&state.townFounded){state.page='town';state.townPlace=null;state.townPanel=null;render();}
- else if(id==='tavern'){tavernStress();state.page='story';state.scene=state.townFounded?'tavernReturn':'farewell';   // 送別只演第一次出門；小隊成立後回酒館一律演回家劇情（大爺 10-11）
+ else if(id==='tavern'){tavernStress();state.page='story';state.scene=state.townFounded||state.farewellDone?'tavernReturn':'farewell';   // 送別只演第一次出門；小隊成立後回酒館一律演回家劇情（大爺 10-11）
 state.line=0;state.info=null;render();}
  else {document.getElementById('map-message').innerHTML=`<h3>${WORLD.locations.find(l=>l.id===id).name}</h3><p>探索待製作</p>`;}
 }

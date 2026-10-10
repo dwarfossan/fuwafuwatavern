@@ -238,6 +238,7 @@ function bind(){
   $("depart")?.addEventListener("click", ()=>{state.page="story";state.scene="farewell";state.line=0;state.info=null;render();window.scrollTo(0,0)});
   $("backShop")?.addEventListener("click", ()=>{state.page="shop";render()});
   $("toMap")?.addEventListener("click", ()=>{
+    state.farewellDone = true;   // 送別演過了，之後回酒館都演回家劇情（大爺 10-11：打輸回酒館也不重播）
     state.page="map"; state.location="tavern"; state.mapSel=null;
     if(state.townFounded){state.travel=null;state.worldArrival=null;state.worldLine=null;render();window.scrollTo(0,0);return;}
       state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
