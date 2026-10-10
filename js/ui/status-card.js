@@ -26,6 +26,15 @@ const StatusCard = {
     });
     bindModal();
   },
+  // 劇情／城鎮的狀態卡（彈出視窗）：只比對更新這張卡，沒變的節點原地保留；
+  // 不整頁 render()，所以外框不會重播打開視窗的淡入（大爺 10-10）。戰場照分層更新。
+  refreshCard(id){
+    if(state.page==="battle"&&B()){refreshBattle();return;}
+    const card=document.querySelector(`.character-status-modal [data-anchor="${id}"]`),u=critterStatusUnit(id);
+    if(!card||!u){refreshGameUI();return;}
+    const t=document.createElement("template");t.innerHTML=this.render(u,this.context(id),true).trim();
+    patchBattleNode(card,t.content.firstElementChild);bindModal();
+  },
   bind(root){
     root.querySelectorAll("[data-bagtoggle],[data-cardslt],[data-statustip],[data-infopage]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor,b=this.context(id);
@@ -39,12 +48,12 @@ const StatusCard = {
       else if(el.hasAttribute("data-cardslt"))b.cardSlotsOpen=!b.cardSlotsOpen;
       else if(el.hasAttribute("data-statustip"))b.statusTip=b.statusTip===el.dataset.statustip?null:el.dataset.statustip;
       else b.infoPage=el.dataset.infopage;
-      sfx("pop");refreshGameUI();
+      sfx("pop");this.refreshCard(id);
     }));
     bindGearDrag();
     root.querySelectorAll("[data-switchset]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor;
-      if(this.switchWeapon(id)){sfx("pop");const u=critterStatusUnit(id);if(state.page==="battle"&&B())syncBattleGear(u);else refreshGameUI();}
+      if(this.switchWeapon(id)){sfx("pop");const u=critterStatusUnit(id);if(state.page==="battle"&&B())syncBattleGear(u);else this.refreshCard(id);}
     }));
   }
 };

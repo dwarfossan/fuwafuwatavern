@@ -100,6 +100,7 @@ node tests/town.mjs          # 圖形城鎮四場所、店內購物、旅店休�
 node tests/town-arrival.mjs  # 進城告別分支、商人離場、小隊成立、手機對話
 node tests/xp.mjs            # 經驗：SRD 門檻、打怪平分、商隊完成達升級門檻、升級加血與熟練格、探索戰也給
 node tests/level-up.mjs      # 手動升級：戰鬥鎖定、探索／城鎮／劇情點擊、資料同步、歡呼光暈到期移除
+node tests/status-card-inplace.mjs # 劇情／城鎮狀態卡就地更新：升級（含序章光暈）、熟練格展開、換武器組，外框不重建
 node tests/info-bars.mjs     # 狀態卡生命／經驗／壓力三條、頭像列壓力小條
 node tests/about.mjs         # 關於／授權：封面與戰場主選單都打得開，SRD 5.1、5.2 官方原句完整
 node tests/performance-lifecycle.mjs # 純 Node：肖像按需載入、鏡頭焦點與戰場計時器生命週期
