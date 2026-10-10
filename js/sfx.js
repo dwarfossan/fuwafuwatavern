@@ -160,7 +160,7 @@ const BGM_TRACKS = {
   victory: {src:"assets/bgm/victory_bgm.mp3", loop:false}
 };
 const BGM = (()=>{
-  const MIX = .42, FADE = 280;
+  const MIX = .336, FADE = 280;   // 背景音樂占總音量的比例；10-10 大爺：再小聲 20%（.42→.336），效果音才聽得到
   let audio = null, current = null, desired = null, finished = null, change = 0, fadeTimer = null;
   const level = ()=>SFX.isMuted() ? 0 : SFX.getVolume()*MIX;
   function ensure(){
