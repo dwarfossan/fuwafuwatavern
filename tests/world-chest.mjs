@@ -27,7 +27,7 @@ await p.evaluate(()=>{window.getSelection().removeAllRanges();document.activeEle
   const result=[];
   for(let i=0;i<5;i++)for(const edge of [0,.999999]){const values=[(i+.1)/5,edge,.5];const e=createWorldChest(()=>values.shift());result.push({tier:i,gold:e.gold,dc:e.dc,rarity:e.rarity,mimic:e.mimic});}
   return result;
- });assert.deepEqual(await p.evaluate(()=>[.099999,.1].map(x=>{const a=[.5,.5,x];return createWorldChest(()=>a.shift()).mimic;})),[true,false]);for(const c of cases){const ranges=[[5,10],[10,20],[20,40],[40,80],[80,160]];assert(c.gold>=ranges[c.tier][0]&&c.gold<=ranges[c.tier][1]);assert.equal(c.mimic,false);}
+ });assert.deepEqual(await p.evaluate(()=>[.099999,.1].map(x=>{const a=[.5,.5,x];return createWorldChest(()=>a.shift()).mimic;})),[true,false]);for(const c of cases){const ranges=[[100,200],[200,300],[300,400],[400,500],[500,600]];assert(c.gold>=ranges[c.tier][0]&&c.gold<=ranges[c.tier][1]);assert.equal(c.mimic,false);}
  for(const id of ['fox','tiger','wolf','raccoon']){
   await setup(p);const gold=await p.evaluate(()=>({...state.gold})),m=await p.evaluate(id=>modOf(finalScore(id,'DEX')),id);
   await p.evaluate(({id,r})=>worldChestPick(id,r),{id,r:10-m});assert.equal(await p.evaluate(()=>state.worldChest.status),'opened');assert.equal(await p.locator('[data-chest-pick]').count(),0);

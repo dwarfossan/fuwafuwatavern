@@ -1,5 +1,5 @@
 /* 路旁寶箱：發現時決定所有隨機資料；劇情重畫、暫停及戰鬥重試不重擲。 */
-const WORLD_CHEST_TIERS=[['common',10,5,10],['uncommon',12,10,20],['rare',15,20,40],['epic',18,40,80],['legendary',20,80,160]];
+const WORLD_CHEST_TIERS=[['common',10,100,200],['uncommon',12,200,300],['rare',15,300,400],['epic',18,400,500],['legendary',20,500,600]];
 function createWorldChest(rng=Math.random){
  const [rarity,dc,min,max]=WORLD_CHEST_TIERS[Math.min(4,Math.floor(rng()*5))];
  return {rarity,dc,gold:min+Math.floor(rng()*(max-min+1)),mimic:rng()<.1,status:'locked',attempts:[],paid:false};

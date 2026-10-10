@@ -1,5 +1,5 @@
 /* 封印奇物：大爺定機率／保底與週更新；價格、台詞 GPT 暫定／草稿。 */
-const SEAL_PRICE=5*GP,SEAL_EXCHANGE=50;
+const SEAL_PRICE=300*GP,SEAL_EXCHANGE=50;
 const SEAL_INTRO=[
  {who:'fox',text:'這個問號……是什麼裝備？'},
  {who:'liliana',text:'封印奇物。付一份解封費，把裡面的東西帶走；封印拆開以前，我也不替你挑。'},

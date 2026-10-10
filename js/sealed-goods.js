@@ -22,7 +22,7 @@ function sealModalHTML(m){
   const l=SEAL_INTRO[m.line],c=CRITTERS.find(c=>c.id===l.who),venue=TOWN_PLACES.find(p=>p.id==='items');
   return `<div class="seal-speaker">${c?critterHead(c.id):`<div class="quip-face liliana-icon">${portraitHTML("liliana","smile")}</div>`}<strong>${c?c.name:venue.owner}</strong></div><p>${l.text}</p><small class="market-draft">台詞草稿</small><button class="btn" id="sealNext">${m.line===SEAL_INTRO.length-1?'看看封印奇物':'繼續'}</button>`;
  }
- const market=ensureSealWeek();return `<h3>解開封印奇物</h3><p>解封費 ${money(SEAL_PRICE)}（暫定），每份留一枚封印印記。</p><p>本次由${CRITTERS[state.shopActive].name}付款；開啟後不可退換。</p><p>若揹不動，寶物會留下等你領取。</p>${market.pending?'<p>請先領取上一件奇物。</p>':''}<button class="btn" id="sealDraw" ${market.pending||state.gold[CRITTERS[state.shopActive].id]<SEAL_PRICE?'disabled':''}>付費解封</button>`;
+ const market=ensureSealWeek();return `<h3>解開封印奇物</h3><p>解封費 ${money(SEAL_PRICE)}，每份留一枚封印印記。</p><p>本次由${CRITTERS[state.shopActive].name}付款；開啟後不可退換。</p><p>若揹不動，寶物會留下等你領取。</p>${market.pending?'<p>請先領取上一件奇物。</p>':''}<button class="btn" id="sealDraw" ${market.pending||state.gold[CRITTERS[state.shopActive].id]<SEAL_PRICE?'disabled':''}>付費解封</button>`;
 }
 function drawSeal(owner=CRITTERS[state.shopActive].id){
  const m=ensureSealWeek();if(!m.sealSeen||m.pending||!state.gold.hasOwnProperty(owner)||state.gold[owner]<SEAL_PRICE)return false;
