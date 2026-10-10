@@ -1208,6 +1208,8 @@ button.token:hover{transform:translateY(-2px)}
 body.image-boot{background:#000}
 .cover-party{display:grid;position:relative;grid-template-columns:150fr 150fr 170fr 170fr;align-items:end}
 .cover-party img{display:block;width:100%;height:auto;min-width:0}
+/* 默默的圖左邊多留白，跟香香的空隙 35、其他兩組約 20：往左挪 15／170 讓間距一致（大爺 10-10） */
+.cover-party img:nth-child(4){margin-left:-8.8%}
 .cover-loading{position:relative}
 .cover-loading .lanterns,.cover-loading .sign,.cover-loading .sub,.cover-loading #start,.cover-loading .cover-about{visibility:hidden;pointer-events:none}
 .cover-loading .cover-party img{animation:head-load-sway 2.4s ease-in-out infinite;transform-origin:50% 85%}
