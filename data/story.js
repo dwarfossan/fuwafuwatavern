@@ -71,7 +71,7 @@ const FAREWELL = [
   // 卡姆登場（大爺 10-03：拿完裝備後她走過來，嫌太危險，施傳送詛咒＝全體陣亡就傳回酒館；消耗運氣僅為劇情設定）
   // on:"kam"＝舞台上換卡姆；台詞已經大爺10-04定稿，表情配合台詞
   {who:"narr",  text:"小傢伙們正對著新裝備比來比去，一個紅髮的身影端著托盤走了過來。", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
-  {who:"kam",   text:"嗯?小傢伙們要出門？", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
+  {who:"kam",   text:"嗯？毛毛們要出門？", on:"kam", face:"smile", moods:{fox:"content",tiger:"happy",wolf:"smile",raccoon:"happy"}},
   {who:"tiger", text:"嗯！我們要去森林探險！", mood:"happy", on:"kam", face:"surprised", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
   {who:"kam",   text:"什麼？太危險了。", on:"kam", face:"surprised", mark:"anger", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
   {who:"fox",   text:"我們有裝備了，而且有四個。", mood:"smug", on:"kam", face:"sad", moods:{fox:"smug",tiger:"happy",wolf:"serious",raccoon:"normal"}},
