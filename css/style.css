@@ -1092,9 +1092,10 @@ button.token:hover{transform:translateY(-2px)}
 .game-bubble{position:fixed;z-index:10000;max-width:min(330px,calc(100vw - 16px));padding:12px 14px;border:3px solid #302b32;border-radius:14px;background:#fffaf0;color:#292330;box-shadow:0 5px 18px #0008;pointer-events:none;font-size:14px;line-height:1.6}
 .game-bubble p{margin:3px 0}.game-bubble small{color:#8d7562;font-size:11px}.game-bubble.thought b{color:#a55c37}
 /* 送貨進店的短演出，暫定代表物。 */
-.supplier-story .actor.merchant{height:51.1364%;bottom:10.017%;left:49%;animation:supplier-walk 1s ease-out both}
+/* 商人送貨進店（大爺 10-10）：街景是遠景，商人當前景，大小、位置跟商隊那段一樣（沿用 .actor.merchant），只保留從左走進來 */
+.supplier-story .actor.merchant{animation:supplier-walk 1s ease-out both}
 .supplier-story .actor.merchant.off{animation:none;opacity:0}
-@keyframes supplier-walk{from{transform:translateX(-140%) scale(.9)}to{transform:translateX(-50%) scale(.9)}}
+@keyframes supplier-walk{from{transform:translateX(-140%)}to{transform:translateX(-50%)}}
 .market-day{margin:4px 0;font-size:13px;color:var(--honey)}.market-draft{font-size:11px;color:var(--dim)}
 
 /* 封印奇物：圖形暫定，使用商店商品捲動區和原詳細框。 */
