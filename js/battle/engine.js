@@ -787,7 +787,7 @@ function say(u, text, delay=0, lang=null){
   const bub = {id:u.id, text: show ? text : "（異族語）", sub: un.who ? `${lang}・${un.who.name}聽懂了` : "", t:Date.now()+delay, dur:BARK_MS};
   (b.bubbles = b.bubbles || []).push(bub);
   if(un.all) blog(`${u.name}：「${text}」`, "talk");
-  else if(un.who) blog(`${u.name}（${lang}，${un.who.name}聽懂了）：「${text}」`, "talk");
+  else if(un.who) blog(`${u.name}說了一句${lang}（${un.who.name}聽懂了）。`, "talk");   // 台詞內容只放頭上泡泡，紀錄不重複（大爺 10-10）
   else blog(`${u.name}說了一句異族語。`, "talk");
   if(!un.all) blog(`　被動智力 ${un.v} ${un.who?"≥":"<"} ${lang} ${un.dc}${un.who?`，${un.who.name}聽得懂`:"，沒人聽得懂"}`);
   setTimeout(()=>{ if(B()===b) refreshBattle(); }, delay + 20);
@@ -889,9 +889,9 @@ function applyMastery(a, t, m, mod){
     case "推擊": push(a,t,2); blog(`　推擊：${t.name}被推開`,"skill"); break;
     case "擊倒": if(!saveRoll(t,"CON",dcOf(a,weaponStat(a)))){ knockProne(t); blog(`　擊倒：${t.name}倒地！`,"skill"); } break;
     case "困擾": addStatus(a,"helped",{via:"vex", target:t.id, until:"end", of:a.id}); blog(`　困擾：${a.name}下次攻擊${t.name}有優勢`,"skill"); break;
-    case "橫掃": {
+    case "順劈": {
       const other = enemiesOf(a).find(e=>e!==t && dist(e,a)<=reachOf(a));
-      if(other && !a._cleaved){ a._cleaved = true; blog(`　橫掃：順勢砍向${other.name}`,"skill"); weaponAttack(a, other, {noMod:true}); }
+      if(other && !a._cleaved){ a._cleaved = true; blog(`　順劈：順勢砍向${other.name}`,"skill"); weaponAttack(a, other, {noMod:true}); }
       break; }
   }
 }

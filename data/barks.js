@@ -22,7 +22,7 @@ const BARKS = [
   {on:"down", speaker:{type:"goblin", holds:"短棒"}, about:{type:"goblin", born:"短劍"}, lang:"哥布林語",
    lines:["……短劍也沒比較好嘛。"]},
   // 還有躲著的：每隻用自己的方式覺得不對勁（草稿，大爺 10-02 要的提示）
-  {on:"hunch", speaker:{id:"wolf", cranky:false},    draft:"香香", lines:["鼻子癢癢的……附近還有哥布林的味道。"]},
+  {on:"hunch", speaker:{id:"wolf", cranky:false},    draft:"香香", lines:["鼻子癢癢的……附近還有什麼東西的味道。"]},
   {on:"hunch", speaker:{id:"fox", cranky:false},     draft:"香香", lines:["太安靜了吧？這種時候通常還有一隻。"]},
   {on:"hunch", speaker:{id:"tiger", cranky:false},   draft:"香香", lines:["打完了？不對，我背後毛毛的。"]},
   {on:"hunch", speaker:{id:"raccoon", cranky:false}, draft:"香香", lines:["……有人在偷看。"]},

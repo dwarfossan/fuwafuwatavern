@@ -253,7 +253,7 @@ function pickSkill(key){
 // 瞄準列：直接點要用哪一階的格子（只能點還有格子的階）；已經點了幾發魔法飛彈就不能降到比那個少
 // ---------- 法師風格：超魔（大爺 10-09 定、10-10 範圍法術會打隊友） ----------
 // 施法時多花一個免費動作加一種加工（一次只能一種）：謹慎（範圍法術不打自己人）、瞬發（主要動作的法術改用免費動作放）、
-// 遠距（距離加倍，觸碰 1 格變 6 格）。在瞄準列選；選了才扣。敵人 AI 還不會用（暫定）
+// 遠距（距離加倍，觸碰 1 格變 6 格）。在瞄準列選；選了才扣。敵人 AI 見 aiMetaOf
 const META_NAME = {careful:"謹慎", quick:"瞬發", far:"遠距"};
 function metaOptions(u, sk){
   if(!sk || !isSpellSkill(sk) || !passiveSkills(u).some(s=>s.key==="metamagic")) return [];
@@ -273,6 +273,13 @@ function metaReason(u, sk, m){
 }
 // 選了這個加工夠不夠免費動作：加工本身一個；瞬發另外再一個（法術改用免費動作放）
 const metaAffordable = (u, sk, m) => freeRemaining() >= (m==="quick" ? 2 : 1);
+// 敵人 AI 的超魔（大爺 10-10：帶了就用）：範圍法術會打到自己的同伴時用「謹慎」。
+// 瞬發、遠距 AI 不用：AI 一回合只出手一次、目標只挑原本射程內的，要用得改 AI 出手流程
+function aiMetaOf(u, sk, t){
+  if(!t || !metaOptions(u, sk).includes("careful") || !metaAffordable(u, sk, "careful")) return null;
+  const tt = sk.impl.target, at = tt==="cone" ? coneUnits(u, t, 3) : tt==="area" ? B().units.filter(v=>dist(v,t)<=(sk.impl.radius||1)) : [];
+  return at.some(v=>v!==u && v.side===u.side && !v.down && !v.dead) ? "careful" : null;
+}
 const metaOf = (u, sk) => { const b = B(), m = b.mode && b.mode.key===sk.key ? b.mode.meta : null; return m && metaOptions(u, sk).includes(m) ? m : null; };
 // 招式距離（含超魔遠距）
 function skillRange(u, sk){ const r = sk.impl.range ? sk.impl.range(u) : 0; return metaOf(u, sk)==="far" ? (r<=1 ? 6 : r*2) : r; }
@@ -549,6 +556,14 @@ function payMoveAction(u){
   if(!canAct()) return false; useAction(u); return true;
 }
 // 俠盜風格：瞄準（大爺 10-09）：還沒移動才能宣告；放棄這回合移動，這回合第一次攻擊優勢（attackRoll 用掉）；不花動作
+// 敵人 AI 的狡詐（大爺 10-10：帶了就用）：追不到人時衝刺、遠程被貼身時撤離，都花免費動作
+function aiCunning(e, kind){
+  if(!cunningReady(e)) return false;
+  const b = B(); payMoveAction(e);
+  if(kind==="dash"){ b.moveLeft += b.baseMove; blog(`${e.name}衝刺！（移動 +${b.baseMove} 格）`, "skill"); }
+  else { addStatus(e, "disengage", {until:"end", of:e.id}); blog(`${e.name}撤離：這回合移動不會被藉機攻擊`, "skill"); }
+  return true;
+}
 const aimReady = u => passiveSkills(u).some(s=>s.key==="aim") && !B().movedThisTurn && !has(u,"aiming") && u===cur();
 function doAim(u){ if(!aimReady(u)) return false; B().moveLeft = 0; addStatus(u, "aiming", {until:"end", of:u.id}); blog(`${u.name}${skillLabel(learnedSkillByKey("aim").def)}：放棄移動，這回合第一次攻擊有優勢`, "skill"); return true; }
 function battleCmd(c){
@@ -883,7 +898,7 @@ function doSkillNow(u, sk, t){
   b.impactEnd = Math.max(b.impactEnd||0, Date.now() + hitAt);
   panelStart(`${u.name}【${sk.def.name}】`); sneakShow(u);      // 骰子面板；從藏身處出手先補潛行對決
   b.up = up; b.upBy = u.id; b.upDice = canUp(sk) && !sk.def.up ? up : 0;   // 沒寫升階效果的攻擊招：命中多武器骰
-  const meta = u.side==="pc" ? metaOf(u, sk) : null;
+  const meta = u.side==="pc" ? metaOf(u, sk) : aiMetaOf(u, sk, Array.isArray(t) ? t[0] : t);
   if(meta){ blog(`　超魔：${META_NAME[meta]}（多花一個免費動作）`, "skill"); if(meta==="careful") b.careful = u.id; }
   const cantrip = isSpellSkill(sk) && !(sk.def.tier>0), emBonus = u.mods[spellStat(u)]||0;
   b.empower = cantrip && emBonus>0 && passiveSkills(u).some(s=>s.key==="empowered_cantrip") ? {by:u.id, bonus:emBonus, hit:new Set()} : null;
@@ -1057,7 +1072,7 @@ function aiTurn(e){
   }
   if(foeRange(e)) return aiRanged(e, pcs, foeRange(e));
   const adj = pcs.filter(p=>dist(p,e)<=reachOf(e));
-  if(adj.length){ later(endTurn, foeMelee(e, adj)); return; }
+  if(adj.length){ if(aimReady(e)) doAim(e); later(endTurn, foeMelee(e, adj)); return; }   // 已經貼身不用走：帶瞄準就瞄（大爺 10-10）
   // 找離自己最近、能貼身的角色
   const all = reachable(e, 99);
   let best = null;
@@ -1068,6 +1083,7 @@ function aiTurn(e){
     }
   });
   if(!best || !b.moveLeft){ blog(`${e.name}在原地大叫。`); later(endTurn, 600); return; }
+  if(best.path.cost > b.moveLeft) aiCunning(e, "dash");            // 走不到：帶狡詐就免費衝刺
   const steps = trimPath(best.path, b.moveLeft, victimsOf(e).length ? 2 : 1, e);
   b.busy = true;
   walk(e, steps, ()=>{
@@ -1106,7 +1122,7 @@ function aiRanged(e, pcs, R){
       const [x,y] = k.split(",").map(Number), d = nearest({x,y});
       if(d>=2 && (!best || d>best.d || (d===best.d && p.cost<best.path.cost))) best = {d, path:p};
     });
-    if(best){ path = best.path; nimbleDisengage(e); blog(`${e.name}往後跳開，拉開距離！`); }
+    if(best){ path = best.path; nimbleDisengage(e) || aiCunning(e, "disengage"); blog(`${e.name}往後跳開，拉開距離！`); }
   } else if(!pcs.some(p=>dist(p,e)<=R) && b.moveLeft){
     // 射程外：往最近的角色靠近到射程內
     const t = pcs.sort((a,c)=>dist(a,e)-dist(c,e))[0];
@@ -1115,7 +1131,7 @@ function aiRanged(e, pcs, R){
       if(d<=R && d>=2 && (!best || p.cost<best.path.cost)) best={path:p}; });
     if(best) path = best.path;
   }
-  if(!path){ shoot(); return; }
+  if(!path){ if(aimReady(e) && pcs.some(p=>dist(p,e)<=R)) doAim(e); shoot(); return; }   // 不用走就打得到：帶瞄準就瞄
   b.busy = true;
   walk(e, path, ()=>{ b.busy = false; shoot(); });
 }
