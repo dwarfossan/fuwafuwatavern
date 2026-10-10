@@ -7,7 +7,14 @@ const br=await chromium.launch();try{
  assert(await p.evaluate(()=>state.battle===null&&state.location==='town'&&state.townFounded&&state.townRest.units.filter(u=>u.side==='pc').length===4&&CRITTERS.every(c=>state.rolls[c.id]&&state.inv[c.id].length)));
  await p.locator('[data-town-place="items"]').tap();assert.equal(await p.locator('.town-page .portrait[data-portrait="liliana"]').count(),1);await p.locator('#townAction').tap();assert.equal(await p.evaluate(()=>state.shopContext),'items');await p.evaluate(()=>leaveTownShop());
  await p.locator('#townStreet').tap();assert.equal(await p.evaluate(()=>state.scene),'townSupplier');await p.evaluate(()=>{state.supplierSeen=true;state.page='town';state.townPlace=null;render();});
- await p.locator('[data-town-place="inn"]').tap();await p.locator('#townAction').tap();assert.equal(await p.locator('#longRest').count(),1);await p.locator('#longRest').tap();assert.equal(await p.evaluate(()=>state.page),'town');
+ await p.locator('[data-town-place="inn"]').tap();await p.locator('#townAction').tap();assert.equal(await p.locator('#longRest').count(),1);await p.locator('#longRest').tap();assert.deepEqual(await p.evaluate(()=>[state.page,state.scene]),['story','innRest']);   // 10-10：長休後先看旅店 CG、交換心得
+ assert.equal(await p.locator('.scene-art.on[data-art="inn"]').count(),1);
+ while(await p.locator('#finishInnRest:not([disabled])').count()===0)await p.locator('#stage').tap();
+ await p.locator('#finishInnRest').tap();assert.equal(await p.evaluate(()=>state.page),'town');
+ // 進城第一晚：進旅店直接到休息畫面、只能長休、不能離開
+ await p.evaluate(()=>{state.innNightDone=false;state.townPlace=null;state.townPanel=null;render();});
+ await p.locator('[data-town-place="inn"]').tap();
+ assert.equal(await p.locator('.inn-first-hint').count(),1);assert(await p.locator('#longRest').isVisible());assert(!(await p.locator('#shortRest').isVisible()));assert(!(await p.locator('#townServiceBack').isVisible()));assert(!(await p.locator('#townStreet').isVisible()));
  await p.waitForTimeout(1000);assert.equal(await p.evaluate(()=>B()),null);assert.deepEqual(errors,[]);
  if(process.env.REVIEW_SHOT)await p.screenshot({path:process.env.REVIEW_SHOT});console.log('✓ #town直達四店、準備屬性裝備／旅店資料、購物／商人事件／休息、沒有戰場計時器');
 }finally{await br.close();}

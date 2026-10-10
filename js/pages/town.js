@@ -20,11 +20,13 @@ function townEventBubbleHTML(){
 function townShopEventHTML(place){const e=townEvents().find(e=>e.place===place);return e?townEventSymbol(e)+townEventHint(e):'';}
 function renderTown(){
  const p=townPlace();
- if(p && state.townPanel)return `<section class="page shop-page town-service-page" aria-label="${p.name}">${venueHeaderHTML(p,p.line)}<div class="shop-list town-service-body">${state.townPanel==='rest'?`<div class="town-rest">${state.townRest?restChoiceHTML(state.townRest):`<p>${TOWN_UI.restUnavailable}</p>`}<p>${TOWN_UI.rest}</p>${state.restMessage?`<p role="status">${state.restMessage}</p>`:''}</div>`:`<p class="town-panel">${TOWN_UI.guild}</p>`}</div><div class="nav"><button class="btn ghost" id="townServiceBack">回到${p.name}</button><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
+ if(p && state.townPanel)return `<section class="page shop-page town-service-page${p.id==='inn'&&innFirstNight()?' inn-first-night':''}" aria-label="${p.name}">${venueHeaderHTML(p,p.line)}<div class="shop-list town-service-body">${state.townPanel==='rest'?`<div class="town-rest">${p.id==='inn'&&innFirstNight()?`<p class="inn-first-hint">${TOWN_UI.innFirstNight}</p>`:''}${state.townRest?restChoiceHTML(state.townRest):`<p>${TOWN_UI.restUnavailable}</p>`}<p>${TOWN_UI.rest}</p>${state.restMessage?`<p role="status">${state.restMessage}</p>`:''}</div>`:`<p class="town-panel">${TOWN_UI.guild}</p>`}</div><div class="nav"><button class="btn ghost" id="townServiceBack">回到${p.name}</button><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
  if(!p)return `<section class="page town-page town-street-page"><div class="story-head"><h2>${TOWN_UI.title}</h2>${pageToolsHTML()}</div><div class="stage town-street town-street-art"><img class="town-street-background" src="${SCENE_ART.town}" alt="城鎮街景"><p class="town-street-caption">${TOWN_UI.subtitle}</p>${TOWN_PLACES.map(p=>`<button class="town-building" data-town-place="${p.id}" style="--venue:${p.color}">${townSymbolSVG(p.symbol)}<b>${p.name}</b><span>${p.owner}</span>${townShopEventHTML(p.id)}</button>`).join('')}${townEventBubbleHTML()}</div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><div class="nav"><button class="btn ghost town-map-button" id="townMap" aria-label="${TOWN_UI.map}"><img src="${SCENE_ART.mapMarker}" alt=""><span class="town-hint" role="tooltip">${TOWN_UI.map}</span></button></div></section>`;
  return `<section class="page fp-page town-page town-conversation" aria-label="${p.name}"><div class="story-head"><span></span>${pageToolsHTML()}</div><div class="stage"><div class="actor ${TOWN_PORTRAIT[p.id]}">${portraitHTML(TOWN_PORTRAIT[p.id],"smile")}</div><div class="dialog town-dialog"><b>${p.owner} · ${p.role}</b><p>${p.line}</p></div></div>${storyPartyHTML()}<small>${TOWN_UI.draft}</small><button class="btn" id="townAction">${p.action}</button><div class="nav"><button class="btn ghost" id="townStreet">${TOWN_UI.back}</button></div></section>`;
 }
-function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=null;state.restMessage=null;render();window.scrollTo(0,0);}
+// 進城第一晚（大爺 10-10）：逛到旅店就直接進休息、只能長休，長休完看旅店 CG；之後照常讓玩家選
+const innFirstNight = () => !state.innNightDone;
+function openTownPlace(id){if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=id==='inn'&&innFirstNight()&&state.townRest?'rest':null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
  bindTownImageReadiness();
  document.getElementById('townServiceBack')?.addEventListener('click',()=>{state.townPanel=null;render();});
@@ -41,7 +43,10 @@ function bindTown(){
  if(state.townRest && state.townPanel==='rest')bindRestNotebook(state.townRest);
  const selections=()=>restPickSelections(state.townRest);
  document.getElementById('shortRest')?.addEventListener('click',()=>takeRest('short',selections(),state.townRest));
- document.getElementById('longRest')?.addEventListener('click',()=>takeRest('long',selections(),state.townRest));
+ document.getElementById('longRest')?.addEventListener('click',()=>{
+  if(!takeRest('long',selections(),state.townRest))return;
+  state.innNightDone=true;state.townPanel=null;state.page='story';state.scene='innRest';state.line=0;state.info=null;render();window.scrollTo(0,0);   // 長休：切旅店 CG（10-10）
+ });
  document.querySelectorAll('[data-teach]').forEach(el=>el.addEventListener('click',()=>{const [id,key]=el.dataset.teach.split(':');const b=state.townRest,u=b.units.find(u=>u.id===id);if(u){learnFromLingling(u,key,b);render();}}));
  document.querySelectorAll('[data-erase]').forEach(el=>el.addEventListener('click',()=>{const [id,key]=el.dataset.erase.split(':');const b=state.townRest,u=b.units.find(u=>u.id===id);if(u&&eraseNote(u,key,b)){syncLearnedState(b);render();}}));
 }

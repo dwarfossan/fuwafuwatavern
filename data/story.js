@@ -134,7 +134,7 @@ const FAREWELL = [
   {who:"all",   text:"快跑——！", art:"party", face:"annoyed", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}, marks:{fox:"note",tiger:"note",wolf:"note",raccoon:"note"}}
 ];
 /* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
-const STORY_ART = {party:"assets/portraits/party.webp"};
+const STORY_ART = {party:"assets/portraits/party.webp", inn:"assets/scenes/inn_rest.webp"};   // inn：旅店長休 CG（大爺 10-10）
 
 /* 伏擊前的被動察覺（大爺 2026-10-01）：小傢伙們不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
    難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、小傢伙們不擲），進戰鬥沿用同一個數字
@@ -306,3 +306,19 @@ const TOWN_WHERE_NEXT = [
   {who:"fox",text:"好，先去哪裡，我們一起決定！",on:"none",mood:"happy"}
 ];
 [...Object.values(TOWN_GOODBYE).flat(),...TOWN_FOUNDING,...TOWN_BAG_CHAT,...TOWN_WHERE_NEXT].forEach(l=>l.draft="GPT");
+
+// 旅店長休（大爺 10-10）：按長休後切旅店 CG，四隻交換心得，隔天早上回城鎮。台詞全是香香的草稿（draft），等大爺改
+const INN_REST = [
+  {who:"narr", art:"inn", draft:"香香", text:"旅店的床鋪軟呼呼的。今天發生的事，好像還在腦袋裡打轉。"},
+  {who:"tiger", art:"inn", draft:"香香", mood:"happy", text:"床！是床！比酒館的稻草堆軟一百倍！"},
+  {who:"fox", art:"inn", draft:"香香", mood:"content", text:"今天看到的招式，我都記在小筆記裡了。誰要抄，排隊。"},
+  {who:"wolf", art:"inn", draft:"香香", mood:"sigh", text:"……先說好，抄完就睡。明天還要早起。"},
+  {who:"raccoon", art:"inn", draft:"香香", mood:"sly", text:"我比較想知道，明天的早餐有什麼。"},
+  {who:"fox", art:"inn", draft:"香香", mood:"smug", text:"默默，你又在想吃的。"},
+  {who:"raccoon", art:"inn", draft:"香香", mood:"normal", text:"……想吃的，比較實在。"},
+  {who:"tiger", art:"inn", draft:"香香", mood:"content", text:"今天大家都好厲害喔。我也有好厲害嗎？"},
+  {who:"wolf", art:"inn", draft:"香香", mood:"smile", text:"有。第一個衝出去那次除外。"},
+  {who:"tiger", art:"inn", draft:"香香", mood:"blank", text:"欸——"},
+  {who:"narr", art:"inn", draft:"香香", text:"交換完心得，四隻一個接一個睡著了。"},
+  {who:"narr", art:"inn", draft:"香香", text:"——隔天早上。"}
+];

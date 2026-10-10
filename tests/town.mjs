@@ -22,6 +22,7 @@ try{
  assert.equal(await page.locator('#board-floor').count(),0);
  assert.equal(await page.evaluate(()=>B()),null);
  await shot('town-street.png');
+ await page.evaluate(()=>{state.innNightDone=true;});   // 這支測四店照常進出；進城第一晚的強制長休另在 quick-town 驗
  for(const id of ['inn','smith','guild','items']){
   await page.locator(`[data-town-place="${id}"]`).tap();
   assert.equal(await page.locator('.town-page .portrait').count(),1);assert.equal(await page.locator('.town-interior').count(),0);
@@ -42,6 +43,7 @@ try{
    assert.equal(await page.evaluate(()=>state.townRest.units.find(u=>u.id==='fox').pendingLearned.length),0);
    await page.locator('#shortRest').tap();assert(await page.locator('#shortRest').isDisabled());
    await page.locator('#longRest').tap();
+   assert.deepEqual(await page.evaluate(()=>[state.page,state.scene]),['story','innRest']);await page.evaluate(()=>{state.page='town';state.townPlace='inn';state.townPanel='rest';render();});   // 10-10：長休後先看旅店 CG（按鈕流程在 quick-town 驗）
    assert.equal(await page.evaluate(()=>state.shortRestsUsed),0);
    assert.deepEqual(await page.evaluate(()=>state.proficiency.fox),[2]);
    assert.equal(await page.evaluate(()=>state.retriesLeft),3);

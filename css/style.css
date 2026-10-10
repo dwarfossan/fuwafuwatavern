@@ -1366,3 +1366,8 @@ body.image-boot{background:#000}
 @keyframes frenzy-tick{0%,88%,100%{transform:translate(0,0)}91%{transform:translate(-2px,0)}94%{transform:translate(2px,0)}97%{transform:translate(-1px,0)}}
 @keyframes frenzy-pulse{0%,100%{opacity:.3}50%{opacity:.6}}
 @media(prefers-reduced-motion:reduce){.ord.frenzy,.frenzy-shake,.frenzy-glow{animation:none}}
+
+/* 進城第一晚（10-10）：只能長休，不能離開旅店 */
+.inn-first-night #shortRest,.inn-first-night #townServiceBack,.inn-first-night #townStreet{display:none}
+.inn-first-hint{margin:0 0 8px;padding:8px 10px;border-radius:10px;background:rgba(242,180,65,.18);color:var(--honey,#f2b441);font-weight:700}
+.scene-art[data-art="inn"]{background:radial-gradient(circle at 50% 40%,#5a4636 0%,#3a2c26 55%,#241c1a 100%)}

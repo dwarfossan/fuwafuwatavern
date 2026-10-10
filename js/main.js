@@ -186,6 +186,7 @@ function bind(){
   const $ = id => document.getElementById(id);
   if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:goTitle});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
+  $("finishInnRest")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;state.townPanel=null;render();autoSave();window.scrollTo(0,0);});   // 旅店長休完：隔天早上回街上（10-10）
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",enterWorldLocation);
   $("leaveTownShop")?.addEventListener("click",leaveTownShop);
@@ -333,7 +334,8 @@ function quickBattle(battleId="ambush",phase="combat"){
 function quickTown(){
   BATTLES.random=generateRandomBattle(123);quickBattle("random","explore");
   state.townRest=JSON.parse(JSON.stringify(B()));state.townRest.busy=false;state.townRest.exploreStopped=false;
-  state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;
+  state.battle=null;state.scout=null;state.travel=null;state.location="town";state.townFounded=true;state.innNightDone=true;   // 直達城鎮是測試捷徑：跳過進城第一晚的強制長休（選長休一樣看得到旅店 CG）
+  
   state.townPlace=null;state.townPanel=null;state.shopContext=null;state.page="town";render();
 }
 // 開始前集中下載／解碼遊戲圖片，後續由記憶體來源重用。
