@@ -59,7 +59,7 @@ try{
    assert.equal(await page.evaluate(()=>B()),null);
    await shot('town-rest.png');
   }else if(id==='guild'){
-   await page.locator('#townAction').tap();assert(await page.locator('.town-panel').isVisible());
+   await page.locator('#townAction').tap();assert(await page.locator('.quest-board').isVisible());
   }else{
    await page.locator('#townAction').tap();
    const cats=await page.locator('[data-cat]').allTextContents();

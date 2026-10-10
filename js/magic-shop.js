@@ -24,7 +24,7 @@ function makeMagicItem(g,id,rng=Math.random){
 }
 function advanceMarketDay(){const m=ensureMarket();m.day++;ensureMarket();saveMarket();}
 function magicStockHTML(){
- const m=ensureMarket();return `<p class="market-day">${MAGIC_SHOP_UI.stock} · 第 ${m.day} ${MAGIC_SHOP_UI.day} · ${MAGIC_SHOP_UI.refresh}</p><small class="market-draft">${MAGIC_SHOP_UI.draft}</small>${m.stock.map(row=>{
+ const m=ensureMarket();return `<p class="market-day">${MAGIC_SHOP_UI.stock} · 第 ${m.day} ${MAGIC_SHOP_UI.day} · ${MAGIC_SHOP_UI.refresh}</p>${m.stock.map(row=>{
   const it=itemById(row.id),r=MAGIC_RARITIES[it.rarity],why=row.sold?MAGIC_SHOP_UI.sold:blockReason(CRITTERS[state.shopActive].id,it);
   return `<div class="item ${why?'blocked':''}"><div class="it-main"><button class="it-name" data-iteminfo="${it.id}" style="color:${r.color}">${it.type==='weapon'?iconSVG(equipmentArtKey(it),24):''}${it.n} ⓘ</button><small style="color:${r.color}">${r.name}</small><div class="it-spec">${rulesHTML(it.desc)}</div></div><div class="it-side"><span class="it-cost">${money(it.cost)}</span><span class="it-wt">${it.wt} lb</span></div><button class="btn small" data-magic-buy="${it.id}" ${why?'disabled':''}>買</button>${why?`<div class="it-why">${why}</div>`:''}</div>`;
  }).join('')}`;

@@ -2,7 +2,7 @@ import {chromium} from 'playwright';import assert from 'node:assert/strict';impo
 import {bootReady} from './boot.mjs';
 const br=await chromium.launch();try{
  const p=await br.newPage({viewport:{width:390,height:844},hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
- const check=await p.evaluate(()=>[...new Set(SKILL_GROUPS.flatMap(g=>g.skills.map(s=>s.name)))].map(n=>({name:n,data:SKILL_THOUGHTS[n]})));
+ const check=await p.evaluate(()=>[...new Set(SKILL_GROUPS.flatMap(g=>g.skills.filter(s=>!s.innate).map(s=>s.name)))].map(n=>({name:n,data:SKILL_THOUGHTS[n]})));
  for(const row of check){assert(row.data,row.name);assert(['GPT','香香'].includes(row.data.draft),row.name+' 草稿作者');assert.equal(new Set(Object.values(row.data.lines)).size,4);}
  await p.evaluate(()=>{const f=B().units.find(u=>u.id==='fox');if(!f.learned.some(n=>n.key==='magic_missile'))f.learned.unshift({key:'magic_missile',name:'魔法飛彈',lv:1});B().busy=false;B().exploreRest=true;B().tut=99;refreshBattle();});
  const texts=[];

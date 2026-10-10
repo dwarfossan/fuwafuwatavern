@@ -44,7 +44,7 @@ function showGameBubble(el){
  else{const [id,name]=el.dataset.skillThought.split(':'),c=CRITTERS.find(c=>c.id===id);text=SKILL_THOUGHTS[name]?.lines[id];if(!c||!text)return;title=c.name;kind='thought';}
  if(!text)return;closeGameBubble();activeGameBubble=el;
  const bubble=document.createElement('div');bubble.id='game-bubble';bubble.className='game-bubble '+kind;bubble.setAttribute('role','tooltip');
- bubble.innerHTML=`<b>${escapeUI(title)}</b><p>${escapeUI(text)}</p>${kind==='thought'?'<small>台詞草稿</small>':''}`;document.body.appendChild(bubble);
+ bubble.innerHTML=`<b>${escapeUI(title)}</b><p>${escapeUI(text)}</p>`;document.body.appendChild(bubble);
  const rect=el.getBoundingClientRect(),w=bubble.offsetWidth,h=bubble.offsetHeight;
  bubble.style.left=Math.max(8,Math.min(rect.left,innerWidth-w-8))+'px';
  bubble.style.top=Math.max(8,Math.min(rect.top-h-8,innerHeight-h-8))+'px';
