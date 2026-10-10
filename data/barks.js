@@ -56,3 +56,36 @@ WORLD_CHAT.chestTry={
  raccoon:{draft:'GPT',try:'這個鎖，有點想法。',win:'它想通了。',lose:'它暫時不想跟我聊。',winMood:'happy',loseMood:'caught'}
 };
 WORLD_CHAT.chestEnd={draft:'GPT',choose:'誰來試著開鎖？每隻只能試一次。',gold:'箱裡有 {gold} 枚金幣，四隻各分 {share}。',reveal:'箱蓋突然張開，露出一排牙齒！',unlockMimic:'鎖鬆了……箱子怎麼在動？',lockedMimic:'鎖沒開……箱子怎麼在動？',failed:'四隻都試過了。記下位置，先走吧。',mimic:'寶箱長牙了！？',defeated:'這次確認了。它不會再咬人。',resume:'回到剛才停下的位置，繼續走。'};
+
+/* 戰後閒聊（大爺 10-11）：打贏後挑最多 2 件笑點，每件 2 句。全部香香草稿，大爺看過再改。
+   who:"self"＝發生這件事的那隻，"other"＝隨機另一隻；{self}{other}換名字，{t}＝對象（敵人或撿到的東西） */
+const AFTER_TALK = {draft:"香香",
+  crit:[
+    [{who:"other", mood:"surprised", text:"{self}剛剛那一下，{t}整個飛出去了耶！"}, {who:"self", mood:"smug", text:"嘿嘿，手感來了擋都擋不住。"}],
+    [{who:"self", mood:"happy", text:"看到沒看到沒？剛剛那下超準的！"}, {who:"other", mood:"sigh", text:"看到了看到了，回去再說一百遍好不好。"}]
+  ],
+  fumble:[
+    [{who:"other", mood:"sly", text:"{self}，你剛剛是在跟空氣打架嗎？"}, {who:"self", mood:"resigned", text:"……那是戰術性揮空。"}],
+    [{who:"self", mood:"confused", text:"手滑了啦！是武器自己跑掉的！"}, {who:"other", mood:"smug", text:"武器表示：不關我的事。"}]
+  ],
+  down:[
+    [{who:"other", mood:"serious", text:"{self}，還好嗎？剛剛直接趴下去了。"}, {who:"self", mood:"resigned", text:"我只是……躺下來看看天空。"}],
+    [{who:"self", mood:"confused", text:"頭還在嗡嗡叫……我們贏了嗎？"}, {who:"other", mood:"happy", text:"贏了啦，就你睡最久。"}]
+  ],
+  lastKill:[
+    [{who:"self", mood:"happy", text:"最後一隻是我收的！記下來記下來！"}, {who:"other", mood:"smile", text:"好啦好啦，記在你的功勞簿上。"}],
+    [{who:"other", mood:"smile", text:"最後那下漂亮喔，{self}。"}, {who:"self", mood:"smug", text:"那當然，壓軸的都是我。"}]
+  ],
+  pickup:[
+    [{who:"other", mood:"confused", text:"{self}，那把{t}是剛剛敵人掉的吧？"}, {who:"self", mood:"sly", text:"現在是我的了。撿到就是我的。"}]
+  ],
+  prone:[
+    [{who:"other", mood:"sly", text:"{self}剛剛那一跤，摔得好響喔。"}, {who:"self", mood:"resigned", text:"是地板先動手的，不是我的錯。"}]
+  ],
+  luck:[
+    [{who:"self", mood:"happy", text:"差一點就沒中……還好運氣站在我這邊！"}, {who:"other", mood:"smile", text:"毛球族的好運，真的很好用呢。"}]
+  ],
+  frenzy:[
+    [{who:"other", mood:"surprised", text:"{self}……你剛剛是不是有點恐怖？"}, {who:"self", mood:"sigh", text:"……我不記得了。我們回去找大爺摸摸頭好不好。"}]
+  ]
+};

@@ -1426,3 +1426,5 @@ body.image-boot{background:#000}
 .tavern-sleep .rest-actions{position:sticky;bottom:-12px;z-index:2;background:#fffaf0;padding:6px 0 0}
 /* 教學（10-11） */
 .guide-group{margin:10px 0 6px;color:var(--honey);font-size:14px}.guide-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.guide-list .btn{font-size:13px;padding:8px 6px}
+/* 戰後閒聊（10-11） */
+.after-talk{display:flex;gap:12px;align-items:flex-start}.after-head img,.after-head .c-head{width:72px;height:72px}.after-body p{margin:6px 0 0;line-height:1.6}.after-nav{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}

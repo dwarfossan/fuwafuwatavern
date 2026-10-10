@@ -134,6 +134,7 @@ function renderModal(){
     const h=PAGE_UI.helpPages[m.id];
     body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
   }
+  if(m.kind==="afterTalk") body=afterTalkHTML(m);   // 戰後閒聊（10-11）
   if(m.kind==="guide"){   // 教學（10-11）：先列題目，點進去看內容
     const all=GUIDE.groups.flatMap(g=>g.items), it=m.id&&all.find(x=>x.id===m.id);
     if(it){ const h=it.page?PAGE_UI.helpPages[it.page]:null, text=h?h.text:it.text==="__TUTORIAL__"?TUTORIAL.join("</p><p class=\"page-bubble-text\">"):it.text;
@@ -152,7 +153,7 @@ function renderModal(){
     const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
     body = skillCardHTML(m.group, m.idx, m.item ? itemById(m.item) : null, unit);
   }
-  return `<div class="modal-back" data-close="1"><div class="modal ${m.kind==="help"||m.kind==="guide"?"page-bubble":""} ${m.kind==="character"?"character-status-modal":""}" role="dialog" aria-modal="true">
+  return `<div class="modal-back" data-close="1"><div class="modal ${m.kind==="help"||m.kind==="guide"||m.kind==="afterTalk"?"page-bubble":""} ${m.kind==="character"?"character-status-modal":""}" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;
 }
 const modalEvents=new WeakMap();
@@ -173,6 +174,7 @@ function bindModal(){
     else if(canLevelUp(el.dataset.levelup))document.querySelector(`[data-level-message="${el.dataset.levelup}"]`).textContent="打完再升級";
   }));
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
+  document.querySelectorAll("[data-aftertalk]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();afterTalkStep(el.dataset.aftertalk);}));
   document.querySelectorAll("[data-guide]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"guide",id:el.dataset.guide||null};refreshGameUI();}));
   document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));

@@ -69,7 +69,7 @@ function stressBattleEnd(){
 function startFrenzy(u){
   const b = B();
   if(!b || b.phase!=="combat" || u.frenzy || u.down || u.dead || b.result) return;   // 只有戰鬥中會失控
-  u.frenzy = {rounds:0, at:Date.now(), helped:false};
+  u.frenzy = {rounds:0, at:Date.now(), helped:false}; funNote("frenzy", u);
   u.svgMood = stressMood(u);
   blog(`${u.name}壓力爆表，失控了！（AI 接手）`, "kill", "失控！");
   fxFloat(u, POP_TEXT.frenzy, "dmg"); sfx("alert");

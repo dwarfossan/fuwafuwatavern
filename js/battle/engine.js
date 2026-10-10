@@ -42,6 +42,7 @@ function teleportHome(){
 }
 // 打贏後接劇情：熟練格、筆記存回去，戰鬥收掉（計時器都會檢查 B()，不會再動）
 function leaveBattleTo(scene){
+  queueAfterTalk(B());   // 戰後閒聊（10-11）
   if(scene==="questDone"){ finishQuest(); return; }   // 委託打完回大地圖（10-10，js/quests.js）
   if(B()?.id==="worldMimic"){
     if(B().result!=="win"||scene!=="worldChest"||state.worldChest?.status!=="fighting")return;
@@ -517,7 +518,8 @@ function attackRoll(a, t, o={}){
   const react = reactionHook(a, t, {r, total, ac});
   if(react==="shield"){ ac += 5; hit = r===20 || (r!==1 && total >= ac); }
   panelRow("atk", t, adv ? [r1, r2] : [r1], r, total, r===20 ? "crit" : hit ? "hit" : r===1 ? "fumble" : "miss", a);   // 沒中就不會擲傷害骰
-  if(hit && r===20){ critMoment(t); stressOnCrit(a, t); }
+  if(hit && r===20){ critMoment(t); stressOnCrit(a, t); funNote("crit", a, {t:t.name}); }
+  if(r===1) funNote("fumble", a, {t:t.name});   // 戰後閒聊的笑點（10-11）
   // 狩印：打中自己標記的目標，這一擊多 1d6 力場（爆擊骰加倍）；傷害在 hurt 裡補上
   if(hit && t.statuses.some(s=>s.k==="marked" && s.src===a.id)) B().markHit = {a:a.id, t:t.id, crit:r===20};
   const advTxt = adv>0?`（優勢 ${r1}/${r2}）`:adv<0?`（劣勢 ${r1}/${r2}）`:"";
@@ -556,7 +558,7 @@ function luckHook(u, kind, info){
   const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
   if(ans===undefined) throw {reactPause:true, info:{luck:true, t:u.id, kind, left:luckLeft(u), ...info}};
   if(ans!=="luck") return false;
-  REACT_RUN.luck[u.id] = (REACT_RUN.luck[u.id]||0) + 1;
+  REACT_RUN.luck[u.id] = (REACT_RUN.luck[u.id]||0) + 1; funNote("luck", u);
   blog(`　${u.name}用了一顆好運骰重擲！（剩 ${luckLeft(u)}）`, "skill", "好運！"); sfx("pop", B().impact||0);
   return true;
 }
@@ -642,8 +644,9 @@ function hurt(t, n, type, src, hitSfx){
   else endConc(t, "倒下了");
   // 已經倒下的再被打（例如普攻打死後狩印、偷襲的追加傷害）不再觸發一次倒下：紀錄、音效、台詞只算一次（大爺 10-11 回報哥布林吐槽兩次）
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
-    if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
-    else { t.down = true; t.statuses = []; blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
+    if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
+      if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
+    else { t.down = true; t.statuses = []; funNote("down", t); blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
@@ -748,6 +751,7 @@ function pickUp(u){
   if(i<0) return false;
   const d = b.drops.splice(i,1)[0];
   equip(u, d.item);
+  if(d.from!==u.id) funNote("pickup", u, {t:d.name});
   const whose = d.from===u.id ? "撿回了" : `撿起了${(B().units.find(v=>v.id===d.from)||{}).name||""}的`;
   blog(`${u.name}${whose}${d.name}！`, "skill"); sfx("pop");
   return true;
@@ -819,7 +823,7 @@ function critMoment(t){
 }
 
 // 倒地：掛狀態＋在打中的那一刻播倒下去的動作
-function knockProne(t){ addStatus(t, "prone", {}); t.anim = {k:"fall", t:impactAt()}; }
+function knockProne(t){ addStatus(t, "prone", {}); funNote("prone", t); t.anim = {k:"fall", t:impactAt()}; }
 
 // 把 t 從 from 推開 n 格
 function push(from, t, n){
