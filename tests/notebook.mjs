@@ -14,7 +14,7 @@ const browser=await chromium.launch();try{
  if(process.env.NOTE_SHOT)await p.screenshot({path:process.env.NOTE_SHOT});
  await p.waitForFunction(()=>!B().noteCopy);assert.equal(await p.locator('.copy-pencil').count(),0);
  // 城鎮也使用同一份狀態小筆記元件與四頭像。
- await p.evaluate(()=>{B().result='win';leaveBattleTo('caravan');state.page='town';state.townPlace='inn';state.townPanel='rest';render();});
+ await p.evaluate(()=>{B().result='win';leaveBattleTo('caravan');state.page='town';state.townPlace='inn';state.townPanel='rest';state.innNightDone=true;render();});
  assert.equal(await p.locator('[data-rest-who]').count(),4);await p.locator('[data-rest-who="raccoon"]').tap();assert((await p.locator('.note-cap').textContent()).includes('默默'));
  assert.deepEqual(errors,[]);console.log('✓ shared status notebook, head switching, preserved copy choices, original skill UI, copy animation, town reuse');
 }finally{await browser.close();}

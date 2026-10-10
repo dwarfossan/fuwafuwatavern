@@ -38,7 +38,7 @@ out.push(`# 裝備 → 技能表
 
 **基本攻擊**的名稱看手上的武器：砍的**斬擊**、戳的**刺擊**、砸的**打擊**（含徒手、法杖）、用彈藥的**射擊**、投擲類的**投擲**。
 
-**法器**：法杖／法書／法球，每件綁定一組法術；法杖另外能敲人。施法只檢查聲勢材；命中、豁免 DC、治療加值取施法者智力／感知／魅力最高者。玩家法器逐件固定隨機 INT／WIS／CHA，該屬性至少 13 才能使用；怪物法器照資料表。裝備 grants 拿著即可用，對方施放的法術均可抄寫。標 ✦ 的法術取自 SRD 5.2。
+**法器**：法杖／法書／法球／圖騰，每件綁定一組法術；每件都能近戰打擊（法杖 1d6＋力量，其他 1d4＋力量）。施法只檢查聲勢材；命中、豁免 DC、治療加值取施法者智力／感知／魅力最高者。玩家法器逐件固定隨機 INT／WIS／CHA，該屬性至少 13 才能使用；怪物法器照資料表。裝備 grants 拿著即可用，對方施放的法術均可抄寫。標 ✦ 的法術取自 SRD 5.2。
 `);
 let n = 0;
 for(const g of SKILL_GROUPS){
@@ -47,7 +47,7 @@ for(const g of SKILL_GROUPS){
   out.push(`| 技能 | 主／被動 | 類型 | 熟練格 | 施展條件 | 聲勢材 | 範圍／專注 | 效果 | 升階 |\n|---|---|---|---|---|---|---|---|---|`);
   g.skills.forEach((s, i)=>{
     const name = i===0 && HAS_BASIC(g) && !s.tier && s.kind!=="輔助" && s.activation!=="passive" ? basicNames(g) : s.name;   // 基本攻擊照武器取名（盾牌第一招不是攻擊）
-    const cost = TIER[s.tier||0] + (s.free ? "・免費動作" : "");
+    const cost = TIER[s.tier||0] + (s.reaction ? "・反應（敵人攻擊命中時）" : s.free ? "・免費動作" : "");
     out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${s.activation==='passive'?'被動':'主動'} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(componentsText(s.components))} | ${cell([s.areaText,s.conc?"專注至中斷":""].filter(Boolean).join("；")||"—")} | ${cell(s.text)} | ${cell(upText(s))} |`);
     n++;
   });

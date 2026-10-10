@@ -180,7 +180,7 @@ SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",ski
  {id:"aim",name:"瞄準",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"這回合還沒移動時可以宣告瞄準：放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。"},
  {id:"cunning_action",name:"狡詐",style:"rogue",activation:"passive",kind:"被動",dmg:"",tier:0,text:"每回合一次，衝刺、撤離或潛行改用免費動作，不用主要動作。"},
  {id:"empowered_cantrip",name:"強化",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"戲法造成傷害時，加上施法屬性調整值（每個目標一次）。"},
- {id:"lore",name:"博學",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"智力檢定有優勢（不含攻擊骰）。被動智力檢定（例如聽懂異族語）+5。"},
+ {id:"lore",name:"博學",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"被動智力檢定（例如聽懂異族語）+5。擲骰的智力檢定有優勢（不含攻擊骰；目前遊戲裡還沒有擲骰的智力檢定）。"},
  {id:"metamagic",name:"超魔",style:"mage",activation:"passive",kind:"被動",dmg:"",tier:0,text:"施法時多花一個免費動作，加一種加工（一次只能一種）：謹慎（範圍法術不打自己人）、瞬發（主要動作的法術改用免費動作放）、遠距（距離加倍，觸碰變 6 格）。"},
  {id:"weapon_mastery",name:"武器精通",style:"warrior",activation:"passive",kind:"被動",dmg:"",tier:0,text:"用武器攻擊時觸發武器專精（削弱、緩速、擦傷……）。沒帶就不會觸發專精。"}
 ]});

@@ -147,12 +147,16 @@ const {ART: ITEM_ART, RAW: ITEM_RAW} = (()=>{
     // 薩滿圖騰：彎彎的木杖、頂上一顆小骷髏、掛著三色羽毛（跟哥布林薩滿的頭飾同色）
     shaman_totem: rot(RAW.shaman_totem =
       p("M55 30 Q50 70 56 110 L54 148 L66 148 L68 110 Q62 70 65 30 Z", WOOD) + ln("M59 40 Q55 80 60 140", WOOD_DK, 2.5)
-      + p("M42 12 Q42 -10 60 -10 Q78 -10 78 12 Q78 24 70 28 L70 34 L50 34 L50 28 Q42 24 42 12 Z", "#f1e8d4", 4)
-      + c(52,10,5.5,INK,0) + c(68,10,5.5,INK,0)
+      // 頂端：三根羽毛＋一圈牙齒（10-10 大爺：原本的骷髏頭跟薩滿頭飾撞，拿掉）
+      + `<ellipse cx="46" cy="12" rx="6" ry="17" fill="#e0766e" stroke="${INK}" stroke-width="3" transform="rotate(-24 46 12)"/>`
+      + `<ellipse cx="74" cy="12" rx="6" ry="17" fill="#5fa8a0" stroke="${INK}" stroke-width="3" transform="rotate(24 74 12)"/>`
+      + `<ellipse cx="60" cy="6" rx="6.5" ry="20" fill="#f2b441" stroke="${INK}" stroke-width="3"/>`
+      + p("M50 26 L70 26 L70 34 L50 34 Z", "#6b4a35", 3)
+      + p("M50 34 L53 44 L56 34 Z", "#f1e8d4", 2.5) + p("M57 34 L60 46 L63 34 Z", "#f1e8d4", 2.5) + p("M64 34 L67 44 L70 34 Z", "#f1e8d4", 2.5)
       + ln("M50 36 Q40 44 38 58 M70 36 Q80 44 82 56", "#6b4a35", 2.5)
       + `<ellipse cx="36" cy="66" rx="5" ry="12" fill="#e0766e" stroke="${INK}" stroke-width="3" transform="rotate(12 36 66)"/>`
       + `<ellipse cx="84" cy="64" rx="5" ry="12" fill="#5fa8a0" stroke="${INK}" stroke-width="3" transform="rotate(-12 84 64)"/>`
-      + `<ellipse cx="60" cy="48" rx="4.5" ry="10" fill="#f2b441" stroke="${INK}" stroke-width="3"/>`, -30)
+      , -30)
   };
   return {ART, RAW};
 })();

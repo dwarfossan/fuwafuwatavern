@@ -658,13 +658,13 @@ function helpTarget(u, x, y){ const t = unitAt(x,y); return t && helpList(u).inc
 const searchTargets = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v) && !pocketKnown(v) && dist(u,v)<=SEARCH_RANGE);
 // 搜索（大爺 10-02）：一次 d20＋感知，同時①看穿點的那隻身上的東西（有點的話）②找 6 格內躲著的敵人（比牠潛行擲的數字）
 //   按鈕只要有免費動作就能按：如果「附近有躲著的才能按」，等於告訴玩家附近有東西
-const hiddenNear = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && foeHid(v) && dist(u,v)<=SEARCH_RANGE);
+const hiddenNear = u => B().units.filter(v=>hostile(v,u) && !v.dead && !v.down && isHid(v) && dist(u,v)<=SEARCH_RANGE);   // 敵我同一套（10-10 敵人也會搜索）
 function doSearch(u, t){
   const b = B(); b.mode = null; if(t) faceTo(u, t); spendFree(u);
   panelStart(`${u.name}【搜索】`);
   const r = d20(), total = r + u.mods.WIS;
   const found = hiddenNear(u).filter(v=>total >= has(v,"hidden").val);
-  const groundFound=groundDetect(u,total,SEARCH_RANGE);
+  const groundFound=u.side==="pc"&&groundDetect(u,total,SEARCH_RANGE);   // 地面（藏油）只有我方搜索；敵人各自的 knownGround 照被動感知
   const ok = t ? total >= pocketDC(t) : false;
   panelRow("chk", t || {id:u.id, name:"四周"}, [r], r, total, ok || found.length || groundFound ? "found" : "fail");
   if(t){
@@ -675,7 +675,7 @@ function doSearch(u, t){
   // 沒找到躲著的不寫紀錄（不然等於告訴玩家附近有東西）
   found.forEach(v=>{ blog(`　${u.name}發現了躲著的${v.name}！`, "skill"); reveal(v); fxFloat(v, POP_TEXT.spotted, "dmg"); sfx("alert"); });
   panelEnd(); sfx("pop");
-  afterShow(u, DICE_TUMBLE + 500);
+  if(u.side==="pc") afterShow(u, DICE_TUMBLE + 500); else refreshBattle();
 }
 function doHelp(u, t){
   const b = B();
@@ -1046,7 +1046,10 @@ function aiTurn(e){
   if(e.special && monsterTurn(e)) return;                               // 怪物技能（10-10，monster.js）
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
   const pcs = seenFoes(e);
-  if(!pcs.length){ if(isHid(e)){ endTurn(); return; } blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
+  if(!pcs.length){ if(isHid(e)){ endTurn(); return; }
+    // 看不到人：每輪一次花免費動作搜索（大爺 10-10，跟玩家同一套）；找到了就接著照常打
+    if(freeLeft() && e.searchRound!==b.round){ e.searchRound = b.round; doSearch(e); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(DICE_TUMBLE + 600)); return; }
+    blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
   const holder = grapplerOf(e);
   if(holder){
     if(!isRanged(e) && !holdsTwoHanded(e) && dist(holder,e)<=reachOf(e)){ later(endTurn, foeHit(e, holder) || 700); return; }
