@@ -54,6 +54,28 @@ function beginTurn(u){
   if(!foeHid(u)) blog(`— ${u.name}的回合 —`, "turn");   // 躲著的敵人回合不提（大爺 10-02：拿掉 ???）
   if(b.skipTurn) blog(`${u.name}全身麻痺，這回合動不了！`, "dmg");
   if(!u.down){detectTurnEnemies();perceive(u);exploreTraps();}                  // 昏過去的不會察覺
+  if(!u.down && !b.skipTurn && b.phase!=="explore") checkMarkTransfer(u);       // 狩印目標倒了：問要轉到誰（10-11）
+}
+// 狩印轉移（大爺 10-11，照 SRD）：標記的目標倒下、還在專注時，施法者自己回合開始就處理；花一個免費動作、不花熟練格。
+// 我方跳出詢問（18 格內看得到的敵人＋先不轉；不轉的之後還能手動按狩印轉移）；敵人與失控的小傢伙自動挑最近的
+const MARK_RANGE = 18;
+const markTransferTargets = u => seenFoes(u).filter(t=>dist(t,u)<=MARK_RANGE).sort((a,c)=>dist(a,u)-dist(c,u));
+function markTransferReady(u){ const sk = learnedSkillByKey("hunters_mark"); return !!sk && remarkFree(u, sk) && freeLeft() && markTransferTargets(u).length>0; }
+function doMarkTransfer(u, t){ spendFree(u); faceTo(u, t); blog(`${u.name}把狩印轉到${t.name}身上（免費動作）`, "skill"); learnedSkillByKey("hunters_mark").impl.run(u, t); refreshBattle(); }
+function checkMarkTransfer(u){
+  if(!markTransferReady(u)) return;
+  const ts = markTransferTargets(u);
+  if(u.side!=="pc" || u.frenzy){ doMarkTransfer(u, ts[0]); return; }
+  B().markAsk = {who:u.id, ids:ts.map(t=>t.id)};
+}
+function answerMarkTransfer(id){
+  const b = B(), a = b && b.markAsk; if(!a) return; b.markAsk = null;
+  const u = b.units.find(v=>v.id===a.who), t = id && b.units.find(v=>v.id===id);
+  if(u && t && !t.dead && !t.down) doMarkTransfer(u, t); else refreshBattle();
+}
+function markAskHTML(b){
+  const a = b.markAsk, u = b.units.find(v=>v.id===a.who), ts = a.ids.map(id=>b.units.find(v=>v.id===id)).filter(t=>t && !t.dead && !t.down);
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>狩印的目標倒下了，要轉到誰身上？</h3><p>${u ? u.name : ""}花一個免費動作，不花熟練格。</p>${ts.map(t=>`<button class="btn" data-mark-to="${t.id}">${t.name}（${dist(t,u)} 格）</button>`).join("")}<button class="btn" data-mark-to="">先不轉</button></div>`;
 }
 
 function endTurn(){

@@ -1282,6 +1282,7 @@ function battleInterfaceHTML(){
   let ov = "";
   // 反應詢問（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時；文字、外觀暫定（香香）
   if(b.campChoosing) ov = campPickerHTML(b);   // 露營：誰去找食材（10-10）
+  if(b.markAsk) ov = markAskHTML(b);           // 狩印轉移（10-11）
   else if(b.reactPending && !b.result && b.reactPending.info.luck){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
     const q=b.reactPending.info, T=b.units.find(v=>v.id===q.t), vs=q.kind==="攻擊"?`AC ${q.ac}`:`DC ${q.dc}`;
@@ -1530,6 +1531,7 @@ function bindBattle(){
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
   battleListen(document.getElementById("longRest"),"click",()=>{ const b=B(), wild=campWild(b); if(takeRest("long",restSelections()) && wild) askCamp(b); });   // 野外長休：按完才問誰去找食材（10-10）
   document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>pickCamp(el.dataset.campWho)));
+  document.querySelectorAll("[data-mark-to]").forEach(el=>battleListen(el,"click",()=>answerMarkTransfer(el.dataset.markTo)));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });
