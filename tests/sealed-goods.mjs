@@ -18,7 +18,7 @@ const br=await chromium.launch();try{
   for(let i=0;i<49;i++){if(!drawSeal('fox')||!claimSeal('fox'))throw Error('draw/claim');const it=itemById(state.inv.fox.at(-1));blue=it.rarity==='blue'?blue+1:0;maxBlue=Math.max(maxBlue,blue);}
   const paid=before-state.gold.fox,marks=m.marks,total=m.totalDraws;const bad=exchangeSeal('test-invalid','fox');const prize=m.prizes[0],source=itemById(prize),gold=state.gold.fox;
   const redeemed=exchangeSeal(prize,'fox'),noPay=gold===state.gold.fox,remaining=m.marks,it=itemById(state.inv.fox.at(-1)),same=it.n===source.n&&JSON.stringify(it.grants)===JSON.stringify(source.grants)&&JSON.stringify(it.resistances)===JSON.stringify(source.resistances)&&it.wt===source.wt;
-  m.pity=7;m.marks=12;for(let i=0;i<7;i++)advanceMarketDay();ensureSealWeek();const carry=m.pity===7&&m.marks===12,week=m.week,changed=JSON.stringify(initial)!==JSON.stringify(m.prizes.map(id=>itemById(id).key));
+  m.pity=7;m.marks=12;for(let i=0;i<7;i++)advanceMarketDay();ensureSealWeek();const carry=m.pity===7&&m.marks===12,week=m.week,changed=['orange','gold'].every((r,i)=>{const n=MAGIC_GOODS.filter(g=>g.rarity===r).length,k=itemById(m.prizes[i]).key;return n>1?k!==initial[i]:k===initial[i];});
   // 買不起不扣款、不增加任何計數。
   const totalBefore=m.totalDraws;state.gold.fox=0;const broke=drawSeal('fox')===false&&m.totalDraws===totalBefore&&m.marks===12;state.gold.fox=1000*GP;
   drawSeal('fox');const id=m.pending,money=state.gold.fox,count=m.totalDraws;const second=!drawSeal('fox')&&state.gold.fox===money&&m.totalDraws===count;
