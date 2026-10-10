@@ -20,7 +20,9 @@ try{
  await pg.waitForSelector('.demo-stage',{timeout:60000});await pg.locator('[data-demo="who:undead"]').click();
  assert.equal(await pg.locator('.demo-stage svg.doll').count(),7);await pg.locator('[data-demo="who:human"]').click();assert.equal(await pg.locator('.demo-stage svg.doll').count(),4);console.log('✓ #doll 測試頁「不死」七隻（含死亡騎士兩版）、「人類」四種組合');
  const hu=await pg.evaluate(()=>{const o={};for(const [k,n] of [['male',5],['female',10]])for(let i=1;i<=n;i++){const L=humanLook({sex:k,hair:String(i).padStart(2,'0'),beard:k==='male'?String(((i-1)%5)+1).padStart(2,'0'):null,ears:i%2?'elf':'human',hairColor:'#123456'});if(!L.head.includes('#123456')&&!L.tail.includes('#123456'))o[k+i]='no hair color';}
+   o.front=new Set(['male','female'].flatMap(k=>[1,2,3,4,5].map(i=>humanLook({sex:k,hair:'0'+i}).face))).size===10&&humanLook({}).face.includes('data-front="human"')&&MONSTER_LOOK.death_knight.face.includes('data-front="death_knight"');
+   o.skull=MONSTER_LOOK.skeleton.head===MONSTER_LOOK.lich.head;
    const f=humanLook({sex:'female'});o.fit=dollSVG({look:f,armor:'平民服',x:0,y:0,w:140}).includes('dl-gear-body" transform="translate(70 0) scale(.88 1)');return o;});
- assert.deepEqual(hu,{fit:true});console.log('✓ 人類 15 種髮型都吃得到髮色、女性衣服跟著變窄');
+ assert.deepEqual(hu,{front:true,skull:true,fit:true});console.log('✓ 人類、死亡騎士有正面頭像（每種髮型不同）；骷髏用巫妖的頭');console.log('✓ 人類 15 種髮型都吃得到髮色、女性衣服跟著變窄');
  assert.deepEqual(errors,[]);console.log('✓ 沒有錯誤');
 }finally{await br.close();}

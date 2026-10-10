@@ -95,7 +95,7 @@ assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接�
   endFrenzy(tig,'測試');
   // 煩躁台詞：75 以上才配 cranky
   setStress(w,74);const c74=barkMatch(w,{id:'wolf',cranky:true});setStress(w,75);out.cranky=[c74,barkMatch(w,{id:'wolf',cranky:true}),barkMatch(w,{id:'wolf',cranky:false})];
-  const fox=U('fox'),ally=U('wolf');setStress(fox,100);startFrenzy(fox);out.foxAoe=spellCaught(fox,[ally,e]).map(v=>v.side);endFrenzy(fox,'測試');out.foxAoeCalm=spellCaught(fox,[ally,e]).map(v=>v.side);
+  const fox=U('fox'),ally=U('wolf');Object.assign(e,{hp:99,dead:false,down:false});Object.assign(ally,{dead:false,down:false});setStress(fox,100);startFrenzy(fox);out.foxAoe=spellCaught(fox,[ally,e]).map(v=>v.side);endFrenzy(fox,'測試');out.foxAoeCalm=spellCaught(fox,[ally,e]).map(v=>v.side);
   return out;});
  assert.deepEqual(sk2.foxAoe,['foe']);assert.deepEqual(sk2.foxAoeCalm,['pc','foe']);ok('玲玲效率至上：失控時範圍法術不打自己人（平常會）');
  assert.deepEqual(sk2.adv,[1,1,1,-1]);ok('嬌嬌魯莽打擊：攻擊優勢、被打優勢；默默高等隱形：攻擊優勢、被打劣勢');
