@@ -1512,7 +1512,6 @@ function bindBattle(){
   bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:()=>{state.page="cover";refreshBattle();window.scrollTo(0,0);},listen:battleListen});
   battleListen(document.querySelector("[data-closeinfo]"),"click", ()=>{ B().info = null; refreshBattle(); });
   StatusCard.bind(document);
-  document.querySelectorAll("[data-notepage]").forEach(el=>battleListen(el,"click", ()=>{ const [id,p]=el.dataset.notepage.split(":"); const b=B(); b.notePages=b.notePages||{}; b.notePages[id]=Math.max(1,+p||1); sfx("pop"); refreshBattle(); }));
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{
     const b=B(),u=b&&b.units.find(x=>x.id===b.info); if(!u)return;
     if(!toggleCarriedSkill(u,el.dataset.noteskill)){b.noteBlock={id:u.id,text:carryBlockReason(u,el.dataset.noteskill)};sfx("bad");refreshBattle();return;}

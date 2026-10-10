@@ -26,12 +26,22 @@ function restNotebookHTML(b){
 function restPickSelections(b){
  const out={};b.units.filter(u=>u.side==='pc').forEach(u=>out[u.id]=b.restPicks?.[u.id]??(u.pendingLearned||[]).map(n=>n.key));return out;
 }
+// 小筆記翻頁唯一入口（10-10 收成一份）：頁數記在這本筆記所屬的資料——
+// 休息框用戰場或旅店的休息資料，狀態卡用 StatusCard.context；刷新交給各自的入口。
+function bindNotePages(root=document){
+ root.querySelectorAll('[data-notepage]').forEach(el=>modalListen(el,'click',e=>{
+  e.stopPropagation();
+  const [id,p]=el.dataset.notepage.split(':'),rest=!!el.closest('.rest-box'),battle=state.page==='battle'&&B();
+  const b=rest?(battle?B():state.townRest):StatusCard.context(id);if(!b)return;
+  (b.notePages ||= {})[id]=Math.max(1,+p||1);sfx('pop');
+  if(rest&&!battle)render();else StatusCard.refreshCard(id);
+ }));
+}
 function bindRestNotebook(b){
  const redraw=()=>{if(b===B())refreshBattle();else render();};
  const pencil=document.querySelector(".rest-box .copy-pencil"),box=document.querySelector(".rest-box");
  if(pencil && box){const delta=pencil.getBoundingClientRect().bottom-box.getBoundingClientRect().bottom;if(delta>0)box.scrollTop+=delta+12;}
  document.querySelectorAll('[data-rest-who]').forEach(el=>modalListen(el,'click',()=>{b.restWho=el.dataset.restWho;redraw();}));
  document.querySelectorAll('[data-restpick]').forEach(el=>modalListen(el,'change',()=>{const [id,key]=el.dataset.restpick.split(':');const keys=b.restPicks[id]||=[];if(el.checked&&!keys.includes(key))keys.push(key);else if(!el.checked)b.restPicks[id]=keys.filter(k=>k!==key);}));
- if(b!==B())document.querySelectorAll('[data-notepage]').forEach(el=>modalListen(el,'click',()=>{const [id,p]=el.dataset.notepage.split(':');b.notePages[id]=+p;redraw();}));
  document.querySelectorAll('.rest-box [data-noteskill]').forEach(el=>modalListen(el,'click',()=>{const u=b.units.find(u=>u.id===b.restWho);if(!toggleCarriedSkill(u,el.dataset.noteskill)){b.noteBlock={id:u.id,text:carryBlockReason(u,el.dataset.noteskill)};sfx('bad');redraw();return;}b.noteBlock=null;syncLearnedState(b);redraw();}));
 }

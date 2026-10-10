@@ -51,10 +51,6 @@ const StatusCard = {
       sfx("pop");this.refreshCard(id);
     }));
     bindGearDrag();
-    // 劇情／城鎮的小筆記翻頁（戰場另有自己的綁定）
-    if(!(state.page==="battle"&&B()))root.querySelectorAll(".character-status-card [data-notepage]").forEach(el=>modalListen(el,"click",e=>{
-      e.stopPropagation();const [id,p]=el.dataset.notepage.split(":"),b=this.context(id);(b.notePages ||= {})[id]=Math.max(1,+p||1);sfx("pop");this.refreshCard(id);
-    }));
     root.querySelectorAll("[data-switchset]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor;
       if(this.switchWeapon(id)){sfx("pop");const u=critterStatusUnit(id);if(state.page==="battle"&&B())syncBattleGear(u);else this.refreshCard(id);}

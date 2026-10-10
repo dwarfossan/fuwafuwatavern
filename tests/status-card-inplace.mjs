@@ -25,5 +25,16 @@ try{
  await watch();await pg.locator('[data-cardslt]').first().tap();assert.equal(await pg.locator('.inf-slots.open').count(),1);assert(await kept());
  await pg.locator('[data-cardslt]').first().tap();assert.equal(await pg.locator('.inf-slots.open').count(),0);assert(await kept());
  if(await pg.locator('[data-switchset]').count()){await pg.locator('[data-switchset]').first().tap();await pg.waitForTimeout(100);assert(await kept());}
- assert.deepEqual(errs,[]);console.log('✓ 劇情／城鎮狀態卡就地更新：小筆記分頁（唯讀、翻頁）、升級（含序章光暈與收掉）、熟練格展開收起、換武器組，外框／紙娃娃／六圍不重建');
+ // 小筆記翻頁唯一入口 bindNotePages：戰場狀態卡、探索露營、旅店休息都走它
+ {const bp=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});bp.on('pageerror',e=>errs.push(e.message));
+  await bp.goto('file://'+path.resolve('index.html')+'#battle');await bootReady(bp);await bp.waitForTimeout(300);
+  await bp.evaluate(()=>{state.modal=null;B().phase='explore';B().info='fox';B().infoPage='notes';refreshBattle();});
+  await bp.locator('.bt-info [data-notepage]').last().tap();assert.equal(await bp.evaluate(()=>B().notePages.fox),2);
+  await bp.locator('.bt-info [data-notepage]').first().tap();assert.equal(await bp.evaluate(()=>B().notePages.fox),1);
+  await bp.evaluate(()=>{B().info=null;refreshBattle();exploreCmd('rest');});await bp.locator('.rest-box [data-notepage]').last().tap();assert.equal(await bp.evaluate(()=>B().notePages.fox),2);assert.equal(await bp.locator('.rest-box').count(),1);
+  await bp.close();}
+ // 前面把 townRest 清掉測序章了，旅店另開一頁
+ {const ip=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});ip.on('pageerror',e=>errs.push(e.message));await ip.goto('file://'+path.resolve('index.html')+'#town');await bootReady(ip);await ip.waitForTimeout(300);
+  await ip.evaluate(()=>{state.page='town';openTownPlace('inn');});await ip.locator('#townAction').tap();await ip.locator('.rest-box [data-notepage]').last().tap();assert.equal(await ip.evaluate(()=>state.townRest.notePages.fox),2);assert.equal(await ip.locator('.rest-box').count(),1);await ip.close();}
+ assert.deepEqual(errs,[]);console.log('✓ 劇情／城鎮狀態卡就地更新：小筆記分頁（唯讀、翻頁）、翻頁共用入口（戰場卡／露營／旅店）、升級（含序章光暈與收掉）、熟練格展開收起、換武器組，外框／紙娃娃／六圍不重建');
 }finally{await br.close();}

@@ -157,6 +157,7 @@ function afterLevelChange(id){StatusCard.syncLevel(id);if(state.page==="battle"&
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
   StatusCard.bind(document);
+  bindNotePages(document);
   document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
     e.stopPropagation();
     if(levelUp(el.dataset.levelup))afterLevelChange(el.dataset.levelup);
