@@ -640,7 +640,8 @@ function hurt(t, n, type, src, hitSfx){
   }
   if(t.hp>0) concCheck(t, n);
   else endConc(t, "倒下了");
-  if(t.hp===0){
+  // 已經倒下的再被打（例如普攻打死後狩印、偷襲的追加傷害）不再觸發一次倒下：紀錄、音效、台詞只算一次（大爺 10-11 回報哥布林吐槽兩次）
+  if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
     else { t.down = true; t.statuses = []; blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
