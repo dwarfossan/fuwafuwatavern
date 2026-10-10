@@ -36,6 +36,7 @@ function retryBattle(){
 }
 // 傳送回酒館：回到大地圖、站在酒館（代價還沒定，先不扣東西）
 function teleportHome(){
+  changeStressAll(v=>v + STRESS.teleport);   // 全隊昏迷、被詛咒傳回酒館的代價：壓力上升（大爺 10-11）
   state.battle = null; state.scout = null; state.travel = null; state.mapSel = null;
   state.location = "tavern"; state.page = "map"; render(); window.scrollTo(0,0);
 }

@@ -9,6 +9,7 @@ const STRESS = {
   warn:50, cranky:75, afterFrenzy:50,
   battleEnd:5, critTaken:5, selfDown:15, allyDown:10, trap:5,   // 加
   relief:3, reliefMax:10,                                         // 自己爆擊或打倒敵人：每次 −3，每場最多 −10
+  teleport:20,                                                    // 全隊昏迷傳回酒館（10-11）
   shortRest:10, longRest:30,                                      // 減；酒館裡摸摸頭、睡覺再減（10-11 起回酒館不自動歸零）
   recoverStat:"WIS", recoverDC:10, frenzyMaxRounds:3
 };

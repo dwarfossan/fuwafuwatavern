@@ -1314,7 +1314,7 @@ function battleInterfaceHTML(){
     // 輸了（大爺 10-09）：四隻都昏迷；玩家自己選「回酒館」才出現卡姆的傳送詛咒。文字暫定（香香）。
     else if(b.leaving) ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>卡姆的傳送詛咒</h3>
-      <p>四小隻身上的龍角印記亮了起來——卡姆的傳送詛咒發動，把昏迷的四隻送回了酒館。</p>
+      <p>四小隻身上的龍角印記亮了起來——卡姆的傳送詛咒發動，把昏迷的四隻送回了酒館。</p><p>被打昏又被傳送，大家都嚇壞了（全隊壓力 +${STRESS.teleport}）。</p>
       <button class="btn" id="confirmTavern">回到酒館</button></div>`;
     else ov = `<div class="bt-ov bt-result ${b.result}">
       <h3>四隻都昏迷了……</h3>

@@ -1422,3 +1422,5 @@ body.image-boot{background:#000}
 .pet-head small{font-size:11px;font-weight:400;color:#6b5a48}
 .pet-bubble{position:absolute;top:-18px;right:-4px;width:34px;pointer-events:none}
 .tavern-page .town-talk-topics .btn small{display:block;font-size:11px;font-weight:400}
+.tavern-sleep #shortRest{display:none}.tavern-sleep .rest-box{margin:0 0 8px;flex:1 1 100%;max-height:48vh}
+.tavern-sleep .rest-actions{position:sticky;bottom:-12px;z-index:2;background:#fffaf0;padding:6px 0 0}

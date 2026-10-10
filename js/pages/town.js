@@ -103,6 +103,7 @@ function tavernButtons(){
   const t = state.tavern||{};
   if(t.lines) return "";
   if(t.pet) return petPopHTML();
+  if(t.sleep && state.townRest) return `<div class="pop-choices tavern-sleep" role="dialog">${restChoiceHTML(state.townRest)}<button class="btn ghost" id="tavernSleepCancel">先不睡</button></div>`;   // 睡覺前跟旅店一樣勾要抄的招（10-11）
   if(t.talkWho===null) return `<div class="town-talk-topics pop-choices" role="dialog"><b class="pet-title">${TAVERN_UI.talkWho}</b><button class="btn" data-tavern-who="dwarf">${TAVERN_UI.dwarfName}</button><button class="btn" data-tavern-who="kam">${TAVERN_UI.kamName}</button><button class="btn ghost" id="tavernTalkClose">不聊了</button></div>`;
   if(t.topicOpen) return `<div class="town-talk-topics pop-choices" role="dialog">${Object.entries(TAVERN_TALK_TOPICS).map(([k,n])=>`<button class="btn" data-tavern-topic="${k}">${n}</button>`).join("")}<button class="btn ghost" id="tavernTalkClose">不聊了</button></div>`;
   const ate = state.tavernMealDay===tavernDay();
@@ -126,6 +127,7 @@ function tavernEat(){
 function tavernSleep(){
   const b = state.townRest; if(!b) return;
   if(!takeRest("long", restPickSelections(b), b)) return;
+  state.tavern = {};
   state.page = "story"; state.scene = "tavernRest"; state.line = 0; state.info = null; render(); window.scrollTo(0,0);
 }
 function petCritter(id){
@@ -143,7 +145,9 @@ function bindTavernPet(){
 function bindTavern(){
   const t = state.tavern || (state.tavern = {}), $ = id => document.getElementById(id);
   $("tavernEat")?.addEventListener("click", tavernEat);
-  $("tavernSleep")?.addEventListener("click", tavernSleep);
+  $("tavernSleep")?.addEventListener("click", ()=>{ t.sleep = true; t.msg = null; render(); });
+  $("tavernSleepCancel")?.addEventListener("click", ()=>{ t.sleep = false; render(); });
+  if(t.sleep && state.townRest){ bindRestNotebook(state.townRest); $("longRest")?.addEventListener("click", tavernSleep); }
   $("tavernTalk")?.addEventListener("click", ()=>{ t.talkWho = null; t.msg = null; render(); });
   $("tavernPet")?.addEventListener("click", ()=>{ t.pet = true; t.msg = null; render(); });
   $("tavernTalkClose")?.addEventListener("click", ()=>{ t.talkWho = undefined; t.topicOpen = false; render(); });
