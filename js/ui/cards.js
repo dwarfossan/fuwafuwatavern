@@ -134,6 +134,12 @@ function renderModal(){
     const h=PAGE_UI.helpPages[m.id];
     body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
   }
+  if(m.kind==="guide"){   // 教學（10-11）：先列題目，點進去看內容
+    const all=GUIDE.groups.flatMap(g=>g.items), it=m.id&&all.find(x=>x.id===m.id);
+    if(it){ const h=it.page?PAGE_UI.helpPages[it.page]:null, text=h?h.text:it.text==="__TUTORIAL__"?TUTORIAL.join("</p><p class=\"page-bubble-text\">"):it.text;
+      body=`<h3 class="page-bubble-title">${it.title}</h3><p class="page-bubble-text">${text}</p><button class="btn ghost" data-guide="">${GUIDE.back}</button>`; }
+    else body=`<h3 class="page-bubble-title">${GUIDE.title}</h3>${GUIDE.groups.map(g=>`<h4 class="guide-group">${g.name}</h4><div class="guide-list">${g.items.map(x=>`<button class="btn" data-guide="${x.id}">${x.title}</button>`).join("")}</div>`).join("")}`;
+  }
   if(m.kind==="about"){
     const link=t=>t.replace(/https:\/\/[^\s]+?(?=\.?(\s|$))/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
     body=`<div class="about"><h3 class="page-bubble-title">${ABOUT.title}</h3><p>${ABOUT.intro}</p>${ABOUT.srd.map(x=>`<p class="about-en" lang="en">${link(x.en)}</p>`).join("")}</div>`;
@@ -146,7 +152,7 @@ function renderModal(){
     const unit = m.unit ? (state.battle||state.townRest)?.units.find(v=>v.id===m.unit) : null;
     body = skillCardHTML(m.group, m.idx, m.item ? itemById(m.item) : null, unit);
   }
-  return `<div class="modal-back" data-close="1"><div class="modal ${m.kind==="help"?"page-bubble":""} ${m.kind==="character"?"character-status-modal":""}" role="dialog" aria-modal="true">
+  return `<div class="modal-back" data-close="1"><div class="modal ${m.kind==="help"||m.kind==="guide"?"page-bubble":""} ${m.kind==="character"?"character-status-modal":""}" role="dialog" aria-modal="true">
     <button class="md-x" data-close="1" aria-label="關閉">✕</button>${body}</div></div>`;
 }
 const modalEvents=new WeakMap();
@@ -167,6 +173,7 @@ function bindModal(){
     else if(canLevelUp(el.dataset.levelup))document.querySelector(`[data-level-message="${el.dataset.levelup}"]`).textContent="打完再升級";
   }));
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
+  document.querySelectorAll("[data-guide]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"guide",id:el.dataset.guide||null};refreshGameUI();}));
   document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));
   document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo, prev:state.modal?.kind==="character"?state.modal:null}; refreshGameUI(); }));

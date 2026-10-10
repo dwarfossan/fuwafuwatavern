@@ -24,12 +24,12 @@ try{
   await pg.close();
  }
  // 10-10 每一頁右上都有同一組喇叭＋齒輪；選單只列該頁用得到的
- {const cases=[['cover','',null,['讀檔','關於／授權']],['roll','',()=>{state.page='roll';render();},['讀檔','關於／授權','回到標題']],
+ {const cases=[['cover','',null,['讀檔','教學','關於／授權']],['roll','',()=>{state.page='roll';render();},['讀檔','教學','關於／授權','回到標題']],
    ['story','#town',()=>{state.page='story';state.scene='prologue';state.line=0;render();}],['shop','#town',()=>{state.page='shop';state.shopContext=null;render();}],
    ['map','#town',()=>{state.page='map';render();}],['street','#town',null],['venue','#town',()=>{openTownPlace('inn');}],
    ['rest','#town',()=>{openTownPlace('inn');state.townPanel='rest';render();}],['guild','#town',()=>{openTownPlace('guild');state.townPanel='guild';render();}],
-   ['smith','#town',()=>{openTownPlace('smith');state.shopContext='smith';state.page='shop';render();}],['items','#town',()=>{openTownPlace('items');state.supplierSeen=true;state.shopContext='items';state.page='shop';render();}],['battle','#battle',null,['繼續遊戲','隊伍','存檔','讀檔','關於／授權','壓力拉到 95（測試）','回到標題']]];
-  for(const [name,h,setup,menu=['繼續遊戲','隊伍','存檔','讀檔','關於／授權','回到標題']] of cases){
+   ['smith','#town',()=>{openTownPlace('smith');state.shopContext='smith';state.page='shop';render();}],['items','#town',()=>{openTownPlace('items');state.supplierSeen=true;state.shopContext='items';state.page='shop';render();}],['battle','#battle',null,['繼續遊戲','隊伍','存檔','讀檔','教學','關於／授權','壓力拉到 95（測試）','回到標題']]];
+  for(const [name,h,setup,menu=['繼續遊戲','隊伍','存檔','讀檔','教學','關於／授權','回到標題']] of cases){
    const pg=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});pg.on('pageerror',e=>errs.push(name+': '+e.message));await pg.addInitScript(()=>localStorage.setItem('fuwa-help-seen','{"map":1,"shop":1,"roll":1}'));
    await pg.goto('file://'+path.resolve('index.html')+h);await bootReady(pg);await pg.waitForTimeout(200);if(setup)await pg.evaluate(setup);
    assert.equal(await pg.locator('[data-system-tools]').count(),1,name);

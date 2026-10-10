@@ -64,3 +64,27 @@ const ABOUT = {
     {name:"SRD 5.1", en:'This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.'}
   ]
 };
+
+/* 齒輪選單「教學」（大爺 10-11）：重看各頁說明＋基礎規則。文字香香整理，照現行規則；改規則時一起改這裡 */
+const GUIDE = {title:"教學", back:"← 返回", groups:[
+  {name:"操作", items:[
+    {id:"battle", title:"戰鬥操作", text:"__TUTORIAL__"},
+    {id:"explore", title:"探索", text:"探索時沒有回合，點地面讓目前這隻走過去，點頭像換人。右下「潛行」可以躲起來；「行動」裡探索時只有搜索能用。被敵人發現、或按「進入戰棋」，就切換成回合制的戰棋。休息／抄筆記也在右下。"},
+    {id:"roll", title:"分配屬性", page:"roll"},
+    {id:"shop", title:"挑裝備", page:"shop"},
+    {id:"map", title:"大地圖", page:"map"}
+  ]},
+  {name:"基礎規則", items:[
+    {id:"d20", title:"擲骰與檢定", text:"大部分的判定都是擲一顆 d20，加上屬性調整值，大於等於難度（DC）就成功。屬性 10～11 調整值是 0，每多 2 點 +1、每少 2 點 −1。被動檢定不擲骰，固定算 10＋調整值（例如被動感知）。"},
+    {id:"attack", title:"攻擊與 AC", text:"攻擊擲 d20＋屬性調整值＋2，大於等於目標的 AC 就命中，命中才擲傷害。擲出 20 是爆擊，傷害骰加倍；擲出 1 一定沒中。AC 看護甲、敏捷和盾牌。"},
+    {id:"save", title:"豁免", text:"法術或陷阱要你「豁免」時，是你自己擲 d20＋指定屬性的調整值，對抗對方的 DC。成功通常是不中或傷害減半。"},
+    {id:"adv", title:"優勢與劣勢", text:"優勢：擲兩顆 d20 取高的；劣勢：擲兩顆取低的。兩者同時有就互相抵銷。從藏身處出手、隊友協助、瞄準都會給優勢；打倒地的敵人近戰有優勢、遠程有劣勢。"},
+    {id:"actions", title:"一回合能做什麼", text:"每回合一個「主要動作」（攻擊、施法、閃避、協助……）、兩個「免費動作」（用道具、搜索、副手攻擊等），加上移動格數。免費動作用完可以改用主要動作。沒用完的免費動作會保留到敵人回合，可以拿來發動反應（護盾術、化險）。離開敵人身邊會被藉機攻擊，先「撤離」就不會。"},
+    {id:"slots", title:"熟練格與升階", text:"普攻和戲法不用格子；其他招式每用一次花一格熟練格。用比要求高的格子放就是升階，效果變強。短休每階回一半（一天兩次），長休全部回滿。每回合只能花一格熟練格施法。"},
+    {id:"notes", title:"觀察學習與小筆記", text:"敵人出招時，小傢伙們會自動觀察，擲 d20＋感知對 DC（5＋怪物等級），成功就理解那招。理解的招要在休息時抄進小筆記才能用，沒抄就忘了。小筆記最多帶 5 招、主動最多 3 招。天生技能學不走。"},
+    {id:"stealth", title:"潛行與感知", text:"躲在草叢或被完全遮住才能潛行：擲 d20＋敏捷，沒過 13 就沒躲好；擲出的數字是別人找到你的難度。對方用被動感知（10＋感知）比，主動「搜索」可以擲 d20＋感知找 6 格內躲著的。"},
+    {id:"luck", title:"好運", text:"毛球族天生好運：每次長休後有 2 顆好運骰。攻擊沒中、豁免失敗、或寶箱、陷阱等檢定失敗時，可以花 1 顆重擲，用新的結果。"},
+    {id:"stress", title:"壓力", text:"冒險會累積壓力：打完一場、被爆擊、昏迷、看到隊友昏迷都會增加。50 以上會換表情，100 會失控，由 AI 接手亂打一陣。短休、長休會降，回酒館摸摸頭也會降。"},
+    {id:"down", title:"昏迷與詛咒", text:"生命歸零會昏迷，輪不到回合；被治療或隊友協助就醒來，打贏後也會醒來（1 點生命）。四隻都昏迷就輸了，可以重新挑戰（長休回滿 3 次），或選回酒館，由卡姆的傳送詛咒送回家，全隊壓力 +20。"}
+  ]}
+]};
