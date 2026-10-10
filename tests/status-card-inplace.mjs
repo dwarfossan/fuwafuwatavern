@@ -14,10 +14,16 @@ try{
  assert.equal(await pg.evaluate(()=>critterLevel('fox')),2);assert.equal(await pg.locator('.dl-level-aura').count(),1);assert(await kept());
  assert.equal(await pg.locator('[data-anchor="fox"] .level-message').count(),1);
  await pg.waitForTimeout(2600);assert.equal(await pg.locator('.dl-level-aura').count(),0);assert(await kept());
+ // 10-10 劇情／城鎮的狀態卡也有小筆記分頁；勾選唯讀（休息才能換），翻頁就地更新
+ // 切到小筆記時紙娃娃、六圍本來就會換掉，只檢查視窗外框
+ await pg.evaluate(()=>{window.__keep=[...document.querySelectorAll('.modal-back,.modal')];});await pg.locator('[data-infopage="notes"]').tap();assert.equal(await pg.locator('.character-status-card .note-page').count(),1);assert(await kept());
+ assert(await pg.locator('.character-status-card .note-check').evaluateAll(a=>a.length>0&&a.every(b=>b.disabled)));assert.match(await pg.locator('.character-status-card .note-cap').innerText(),/休息時才能換/);
+ if(await pg.locator('.character-status-card [data-notepage]').count()>1){await pg.locator('.character-status-card [data-notepage]').last().tap();assert.equal(await pg.evaluate(()=>state.statusCardUI.fox.notePages.fox),2);assert(await kept());}
+ await pg.locator('[data-infopage="status"]').tap();assert.equal(await pg.locator('.character-status-card .note-page').count(),0);
  // 城鎮：升到有兩階熟練格，展開／收起；換武器組
  await pg.evaluate(()=>{state.page='town';state.modal=null;gainXP(['fox'],1800);levelUp('fox');state.modal={kind:'character',id:'fox'};render();});
  await watch();await pg.locator('[data-cardslt]').first().tap();assert.equal(await pg.locator('.inf-slots.open').count(),1);assert(await kept());
  await pg.locator('[data-cardslt]').first().tap();assert.equal(await pg.locator('.inf-slots.open').count(),0);assert(await kept());
  if(await pg.locator('[data-switchset]').count()){await pg.locator('[data-switchset]').first().tap();await pg.waitForTimeout(100);assert(await kept());}
- assert.deepEqual(errs,[]);console.log('✓ 劇情／城鎮狀態卡就地更新：升級（含序章光暈與收掉）、熟練格展開收起、換武器組，外框／紙娃娃／六圍不重建');
+ assert.deepEqual(errs,[]);console.log('✓ 劇情／城鎮狀態卡就地更新：小筆記分頁（唯讀、翻頁）、升級（含序章光暈與收掉）、熟練格展開收起、換武器組，外框／紙娃娃／六圍不重建');
 }finally{await br.close();}

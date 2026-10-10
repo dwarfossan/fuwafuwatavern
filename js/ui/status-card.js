@@ -51,6 +51,10 @@ const StatusCard = {
       sfx("pop");this.refreshCard(id);
     }));
     bindGearDrag();
+    // 劇情／城鎮的小筆記翻頁（戰場另有自己的綁定）
+    if(!(state.page==="battle"&&B()))root.querySelectorAll(".character-status-card [data-notepage]").forEach(el=>modalListen(el,"click",e=>{
+      e.stopPropagation();const [id,p]=el.dataset.notepage.split(":"),b=this.context(id);(b.notePages ||= {})[id]=Math.max(1,+p||1);sfx("pop");this.refreshCard(id);
+    }));
     root.querySelectorAll("[data-switchset]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor;
       if(this.switchWeapon(id)){sfx("pop");const u=critterStatusUnit(id);if(state.page==="battle"&&B())syncBattleGear(u);else this.refreshCard(id);}
@@ -70,8 +74,8 @@ function statusCardHTML(v, b, embedded=false){
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
   const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${statusDollSVG(v)}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
-  const tabs=v.side==="pc"&&!embedded?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
-  const notes=v.side==="pc"&&!embedded?notebookPageHTML(v,b):"";
+  const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
+  const notes=v.side==="pc"?notebookPageHTML(v,b):"";
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return equipmentArtKey(it)?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
