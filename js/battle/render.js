@@ -965,7 +965,8 @@ function slotGridHTML(u,b=B()){
   const bar = max.length > 1 ? `<button class="sl-bar ${open?"on":""}" data-cardslt aria-label="${open?"收起":"展開"} II 以上的熟練格"></button>` : "";
   return `<div class="inf-slots ${open?"open":""}" style="--rows:${open ? Math.ceil(max.length/2) : 1}" aria-label="熟練格"><div class="inf-slots-g">${rows}</div>${bar}</div>`;
 }
-const mbtn = (cmd, label, off, sub="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
+// 規則（大爺 10-10）：做決定當下要知道的（代價、剩多少、不能用的原因）寫在按鈕小字；效果說明放 tip 泡泡
+const mbtn = (cmd, label, off, sub="", tip="") => `<button class="mn-b" data-cmd="${cmd}" ${off?"disabled":""}${tip?` data-tip="${tip}" data-tip-title="${label}"`:""}><span>${label}</span>${sub?`<small>${sub}</small>`:""}</button>`;
 // 按鈕上只放圖示、名稱（要求的階在圖示角落）；這裡只標會影響決定的：免費動作、格子用完
 function skillTag(u, sk){
   if(sk.impl && sk.impl.passive) return "自動";
@@ -999,14 +1000,14 @@ function menuHTML(u, b, level=null){
            mbtn("move","走位", !canWalk() && !act && !cunningReady(u)) +
            mbtn("items","道具", !hasItems || !canFree(), !hasItems ? "身上沒有" : !canFree() ? "主要、免費動作都用完了" : freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("status","狀態", false, u.name) +
-           mbtn("wait","待機", false, "結束回合");
+           mbtn("wait","待機", false, "", "結束這個回合，換下一位。");
   } else if(lv==="move"){
     title = "走位";
     const hb = hideBlock(u), cun = cunningReady(u), mv = act || cun, pay = cun ? "狡詐：免費動作" : "用掉主要動作";
-    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !mv, `${pay}，移動 +${b.baseMove}`) +
-           mbtn("disengage","撤離", !mv, `${pay}，不被藉機攻擊`) +
-           (passiveSkills(u).some(s=>s.key==="aim") ? mbtn("aim","瞄準", !aimReady(u), b.movedThisTurn ? "這回合已經移動過" : has(u,"aiming") ? "已經在瞄準" : "放棄移動，這回合第一次攻擊優勢") : "") +
-           mbtn("hide","潛行", !mv || !!hb, hb || (cun ? "狡詐：免費動作，" : "") + `d20＋敏捷 ≥ ${HIDE_DC}${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}`) + back;
+    body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !mv, pay, `這回合移動 +${b.baseMove} 格。`) +
+           mbtn("disengage","撤離", !mv, pay, "這回合移動不會被藉機攻擊。") +
+           (passiveSkills(u).some(s=>s.key==="aim") ? mbtn("aim","瞄準", !aimReady(u), b.movedThisTurn ? "這回合已經移動過" : has(u,"aiming") ? "已經在瞄準" : "放棄移動", "放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。") : "") +
+           mbtn("hide","潛行", !mv || !!hb, hb || pay, `躲起來：d20＋敏捷 ≥ ${HIDE_DC} 就成功${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}。從藏身處攻擊有優勢。`) + back;
   } else if(lv==="act"){
     title = "行動";
     const atks = attackSkills(u);
@@ -1014,16 +1015,16 @@ function menuHTML(u, b, level=null){
     body = (grappled(u) ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
            (hasVia(u,"restrained","net") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${hasVia(u,"restrained","net").dc}`) : "") +
            (has(u,"burning") ? mbtn("douse","撲滅火焰", !act, "身上著火了") : "") +
-           (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "被打有劣勢") +
+           (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "", "到你下回合開始前，敵人打你都有劣勢。") +
            mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉主要動作") +
-           mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "鄰格隊友攻擊優勢") +
-           mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : "抓住就不能移動") +
-           mbtn("shove","推撞", !act || !foesNear, "推開或推倒") +
-           mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "雙手武器較難打掉") + back;
+           mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "", "鄰格隊友下次攻擊有優勢；隊友昏迷時改成扶起來。") +
+           mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手。") +
+           mbtn("shove","推撞", !act || !foesNear, "", "把貼身的敵人推開 1 格，或推倒在地。") +
+           mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") + back;
   } else if(lv==="shove"){
     title = "推撞";
-    body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, "推開 1 格") +
-           mbtn("shove_prone","推倒", !act || !GEN_ACT.shove_prone.targets(u).length, "倒地：近戰打他有優勢") + back;
+    body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, "", "把敵人推開 1 格。") +
+           mbtn("shove_prone","推倒", !act || !GEN_ACT.shove_prone.targets(u).length, "", "把敵人推倒：近戰打他有優勢、遠程打他有劣勢。") + back;
   } else if(lv==="items"){
     title = "道具";
     const groups = [...new Set(u.items)];
@@ -1093,9 +1094,10 @@ function aimHTML(u, b){
   // 超魔（大爺 10-09）：一次只能選一種，再點一次取消；免費動作不夠的灰掉。文字、外觀暫定（香香）
   // 超魔（大爺 10-10）：跟選階同一套折疊（aim-tiers／aim-cur／aim-tgl）：平常一行顯示選了什麼，點「＋」往上展開三項；
   // 選好就收起來，選中的再點一次取消；用不到的灰掉，右邊寫原因
-  if(metas){ const m0 = b.mode.meta, desc = {careful:"不打隊友", quick:"2 免費動作", far:"距離×2"};
-    const chip = m => { const why = m ? metaReason(u, sk, m) : "";
-      return `<button class="mn-b aim-tier ${m===m0||(!m&&!m0)?"on":""}" data-aim="m:${m||"none"}" ${why?"disabled":""}><span>${m?META_NAME[m]:"不用"}</span><small>${m?(why||desc[m]):"超魔"}</small></button>`; };
+  if(metas){ const m0 = b.mode.meta, desc = {careful:"範圍法術不打自己人。", quick:"主要動作的法術改用免費動作放；加上超魔本身，共花 2 個免費動作。", far:"距離加倍；觸碰的變 6 格。"};
+    // 按鈕只放名稱，不能選的才在右邊寫短原因；效果說明放泡泡（大爺 10-10）
+    const chip = m => { const why = m ? metaReason(u, sk, m) : "", tip = m ? `多花 1 個免費動作：${desc[m]}` : "不加超魔。";
+      return `<button class="mn-b aim-tier ${m===m0||(!m&&!m0)?"on":""}" data-aim="m:${m||"none"}" data-tip="${tip}" data-tip-title="超魔：${m?META_NAME[m]:"不用"}" ${why?"disabled":""}><span>${m?META_NAME[m]:"不用超魔"}</span>${why?`<small>${why}</small>`:""}</button>`; };
     const others = [...META_ALL].reverse().filter(m=>m!==m0).map(chip); if(m0) others.push(chip(null));
     rows.push(`${b.metaOpen?`<div class="aim-tiers">${others.join("")}</div>`:""}<div class="aim-cur">${chip(m0)}<button class="mn-b aim-tgl" data-aim="mtoggle" aria-label="${b.metaOpen?"收起":"展開"}超魔">${b.metaOpen?"×":"＋"}</button></div>`); }
   if(darts) rows.push(`<p class="aim-note">還要點 <b>${sk.impl.darts()-darts.length}</b> 發${darts.length?`（已選：${darts.map(d=>d.name).join("、")}）`:""}</p>`);
@@ -1374,7 +1376,9 @@ function battleLayerKeys(){
   return {floor:boardTerrainKey(),marks,scene,ui,modal:battleDataKey([state.modal,state.modal?b.units:null,state.modal?b.units.map(leveling):null]),camera:battleDataKey([b.critOn,b.def.w,b.def.h])};
 }
 function updateBattleUI(){
-  closeGameBubble();
+  // 按鈕說明泡泡（data-tip）：重畫後同一顆按鈕還在就留著、改指到新節點；其他泡泡照舊重畫就關（10-10）
+  const keepTip = activeGameBubble?.dataset?.tip ? {tip:activeGameBubble.dataset.tip, title:activeGameBubble.dataset.tipTitle||""} : null;
+  if(!keepTip) closeGameBubble();
   const ui=battleInterfaceHTML();
   // mode／選目標常只改指令列或提示；不要因其中一塊改變就把全部 UI DOM 拔掉重建。
   const prev=updateBattleUI.html||{};
@@ -1384,6 +1388,8 @@ function updateBattleUI(){
   });
   updateBattleUI.html=ui;
   syncBattleMenuPage();
+  if(keepTip){ const el = [...document.querySelectorAll("[data-tip]")].find(x=>x.dataset.tip===keepTip.tip && (x.dataset.tipTitle||"")===keepTip.title);
+    if(el) activeGameBubble = el; else closeGameBubble(); }
 }
 // 探索連續移動時保留既有 SVG DOM；動畫幀只搬角色／HUD 自己的 <g>。
 // 靜態地形、物件與其餘 scene 不因小數座標每幀改變而 innerHTML 重建。

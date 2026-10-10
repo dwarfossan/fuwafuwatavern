@@ -50,7 +50,7 @@ try{
  assert.equal(await p.locator('.aim-cur [data-aim="m:careful"].on').count(),1,'收起時顯示謹慎');assert.equal(await p.locator('[data-aim="m:quick"]').count(),0,'平常收起來');
  await p.locator('[data-aim="mtoggle"]').tap();
  assert.deepEqual(await p.locator('.aim-tiers [data-aim^="m:"]').evaluateAll(s=>s.map(x=>[x.dataset.aim,x.disabled,x.querySelector('small')?.textContent||''])),
-  [['m:far',true,'不能加距離'],['m:quick',false,'2 免費動作'],['m:none',false,'超魔']],'展開：其他項、灰掉寫原因');
+  [['m:far',true,'不能加距離'],['m:quick',false,''],['m:none',false,'']],'展開：其他項、灰掉寫原因');
  await p.waitForTimeout(300);await p.screenshot({path:'/tmp/claude-0/meta-open.png'});
  await p.locator('[data-aim="m:quick"]').tap();assert.equal(await p.evaluate(()=>B().mode.meta),'quick');assert.equal(await p.locator('.aim-tiers [data-aim^="m:"]').count(),0,'選好收起來');
  await p.locator('[data-aim="mtoggle"]').tap();await p.locator('[data-aim="m:none"]').tap();assert.equal(await p.evaluate(()=>B().mode.meta),null,'選不用取消');

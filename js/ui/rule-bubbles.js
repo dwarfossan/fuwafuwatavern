@@ -39,7 +39,8 @@ let activeGameBubble=null;
 function closeGameBubble(){document.getElementById('game-bubble')?.remove();activeGameBubble=null;}
 function showGameBubble(el){
  let title,text,kind;
- if(el.dataset.rule){title=el.dataset.rule;text=ruleDictionary()[title];kind='rule';}
+ if(el.dataset.tip){title=el.dataset.tipTitle||'';text=el.dataset.tip;kind='rule';}   // 按鈕的效果說明（大爺 10-10：說明放泡泡）
+ else if(el.dataset.rule){title=el.dataset.rule;text=ruleDictionary()[title];kind='rule';}
  else{const [id,name]=el.dataset.skillThought.split(':'),c=CRITTERS.find(c=>c.id===id);text=SKILL_THOUGHTS[name]?.lines[id];if(!c||!text)return;title=c.name;kind='thought';}
  if(!text)return;closeGameBubble();activeGameBubble=el;
  const bubble=document.createElement('div');bubble.id='game-bubble';bubble.className='game-bubble '+kind;bubble.setAttribute('role','tooltip');
@@ -48,13 +49,22 @@ function showGameBubble(el){
  bubble.style.left=Math.max(8,Math.min(rect.left,innerWidth-w-8))+'px';
  bubble.style.top=Math.max(8,Math.min(rect.top-h-8,innerHeight-h-8))+'px';
 }
-function bubbleTarget(el){return el?.closest?.('[data-rule],[data-skill-thought]');}
+function bubbleTarget(el){return el?.closest?.('[data-rule],[data-skill-thought],[data-tip]');}
+// 按鈕泡泡（data-tip，大爺 10-10）：電腦游標移上去跳出、點下去消失；手機按住 TIP_HOLD 毫秒才跳出，
+// 按住看完放開不算點擊（不然看說明就把動作做掉了），短按照常是點擊
+const TIP_HOLD=350;let tipHold=null,tipShownByHold=false;
 (function bindGameBubbles(){
- document.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=bubbleTarget(e.target);if(el&&el!==activeGameBubble)showGameBubble(el);});
- document.addEventListener('pointerout',e=>{if(activeGameBubble&&bubbleTarget(e.relatedTarget)!==activeGameBubble)closeGameBubble();});
- document.addEventListener('focusin',e=>{const el=bubbleTarget(e.target);if(el)showGameBubble(el);});
+ // 戰鬥畫面會定時重畫，按鈕被換成一模一樣的新節點時，游標其實沒動：當成同一個，泡泡不關也不重開
+ const sameTip=(a,b)=>a&&b&&(a===b||(a.dataset.tip&&a.dataset.tip===b.dataset.tip&&a.dataset.tipTitle===b.dataset.tipTitle));
+ document.addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const el=bubbleTarget(e.target);if(!el)return;if(sameTip(el,activeGameBubble)){activeGameBubble=el;return;}showGameBubble(el);});
+ document.addEventListener('pointerout',e=>{if(activeGameBubble&&!sameTip(bubbleTarget(e.relatedTarget),activeGameBubble)&&!(e.relatedTarget===null&&!activeGameBubble.isConnected))closeGameBubble();});
+ document.addEventListener('focusin',e=>{const el=bubbleTarget(e.target);if(el&&(!el.dataset.tip||el.matches(':focus-visible')))showGameBubble(el);});
  document.addEventListener('focusout',closeGameBubble);
- document.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){const el=bubbleTarget(e.target);if(el)showGameBubble(el);}});
- document.addEventListener('pointerup',e=>{if(e.pointerType==='touch')closeGameBubble();});
- document.addEventListener('pointercancel',closeGameBubble);document.addEventListener('scroll',closeGameBubble,true);
+ document.addEventListener('pointerdown',e=>{const el=bubbleTarget(e.target);
+  if(e.pointerType!=='touch'){if(el?.dataset.tip)closeGameBubble();return;}
+  if(!el)return;if(!el.dataset.tip){showGameBubble(el);return;}
+  tipShownByHold=false;clearTimeout(tipHold);tipHold=setTimeout(()=>{tipShownByHold=true;showGameBubble(el);},TIP_HOLD);});
+ document.addEventListener('pointerup',e=>{if(e.pointerType==='touch'){clearTimeout(tipHold);closeGameBubble();}});
+ document.addEventListener('click',e=>{if(tipShownByHold&&bubbleTarget(e.target)?.dataset.tip){e.preventDefault();e.stopPropagation();}tipShownByHold=false;},true);
+ document.addEventListener('pointercancel',closeGameBubble);document.addEventListener('scroll',e=>{const t=e.target===document?document.documentElement:e.target;if(activeGameBubble&&t?.contains?.(activeGameBubble))closeGameBubble();},true);   // 只有捲動到泡泡所在的地方才關（戰鬥紀錄自己捲不算，10-10）
 })();
