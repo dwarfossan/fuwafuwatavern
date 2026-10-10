@@ -141,7 +141,7 @@ function levelUp(id){
     u.maxHp=max;u.levelUpAt=at;
   });
   sfx("level_up");
-  setTimeout(()=>{if(progressionUnits(id).some(u=>u.levelUpAt===at))refreshGameUI();},LEVEL_UP_DURATION+20);
+  setTimeout(()=>{if(progressionUnits(id).some(u=>u.levelUpAt===at))afterLevelChange(id);},LEVEL_UP_DURATION+20);
   return true;
 }
 

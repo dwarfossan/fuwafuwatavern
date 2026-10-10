@@ -152,12 +152,14 @@ function modalListen(el,type,fn){
   let types=modalEvents.get(el);if(!types){types=new Set();modalEvents.set(el,types);}
   if(types.has(type))return;types.add(type);el.addEventListener(type,fn);
 }
+// 升級前後只更新狀態卡內容；戰場另外照分層更新（頭上血條等）。
+function afterLevelChange(id){StatusCard.syncLevel(id);if(state.page==="battle"&&B())refreshBattle();}
 function refreshGameUI(){ if(state.page==="battle" && B())refreshBattle();else render(); }
 function bindModal(){
   StatusCard.bind(document);
   document.querySelectorAll("[data-levelup]").forEach(el=>modalListen(el,"click",e=>{
     e.stopPropagation();
-    if(levelUp(el.dataset.levelup))refreshGameUI();
+    if(levelUp(el.dataset.levelup))afterLevelChange(el.dataset.levelup);
     else if(canLevelUp(el.dataset.levelup))document.querySelector(`[data-level-message="${el.dataset.levelup}"]`).textContent="打完再升級";
   }));
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));

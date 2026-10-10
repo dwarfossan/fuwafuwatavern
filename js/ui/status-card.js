@@ -15,6 +15,17 @@ const StatusCard = {
     state.statusCardUI ||= {};
     return state.statusCardUI[id] ||= {phase:"explore",infoPage:"status",gearBagOpen:false,statusTip:null,cardSlotsOpen:false};
   },
+  // 升級（大爺 10-10）：只換這張卡上會變的部分——Lv 按鈕、生命／經驗條、熟練格、紙娃娃演出；
+  // 卡片外框、裝備格、六圍都不動，所以不會重播打開視窗的淡入。
+  syncLevel(id){
+    const u=critterStatusUnit(id);if(!u)return;
+    document.querySelectorAll(`[data-anchor="${id}"]`).forEach(card=>{
+      const b=this.context(id),swap=(sel,html)=>{const el=card.querySelector(sel);if(el)el.outerHTML=html;};
+      card.querySelector(".level-message")?.remove();swap(".level-button",levelButtonHTML(id));swap(".inf-bars",infoBarsHTML(u,u.hp/u.maxHp));swap(".inf-slots",slotGridHTML(u,b));
+      const doll=card.querySelector(".inf-doll>svg");if(doll)doll.innerHTML=statusDollSVG(u);
+    });
+    bindModal();
+  },
   bind(root){
     root.querySelectorAll("[data-bagtoggle],[data-cardslt],[data-statustip],[data-infopage]").forEach(el=>modalListen(el,"click",e=>{
       e.stopPropagation();const id=el.closest("[data-anchor]")?.dataset.anchor,b=this.context(id);
@@ -38,6 +49,8 @@ const StatusCard = {
   }
 };
 
+// 小傢伙的狀態卡紙娃娃：卡片整張繪製與升級就地更新共用同一份參數
+function statusDollSVG(v){return dollSVG({id:v.id,color:v.color,mood:v.svgMood,levelUpAt:v.levelUpAt,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3});}
 function statusCardHTML(v, b, embedded=false){
   const pct=v.hp/v.maxHp, held=embedded?[]:victimsOf(v);
   const statusItems=[...v.statuses.map((x,i)=>{const sb=STATUS_BADGE[x.k];return {s:x,key:`s${i}`,icon:sb?.[0]||null,good:sb?.[1]||0,label:statusLabel(v,x),desc:statusExplain(v,x)}}),...held.map((x,i)=>({s:null,key:`h${i}`,icon:"grab",good:1,label:`抓住${x.name}`,desc:`目前正抓住${x.name}；依擒抱規則限制對方移動。`}))];
@@ -46,7 +59,7 @@ function statusCardHTML(v, b, embedded=false){
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges" style="${indicatorLayout.style}">${groupedStatus.map(row=>`<div class="status-badge-row" data-status-row="${row.good?"good":"bad"}" aria-label="${row.good?"正面狀態":"負面狀態"}">${row.items.map(x=>`<button class="status-unit-badge ${x.icon?"":"plain "}${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}" style="--status-item-width:${x.width}px">${x.icon?`<svg viewBox="0 0 20 20">${statusIndicatorFace(x)}</svg>`:x.label}</button>`).join("")}</div>`).join("")}</div>`:"";
   const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
-  const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:v.id,color:v.color,mood:v.svgMood,levelUpAt:v.levelUpAt,...dollGear(v),face:1,down:v.down,prone:!v.down&&!!has(v,"prone"),x:0,y:0,w:140,seed:v.id.length*3})}</svg></div>`:"";
+  const doll=v.side==="pc"?`<div class="inf-doll"><svg viewBox="-20 -10 180 170" width="150" height="145">${statusDollSVG(v)}</svg></div>`:"";
   const page=v.side==="pc"?(b.infoPage||"status"):"status";
   const tabs=v.side==="pc"&&!embedded?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
   const notes=v.side==="pc"&&!embedded?notebookPageHTML(v,b):"";
