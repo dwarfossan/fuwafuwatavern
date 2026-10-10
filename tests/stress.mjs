@@ -67,11 +67,11 @@ try{
   const free=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({x:e.x+dx,y:e.y+dy})).find(p=>!unitAt(p.x,p.y)&&!blocked(p.x,p.y));
   t.x=free.x;t.y=free.y;const hp0=pcs.map(p=>p.hp),foes=b.units.filter(v=>v.side==='foe'),fhp=foes.map(v=>v.hp+(v.dead?0:0));
   let ended=false;endTurn=()=>{ended=true;};
-  b.turn=b.units.indexOf(t);beginTurn(t);b.busy=false;const rnd=Math.random;Math.random=()=>.95;aiTurn(t);
+  const n0=b.log.length;b.turn=b.units.indexOf(t);beginTurn(t);b.busy=false;const rnd=Math.random;Math.random=()=>.95;aiTurn(t);
   for(let i=0;i<60&&!ended;i++)await new Promise(r=>setTimeout(r,100));
   Math.random=rnd;
-  return {ended,foeHurt:foes.some((v,i)=>v.hp<fhp[i]),alliesSame:pcs.every((p,i)=>p.hp===hp0[i])};});
-assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接手：打貼身的敵人、不打隊友，回合自己結束');
+  return {ended,foeHurt:foes.some((v,i)=>v.hp<fhp[i])||b.log.slice(n0).some(l=>/^嬌嬌(使用|推|擒抱|繳械)/.test(l.t)),alliesSame:pcs.every((p,i)=>p.hp===hp0[i])};});
+assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接手：對敵人出手、不打隊友，回合自己結束');
 
  // 回神：豁免成功→壓力 50；連續失敗第 3 回合一定回神
  const rec=await pg.evaluate(()=>{
@@ -99,5 +99,12 @@ assert(ai.ended);assert(ai.foeHurt);assert(ai.alliesSame);ok('失控由 AI 接�
  assert.deepEqual(out.short,{fox:50,tiger:90,wolf:0,raccoon:30});assert.deepEqual(out.long,{fox:20,tiger:60,wolf:0,raccoon:0});ok('短休 −10、長休 −30（不會低於 0）');
  assert.equal(out.snap,'stressed');ok('劇情／城鎮狀態卡也照壓力換臉');
  assert(out.tavern.every(v=>v===0));ok('回到大爺的酒館壓力歸零');
+ // 測試戰鬥（#battle 隨機場）的齒輪有「壓力拉到 95」；救援商隊沒有
+ assert.equal(await pg.locator('[data-system-action="stressTest"]').count(),0);
+ const p2=await br.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});p2.on('pageerror',e=>errors.push(e.message));
+ await p2.goto('file://'+path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../index.html')+'#battle');await bootReady(p2);
+ await p2.waitForFunction(()=>B()&&B().id==='random');
+ await p2.locator('[data-system-menu]').first().tap();await p2.locator('[data-system-action="stressTest"]').tap();
+ assert.deepEqual(await p2.evaluate(()=>B().units.filter(isCritter).map(u=>u.stress)),[95,95,95,95]);ok('測試戰鬥齒輪：壓力拉到 95');
  assert.deepEqual(errors,[]);ok('沒有錯誤');
 }finally{await br.close();}

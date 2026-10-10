@@ -1333,7 +1333,7 @@ function battleInterfaceHTML(){
   const tut = b.tut>=0 && b.tut<TUTORIAL.length && !b.result ? `<div class="tut"><div class="tut-text"><b>${PAGE_UI.tutorial}</b> ${TUTORIAL[b.tut]}</div><div class="tut-actions"><button class="tut-x" id="tutNext">知道了</button><button class="tut-close" id="tutClose" aria-label="關閉教學">✕</button></div></div>` : "";
   return {
     head: `<div class="head"><div><h2>${b.phase==="explore"?EXPLORE_UI.title:b.manualCombat?EXPLORE_UI.turn:"戰鬥"}：${b.def.name}</h2><p class="rule">${b.phase==="explore"?(b.exploreSolo?EXPLORE_UI.individual:EXPLORE_UI.group):`第 ${b.round} 回合`}${b.def.seed!==undefined ? ` · Seed ${b.def.seed}` : ""}</p></div>
-      ${renderSystemTools({context:"battle",pop:b.sysPop})}
+      ${renderSystemTools({context:"battle",pop:b.sysPop,items:b.id==="random"?["continue","party","save","load","about","stressTest","title"]:undefined})}
       </div>`,
     order: `<div class="order ${b.phase==="explore"?"explore-order":""}">${order}</div>`,
     hud:b.phase==="explore"?`<div class="bt-hud" style="--c:${u.color}"><b>${u.name} ${b.exploreStopped?(b.exploreStopReason==="trap"?EXPLORE_ACTION_TEXT.trapHit:EXPLORE_UI.found):EXPLORE_UI.hint}${b.exploreSneak?` · ${EXPLORE_UI.hiddenCount} ${isHid(exploreUnit())?1:0}/1`:""}</b></div>`:hud,
@@ -1511,7 +1511,7 @@ function bindBattle(){
   document.querySelectorAll("[data-explore-unit]").forEach(el=>battleListen(el,"click",()=>exploreSelect(el.dataset.exploreUnit)));
   document.querySelectorAll("[data-explore-cmd]").forEach(el=>battleListen(el,"click",()=>exploreCmd(el.dataset.exploreCmd)));
   document.querySelectorAll("[data-cmd]").forEach(el=>battleListen(el,"click", ()=>{ const c = el.dataset.cmd; if(!["dodge","wait"].includes(c)) sfx(el.classList.contains("mn-back") ? "back" : "pop"); battleCmd(c); }));
-  bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:goTitle,listen:battleListen});
+  bindSystemTools(document,{getPop:()=>b.sysPop,setPop:v=>b.sysPop=v,refresh:refreshBattle,party:()=>{const p=b.units.find(x=>x.side==="pc");if(p){b.info=p.id;b.infoPage="status";}refreshBattle();},about:()=>{state.modal={kind:"about"};refreshBattle();},title:goTitle,stressTest:()=>{b.units.filter(isCritter).forEach(u=>setStress(u,95));blog("（測試）四隻壓力拉到 95：再被打一下、看到隊友昏迷或打完一場就會失控","stress");refreshBattle();},listen:battleListen});
   battleListen(document.querySelector("[data-closeinfo]"),"click", ()=>{ B().info = null; refreshBattle(); });
   StatusCard.bind(document);
   document.querySelectorAll("[data-noteskill]").forEach(el=>battleListen(el,"click", ()=>{
