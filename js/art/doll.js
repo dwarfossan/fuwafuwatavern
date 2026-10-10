@@ -143,10 +143,10 @@ const handSVG = (x,y,c,r=8.5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c
 
 // 四隻的頭、頸錨點（大爺 10-02）：頭比哥布林圓、大，頭飾放大一點、往上一點；目測，大爺看過再調
 const CRITTER_ANCHOR = {
-  fox:     {head:[52,26,1.15], neck:[70,95]},
-  tiger:   {head:[51,26,1.18], neck:[70,95]},
-  wolf:    {head:[52,26,1.15], neck:[70,95]},
-  raccoon: {head:[51,27,1.18], neck:[70,95]}
+  fox:     {head:[52,30,1.25], neck:[70,95]},   // 10-11 大爺：頭飾放大一點、往下壓（暫定）
+  tiger:   {head:[51,30,1.28], neck:[70,95]},
+  wolf:    {head:[52,30,1.25], neck:[70,95]},
+  raccoon: {head:[51,31,1.28], neck:[70,95]}
 };
 // 四隻的外觀
 function critterLook(id, c, mood="normal"){

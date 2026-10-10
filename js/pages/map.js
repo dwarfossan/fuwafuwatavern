@@ -107,7 +107,7 @@ function enterWorldLocation(){
  if(state.worldArrival&&!state.worldArrival.done){state.worldArrival.index++;showWorldArrivalLine();return;}
  const id=state.location;state.worldArrival=null;state.worldLine=null;
  if(id==='town'&&state.townFounded){state.page='town';state.townPlace=null;state.townPanel=null;render();}
- else if(id==='tavern'){tavernStress();state.page='story';state.scene='farewell';state.line=0;state.info=null;render();}
+ else if(id==='tavern'){tavernStress();state.page='story';state.scene=state.leftTavernDay!==undefined&&ensureMarket().day>state.leftTavernDay?'tavernReturn':'farewell';state.line=0;state.info=null;render();}
  else {document.getElementById('map-message').innerHTML=`<h3>${WORLD.locations.find(l=>l.id===id).name}</h3><p>探索待製作</p>`;}
 }
 function resumeWorldTravel(){const tr=state.travel;if(!tr?.route||!['opened','failed','defeated'].includes(state.worldChest?.status))return;tr.alert=false;state.worldLine=null;state.page='map';render();startWorldTravel(tr);}
