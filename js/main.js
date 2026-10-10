@@ -238,7 +238,6 @@ function bind(){
   $("depart")?.addEventListener("click", ()=>{state.page="story";state.scene="farewell";state.line=0;state.info=null;render();window.scrollTo(0,0)});
   $("backShop")?.addEventListener("click", ()=>{state.page="shop";render()});
   $("toMap")?.addEventListener("click", ()=>{
-    state.leftTavernDay = ensureMarket().day;   // 記住哪天出門：過了夜再回來演回家劇情（10-11）
     state.page="map"; state.location="tavern"; state.mapSel=null;
     if(state.townFounded){state.travel=null;state.worldArrival=null;state.worldLine=null;render();window.scrollTo(0,0);return;}
       state.travel = {from:"tavern", to:"town", t:0, stop:.5, alert:false};
