@@ -134,7 +134,7 @@ const FAREWELL = [
   {who:"all",   text:"快跑——！", art:"party", face:"annoyed", moods:{fox:"happy",tiger:"happy",wolf:"smile",raccoon:"happy"}, marks:{fox:"note",tiger:"note",wolf:"note",raccoon:"note"}}
 ];
 /* 劇情插圖：台詞加 art:"key" 就蓋在第一人稱背景上（對話框照舊在最上層） */
-const STORY_ART = {party:"assets/portraits/party.webp", inn:"assets/scenes/inn_rest.webp"};   // inn：旅店長休 CG（大爺 10-10）
+const STORY_ART = {party:"assets/portraits/party.webp", inn:"assets/scenes/inn_rest.webp", campGood:"assets/scenes/camp_good.webp", campPlain:"assets/scenes/camp_plain.webp", campBad:"assets/scenes/camp_bad.webp"};   // camp*：野外露營長休 CG（10-10）   // inn：旅店長休 CG（大爺 10-10）
 
 /* 伏擊前的被動察覺（大爺 2026-10-01）：小傢伙們不知道草叢裡有東西，所以不擲骰，用被動 10 + 感知調整值
    難度＝躲著的敵人這次的潛行擲骰（d20 + 敏捷，薩滿擲、小傢伙們不擲），進戰鬥沿用同一個數字
@@ -322,3 +322,39 @@ const INN_REST = [
   {who:"narr", art:"inn", draft:"香香", text:"交換完心得，四隻一個接一個睡著了。"},
   {who:"narr", art:"inn", draft:"香香", text:"——隔天早上。"}
 ];
+
+/* 野外露營長休（大爺 10-10）：挑一隻去找食材 → 感知檢定 → 找到什麼食材、做成什麼料理、四隻吃下去
+   成功：吃得好的 CG＋這道料理的效果（全隊，到下一次長休；生命歸零的那隻效果消失）；失敗：普通喝湯 CG，單純長休；擲出 1：煮砸 CG，單純長休
+   DC、效果數值暫定；台詞全是香香的草稿（draft），等大爺改 */
+const CAMP_DC = 12;
+const CAMP_FOODS = {
+  skewer:  {ingredient:"野兔",     dish:"烤肉串",   effect:"武器傷害 +1"},
+  soup:    {ingredient:"香草",     dish:"香草湯",   effect:"豁免 +1"},
+  berry:   {ingredient:"野莓",     dish:"野莓派",   effect:"AC +1"},
+  honey:   {ingredient:"野蜂巢",   dish:"蜂蜜麵包", effect:"壓力額外 −10"},
+  mushroom:{ingredient:"幸運蘑菇", dish:"蘑菇燉菜", effect:"好運骰 +1 顆"}
+};
+const CAMP_TEXT = {draft:"香香",
+  pick:"長休時，誰去找食材？（感知檢定 DC 12）",
+  go:{fox:"我去。照書上寫的，這種林子邊最好找東西。", tiger:"我去我去！我鼻子超靈的！", wolf:"……我去。你們把火顧好。", raccoon:"我去。找東西，我最拿手。"},
+  // 找到了：每隻帶回來的說法（{i}＝食材）
+  found:{fox:"我照書上說的找，{i}就長在那裡。很合理。", tiger:"我找到{i}了！還順便追了一隻松鼠！牠跑掉了！", wolf:"……{i}。氣味沒錯，可以吃。", raccoon:"{i}。不要問我從哪拿的。"},
+  // 每種食材的垃圾話（找到時）
+  banter:{
+    skewer:[{who:"tiger",mood:"happy",text:"肉！是肉！"},{who:"fox",mood:"smug",text:"先說好，是野兔，不是你追丟的那隻松鼠。"},{who:"raccoon",mood:"sly",text:"……松鼠也可以吃吧。"},{who:"wolf",mood:"sigh",text:"不行。"}],
+    soup:[{who:"tiger",mood:"confused",text:"草？我們要吃草？"},{who:"wolf",mood:"serious",text:"是香草。煮湯用的。"},{who:"fox",mood:"content",text:"聞起來不錯。至少比嬌嬌上次煮的好。"},{who:"tiger",mood:"angry",text:"那次是鍋子的錯！"}],
+    berry:[{who:"raccoon",mood:"happy",text:"莓果。甜的。"},{who:"fox",mood:"confused",text:"默默，你嘴巴旁邊紫紫的是什麼？"},{who:"raccoon",mood:"caught",text:"……路上試吃的。檢查有沒有毒。"},{who:"wolf",mood:"resigned",text:"籃子裡少了一半。"}],
+    honey:[{who:"tiger",mood:"happy",text:"蜂蜜！有蜂蜜！"},{who:"fox",mood:"awkward",text:"……蜜蜂呢？"},{who:"raccoon",mood:"normal",text:"還在追。我們動作快一點。"},{who:"wolf",mood:"sigh",text:"……吃完立刻換地方睡。"}],
+    mushroom:[{who:"fox",mood:"surprised",text:"這是幸運蘑菇！書上說吃了運氣會變好！"},{who:"wolf",mood:"serious",text:"你確定不是長得很像的那種？"},{who:"fox",mood:"awkward",text:"……書上說有八成把握。"},{who:"tiger",mood:"happy",text:"八成很高啊！吃吧！"}]
+  },
+  cook:"{d}煮好了，香味飄滿整個營地。",
+  eat:[{who:"tiger",mood:"content",text:"好好吃——！再來一碗！"},{who:"wolf",mood:"smile",text:"……嗯，不錯。"}],
+  buff:"吃飽了！全隊得到「{d}」：{e}（到下一次長休，生命歸零就沒了）。",
+  // 沒找到：普通喝湯
+  miss:{fox:"……書上沒寫這片林子什麼都沒有。", tiger:"我追了一隻松鼠！然後牠跑掉了……", wolf:"……什麼都沒有。今天就喝湯吧。", raccoon:"今天林子很小氣。"},
+  plain:[{who:"narr",text:"只好用帶來的乾糧煮了一鍋清湯。"},{who:"fox",mood:"content",text:"算了，有熱的就好。"},{who:"tiger",mood:"happy",text:"湯也很好喝啊！"}],
+  // 擲出 1：煮砸
+  bad:{fox:"我找到書上沒畫的蘑菇。應該……沒問題吧？", tiger:"我找到好多漂亮的蘑菇！紫色的！還有點發光！", wolf:"……這個蘑菇，我聞不出來是什麼。", raccoon:"有個長得很像食物的東西。"},
+  badEat:[{who:"narr",text:"鍋子冒出可疑的綠色煙。"},{who:"tiger",mood:"angry",text:"嗚噁——！舌頭麻麻的！"},{who:"fox",mood:"guilty",text:"……書上說的八成，不包括這種。"},{who:"raccoon",mood:"down",text:"……我想念乾糧。"},{who:"wolf",mood:"sigh",text:"睡吧。明天的事明天再說。"}],
+  morning:"——隔天早上。"
+};

@@ -68,7 +68,7 @@ function startBattle(id, retry=false, phase="combat"){
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
       ...Equipment.read(c.id),items:[],
-      speed:6, statuses:[], learned:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).map(x=>({...x})), activeSkills:raceFreeKeys(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id]:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key)), down:false, face:-1, oaUsed:false
+      speed:6, statuses:mealStatus(c.id), learned:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).map(x=>({...x})), activeSkills:raceFreeKeys(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id]:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key)), down:false, face:-1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{
@@ -386,6 +386,7 @@ function acOfUnit(u){
   // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
   ac -= u.statuses.filter(s=>s.k==="acDown" && (!s.shield || u.shield)).reduce((m,s)=>Math.max(m, 2 + (s.n||0)), 0);
   if(has(u,"shieldSpell")) ac += 5;
+  if(mealOf(u)==="berry") ac += 1;   // 露營料理：野莓派（10-10）
   return ac;
 }
 // 武器用哪個屬性：彈藥武器用敏捷；靈巧取高；其餘用力量
@@ -416,7 +417,7 @@ const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
 function saveRoll(t, stat, dc, source=null){
   const frz = stat==="DEX" && !!has(t,"frozen");      // 凍結：敏捷豁免有劣勢
   let r1 = d20(), r2 = frz ? d20() : null;
-  let r = frz ? Math.min(r1, r2) : r1, bonus = (t.mods[stat]||0)+(stat==="DEX"&&source?coverAC(coverOf(source,t)):0), extra = 0;
+  let r = frz ? Math.min(r1, r2) : r1, bonus = (t.mods[stat]||0)+(stat==="DEX"&&source?coverAC(coverOf(source,t)):0)+(mealOf(t)==="soup"?1:0), extra = 0;   // 香草湯：豁免 +1
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   if(has(t,"blessed")) extra = rollDice("1d4").total;
   const bane = baned(t) ? rollDice("1d4").total : 0;
@@ -548,7 +549,7 @@ function reactOptions(t){
 // 跟反應共用「快照重跑」：問的那刻丟出暫停，選完同一組骰子重跑到同一個地方。重跑中用掉的先記在 REACT_RUN.luck，
 // 整個招式跑完才寫進 state.luckUsed（不然暫停、重跑會重複扣）。只在招式裡問（doSkill）；藉機攻擊、潛行等招式外的擲骰還不問（暫定）。
 const LUCK_MAX = 2;
-const luckLeft = u => u && u.side==="pc" && !u.frenzy ? Math.max(0, LUCK_MAX - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
+const luckLeft = u => u && u.side==="pc" && !u.frenzy ? Math.max(0, LUCK_MAX + (mealOf(u)==="mushroom"?1:0) - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
 function luckHook(u, kind, info){
   if(!REACT_RUN || luckLeft(u)<=0) return false;
   const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
@@ -640,7 +641,7 @@ function hurt(t, n, type, src, hitSfx){
   if(t.hp===0){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300); }
     else { t.down = true; t.statuses = []; blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
-    stressOnDown(t, src);
+    stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
     checkGrapples();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
     // 看得到的敵人全倒、還有躲著的（大爺 10-02）：小傢伙們覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
@@ -865,6 +866,7 @@ function weaponAttack(a, t, o={}){
     let n = w ? dmgRoll(die, o.noMod?0:mod, crit, (o.extraDice||0) + upD) : (o.noMod ? 1 : Math.max(1, 1 + a.mods.STR));
     if(o.bonusDmgDice) n += rollDice(o.bonusDmgDice).total;
     if(w?.dmgBonus) n += w.dmgBonus;   // +1 武器的傷害加值（10-10）
+    if(mealOf(a)==="skewer") n += 1;   // 露營料理：烤肉串（10-10）
     const sd = sneakDice(a, t); if(sd){ a.sneakTurn = turnKey(); const extraSneak = dmgRoll(`${sd}d6`, 0, crit); n += extraSneak; blog(`　${skillLabel(learnedSkillByKey("sneak_attack").def)}：隊友在旁邊牽制，多 ${sd}d6（${extraSneak}）`, "skill"); }
     if(n<=0){ blog(`　打中了，但${t.name}不痛不癢（0 點）`, "miss", "不痛不癢"); fxFloat(t, "0", "miss"); }
     const extra=w?.extraDamage, arrowHit=["bow","crossbow"].includes(ak);

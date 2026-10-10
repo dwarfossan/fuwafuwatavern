@@ -531,6 +531,7 @@ function takeRest(kind, selections={},b=B()){
     state.proficiency[u.id]=u.slots.slice();
   });
   restStress(kind);   // 壓力：短休 −10、長休 −30（10-10，暫定）
+  if(kind==="long") clearMeals(b);   // 料理效果到下一次長休（10-10）
   if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;

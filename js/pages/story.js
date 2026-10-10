@@ -7,6 +7,7 @@ const SCENES = {
   caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
   townSupplier: {script:TOWN_SUPPLIER,bg:"town",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},
   townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]},
+  camp: {get script(){return campScript();}, bg:"road", back:null, next:["finishCamp","收拾營地"]},   // 野外露營長休（10-10）
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */

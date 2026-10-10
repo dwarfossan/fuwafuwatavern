@@ -695,7 +695,8 @@ const STATUS_BADGE = {
   frozen:["snow",0], paralyzed:["bolt",0], poisoned:["bubble",0], marked:["target",0],
   conc:["focus",1],   // 10-03 大爺：上限放寬到 17，加狩印（被標的）和專注（施法的）
   blessed:["sun",1], helped:["hand",1], dodge:["dodge",1], shieldSpell:["shieldStar",1], stance:["parry",1],
-  prone:["fall",0], burning:["fire",0], hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1], aiming:[null,1]
+  prone:["fall",0], burning:["fire",0], meal:["meal",1],   // meal：露營料理（10-10）
+  hidden:[null,1], mageArmor:[null,1], disengage:[null,1], fireShield:[null,1], aiming:[null,1]
 };
 const badgeOf = s => (STATUS_BADGE[s.k]||[])[0];
 const hasBadge = v => v.statuses.some(badgeOf);
@@ -712,6 +713,7 @@ const ST_ICON = {
   bolt:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5H14V16L23 22L19 28L7 22Z" fill="#fff4df"/><path d="M23 2L16 13H22L19 22L29 10H24L28 2Z" fill="#f3cf69"/></g>`,
   bubble:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M11 3H21V8L26 17V27H6V17L11 8Z" fill="#fff4df"/><path d="M7 19Q12 16 17 19Q21 21 25 18V26H7Z" fill="#91bf77"/><circle cx="15" cy="22" r="2" fill="#fff4df"/><circle cx="26" cy="6" r="3" fill="#fff4df"/></g>`,
   sun:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 6L19 12L26 13L21 18L22 25L16 22L10 25L11 18L6 13L13 12Z" fill="#f0d176"/><path d="M16 1V3M1 15H3M29 15H31M4 3L7 6M25 6L28 3" fill="none" stroke="#211923" stroke-width="2"/></g>`,
+  meal:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4 15H28Q27 26 16 27Q5 26 4 15Z" fill="#fff4df"/><path d="M8 15Q16 11 24 15" fill="none" stroke="#e0ab45"/><path d="M11 11Q9 8 11 5M16 11Q14 7 16 3M21 11Q19 8 21 5" fill="none" stroke="#fff4df" stroke-width="2"/></g>`,   // 料理：冒熱氣的碗（10-10）
   hand:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M2 10L8 5L15 12L10 19L2 15Z" fill="#fff4df"/><path d="M30 10L24 5L17 12L22 19L30 15Z" fill="#fff4df"/><path d="M8 12L13 9L18 10L25 17L19 25L8 17Z" fill="#fff4df"/><path d="M14 13L22 20M11 17L18 23" fill="none" stroke="#211923" stroke-width="2"/></g>`,
   dodge:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><circle cx="23" cy="7" r="4" fill="#fff4df"/><path d="M22 12L16 19L24 25M17 18L8 27M19 14L11 13" fill="none" stroke="#fff4df" stroke-width="5"/><path d="M2 7H12M2 13H7M4 20H8" fill="none" stroke="#211923" stroke-width="2.5"/></g>`,
   shieldStar:`<g transform="translate(1.58 1.58) scale(.526)" stroke="#211923" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3L26 7V16Q25 25 16 29Q7 25 6 16V7Z" fill="#fff4df"/><path d="M16 9L18 14L23 16L18 18L16 23L14 18L9 16L14 14Z" fill="#f0d176"/></g>`,
@@ -885,7 +887,7 @@ function equipKeys(v){
 // 狀態名稱、說明（2026-10-01 大爺：名字不能混淆；同一個狀態可能由不同招式造成，說明照 via 分）
 const STATUS_NAME = {prone:"倒地", dazed:"恍神", slowed:"緩速", restrained:"束縛", sapped:"削弱", bane:"災禍", acDown:"破甲", bleed:"流血", burning:"燃燒",
   frozen:"凍結", paralyzed:"麻痺", poisoned:"中毒", marked:"狩印", conc:"專注",
-  blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離", aiming:"瞄準"};
+  blessed:"祝福", helped:"協助", dodge:"閃避", shieldSpell:"護盾術", stance:"架式", hidden:"潛行", mageArmor:"法師護甲", fireShield:"火焰護盾", disengage:"撤離", aiming:"瞄準", meal:"料理"};
 const STATUS_DESC = {prone:"倒在地上：近戰打他有優勢、遠程打他有劣勢，他攻擊有劣勢。輪到他時先爬起來，移動減半。",
   dazed:"這回合只能移動或行動，二選一。", sapped:"下一次攻擊有劣勢。", bane:"攻擊和豁免各減 1d4，直到施法者倒下或專注中斷。",
   bleed:"每回合開始受 1d4 傷害。", burning:"每回合開始受 1d4 火焰傷害，花主要動作撲滅。",
@@ -897,6 +899,7 @@ function statusExplain(v,s){
   const who = id => (B().units.find(x=>x.id===id)||{}).name || "";
   let t;
   switch(s.k){
+    case "meal": { const f=CAMP_FOODS[s.food]||{}; t = `吃了${f.dish||"料理"}：${f.effect||""}。到下一次長休，生命歸零就沒了。`; break; }
     case "slowed": t = s.stop ? "被釘住，不能移動。" : `移動 −${2+(s.n||0)} 格。`; break;
     case "restrained": t = (s.via==="grapple" ? `被${who(s.src)||"敵人"}抓住。` : "被網子纏住。") + `不能移動；打他有優勢，他攻擊有劣勢。${s.dc ? `掙脫難度 ${s.dc}。` : ""}`; break;
     case "acDown": t = s.shield ? "盾牌被劈開，這段時間盾不算（AC −2）。" : `AC −${2+(s.n||0)}。`; break;
@@ -1524,7 +1527,8 @@ function bindBattle(){
   if(b.exploreRest)bindRestNotebook(b);
   const restSelections=()=>restPickSelections(b);
   battleListen(document.getElementById("shortRest"),"click",()=>takeRest("short",restSelections()));
-  battleListen(document.getElementById("longRest"),"click",()=>takeRest("long",restSelections()));
+  battleListen(document.getElementById("longRest"),"click",()=>{ const b=B(), wild=campWild(b); if(takeRest("long",restSelections()) && wild) startCamp(b); });   // 野外長休：露營（10-10）
+  document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>{ B().campWho=el.dataset.campWho; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });

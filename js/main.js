@@ -186,6 +186,7 @@ function bind(){
   const $ = id => document.getElementById(id);
   if(state.page!=="battle") bindSystemTools(document,{getPop:()=>state.sysPop,setPop:v=>state.sysPop=v,refresh:render,party:()=>{state.info=CRITTERS[0].id;state.modal={kind:"character",id:state.info};render();},about:()=>{state.modal={kind:"about"};render();},title:goTitle});
   $("finishSupplier")?.addEventListener("click",()=>{state.supplierSeen=true;state.page="town";state.townPlace=null;state.townPanel=null;render();window.scrollTo(0,0);});
+  $("finishCamp")?.addEventListener("click",finishCamp);   // 露營完回探索（10-10）
   $("finishInnRest")?.addEventListener("click",()=>{state.page="town";state.townPlace=null;state.townPanel=null;render();autoSave();window.scrollTo(0,0);});   // 旅店長休完：隔天早上回街上（10-10）
   $("finishTownArrival")?.addEventListener("click",()=>{state.townFounded=true;state.page="town";state.townPlace=null;render();window.scrollTo(0,0);});
   $("enterTown")?.addEventListener("click",enterWorldLocation);

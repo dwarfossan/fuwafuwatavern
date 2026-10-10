@@ -6,7 +6,7 @@ const browser=await chromium.launch();try{
  const r=await p.evaluate(()=>{
   window.nextTurn=()=>{};startBattle('ambush');const b=B(),u=b.units.find(v=>v.id==='fox');b.flowEpoch=(b.flowEpoch||0)+1;b.turn=b.units.indexOf(u);beginTurn(u);b.busy=false;b.tut=-1;u.anim=null;u.statuses=[];render();
   const floor=document.querySelector('#board-floor').firstElementChild,token=document.querySelector('.token[data-moving-unit="fox"]'),hp=u.hp;
-  const entries=Object.entries(STATUS_BADGE).filter(([,a])=>a[0]);if(entries.length!==19)throw Error('19 status icons required');
+  const entries=Object.entries(STATUS_BADGE).filter(([,a])=>a[0]);if(entries.length!==20)throw Error('20 status icons required');   // 10-10 加料理
   const expected={good:'rgb(82, 127, 170)',bad:'rgb(168, 93, 97)'};
   for(const [k,[icon,good]]of entries){
    if(new DOMParser().parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${ST_ICON[icon]}</svg>`,'image/svg+xml').querySelector('parsererror'))throw Error(k+' invalid SVG');
@@ -27,7 +27,7 @@ const browser=await chromium.launch();try{
   const pcs=CRITTERS.map(c=>b.units.find(v=>v.id===c.id));const groups=[['burning','poisoned','frozen','bleed','dazed'],['blessed','shieldSpell','stance','helped','dodge'],['slowed','restrained','sapped','acDown'],['bane','marked','conc','paralyzed']];
   pcs.forEach((v,i)=>{v.x=5+(i%2)*3;v.y=17+Math.floor(i/2)*3;v.statuses=groups[i].map(k=>({k}));v.anim=null;});b.info=null;b.menu='root';b.units.filter(v=>v.side==='foe').forEach(v=>v.statuses=[]);refreshBattle();centerCam(6.5,18.5);
   return {count:entries.length,names:entries.map(([k])=>STATUS_NAME[k])};
- });assert.equal(r.count,19);await p.waitForTimeout(500);
+ });assert.equal(r.count,20);await p.waitForTimeout(500);
  const dir=process.env.STATUS_ICON_SHOTS;if(dir){fs.mkdirSync(dir,{recursive:true});await p.screenshot({path:path.join(dir,'01-battle.png')});}
  await p.evaluate(()=>{B().info='fox';B().infoPage='status';refreshBattle();});await p.locator('[data-statustip][aria-label="燃燒"]').tap();assert.match(await p.locator('.status-pop').innerText(),/1d4 火焰傷害/);
  assert.equal(await p.locator('[data-statustip][aria-label="燃燒"]').evaluate(el=>getComputedStyle(el.querySelector('rect')).fill),'rgb(168, 93, 97)','selected burning retains debuff background');
@@ -36,5 +36,5 @@ const browser=await chromium.launch();try{
  if(dir){await p.evaluate(()=>{
   const cards=Object.entries(STATUS_BADGE).filter(([,a])=>a[0]).map(([k,[icon,good]])=>`<section><svg viewBox="0 0 20 20" style="background:var(${good?'--status-good':'--status-bad'})">${ST_ICON[icon]}</svg><b>${STATUS_NAME[k]}</b><svg class="small" viewBox="0 0 20 20" style="background:var(${good?'--status-good':'--status-bad'})">${ST_ICON[icon]}</svg></section>`).join('');document.body.className='';document.body.innerHTML=`<style>body{padding:16px}h2{font-size:20px;margin:0 0 15px}main{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}section{display:flex;align-items:center;flex-direction:column;gap:8px;padding:14px 5px;background:#352e3b;border-radius:12px}section svg{width:50px;height:50px;border:2px solid #211923;border-radius:8px}section svg.small{width:24px;height:24px;border-width:1px;border-radius:4px}b{font-size:14px}</style><h2>遊戲共用圖示・18種</h2><main>${cards}</main>`;
  });await p.screenshot({path:path.join(dir,'03-icons.png'),fullPage:true});}
- assert.deepEqual(errors,[]);console.log('✓ 19種共用SVG／藍紅底／燃燒觸控說明、倒數已移除／期限保留／去重／5圖示限制、死亡／解除、地板與角色節點及HP保留；390×844實際戰場與卡片');
+ assert.deepEqual(errors,[]);console.log('✓ 20種共用SVG／藍紅底／燃燒觸控說明、倒數已移除／期限保留／去重／5圖示限制、死亡／解除、地板與角色節點及HP保留；390×844實際戰場與卡片');
 }finally{await browser.close();}

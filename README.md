@@ -148,6 +148,7 @@ node tests/focus-instance.mjs # 法器逐件固定隨機屬性、現貨、裝備
 node tests/resistance.mjs    # 抗性／傷害免疫、取整、原始類型、面板、專注、資料覆寫
 node tests/stress.mjs        # 壓力：加減、50 換臉、100 失控（紅光晃動、AI 接手不打隊友）、回神、戰鬥結束、休息、回酒館
 node tests/undead-art.mjs    # 10-10 素材包：不死、死亡騎士、人類外觀；巫妖法袍／吸血鬼禮服／平民服可穿；#doll 不死、人類兩列
+node tests/camp.mjs          # 10-10 野外露營長休：挑一隻找食材、感知檢定、三種 CG、料理效果到下次長休／生命歸零消失
 node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；彈袋（投石索、吹箭筒、火槍、手槍）；商店照賣單項
 ```
 
