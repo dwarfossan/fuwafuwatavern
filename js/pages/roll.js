@@ -80,5 +80,5 @@ const WHO = id => id==="narr" ? {name:"", color:"var(--dim)"} :
                   id==="dwarf" ? {name:"矮人大爺", color:"var(--ale)"} :
                   id==="kam" ? {name:"卡姆", color:"#e8574a"} :   // 紅髮（10-03，顏色暫定）
                   id==="merchant" ? {name:state.scene==="ambush" ? "？？？" : "商人", color:"#c9b7a6"} :   // 伏擊時只聽到聲音
-                  id==="all" ? {name:"四小隻", color:"#f0c987"} :   // 四隻一起說（10-02，顏色暫定）
+                  id==="all" ? {name:"全員", color:"#f0c987"} :   // 四隻一起說（10-02，顏色暫定；10-10 大爺：名牌改「全員」）
                   (c => ({name:c.name, color:c.color}))(CRITTERS.find(c=>c.id===id));

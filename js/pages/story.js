@@ -69,7 +69,7 @@ function dialogInner(line, who, done){
     extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
   return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
 }
-const storyWho = line => line.who==="all" && state.scene==="farewell" ? {...WHO("all"),name:"小傢伙們"} : WHO(line.who);
+const storyWho = line => WHO(line.who);   // 合聲名牌一律「全員」（10-10 大爺，原本送別寫「小傢伙們」）
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
 const critterMark = (id,line) => line.who==="all" ? line.marks?.[id] : line.who===id ? line.critterMark : null;
 /* 劇情裡的被動感知演出（大爺 2026-10-01）
