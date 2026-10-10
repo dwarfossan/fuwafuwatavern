@@ -149,13 +149,12 @@ async function exploreInteract(action){
  const text=EXPLORE_ACTION_TEXT;
  if(action==="door"){if(o.kind==="doorOpen"&&unitAt(o.x,o.y)){blog(text.occupied);refreshBattle();return;}o.kind=o.kind==="door"?"doorOpen":"door";}
  else if(action==="push"){const dx=Math.sign(o.x-mapCell(u.x)),dy=Math.sign(o.y-mapCell(u.y)),x=o.x+dx,y=o.y+dy;if(blocked(x,y)||unitAt(x,y)||b.def.blocks.some(q=>q!==o&&q.x===x&&q.y===y)){blog(text.blocked);refreshBattle();return;}o.x=x;o.y=y;b.exploreObject=null;if(o.kind==="powderBarrel"&&groundAt(x,y)?.kind==="fire")explodeBarrel(o,u);}
- else if(action==="search"){o.searched=true;blog(text.searched);if(o.opened){if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}
  else {if(o.kind==="chest"&&o.opened){blog(text.opened);refreshBattle();return;}
  const rule=EXPLORE_CHECKS[action];if(rule.tool&&!hasGear([u.backpackEquip,...u.backpack],rule.tool)){blog(text.needTool);refreshBattle();return;}
  let roll=d20(),value=roll+u.mods[rule.ability],ok=value>=rule.dc;
  if(!ok&&await luckReroll(u.id,`${text[action]} ${roll}${fmtN(u.mods[rule.ability])}＝${value}，沒到 DC ${rule.dc}`)){roll=d20();value=roll+u.mods[rule.ability];ok=value>=rule.dc;}
  blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${rule.dc}，${ok?"OK":text.failed}`);
- if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);}}}
+ if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}}   // 打開就拿到裡面的東西（大爺 10-11：寶箱不用另外搜索）
  exploreTraps();exploreDetect();refreshBattle();
 }
 
