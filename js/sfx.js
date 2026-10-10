@@ -150,7 +150,10 @@ const SFX = (()=>{
   }
   return {play, setMuted, toggleMuted, setVolume, isMuted:()=>muted, getVolume:()=>volume, names:Object.keys(LIB), renderOffline};
 })();
-const sfx = (name, delay) => SFX.play(name, delay);
+// 反應／好運的快照重跑（10-11）：試跑期間的音效先排隊，真的跑完才播；中途暫停詢問就丟掉，重跑時再播，不會播兩次
+let SFX_HOLD = null;
+const sfx = (name, delay) => SFX_HOLD ? SFX_HOLD.push([name, delay, Date.now()]) : SFX.play(name, delay);
+function sfxRelease(play){ const q = SFX_HOLD || []; SFX_HOLD = null; if(play) q.forEach(([n, d, t])=>SFX.play(n, Math.max(0, (d||0) - (Date.now()-t)))); }
 
 // ---------- BGM：同一個主音量、單一 HTMLAudioElement 淡出後換曲 ----------
 const BGM_TRACKS = {

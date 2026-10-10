@@ -858,22 +858,24 @@ function runFoeSkill(p){
   const snap = p.snap || JSON.stringify(B());
   const queue = (p.rec||[]).slice(), rec = [];
   diceRand = () => { const v = queue.length ? queue.shift() : Math.random(); rec.push(v); return v; };
-  REACT_RUN = {answers:p.answers, n:0, luck:{}};
+  REACT_RUN = {answers:p.answers, n:0, luck:{}}; SFX_HOLD = [];
   try{
     const u = B().units.find(v=>v.id===p.actor), sk = REACT_SK || unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk);
     doSkillNow(u, sk, deserReactT(p.t));
     B().units.forEach(v=>delete v.halveFrom);
     state.luckUsed ||= {}; for(const [id,n] of Object.entries(REACT_RUN.luck)) state.luckUsed[id] = (state.luckUsed[id]||0) + n;   // 跑完才扣好運
+    sfxRelease(true);
     return true;
   }catch(e){
-    if(!e || !e.reactPause) throw e;
+    if(!e || !e.reactPause){ sfxRelease(true); throw e; }
+    sfxRelease(false);   // 暫停詢問：試跑的音效丟掉
     diceRand = () => Math.random(); REACT_RUN = null;
     const epoch = (B().flowEpoch||0)+1, nb = JSON.parse(snap); delete nb.def._h; nb.flowEpoch = epoch;   // 舊計時器全部失效
     state.battle = nb; refreshBattle.keys = null;
     nb.reactPending = {...p, rec, snap, info:e.info}; nb.busy = true;
     sfx("pop"); refreshBattle();
     return false;
-  }finally{ diceRand = () => Math.random(); REACT_RUN = null; }
+  }finally{ diceRand = () => Math.random(); REACT_RUN = null; if(SFX_HOLD) sfxRelease(true); }
 }
 function answerReaction(choice){
   const b = B(), p = b && b.reactPending; if(!p) return;
@@ -1177,8 +1179,12 @@ function aiShaman(e){
   if(bane && pcs.some(p=>dist(p,e)<=6 && !baned(p))) return shamanCast(e, bane, e);
   const R = bolt ? bolt.impl.range(e) : 0;
   if(R && pcs.some(p=>dist(p,e)<=R)){ e.castLast = true; return aiRanged(e, pcs, R); }
-  if(isHid(e)){ endTurn(); return; }                       // 躲著靜靜等：不停頓、不寫紀錄
-  if(!pcs.length){ blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return; }
+  // 10-11：以前躲著、射程內沒人就一直等（永遠不出手）。現在看不到人就搜索；看得到但太遠就走過去拉近
+  if(!pcs.length){
+    if(freeLeft() && e.searchRound!==B().round){ const b = B(); e.searchRound = b.round; doSearch(e); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(DICE_TUMBLE + 600)); return; }
+    if(isHid(e)){ endTurn(); return; }                     // 搜過了還是沒人：躲著等，不停頓、不寫紀錄
+    blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return;
+  }
   aiRanged(e, pcs, R || 1);
 }
 function shamanCast(e, sk, t){

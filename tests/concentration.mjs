@@ -33,7 +33,7 @@ try{
   const fox=b.units.find(v=>v.side==='pc'&&v!==u); fox.statuses=[];
   learnedSkillByKey('bless').impl.run(fox); out.blessed=b.units.filter(v=>has(v,'blessed')).length>0; out.foxConc=(concOf(fox)||{}).key;
   if(g){ SKILL_IMPL.hunter[0].run(fox,g); } out.swap=(concOf(fox)||{}).key==='hunters_mark' && !b.units.some(v=>has(v,'blessed'));
-  fox.hp=1; hurt(fox,9,'穿刺',null); out.downEnds=!concOf(fox) && !b.units.some(v=>v.statuses.some(s=>s.k==='marked'&&s.src===fox.id));
+  fox.down=false; fox.dead=false; fox.hp=1; hurt(fox,9,'穿刺',null); out.downEnds=!concOf(fox) && !b.units.some(v=>v.statuses.some(s=>s.k==='marked'&&s.src===fox.id));
   // 點心
   u.slots=slotMax(u).map(()=>0); snackRest(u); out.snack=slotsOf(u).every((n,i)=>n===Math.ceil(slotMax(u)[i]/2));
   // 次元背包

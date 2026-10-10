@@ -107,6 +107,8 @@ function pageHelpHTML(key){
 }
 function closeDetailModal(){
   const m=state.modal;
+  // 從狀態卡點開的裝備／技能說明：關掉回到狀態卡，不是整個關掉（10-11）
+  if(m?.prev){ state.modal=m.prev; refreshGameUI(); return; }
   state.modal=null;
   if(m?.kind==="character") state.info=null;
   refreshGameUI();
@@ -167,11 +169,11 @@ function bindModal(){
   document.querySelectorAll("[data-close]").forEach(el=>modalListen(el,"click", e=>{ if(e.target===el) closeDetailModal(); }));
   document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));
-  document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo}; refreshGameUI(); }));
+  document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo, prev:state.modal?.kind==="character"?state.modal:null}; refreshGameUI(); }));
   document.querySelectorAll("[data-skinfo]").forEach(el=>modalListen(el,"click", e=>{
     e.stopPropagation();
     const [group, idx, item, unit] = el.dataset.skinfo.split(":");
-    state.modal = {kind:"skill", group, idx:+idx, item:item||null, unit:unit||null, back: state.modal && state.modal.kind==="item"};
+    state.modal = {kind:"skill", group, idx:+idx, item:item||null, unit:unit||null, back: state.modal && state.modal.kind==="item", prev: state.modal?.kind==="character" ? state.modal : state.modal?.prev || null};
     refreshGameUI();
   }));
 }
@@ -183,7 +185,7 @@ function gameBack(){
   if(state.modal){
     // 技能詳情若是從物品詳情進來，先回物品；否則關閉詳情。
     if(state.modal.kind==="skill" && state.modal.back && state.modal.item){
-      state.modal={kind:"item",id:state.modal.item};
+      state.modal={kind:"item",id:state.modal.item,prev:state.modal.prev||null};
     }else {closeDetailModal();sfx("back");return true;}
     sfx("back"); refreshGameUI(); return true;
   }
