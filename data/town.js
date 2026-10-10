@@ -69,12 +69,12 @@ const TAVERN_TALK = {draft:"香香",
       [{text:"卡姆又在嫌大爺的鬍子了。這可是頭髮編的，很難得的！", face:"smirk"}],
       [{text:"吧檯底下那箱？什麼箱？大爺不知道你們在說什麼。", face:"gritted"}]
     ]},
-  kam:{
-    recent:[{text:"傷，給我看。", face:"annoyed"},{text:"……沒事就好。下次別逞強。", face:"smile"}],
+  kam:{   // 卡姆對小傢伙們是溫柔大姊姊（大爺 10-11）；只有講到老大才兇
+    recent:[{text:"回來啦。來，讓姊姊看看……有沒有哪裡受傷？", face:"smile"},{text:"嗯，都好好的。累了就早點睡，明天姊姊幫你們準備便當。", face:"smile"}],
     chat:[
-      [{text:"詛咒還在。放心。", face:"smile"},{text:"倒下了就回來。這裡是家。", face:"smile"}],
-      [{text:"老大今天又偷喝庫存。三瓶。我數了。你們別學他。", face:"annoyed"}],
-      [{text:"外面的東西，不能亂吃。", face:"annoyed"},{text:"……老大煮的，可以。", face:"shy"}]
+      [{text:"詛咒還在你們身上喔。不管跑多遠，倒下了都會回到這裡。", face:"smile"},{text:"所以……不用怕。這裡是家。", face:"shy"}],
+      [{text:"老大今天又偷喝庫存，三瓶，我都數了。", face:"annoyed"},{text:"你們可別學他喔。乖。", face:"smile"}],
+      [{text:"外面的東西不能亂吃，肚子會痛的。", face:"smile"},{text:"……老大煮的倒是可以。雖然他會得意，所以別說是我說的。", face:"smirk"}]
     ]}
 };
 /* 睡覺：長休後的 CG（沿用旅店那張，台詞換成在家的版本） */
