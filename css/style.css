@@ -843,6 +843,7 @@ button.token:hover{transform:translateY(-2px)}
 .snd,.gear-btn{background:var(--plank);border:2px solid var(--plank-2);color:var(--honey);border-radius:999px;width:42px;height:42px;display:grid;place-items:center;flex:none;cursor:pointer}
 .snd.off{color:var(--dim)}
 .snd:hover,.gear-btn:hover{border-color:var(--honey)}
+.vol-pop[hidden],.sys-menu[hidden]{display:none}
 .vol-pop,.sys-menu{position:absolute;right:0;top:50px;background:rgba(43,34,46,.98);border:1px solid rgba(242,180,65,.42);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.38);padding:10px;z-index:80}
 .vol-pop{width:230px;display:flex;align-items:center;gap:9px}.vol-pop svg{flex:none}.vol-pop input{width:145px;accent-color:var(--honey)}.vol-num{min-width:34px;text-align:right;font-size:12px;color:var(--fur)}
 .sys-menu{width:220px;display:grid;gap:6px}.sys-menu h3{font-size:15px;margin:1px 4px 5px;color:var(--fur)}.sys-menu button{width:100%;text-align:left;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.06);color:var(--fur);padding:10px 12px;font-weight:700;cursor:pointer}.sys-menu button:hover{border-color:var(--honey);background:rgba(255,255,255,.1)}

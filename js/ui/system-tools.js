@@ -14,15 +14,18 @@ function syncSystemVolume(root=document){
 }
 const SYSTEM_MENU_LABEL={continue:"繼續遊戲",party:"隊伍",about:"關於／授權",title:"回到標題"};
 function renderSystemTools({context="default",pop=null,items=["continue","party","about","title"]}={}){
- return `<div class="sys-tools sys-tools--${context}" data-system-tools><button class="snd ${SFX.isMuted()?"off":""}" data-system-volume aria-label="主音量" title="主音量">${systemToolsSpeakerSVG()}</button><button class="gear-btn" data-system-menu aria-label="主選單" title="主選單">${SYSTEM_TOOLS_GEAR_SVG}</button>${pop==="volume"?`<div class="vol-pop"><button class="snd ${SFX.isMuted()?"off":""}" data-system-mute aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input data-system-slider type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" data-system-number>${systemVolumeText()}</span></div>`:""}${pop==="menu"?`<div class="sys-menu"><h3>主選單</h3>${items.map(k=>`<button data-system-action="${k}">${SYSTEM_MENU_LABEL[k]}</button>`).join("")}</div>`:""}</div>`;
+ return `<div class="sys-tools sys-tools--${context}" data-system-tools><button class="snd ${SFX.isMuted()?"off":""}" data-system-volume aria-label="主音量" title="主音量">${systemToolsSpeakerSVG()}</button><button class="gear-btn" data-system-menu aria-label="主選單" title="主選單">${SYSTEM_TOOLS_GEAR_SVG}</button><div class="vol-pop" data-system-pop="volume" ${pop==="volume"?"":"hidden"}><button class="snd ${SFX.isMuted()?"off":""}" data-system-mute aria-label="靜音切換"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/></svg></button><input data-system-slider type="range" min="0" max="100" value="${Math.round(SFX.getVolume()*100)}" aria-label="主音量"><span class="vol-num" data-system-number>${systemVolumeText()}</span></div><div class="sys-menu" data-system-pop="menu" ${pop==="menu"?"":"hidden"}><h3>主選單</h3>${items.map(k=>`<button data-system-action="${k}">${SYSTEM_MENU_LABEL[k]}</button>`).join("")}</div></div>`;
 }
+// 音量框、主選單一直在畫面上，開關只切 hidden（10-10：以前開關都整頁重畫，劇情／城鎮會閃）
+function showSystemPop(root,pop){root.querySelectorAll("[data-system-pop]").forEach(el=>{el.hidden=el.dataset.systemPop!==pop;});}
 function bindSystemTools(root,{getPop,setPop,refresh,party,about,title,listen=(el,ev,fn)=>el.addEventListener(ev,fn)}){
  const q=s=>root.querySelector(s),on=(s,ev,fn)=>{const el=q(s);if(el)listen(el,ev,fn);};
- on("[data-system-volume]","click",e=>{e.stopPropagation();setPop(getPop()==="volume"?null:"volume");refresh();});
- on("[data-system-menu]","click",e=>{e.stopPropagation();setPop(getPop()==="menu"?null:"menu");refresh();});
+ const toggle=p=>{const next=getPop()===p?null:p;setPop(next);showSystemPop(root,next);if(next==="volume")syncSystemVolume(root);};
+ on("[data-system-volume]","click",e=>{e.stopPropagation();toggle("volume");});
+ on("[data-system-menu]","click",e=>{e.stopPropagation();toggle("menu");});
  on("[data-system-mute]","click",e=>{e.stopPropagation();SFX.toggleMuted();if(!SFX.isMuted())sfx("pop");syncSystemVolume(root);});
  on("[data-system-slider]","input",e=>{e.stopPropagation();SFX.setVolume(+e.target.value/100);syncSystemVolume(root);});
- root.querySelectorAll("[data-system-action]").forEach(el=>listen(el,"click",e=>{e.stopPropagation();const a=el.dataset.systemAction;setPop(null);if(a==="continue")refresh();else if(a==="party")party();else if(a==="about")about();else if(a==="title")title();}));
+ root.querySelectorAll("[data-system-action]").forEach(el=>listen(el,"click",e=>{e.stopPropagation();const a=el.dataset.systemAction;setPop(null);showSystemPop(root,null);if(a==="continue")return;else if(a==="party")party();else if(a==="about")about();else if(a==="title")title();}));
 }
 
 // 戰場以外每一頁右上角的同一組工具（10-10 大爺：每頁都要有）；extra 放在左邊（例如「說明」）。

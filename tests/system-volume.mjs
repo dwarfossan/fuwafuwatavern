@@ -34,6 +34,11 @@ try{
    await pg.goto('file://'+path.resolve('index.html')+h);await bootReady(pg);await pg.waitForTimeout(200);if(setup)await pg.evaluate(setup);
    assert.equal(await pg.locator('[data-system-tools]').count(),1,name);
    const box=await pg.locator('[data-system-tools]').boundingBox();assert(box.y<60&&box.x+box.width>350,name+' 右上');
-   await pg.locator('[data-system-menu]').tap();assert.deepEqual(await pg.locator('.sys-menu button').allInnerTexts(),menu,name);await pg.close();}}
- assert.deepEqual(errs,[]);console.log('✓ 共用喇叭：12 種畫面右上都有、選單照頁面、首次 70%、靜音字樣與滑桿、拖滑桿解除靜音三處同步、拉到 0 再按恢復；劇情／戰鬥同一套；酒館牆與工具列 CSS 生效');
+   await pg.evaluate(()=>{window.__keep=[...document.querySelectorAll('#app *')].filter(n=>!n.closest('[data-system-tools]'));});
+   await pg.locator('[data-system-volume]').tap();assert.equal(await pg.locator('.vol-pop:visible').count(),1,name);
+   await pg.locator('[data-system-menu]').tap();assert.equal(await pg.locator('.vol-pop:visible').count(),0,name);assert.deepEqual(await pg.locator('.sys-menu:visible button').allInnerTexts(),menu,name);
+   await pg.locator('[data-system-menu]').tap();assert.equal(await pg.locator('.sys-menu:visible').count(),0,name);
+   // 10-10 開關音量框／選單只切 hidden，頁面其他節點不重建（以前整頁重畫會閃）
+   assert.equal(await pg.evaluate(()=>window.__keep.every(n=>n.isConnected)),true,name+' 不重建');await pg.close();}}
+ assert.deepEqual(errs,[]);console.log('✓ 共用喇叭：12 種畫面右上都有、選單照頁面、開關不重建頁面、首次 70%、靜音字樣與滑桿、拖滑桿解除靜音三處同步、拉到 0 再按恢復；劇情／戰鬥同一套；酒館牆與工具列 CSS 生效');
 }finally{await br.close();}
