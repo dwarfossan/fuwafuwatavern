@@ -22,7 +22,7 @@
 
 - **直接推 dev，不開工作分支**（大爺 10-02：dev 就是測試版）。repo 只有 main 和 dev 兩條；**不要推 main**，併 main 要大爺明說
 - **每做完一項就 commit＋push 到 dev**，訊息寫清楚改了什麼；推之前測試要全過
-- 改完跑 README 第 2 節列的全部測試，看 exit code。新功能要在瀏覽器實際操作、用**手機尺寸（390×844）截圖**確認，能自動檢查的補進 `tests/`
+- 照 README 第 2 節「跑測試的規定」：改動途中只跑相關測試，**推之前跑一次整套、全過才推**，看 exit code；寫新測試一個檔案只開一次瀏覽器。新功能要在瀏覽器實際操作、用**手機尺寸（390×844）截圖**確認，能自動檢查的補進 `tests/`
 - 改了 `data/skills.js` 要跑 `node tools/skills_doc.mjs` 重新產生技能表
 - 戰鬥畫面讀了新的資料，要加進 `battleLayerKeys`（`js/battle/render.js`），不然那層不會重畫（README 實作紀律第 11 條）
 

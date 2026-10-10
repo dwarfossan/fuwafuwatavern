@@ -150,6 +150,17 @@ node tests/gear.mjs          # 套組視同帶著內容物、能放背包欄；�
 ```
 
 全部通過才可以推；看 exit code（0＝通過）。
+
+**跑測試的規定（大爺 10-10）**
+- **改動途中只跑相關的那幾支**，不要每改一點就跑整套
+- **推之前跑一次整套**，確認全過才推（先驗再推，不要推完才驗）。雲端機器只有 2 顆 CPU，平行開 2 條就好：
+  `ls tests/*.mjs | grep -v boot.mjs | xargs -P 2 -I{} sh -c 'node {} >/tmp/$(basename {}).log 2>&1 || echo FAIL {}'`
+- 整套有失敗：先單獨重跑那支；單獨也壞，再拿改動前的版本跑同一支比對，確認是不是這次改壞的
+- **寫新測試**：
+  - 一個測試檔只 `chromium.launch()` 一次，多個情境用 `newPage()`／`newContext()`，不要每個情境重開瀏覽器
+  - 純規則（數值、骰子、經驗、價錢）能不開瀏覽器就不開，用 Node 直接跑（參考 `tests/performance-lifecycle.mjs`）
+  - 少用寫死的等待（`waitForTimeout`），改成等到條件成立（`waitForFunction`、`locator.waitFor`）
+- 現有測試大多是每支各開一次瀏覽器、各讀一次全部圖片，整套約 4 分鐘；之後要整理成共用瀏覽器（待辦，見 `docs/現況.md`）
 新測試開網頁後先 `await bootReady(page)`（`tests/boot.mjs`）：快速入口（`#battle`／`#town`／`#ambush`）開機先讀完全部圖片才進遊戲（封面則只等 8 張，其餘背景讀，10-09），沒等就讀 `state`／`B()` 會拿到 undefined。
 測試只能證明「沒壞」，不代表新功能正常：新功能要另外在瀏覽器實際操作、截圖確認，並把能自動檢查的部分補進測試。
 改了 `data/skills.js` 要跑 `node tools/skills_doc.mjs` 重新產生技能表。
