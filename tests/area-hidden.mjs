@@ -22,24 +22,20 @@ try{
    const n0=b.log.length; const rnd=Math.random; Math.random=()=>0.999;   // 擲最高：一定命中、豁免一定過，只看有沒有被選進去
    let hitList=[]; const wa=weaponAttack; weaponAttack=(a,t,o)=>{ hitList.push(t.id); return {hit:false}; };
    try{
-     if(kind==='sweep') SKILL_IMPL.heavy[1].run(u);
-     if(kind==='quake') SKILL_IMPL.mace[2].run(u);
-     if(kind==='rain')  SKILL_IMPL.bow[2].run(u, {x:e.x, y:e.y});
-     if(kind==='line')  SKILL_IMPL.crossbow[1].run(u, e);
+     // 10-10 武器範圍招（橫掃、震地、箭雨、貫穿）刪了，範圍招只剩燃燒之手；指定目標改用災禍術驗
      if(kind==='cone')  SKILL_IMPL.flame_orb[1].run(u, {x:e.x, y:e.y});
-     if(kind==='multi'){ const t=foes.find(v=>v!==e); t.x=u.x+2; t.y=u.y; SKILL_IMPL.thrown[1].run(u, t); }
+     if(kind==='multi'){ const t=foes.find(v=>v!==e); t.x=u.x+2; t.y=u.y; SKILL_IMPL.shaman_totem[2].run(u); }
    } finally { Math.random=rnd; weaponAttack=wa; }
    return {hid:isHid(e), hitE:hitList.includes(e.id), log:b.log.slice(n0).map(l=>l.t).join(' / ')};
  }, kind);
 
- for(const [k,name] of [['sweep','橫掃'],['quake','震地'],['rain','箭雨'],['line','貫穿'],['cone','火焰錐']]){
+ for(const [k,name] of [['cone','燃燒之手']]){
    const r=await run(k);
    assert.equal(r.hid,false,name+'：躲著的應該現身');
-   if(k==='sweep'||k==='line') assert.equal(r.hitE,true,name+'：應該打到躲著的');
    assert.match(r.log,/被波及，現身/);
    ok(`${name}：躲在範圍裡的被波及、現身`);
  }
  const m=await run('multi');
- assert.equal(m.hid,true);assert.equal(m.hitE,false);ok('多投（要指定目標）：躲著的不會被挑中、也不現身');
+ assert.equal(m.hid,true);assert.equal(m.hitE,false);ok('災禍術（挑目標）：躲著的不會被挑中、也不現身');
  assert.deepEqual(errors,[]);ok('沒有錯誤');
 }finally{await br.close();}

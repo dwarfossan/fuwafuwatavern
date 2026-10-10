@@ -219,82 +219,30 @@ const SKILL_IMPL = {
     // 連擊（大爺 10-09 改成戰士風格被動）：效果在 flow.js doSkillNow 的 doubleStrikes
     {passive:true}
   ],
-  heavy: [
-    basicAttack,
-    // 橫掃（＋回掃）：攻擊範圍內每個敵人，有觸及的打得到 2 格外
-    {target:"self", run:u=>{ const es = inArea(u, e=>dist(e,u)<=reachOf(u)); if(!es.length) blog("　範圍內沒有敵人。"); es.forEach(e=>weaponAttack(u,e,{noMod:true})); }},
-    {target:"enemy", range:u=>reachOf(u), ...standStill, run:(u,t)=>{ B().moveLeft = 0; weaponAttack(u,t,{extraDice:1}); }},
-    // 撞倒（衝撞＋絆倒）：目標自己選力量或敏捷豁免（取他比較好的那個，照 D&D 推撞）
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxProne(u,t,weaponStat(u),bestOfSave(t,"STR","DEX")))}
-  ],
+  heavy: [ basicAttack ],
   axe: [
     basicAttack,
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"acDown",{until:"end", of:u.id, left:upNow()}); blog(`　破甲：${t.name} AC −2${upNow()?`（${1+upNow()} 輪）`:""}`,"skill"); })},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"bleed",{n:2+upNow(), src:u.id}); blog(`　${t.name}開始流血（接下來 ${2+upNow()} 次回合開始各 1d4）`,"skill"); })},
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
-      if(t.shield){ addStatus(t,"acDown",{via:"cleave", shield:true, until:"start", of:u.id}); blog(`　${t.name}的盾被劈開，AC −2`,"skill"); } else blog(`　${t.name}沒有拿盾。`); })}
+    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"acDown",{until:"end", of:u.id, left:upNow()}); blog(`　破甲：${t.name} AC −2${upNow()?`（${1+upNow()} 輪）`:""}`,"skill"); })}
   ],
-  mace: [
-    basicAttack,
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxDaze(u,t,"STR",upNow()))},
-    {target:"self", run:u=>{ const up = upNow(), es = inArea(u, e=>dist(e,u)<=1); if(!es.length) blog("　範圍內沒有敵人。");
-      es.forEach(e=>{ if(saveRoll(e, "DEX", dcOf(u, "STR"))) return; knockProne(e); blog(`　${e.name}倒地！`, "skill");
-        if(up && weaponDie(u)){ let n = 0; for(let i=0;i<up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); } }); }},
-    // 擊退（重敲＋逼退）：推開，推得動就跟上一步
-    {target:"enemy", range:u=>reachOf(u), run:(u,t)=>hitThen(u,t,{},()=>{
-      const ox = t.x, oy = t.y; push(u, t, 1);
-      if(t.x===ox && t.y===oy){ blog(`　${t.name}後面被擋住，推不動。`); return; }
-      blog(`　${t.name}被擊退！`, "skill");
-      if(!victimsOf(u).length && !grappled(u) && dist(u,{x:ox,y:oy})===1 && !unitAt(ox,oy)){ u.x = ox; u.y = oy; faceTo(u, t); }
-    })}
-  ],
-  polearm: [
-    basicAttack,
-    {target:"self", run:u=>{ addStatus(u,"stance",{via:"guard", until:"start", of:u.id, up:upNow()}); blog(`　${u.name}架起武器，阻截走進攻擊範圍的敵人`,"skill"); }}
-  ],
+  mace: [ basicAttack ],
+  polearm: [ basicAttack ],
   dagger: [
     // 有「投擲」屬性的武器可以丟出去（超出觸及就算遠程）
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown: dist(u,t)>reachOf(u)})},
     // 偷襲（大爺 10-09 改成俠盜風格被動）：效果在 engine.js weaponAttack 的 sneakDice
     {passive:true},
-    {target:"enemy", range:u=>reachOf(u)+2, run:(u,t)=>{
-      if(dist(u,t) > reachOf(u)){
-        const spot = dashSpot(u, t, 2);
-        if(!spot){ blog("　找不到空位閃過去。"); return; }
-        u.x = spot.x; u.y = spot.y; faceTo(u, t); u.anim = {k:"hop", t:Date.now()}; checkExposure();
-        blog(`　${u.name}一閃，到了${t.name}身旁！`, "skill");
-      }
-      weaponAttack(u,t,{}); }},
     // 扎腿（＋瞄腿）：近戰或遠程都行
     {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{thrown:dist(u,t)>reachOf(u)},()=>fxSlow(u,t,upNow()))}
   ],
-  bow: [
-    basicAttack,
-    {target:"enemy", range:u=>rangeOf(u), ...standStill, run:(u,t)=>{ B().moveLeft=0; weaponAttack(u,t,{hitMod:2, extraDice:1}); }},
-    {target:"area", range:u=>rangeOf(u), radius:1, run:(u,c)=>{ const up = upNow(), es = inArea(u, e=>dist(e,c)<=1); if(!es.length) blog("　箭雨落空了。");
-      es.forEach(e=>{ if(saveRoll(e,"DEX",dcOf(u,"DEX"))) return; let n = 0; for(let i=0;i<=up;i++) n += dmgRoll(weaponDie(u),0,false); hurt(e, n, dmgType(u), u); }); }},
-    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>fxHamper(t))}
-  ],
-  crossbow: [
-    basicAttack,
-    {target:"line", range:u=>rangeOf(u), run:(u,t)=>{ caught(u, lineUnits(u,t,rangeOf(u))).forEach(e=>weaponAttack(u,e,{})); }},
-    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>hitThen(u,t,{},()=>{ addStatus(t,"slowed",{via:"pin", stop:true, until:"end", of:t.id}); blog(`　${t.name}被釘住了，這回合不能移動`,"skill"); })},
-    {target:"enemy", range:u=>rangeOf(u), run:(u,t)=>weaponAttack(u,t,{pointBlank:true})}
-  ],
+  bow: [ basicAttack ],
+  crossbow: [ basicAttack ],
   firearm: [ basicAttack ],   // 火槍類只有普攻（10-03）
   // 投擲類：射程用武器的投擲／彈藥射程；超出觸及就算遠程攻擊（貼身投有劣勢）
   thrown: [
-    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown:dist(u,t)>reachOf(u)})},
-    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>{ weaponAttack(u,t,{thrown:dist(u,t)>reachOf(u)});
-      const others = enemiesOf(u).filter(e=>e!==t && dist(e,u)<=thrownRange(u)).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0, 1+upNow());
-      others.forEach(other=>{ blog(`　再投向${other.name}`,"skill"); weaponAttack(u,other,{thrown:dist(u,other)>reachOf(u)}); }); }},
-    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>hitThen(u,t,{adv:true, thrown:dist(u,t)>reachOf(u)},()=>fxHamper(t))}
+    {target:"enemy", range:u=>thrownRange(u), run:(u,t)=>weaponAttack(u,t,{mastery:true, thrown:dist(u,t)>reachOf(u)})}
   ],
   unarmed: [
-    {target:"enemy", range:()=>1, run:(u,t)=>weaponAttack(u,t,{})},
-    {target:"enemy", range:()=>1, can:(u)=>enemiesOf(u).some(e=>e.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)), why:"要先擒抱住敵人",
-     run:(u,t)=>{ if(!t.statuses.some(s=>s.k==="restrained"&&s.via==="grapple"&&s.src===u.id)){ blog("　沒有抓住這個目標。"); return; }
-       push(u,t,1); knockProne(t); t.statuses=t.statuses.filter(s=>!(s.k==="restrained"&&s.via==="grapple")); blog(`　${t.name}被摔了出去！`,"skill"); hurt(t, rollDice(`${1+upNow()}d6`).total, "鈍擊", u); }}
+    {target:"enemy", range:()=>1, run:(u,t)=>weaponAttack(u,t,{})}
   ],
   shield: [
     // 守護（大爺 10-09 改成戰士風格被動）：效果在 engine.js attackRoll 的 guardOf
@@ -312,7 +260,6 @@ const SKILL_IMPL = {
   ],
   healing_book: [
     HEALING_WORD_IMPL,
-    {target:"ally", range:()=>1, run:(u,t)=>heal(t, Math.max(1, rollDice(`${2*(1+upNow())}d8`).total + u.mods[spellStat(u)]))},
     {target:"self", run:u=>{ const ps = alliesOf(u).filter(p=>!p.down && dist(p,u)<=6).sort((a,b)=>dist(a,u)-dist(b,u)).slice(0,3+upNow());
       startConc(u, "bless", "祝福術");
       ps.forEach(p=>addStatus(p,"blessed",{src:u.id})); blog(`　祝福：${ps.map(p=>p.name).join("、")}的攻擊與豁免 +1d4（${u.name}專注中）`,"skill"); }}

@@ -36,10 +36,10 @@ const DOLL_IMPACT = {slash:230, smash:400, combo:180, spin:260, thrust:280, guar
 // 技能 → 動作（武器：普攻＋三招；法器：法術，法杖第一招是打擊）
 const SKILL_ANIM = {
   // 跟 data/skills.js 每組的招式一一對應（2026-10-01 合併重複招式後：劍、長柄、投擲、徒手少了幾招）
-  sword:["slash","guard","combo"], heavy:["smash","spin","smash","thrust"], axe:["slash","smash","slash","smash"],
-  mace:["smash","smash","slam","smash"], polearm:["thrust","guard"], dagger:["thrust","thrust","thrust","thrust"],
-  bow:["shoot","shoot","shoot","shoot"], crossbow:["shoot","shoot","shoot","shoot"], firearm:["fire"], thrown:["throw","throw","throw"],
-  unarmed:["punch","slam"], arcane_staff:["smash","cast","cast","cast"], healing_book:["cast","cast","cast"], flame_orb:["cast","cast","cast"],
+  sword:["slash","guard","combo"], heavy:["smash"], axe:["slash","smash"],
+  mace:["smash"], polearm:["thrust"], dagger:["thrust","thrust","thrust"],
+  bow:["shoot"], crossbow:["shoot"], firearm:["fire"], thrown:["throw"],
+  unarmed:["punch"], arcane_staff:["smash","cast","cast","cast"], healing_book:["cast","cast"], flame_orb:["cast","cast","cast"],
   shaman_totem:["cast","cast","cast"]
 };
 const animFor = (groupId, idx) => (SKILL_ANIM[groupId]||[])[idx] || "slash";

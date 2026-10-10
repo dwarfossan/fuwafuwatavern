@@ -31,7 +31,7 @@ try{
   // 專注：受傷豁免、倒下中斷、換專注
   u.hp=u.maxHp=500; out.dcLog=null; const n1=b.log.length; hurt(u,40,'穿刺',g); out.dcLog=b.log.slice(n1).some(l=>/體質豁免.*DC 20/.test(l.t));
   const fox=b.units.find(v=>v.side==='pc'&&v!==u); fox.statuses=[];
-  SKILL_IMPL.healing_book[2].run(fox); out.blessed=b.units.filter(v=>has(v,'blessed')).length>0; out.foxConc=(concOf(fox)||{}).key;
+  learnedSkillByKey('bless').impl.run(fox); out.blessed=b.units.filter(v=>has(v,'blessed')).length>0; out.foxConc=(concOf(fox)||{}).key;
   if(g){ SKILL_IMPL.hunter[0].run(fox,g); } out.swap=(concOf(fox)||{}).key==='hunters_mark' && !b.units.some(v=>has(v,'blessed'));
   fox.hp=1; hurt(fox,9,'穿刺',null); out.downEnds=!concOf(fox) && !b.units.some(v=>v.statuses.some(s=>s.k==='marked'&&s.src===fox.id));
   // 點心

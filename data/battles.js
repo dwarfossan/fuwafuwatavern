@@ -13,7 +13,7 @@ const BATTLES = {
   // 路旁寶箱遭遇場，GPT 暫定；勝利回接原本旅程。
   worldMimic:{name:"路旁寶箱怪",w:12,h:12,tutorial:false,road:roadRow([5,6],12),
     blocks:[{x:2,y:2,kind:"tree"},{x:9,y:9,kind:"tree"},{x:4,y:3,kind:"bush"}],
-    party:[[7,5],[7,6],[8,5],[8,6]],foes:[{type:"world_mimic",x:5,y:5,testSkill:"topple"}],after:"worldChest"},
+    party:[[7,5],[7,6],[8,5],[8,6]],foes:[{type:"world_mimic",x:5,y:5,testSkill:"shove_prone"}],after:"worldChest"},
   ambush: {
     name:"救援商隊", w:23, h:26, tutorial:true,
     road: roadRow([12,13], 23),
@@ -35,10 +35,10 @@ const BATTLES = {
     // 東邊北段是直的山壁，南段有一層的台階可以分兩次爬
     elev: [{x0:2, y0:17, x1:8, y1:22, h:2}, {x0:9, y0:20, x1:9, y1:22, h:1}],   // 商人躲在馬車後面（默默：「馬車後面，躲著一個人」）
     foes: [
-      {type:"goblin", x:11, y:11, gear:["短棒","破布衣"], testSkill:"daze"},        // 震暈
+      {type:"goblin", x:11, y:11, gear:["短棒","破布衣"]},
       {type:"goblin", x:10, y:13},                   // 10-09 連擊改成被動，不再當測試招式
-      {type:"goblin_archer", x:9, y:14, testSkill:"suppress"},                 // 壓制射擊
-      {type:"goblin_shaman", x:2, y:8, hidden:true, testSkill:"bane"} // 災禍術
+      {type:"goblin_archer", x:9, y:14},
+      {type:"goblin_shaman", x:2, y:8, hidden:true}
     ]
   }
 };

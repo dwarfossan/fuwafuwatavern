@@ -41,56 +41,40 @@ const SKILL_GROUPS = [
   {id:"heavy", name:"雙手重武器", stat:"力量",
    weapons:["巨劍","巨斧","巨錘","巨棒"],
    skills:[
-    {name:"重擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"cleave", name:"橫掃", kind:"近戰", req:["twoHandMelee","longWeapon"], tier:1,   text:"對每個敵人各攻擊一次，傷害只算武器骰、不加屬性。"},
-    {id:"power_strike", name:"蓄力重擊", kind:"近戰", req:"twoHandMelee", tier:1,   text:"這回合不能移動；攻擊一次，命中時多 1 顆武器骰。"},
-    {id:"topple", name:"撞倒", kind:"近戰", req:["twoHandMelee","longWeapon","unarmed"], tier:1,   text:"攻擊一次；命中後目標選力量或敏捷豁免，失敗則倒地。"}]},
+    {name:"重擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"}]},
 
   {id:"axe", name:"斧類", stat:"力量",
    weapons:["手斧","戰斧","戰鎬"],
    skills:[
     {name:"劈砍", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"sunder", name:"破甲", kind:"近戰", req:"meleeWeapon", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次，命中則目標 AC −2，直到你下回合結束。"},
-    {id:"bleed", name:"放血", kind:"近戰", req:"cutOrPierce", tier:1,   up:"每高一階多流血 1 次。", text:"攻擊一次；命中後目標接下來 2 次回合開始各受 1d4 流血傷害。"},
-    {id:"shield_split", name:"劈盾", kind:"近戰", req:"slashWeapon", tier:1,   text:"攻擊一次；命中後目標盾牌失效（AC −2），直到你下回合開始。"}]},
+    {id:"sunder", name:"破甲", kind:"近戰", req:"meleeWeapon", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次，命中則目標 AC −2，直到你下回合結束。"}]},
 
   {id:"mace", name:"錘類", stat:"力量",
    weapons:["短棒","輕錘","硬頭錘","戰錘","釘頭錘","鏈枷"],
    skills:[
-    {name:"敲擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"daze", name:"震暈", kind:"近戰", req:"bluntOrUnarmed", tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標體質豁免，失敗則下回合只能移動或行動二選一。"},
-    {id:"quake", name:"震地", kind:"豁免", dmg:"", req:"bluntOrUnarmed", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰傷害（範圍不變）。", text:"敵人敏捷豁免，失敗則倒地；不造成傷害。"},
-    {id:"knockback", name:"擊退", kind:"近戰", req:"meleeOrUnarmed", tier:1,   text:"攻擊一次；命中後推開目標 1 格，你跟上一步。"}]},
+    {name:"敲擊", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"}]},
 
   {id:"polearm", name:"長柄類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["長柄刀","戟","長矛","矛","三叉戟","長棍","鞭"],
    skills:[
-    {name:"突刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"guard_stance", name:"阻截", kind:"輔助", req:"longWeapon", tier:1,   free:true, text:"直到你下回合開始，第一個走進攻擊範圍的敵人會被你攻擊一次。"}]},
+    {name:"突刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"}]},
 
   {id:"dagger", name:"匕首類", stat:"力量（有「靈巧」的武器取力量、敏捷高的）",
    weapons:["匕首","鐮刀"],
    skills:[
     {name:"快刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；有「投擲」屬性時也能投擲。"},
     {id:"sneak_attack", name:"偷襲", style:"rogue", activation:"passive", kind:"被動", dmg:"物理", tier:0, text:"用武器攻擊命中時，如果目標 1 格內有你的隊友，多 1d6 傷害；1、3、5…級各多 1d6（等級除以 2 進位）。每回合一次。"},
-    {id:"dash_stab", name:"閃身刺", kind:"近戰", req:"lightMelee", tier:1,   text:"先閃到 2 格內、目標身旁的空位（不會被藉機攻擊，不算移動），再攻擊一次。"},
     {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標下回合移動 −2 格。"}]},
 
   {id:"bow", name:"弓類", stat:"敏捷",
    weapons:["短弓","長弓","非凡長弓"],
    skills:[
-    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"aimed_shot", name:"瞄準射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"本回合不能移動；攻擊一次，命中 +2，傷害多 1 顆武器骰。"},
-    {id:"arrow_rain", name:"箭雨", kind:"豁免", req:"bow", tier:1,   up:"每高一階，豁免失敗的多受 1 顆武器骰（範圍不變）。", text:"敵人敏捷豁免，失敗受 1 顆武器骰傷害。"},
-    {id:"suppress", name:"壓制射擊", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次；命中後目標削弱，下次攻擊有劣勢。"}]},
+    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"}]},
 
   {id:"crossbow", name:"弩類", stat:"敏捷",
    weapons:["輕弩","手弩","重弩"],
    skills:[
-    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；每回合只能射一次。"},
-    {id:"pierce_shot", name:"貫穿", kind:"遠程", req:"piercingProjectile", tier:1,   text:"朝一個方向射出，直線上的每個敵人各攻擊一次。"},
-    {id:"pin", name:"釘住", kind:"遠程", req:"piercingProjectile", tier:1,   text:"攻擊一次，命中的話目標到他自己的回合結束前都不能移動。"},
-    {id:"point_blank", name:"近射", kind:"遠程", req:"rangedWeapon", tier:1,   text:"攻擊一次，貼身射擊也沒有劣勢。"}]},
+    {name:"射擊", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；每回合只能射一次。"}]},
 
   // 火槍類（大爺 10-03）：只有普攻。大爺：手上拿什麼，能用的招式就照招式的要求出現（貫穿、釘住、近射等要「穿刺型遠程武器」「遠程武器」的照樣能用）
   {id:"firearm", name:"火槍類", stat:"敏捷",
@@ -101,15 +85,12 @@ const SKILL_GROUPS = [
   {id:"thrown", name:"投擲類", stat:"力量（有「靈巧」的取力量、敏捷高的；用彈藥的用敏捷）",
    weapons:["標槍","飛鏢","投石索","吹箭筒"],
    skills:[
-    {name:"投擲", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"},
-    {id:"multi_throw", name:"連投", kind:"遠程", req:"thrown", tier:1,   up:"每高一階多投 1 個不同目標。", text:"對兩個不同目標各攻擊一次。"},
-    {id:"precise_throw", name:"精準一擲", kind:"遠程", req:"thrown", tier:1,   text:"攻擊有優勢，命中的話目標削弱（下次攻擊有劣勢）。"}]},
+    {name:"投擲", kind:"遠程",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精。"}]},
 
   {id:"unarmed", name:"徒手", stat:"力量",
    weapons:["（沒拿武器）"],
    skills:[
-    {name:"拳擊", kind:"近戰",     tier:0,   text:"造成 1 + 力量調整值傷害。"},
-    {id:"suplex", name:"摔投", kind:"近戰", req:"unarmed", tier:1,   up:"每高一階多 1d6 傷害。", text:"要先擒抱住目標：把他摔到 1 格外，目標倒地並受 1d6 傷害，擒抱結束。"}]},
+    {name:"拳擊", kind:"近戰",     tier:0,   text:"造成 1 + 力量調整值傷害。"}]},
 
 
   {id:"shield", name:"盾牌", stat:"—",
@@ -131,7 +112,6 @@ const SKILL_GROUPS = [
    weapons:["治癒法書"],
    skills:[
     {id:"healing_word", name:"治癒真言",  kind:"輔助", tier:1,   srd:true, free:true, up:"每高一階多恢復 1d4。", text:"恢復 1d4 + 施法屬性調整值生命值。"},
-    {id:"cure_wounds", name:"治療傷口",  kind:"輔助", tier:1,   srd:true, up:"每高一階多恢復 2d8。", text:"恢復 2d8 + 施法屬性調整值生命值。"},
     {id:"bless", name:"祝福術",  kind:"輔助",   tier:1, srd:true, conc:true, up:"每高一階多 1 名隊友。", text:"最多 3 名隊友的攻擊與豁免 +1d4。"}]},
 
   {id:"flame_orb", name:"火焰法球", stat:"魅力",
@@ -211,5 +191,5 @@ SKILL_GROUPS.push({id:"style",name:"風格",trait:true,weapons:[],stat:"—",ski
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
 
 // 只供技能卡／技能表呈現，不參與技能結算。
-const SKILL_AREA_TEXT={cleave:"武器攻擊範圍",quake:"周圍 1 格",arrow_rain:"3×3 格",burning_hands:"前方 3 格錐形",bless:"6 格內",bane:"6 格內"};
+const SKILL_AREA_TEXT={burning_hands:"前方 3 格錐形",bless:"6 格內",bane:"6 格內"};
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>{if(SKILL_AREA_TEXT[s.id])s.areaText=SKILL_AREA_TEXT[s.id];}));

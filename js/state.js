@@ -9,8 +9,12 @@ const STARTER_NOTES = {
 const starterNotes = id => (STARTER_NOTES[id]||[]).map(x=>({...x}));
 const RACE = {name:"毛球族", size:"小型", darkvision:12};
 const RACE_NOTE_KEYS = ["darkvision"];
-const raceFreeNotes = notes => (notes||[]).filter(n=>!RACE_NOTE_KEYS.includes(n.key));
-const raceFreeKeys = keys => (keys||[]).filter(k=>!RACE_NOTE_KEYS.includes(k));
+// 10-10 大爺：舊技能整理，這 20 招刪掉；舊存檔小筆記裡的那幾筆讀進來時一起拿掉
+const REMOVED_SKILL_KEYS = ["power_strike","shield_split","aimed_shot","point_blank","multi_throw","precise_throw","suplex","cure_wounds",
+  "cleave","quake","arrow_rain","pierce_shot","guard_stance","bleed","knockback","dash_stab","pin","daze","suppress","topple"];
+const DROPPED_NOTE_KEYS = [...RACE_NOTE_KEYS, ...REMOVED_SKILL_KEYS];
+const raceFreeNotes = notes => (notes||[]).filter(n=>!DROPPED_NOTE_KEYS.includes(n.key));
+const raceFreeKeys = keys => (keys||[]).filter(k=>!DROPPED_NOTE_KEYS.includes(k));
 
 const state = {
   page:"cover",

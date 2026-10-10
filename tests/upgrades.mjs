@@ -20,9 +20,8 @@ try{
   const hitAll=()=>{ window.__atk=attackRoll; attackRoll=()=>({hit:true,crit:false}); window.__wa=weaponAttack; };
   const reset=()=>{ foes.forEach(f=>{f.statuses=[];f.hp=99;f.maxHp=99;f.dead=false;f.down=false;}); b.units.filter(v=>v.side==='pc').forEach(p=>{p.statuses=[];p.hp=99;p.down=false;}); };
   const out={};
-  // 資料：範圍招不再寫「範圍多 1 圈」；撞倒、擊退、閃身刺改成預設的多武器骰
+  // 資料：範圍招不再寫「範圍多 1 圈」
   out.noRange = SKILL_GROUPS.flatMap(g=>g.skills).every(s=>!/範圍往外多/.test(s.up||''));
-  out.defaults = ['topple','knockback','dash_stab'].every(k=>!def(k).up);
   // 擺位：嬌嬌旁邊一隻哥布林
   const u=U('tiger'), f=foes[0]; reset(); f.x=u.x+1; f.y=u.y; foes.slice(1).forEach((g,i)=>{g.x=u.x+5+i; g.y=u.y+5;});
   hitAll();
@@ -31,30 +30,13 @@ try{
   out.sunder={n:ac.n||0,left:ac.left}; expire('end',u.id); expire('end',u.id); out.sunderAfter2=!!has(f,'acDown'); expire('end',u.id); out.sunderAfter3=!!has(f,'acDown');
   // 扎腿 升 1 階：撐 2 輪
   reset(); b.up=1; impl('hamstring').run(U('raccoon'),f); out.ham=f.statuses.find(s=>s.k==='slowed')?.left;
-  // 震暈：豁免難度不變、升 1 階撐 2 輪
-  reset(); let dcSeen=null; const sr=saveRoll; saveRoll=(t,st,dc)=>{dcSeen=dc;return false;}; b.up=1; impl('daze').run(u,f);
-  out.daze={dc:dcSeen===dcOf(u,'STR'), left:f.statuses.find(s=>s.k==='dazed')?.left};
-  // 撞倒：豁免難度不變
-  reset(); dcSeen=null; b.up=2; impl('topple').run(u,f); out.toppleDC=dcSeen===dcOf(u,weaponStat(u));
-  // 震地 升 2 階：範圍還是 1 圈；豁免失敗的受 2 顆武器骰
-  reset(); const far=foes[1]; far.x=u.x+2; far.y=u.y; let rolls=0; const dr=dmgRoll; dmgRoll=(...a)=>{rolls++;return dr(...a);};
-  b.up=2; impl('quake').run(u); out.quake={near:!!has(f,'prone'), far:!!has(far,'prone'), rolls, hurt:f.hp<99};
-  // 箭雨 升 1 階：半徑 1；失敗的受 2 顆武器骰
-  reset(); const w=U('wolf'); rolls=0; far.x=f.x+2; far.y=f.y; b.up=1; impl('arrow_rain').run(w,{x:f.x,y:f.y}); out.rain={rolls, far:far.hp<99, near:f.hp<99};
-  dmgRoll=dr; saveRoll=sr;
-  // 擊退 升 2 階：只推 1 格
-  reset(); const ox=f.x; b.up=2; impl('knockback').run(u,f); out.push=Math.abs(f.x-ox)+Math.abs(f.y-(u.y));
+  // 10-10 震暈、撞倒、震地、箭雨、擊退刪了（舊技能整理）
   // 10-09 守護改成戰士風格被動，改由 tests/guard.mjs 驗
   b.up=0; return out;
  });
- assert(r.noRange);assert(r.defaults);ok('資料：沒有「範圍多 1 圈」；撞倒、擊退、閃身刺＝多武器骰');
+ assert(r.noRange);ok('資料：沒有「範圍多 1 圈」');
  assert.equal(r.sunder.n,0);assert.equal(r.sunder.left,2);assert(r.sunderAfter2);assert(!r.sunderAfter3);ok('破甲升 2 階：AC −2、撐 3 輪');
  assert.equal(r.ham,1);ok('扎腿升 1 階：多 1 輪');
- assert(r.daze.dc);assert.equal(r.daze.left,1);ok('震暈：豁免難度不變、升 1 階多 1 輪');
- assert(r.toppleDC);ok('撞倒：豁免難度不變（升階改成多武器骰）');
- assert(r.quake.near);assert(!r.quake.far);assert.equal(r.quake.rolls,2);assert(r.quake.hurt);ok('震地升 2 階：範圍還是 1 圈、倒地的多受 2 顆武器骰');
- assert.equal(r.rain.rolls,2);assert(!r.rain.far);assert(r.rain.near);ok('箭雨升 1 階：範圍不變、失敗的受 2 顆武器骰');
- assert.equal(r.push,1);ok('擊退升 2 階：還是推 1 格');
  const rest=await pg.evaluate(()=>{const b=B();const u=b.units.find(v=>v.id==='fox');u.level=5;u.slots=slotMax(u).map(()=>0);u.slots[1]=1;
    const was=b.result;b.result='win';takeRest('short');const a=JSON.stringify(state.proficiency.fox);
    u.learned=[{key:'x',name:'測試'}];eraseNote(u,'x');syncLearnedState();const e=JSON.stringify(state.proficiency.fox);b.result=was;return {a,e};});

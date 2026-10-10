@@ -184,15 +184,17 @@ console.log('規則');
   // 合併重複招式（2026-10-01）：用代號找得到、舊名稱不在、能不能用照新條件
   const r4 = await pg.evaluate(()=>{ const b=B(), tig=b.units.find(u=>u.id==='tiger'), W=n=>ITEMS.find(i=>i.n===n);
     const can=(w,id)=>{ tig.weapon=w?W(w):null; return skillReqMet(tig, learnedSkillByKey(id)); };
-    return {gone:['逼退','回掃','絆倒','瞄腿','頭槌','連打','衝撞','重敲','連斬'].filter(n=>SKILL_GROUPS.some(g=>g.skills.some(s=>s.name===n))),
+    return {gone:['逼退','回掃','絆倒','瞄腿','頭槌','連打','衝撞','重敲','連斬','蓄力重擊','劈盾','瞄準射擊','近射','連投','精準一擲','摔投','治療傷口','橫掃','震地','箭雨','貫穿','阻截','放血','擊退','閃身刺','釘住','震暈','壓制射擊','撞倒'].filter(n=>SKILL_GROUPS.some(g=>g.skills.some(s=>s.name===n))),
       impl:Object.keys(SKILL_BY_ID).filter(id=>!learnedSkillByKey(id).impl),
       len:SKILL_GROUPS.every(g=>!SKILL_IMPL[g.id] || SKILL_IMPL[g.id].length===g.skills.length),
-      req:[can(null,'double_strike'),can('長劍','double_strike'),can('硬頭錘','double_strike'),can(null,'daze'),can('長柄刀','topple'),can('匕首','topple'),can('短弓','hamstring'),can('硬頭錘','hamstring')].map(Number).join(''),
-      notes:Object.values(STARTER_NOTES).flat().every(n=>learnedSkillByKey(n.key)), foes:b.def.foes.every(f=>!f.testSkill || learnedSkillByKey(f.testSkill)),
+      req:[can(null,'double_strike'),can('長劍','double_strike'),can('硬頭錘','double_strike'),can(null,'sunder'),can('長劍','sunder'),can('短弓','hamstring'),can('硬頭錘','hamstring')].map(Number).join(''),
+      notes:Object.values(STARTER_NOTES).flat().every(n=>learnedSkillByKey(n.key)), foes:Object.values(BATTLES).flatMap(d=>d.foes||[]).every(f=>!f.testSkill || GEN_ACT[f.testSkill] || learnedSkillByKey(f.testSkill)),
+      dropped: raceFreeNotes([{key:'daze'},{key:'sunder'},{key:'topple'}]).map(n=>n.key).join()==='sunder' && raceFreeKeys(['pin','hamstring']).join()==='hamstring',
       bowAnim: (()=>{ const w=b.units.find(u=>u.id==='wolf'); w.weapon=W('短弓'); return skillAnim(w, learnedSkillByKey('hamstring'), {x:w.x-6,y:w.y}); })() }; });
   ok('合併招式：舊名稱都不在、每招都有實作、組數對得上', r4.gone.length===0 && r4.impl.length===0 && r4.len, JSON.stringify(r4));
-  ok('合併招式：武器條件（徒手連擊、長柄撞倒、拿弓扎腿…）', r4.req==='11111010', r4.req);
+  ok('合併招式：武器條件（徒手連擊、近戰武器破甲、拿弓扎腿…）', r4.req==='1110110', r4.req);
   ok('起始技能、敵人的 testSkill 都用代號找得到', r4.notes && r4.foes);
+  ok('舊存檔小筆記裡刪掉的招（10-10）讀進來會拿掉', r4.dropped);
   ok('拿弓放扎腿用射箭的動作', r4.bowAnim==='shoot', r4.bowAnim);
   // 狀態精簡成 15 個（2026-10-01）：合併的狀態照新規則、凍結麻痺中毒
   const r5 = await pg.evaluate(()=>{ const b=B(), U=id=>b.units.find(u=>u.id===id), tig=U('tiger'), wolf=U('wolf'), g=b.units.find(u=>u.type==='goblin');

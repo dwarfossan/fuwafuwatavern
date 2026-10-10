@@ -75,7 +75,7 @@ const ITEMS = [
   {type:"shield",n:"盾牌",en:"Shield",cat:"盾牌",cost:10*GP,wt:6,ac:2},
   // 法器：每件綁定一組 3 個法術（見 data/skills.js）；價格重量參考 SRD 的法杖、法球與法術書
   {type:"focus",n:"奧術法杖",en:"Arcane Staff",cat:"法器",cost:5*GP,wt:4,stat:"INT",spells:"魔法飛彈、護盾術、法師護甲"},
-  {type:"focus",n:"治癒法書",en:"Tome of Healing",cat:"法器",cost:50*GP,wt:3,stat:"WIS",spells:"治癒真言、治療傷口、祝福術"},
+  {type:"focus",n:"治癒法書",en:"Tome of Healing",cat:"法器",cost:50*GP,wt:3,stat:"WIS",spells:"治癒真言、祝福術"},
   {type:"focus",n:"火焰法球",en:"Flame Orb",cat:"法器",cost:20*GP,wt:3,stat:"CHA",spells:"火焰箭、燃燒之手、火焰護盾"},
   // 薩滿圖騰：哥布林薩滿拿的，商店不賣（noShop），打掉之後誰都能撿來用
   {type:"focus",n:"薩滿圖騰",en:"Shaman Totem",cat:"法器",cost:20*GP,wt:3,stat:"WIS",spells:"火焰箭、治癒真言、災禍術",noShop:true},

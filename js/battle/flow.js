@@ -911,8 +911,8 @@ function afterShow(u, ms){
 const settle = ms => Math.max(ms, (B().impactEnd||0) - Date.now() + 600);
 
 // ---------- 敵人挑招（跟我方同一套技能，照手上的武器、法器） ----------
-// 範圍招（橫掃、震地、回掃）：身邊有兩個以上看得到的敵人才用
-const AOE_SELF = {cleave:u=>reachOf(u), quake:u=>1};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
+// 以自己為中心的範圍招：身邊有兩個以上看得到的敵人才用（10-10 橫掃、震地刪了，目前沒有這類招）
+const AOE_SELF = {};   // 以自己為中心的範圍招：範圍多大（敵人 AI 用）
 const foeUsable = e => unitSkills(e).filter(s=>s.impl && !s.impl.passive && (s.def.components || hasAmmoFor(skillWeaponView(e,s))) && !componentProblem(e,s) && !turnLimitProblem(e,s) && skillReady(e,s) && !(s.impl.can && !s.impl.can(e)) && !(fromTwoHanded(e,s) && inGrapple(e)));
 // 對 t 能用的攻擊招：要用格子的招式還有格子就用（六成機率），不然普攻；回傳 {sk, t}
 // 不升階（一律用最低階的格子）；之後頭目會省格子，再加判斷
@@ -933,7 +933,6 @@ function foeFreePick(e){
     if(s.group.id==="shield"){ if(alive(e.side).some(o=>o!==e && dist(o,e)===1 && pcs.some(p=>dist(p,o)<=1))) return {sk:s, t:e}; continue; }   // 守護：旁邊有被貼著的同伴就開
     if(s.impl.target==="ally"){ const t = alive(e.side).filter(o=>o.hp<=o.maxHp/2 && validTarget(e,s,o.x,o.y)).sort((a,c)=>a.hp-c.hp)[0]; if(t) return {sk:s, t}; continue; }
     if(s.def.name==="護盾術" && !has(e,"shieldSpell") && pcs.some(p=>dist(p,e)<=2)) return {sk:s, t:e};
-    if(s.key==="guard_stance" && !hasVia(e,"stance","guard") && pcs.some(p=>dist(p,e)<=reachOf(e)+4)) return {sk:s, t:e};
   }
   return null;
 }
@@ -1002,8 +1001,11 @@ function aiTurn(e){
     if(f && (freeLeft() || (canAct() && f.sk.impl.target==="ally" && f.t.hp<=f.t.maxHp/4))){ doSkill(e, f.sk, f.t); later(()=>{ if(b.result) return; if(cur()===e && !e.dead && !e.down) aiTurn(e); else endTurn(); }, settle(900)); return; } }
   if(!canAct()){ refreshBattle(); later(endTurn, 500); return; }        // 主動作拿去補血了：這回合就這樣
   const trapTarget=enemyTrapTarget(e);if(trapTarget&&placeEnemyTrap(e,trapTarget)){later(endTurn,settle(900));return;}
-  // 學習系統測試：每隻哥布林先使用一項「既有技能表」裡的招式一次。
-  // 不新增測試專用技能，先驗證：敵人施放 → 被動觀察 → 理解/失敗 → 小筆記。
+  // 開場招（foes 的 testSkill）：第一次用得上時先用一次。可以是技能代號，或通用動作（GEN_ACT，例如寶箱怪的推倒 shove_prone）
+  if(!e.testSkillUsed && GEN_ACT[e.testSkill]){
+    const t=GEN_ACT[e.testSkill].targets(e).filter(p=>!isHid(p)).sort((a,c)=>a.hp-c.hp)[0];
+    if(t){ e.testSkillUsed=true; doGenAct(e,e.testSkill,t); later(endTurn,settle(1300)); return; }
+  }
   if(!e.testSkillUsed && e.testSkill){
     const sk=learnedSkillByKey(e.testSkill);
     if(sk && sk.impl && skillReqMet(e,sk) && !componentProblem(e,sk) && skillReady(e,sk)){
