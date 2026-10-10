@@ -281,7 +281,7 @@ const TOWN_GOODBYE = {
 };
 const TOWN_FOUNDING = [
   {who:"merchant",text:"對了，你們四個湊在一起……還真像一排毛絨絨的玩具。",mark:"note"},
-  {who:"tiger",text:"你家的玩具會拿斧頭喔？",mood:"confused"},
+  {who:"tiger",text:"你家的玩具會拿裝備喔？",mood:"confused"},
   {who:"merchant",text:"哈、哈哈！我先走了！",mark:"sweat"},
   {who:"narr",text:"商人趕著馬車進城，很快就消失在人群裡。",on:"none"},
   {who:"raccoon",text:"毛絨絨……",on:"none",mood:"happy"},
