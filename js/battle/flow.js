@@ -80,7 +80,7 @@ function answerMarkTransfer(id){
 }
 function markAskHTML(b){
   const a = b.markAsk, u = b.units.find(v=>v.id===a.who), ts = a.ids.map(id=>b.units.find(v=>v.id===id)).filter(t=>t && !t.dead && !t.down);
-  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>狩印的目標倒下了，要轉到誰身上？</h3><p>${u ? u.name : ""}花一個免費動作，不花熟練格。</p>${ts.map(t=>`<button class="btn" data-mark-to="${t.id}">${t.name}（${dist(t,u)} 格）</button>`).join("")}<button class="btn" data-mark-to="">先不轉</button></div>`;
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>狩印的目標倒下了，要轉到誰身上？</h3><p>${u ? u.name : ""}花一個免費動作，不花熟練格。</p>${choiceBtnsHTML(ts.map(t=>({attr:`data-mark-to="${t.id}"`, label:t.name, sub:`${dist(t,u)} 格`})), {attr:`data-mark-to=""`, label:"先不轉"})}</div>`;
 }
 
 function endTurn(){
@@ -376,7 +376,7 @@ function answerMountPick(id){
 }
 function mountAskHTML(b){
   const a = b.mountAsk, ts = a.ids.map(id=>b.units.find(v=>v.id===id)).filter(Boolean);
-  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${MOUNT_UI.pick}</h3>${ts.map(t=>`<button class="btn" data-mount-pick="${t.id}">${t.name}（${t.hp}/${t.maxHp}）</button>`).join("")}<button class="btn" data-mount-pick="">${MOUNT_UI.cancel}</button></div>`;
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${MOUNT_UI.pick}</h3>${choiceBtnsHTML(ts.map(t=>({attr:`data-mount-pick="${t.id}"`, label:t.name, sub:`生命 ${t.hp}/${t.maxHp}`})), {attr:`data-mount-pick=""`, label:MOUNT_UI.cancel})}</div>`;
 }
 // 點格子：瞄準中 → 選目標；點到輪到的角色 → 開關指令選單；點到別隻 → 狀態卡；移動模式點藍格 → 走過去
 function clickTile(x, y){

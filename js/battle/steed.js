@@ -41,7 +41,7 @@ function steedNameHTML(b){
   const a = b.steedNameAsk, cur0 = (state.steed && state.steed.name) || "";
   return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${a.first ? MOUNT_UI.nameFirst : MOUNT_UI.nameAgain}</h3>
     <p>${MOUNT_UI.nameHint}</p><input class="steed-name" id="steedName" maxlength="${STEED_NAME_MAX}" value="${a.first ? "" : cur0}" placeholder="${STEED_DEFAULT_NAME}" autocomplete="off">
-    <button class="btn" data-steed-name="ok">${MOUNT_UI.ok}</button>${a.first ? "" : `<button class="btn" data-steed-name="">${MOUNT_UI.cancel}</button>`}</div>`;
+    ${choiceBtnsHTML([{attr:`data-steed-name="ok"`, label:MOUNT_UI.ok}], a.first ? null : {attr:`data-steed-name=""`, label:MOUNT_UI.cancel})}</div>`;
 }
 function answerSteedName(ok, value){
   const b = B(), a = b && b.steedNameAsk; if(!a) return;

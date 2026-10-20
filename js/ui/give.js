@@ -24,8 +24,8 @@ function giveHTML(m){
   const it = itemById(m.id), from = m.owner;
   if(!it || !from || !CRITTERS.some(c=>c.id===from) || !giveBag(from).some(x=>x.id===it.id)) return "";
   const others = CRITTERS.filter(c=>c.id!==from);
-  return `<div class="give-row"><small>${GIVE_UI.title}${giveInCombat() ? GIVE_UI.combat : ""}</small><div class="give-people">${others.map(c=>{const why = giveBlock(from, c.id, it);
-    return `<button class="give-to" data-give-to="${c.id}" ${why?"disabled":""} aria-label="交給${c.name}"><span class="give-face">${critterSVG(c.id)}</span><span>${c.name}</span>${why?`<small>${why}</small>`:""}</button>`;}).join("")}</div></div>`;
+  return `<div class="give-row"><small>${GIVE_UI.title}${giveInCombat() ? GIVE_UI.combat : ""}</small>${whoPickHTML(others.map(c=>{const why = giveBlock(from, c.id, it);
+    return {id:c.id, name:c.name, sub:why, off:!!why, attr:`data-give-to="${c.id}" aria-label="交給${c.name}"`};}))}</div>`;
 }
 function giveItem(from, to, id){
   const it = itemById(id); if(giveBlock(from, to, it)) return false;

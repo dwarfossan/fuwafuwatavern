@@ -1375,9 +1375,13 @@ body.image-boot{background:#000}
 .inn-first-night #longRest{position:relative;z-index:51;box-shadow:0 0 0 4px #f2b441,0 0 18px 4px #f2b441}
 .scene-art[data-art="inn"]{background:radial-gradient(circle at 50% 40%,#5a4636 0%,#3a2c26 55%,#241c1a 100%)}
 /* 露營（10-10）：休息框裡挑一隻去找食材；露營 CG 的夜晚營地底色 */
-.camp-ask .camp-heads{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.camp-ask .camp-who{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid #f2b441;border-radius:12px;background:#fff8e8;font-size:15px;font-weight:700;color:#2a2630}
-.camp-ask .camp-who .c-head{width:40px;height:40px}
+/* 選哪一隻小傢伙（露營、交給隊友共用，10-20 統一） */
+.who-heads{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.who-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid #f2b441;border-radius:12px;background:#fff8e8;font:inherit;font-size:15px;font-weight:700;color:#2a2630;text-align:left}
+.who-btn .c-head{width:40px;height:40px;flex:none}
+.who-btn span{display:flex;flex-direction:column}
+.who-btn small{font-size:11px;font-weight:400;opacity:.8}
+.who-btn:disabled{opacity:.5}
 .scene-art[data-art^="camp"]{background:radial-gradient(circle at 50% 55%,#5a3a22 0%,#2c2230 55%,#18151f 100%)}
 /* 店內對話（10-10）：功能按鈕＋對話並排；話題三選一 */
 .town-talk-topics{display:flex;gap:6px}.town-talk-topics .btn{flex:1;min-width:0;white-space:nowrap;padding-left:6px;padding-right:6px;font-size:14px}
@@ -1435,12 +1439,7 @@ body.image-boot{background:#000}
 /* 戰場文字摘要（10-20）：畫面上看不到，給讀網頁文字的工具；保留換行 */
 .ai-readout{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:pre-line}
 
-/* 交給隊友（10-20）：物品卡下面一排小傢伙頭像 */
+/* 交給隊友（10-20）：物品卡下面，選人沿用 .who-heads */
 .give-row{margin-top:10px;border-top:1px dashed rgba(42,38,48,.25);padding-top:8px}
-.give-row>small{display:block;margin-bottom:6px;color:var(--dim,#7a6f80)}
-.give-people{display:flex;gap:6px}
-.give-to{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;border:2px solid #2a2630;background:#fffaf0;font:inherit;font-size:13px;color:#2a2630}
-.give-to:disabled{opacity:.5}
-.give-to small{font-size:10px;line-height:1.2;text-align:center}
-.give-face svg{width:34px;height:34px;display:block}
+.give-row>small{display:block;color:var(--dim,#7a6f80)}
 .res-stolen{color:#9be08a}

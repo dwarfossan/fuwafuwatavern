@@ -224,3 +224,13 @@ document.addEventListener("contextmenu", e=>{
   e.preventDefault();
   gameBack();
 });
+
+// ---------- 選擇的按鈕：統一格式（大爺 10-20） ----------
+// 選一個的詢問框：直排整寬按鈕，主要文字＋小字（代價、剩多少、不能用的原因）；取消／不用是最後一顆淡色的
+function choiceBtnsHTML(opts, cancel){
+  return `<div class="react-btns">${opts.map(o=>`<button class="btn" ${o.attr} ${o.off?"disabled":""}>${o.label}${o.sub?`<small>${o.sub}</small>`:""}</button>`).join("")}${cancel?`<button class="btn ghost" ${cancel.attr}>${cancel.label}</button>`:""}</div>`;
+}
+// 選哪一隻小傢伙：兩欄頭像按鈕（露營找食材、交給隊友共用），下面小字寫不能選的原因
+function whoPickHTML(list){
+  return `<div class="who-heads">${list.map(o=>`<button class="who-btn" ${o.attr} ${o.off?"disabled":""}>${critterHead(o.id)}<span>${o.name}${o.sub?`<small>${o.sub}</small>`:""}</span></button>`).join("")}</div>`;
+}

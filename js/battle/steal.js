@@ -22,8 +22,8 @@ function stealPick(u, t){   // 點了目標：看穿了就挑東西，沒看穿�
 function stealAskHTML(b){
   const a = b.stealAsk, u = b.units.find(v=>v.id===a.who), t = b.units.find(v=>v.id===a.t);
   const items = t ? stealItems(t) : [];
-  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${STEAL_UI.pick(t?.name||"")}</h3>${items.map(it=>{const heavy = !stealFits(u,it);
-    return `<button class="btn" data-steal-item="${it.id}" ${heavy?"disabled":""}>${it.n}（${it.wt||0} lb）${heavy?`　${STEAL_UI.heavy}`:""}</button>`;}).join("")}<button class="btn" data-steal-item="">${STEAL_UI.cancel}</button></div>`;
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${STEAL_UI.pick(t?.name||"")}</h3>${choiceBtnsHTML(items.map(it=>{const heavy = !stealFits(u,it);
+    return {attr:`data-steal-item="${it.id}"`, label:it.n, sub:heavy ? `${it.wt||0} lb・${STEAL_UI.heavy}` : `${it.wt||0} lb`, off:heavy};}), {attr:`data-steal-item=""`, label:STEAL_UI.cancel})}</div>`;
 }
 function answerStealPick(id){
   const b = B(), a = b && b.stealAsk; if(!a) return; b.stealAsk = null; b.busy = false;

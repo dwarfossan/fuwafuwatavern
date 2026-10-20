@@ -13,7 +13,7 @@ const campWild = b => !!b && b===B() && b.phase==="explore";
 // 按長休之後才問誰去找食材（大爺 10-10）：結算完跳出四隻頭像，選了才擲骰、進露營劇情
 function campPickerHTML(b){
   if(!b?.campChoosing) return "";
-  return `<div class="bt-ov bt-react camp-ask" role="dialog" aria-live="assertive"><h3>${CAMP_TEXT.pick}</h3><div class="camp-heads">${CRITTERS.map(c=>`<button class="camp-who" data-camp-who="${c.id}">${critterHead(c.id)}<span>${c.name}</span></button>`).join("")}</div></div>`;
+  return `<div class="bt-ov bt-react camp-ask" role="dialog" aria-live="assertive"><h3>${CAMP_TEXT.pick}</h3>${whoPickHTML(CRITTERS.map(c=>({id:c.id, name:c.name, attr:`data-camp-who="${c.id}"`})))}</div>`;
 }
 function askCamp(b){ b.campChoosing = true; refreshBattle(); }
 function pickCamp(id){ const b = B(); if(!b?.campChoosing) return; b.campChoosing = false; b.campWho = id; startCamp(b); }
