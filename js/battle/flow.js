@@ -35,7 +35,7 @@ function beginTurn(u){
   b.dazed = !!has(u,"dazed");
   let mv = u.speed;
   if(has(u,"prone")){ mv = Math.floor(mv/2); u.statuses = u.statuses.filter(s=>s.k!=="prone"||s.via==="ground"); if(!hasVia(u,"prone","ground")){u.anim = {k:"getup", t:Date.now()}; sfx("swing"); blog(`${u.name}從地上爬起來（移動減半）`);} }
-  // 緩速（含釘住）：同名不疊加，取扣最多的（扎腿升階多扣）；釘住那種＝移動歸零
+  // 緩速（含釘住）：同名不疊加，取扣最多的；釘住那種（扎腿）＝移動歸零
   { const sl = u.statuses.filter(s=>s.k==="slowed");
     if(sl.length) mv = sl.some(s=>s.stop) ? 0 : Math.max(0, mv - Math.max(...sl.map(s=>2 + (s.n||0)))); }
   if(has(u,"restrained") || has(u,"frozen")) mv = 0;   // 束縛（網子、擒抱）、凍結：不能移動

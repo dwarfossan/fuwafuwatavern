@@ -200,7 +200,8 @@ function hitThen(u, t, o, fx){ const r = weaponAttack(u, t, o||{}); if(r.hit && 
 // 目標自己選豁免：取調整值比較高的那個
 const bestOfSave = (t, a, b) => (t.mods[a]||0) >= (t.mods[b]||0) ? a : b;
 const fxProne  = (u, t, stat, save, up=0) => { if(!saveRoll(t, save, dcOf(u, stat) + up)){ knockProne(t); blog(`　${t.name}倒地！`, "skill"); } };
-const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, left:up}); blog(`　${t.name}${up?`接下來 ${1+up} 回合`:"下回合"}移動 −2 格`, "skill"); };
+// 扎腿：釘住那種緩速＝移動歸零（大爺 10-20：跟被擒抱一樣，移動為 0）
+const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, left:up, stop:true}); blog(`　${t.name}${up?`接下來 ${1+up} 回合`:"下回合"}不能移動`, "skill"); };
 const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　削弱：${t.name}下次攻擊有劣勢`, "skill"); };
 const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat))){ addStatus(t, "dazed", {until:"end", of:t.id, left:up}); blog(`　${t.name}被震暈了！${up?`接下來 ${1+up} 回合`:"下回合"}只能移動或行動二選一`, "skill"); } };
 const standStill = {can:u=>!B().movedThisTurn, why:"這回合已經移動過了"};

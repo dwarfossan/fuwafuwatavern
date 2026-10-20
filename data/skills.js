@@ -64,7 +64,7 @@ const SKILL_GROUPS = [
    skills:[
     {name:"快刺", kind:"近戰",     tier:0,   text:"造成武器傷害，帶「戰士風格：武器精通」時觸發武器專精；有「投擲」屬性時也能投擲。"},
     {id:"sneak_attack", name:"偷襲", style:"rogue", activation:"passive", kind:"被動", dmg:"物理", tier:0, text:"用武器攻擊命中時，如果目標 1 格內有你的隊友，多 1d6 傷害；1、3、5…級各多 1d6（等級除以 2 進位）。每回合一次。"},
-    {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標下回合移動 −2 格。"}]},
+    {id:"hamstring", name:"扎腿", kind:"近戰", req:["cutOrPierce","rangedWeapon"], tier:1,   up:"每高一階多 1 輪。", text:"攻擊一次；命中後目標下回合不能移動（跟被擒抱一樣，移動歸零；還能攻擊、施法）。"}]},
 
   {id:"bow", name:"弓類", stat:"敏捷",
    weapons:["短弓","長弓","非凡長弓"],
