@@ -85,6 +85,7 @@ function endTurn(){
   if(u.side==="pc") u.reserveFree = u.frenzy ? 0 : Math.max(0, 2-(b.freeUsed||0));   // 沒用完的免費動作留到敵人回合當反應（10-09）
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
   groundStatusSave(u);
+  pinSave(u);                                       // 扎腿：回合結束體質豁免，成功才解除（10-20）
   frenzyTurnEnd(u);                                 // 失控的回合結束：擲感知豁免回神（10-10）
   expire("end", u.id);
   b.mode = null;

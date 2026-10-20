@@ -905,7 +905,7 @@ function statusExplain(v,s){
   let t;
   switch(s.k){
     case "meal": { const f=CAMP_FOODS[s.food]||{}; t = `吃了${f.dish||"料理"}：${f.effect||""}。到下一次長休，生命歸零就沒了。`; break; }
-    case "slowed": t = s.stop ? "被釘住，不能移動。" : `移動 −${2+(s.n||0)} 格。`; break;
+    case "slowed": t = s.stop ? `被釘住，不能移動。${s.resave ? `自己回合結束體質豁免 DC ${s.resave.dc}，成功才解除${s.pinUp ? `；失敗多受 ${s.pinUp}d6 傷害` : ""}。` : ""}` : `移動 −${2+(s.n||0)} 格。`; break;
     case "restrained": t = (s.via==="grapple" ? `被${who(s.src)||"敵人"}抓住。` : "被網子纏住。") + `不能移動；打他有優勢，他攻擊有劣勢。${s.dc ? `掙脫難度 ${s.dc}。` : ""}`; break;
     case "acDown": t = s.shield ? "盾牌被劈開，這段時間盾不算（AC −2）。" : `AC −${2+(s.n||0)}。`; break;
     case "helped": t = s.target ? `下一次攻擊${who(s.target)}有優勢。` : "下一次攻擊有優勢。"; break;

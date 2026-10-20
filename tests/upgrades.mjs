@@ -28,15 +28,19 @@ try{
   // 破甲 升 2 階：AC −2，撐 3 輪
   b.up=2; impl('sunder').run(u,f); const ac=f.statuses.find(s=>s.k==='acDown');
   out.sunder={n:ac.n||0,left:ac.left}; expire('end',u.id); expire('end',u.id); out.sunderAfter2=!!has(f,'acDown'); expire('end',u.id); out.sunderAfter3=!!has(f,'acDown');
-  // 扎腿 升 1 階：撐 2 輪
-  reset(); b.up=1; impl('hamstring').run(U('raccoon'),f); out.ham=f.statuses.find(s=>s.k==='slowed')?.left;
+  // 扎腿 升 1 階（大爺 10-20）：體質豁免失敗被釘住，每次失敗多 1d6；回合結束重擲，成功才解除
+  { const sv=saveRoll; reset(); b.up=1; saveRoll=()=>false; const hp0=f.hp; impl('hamstring').run(U('raccoon'),f);
+    const st=f.statuses.find(s=>s.k==='slowed'), hp1=f.hp; pinSave(f); const still=!!has(f,'slowed'), hp2=f.hp;
+    saveRoll=()=>true; pinSave(f); const freed=!has(f,'slowed');
+    reset(); b.up=0; impl('hamstring').run(U('raccoon'),f); const savedNoPin=!has(f,'slowed'); saveRoll=sv;
+    out.ham={stop:!!st?.stop, pinUp:st?.pinUp, firstHurt:hp1<hp0, still, againHurt:hp2<hp1, freed, savedNoPin}; }
   // 10-10 震暈、撞倒、震地、箭雨、擊退刪了（舊技能整理）
   // 10-09 守護改成戰士風格被動，改由 tests/guard.mjs 驗
   b.up=0; return out;
  });
  assert(r.noRange);ok('資料：沒有「範圍多 1 圈」');
  assert.equal(r.sunder.n,0);assert.equal(r.sunder.left,2);assert(r.sunderAfter2);assert(!r.sunderAfter3);ok('破甲升 2 階：AC −2、撐 3 輪');
- assert.equal(r.ham,1);ok('扎腿升 1 階：多 1 輪');
+ assert.deepEqual(r.ham,{stop:true,pinUp:1,firstHurt:true,still:true,againHurt:true,freed:true,savedNoPin:true});ok('扎腿升 1 階：豁免失敗被釘住、每次失敗多 1d6、成功解除、豁免成功不釘');
  const rest=await pg.evaluate(()=>{const b=B();const u=b.units.find(v=>v.id==='fox');u.level=5;u.slots=slotMax(u).map(()=>0);u.slots[1]=1;
    const was=b.result;b.result='win';takeRest('short');const a=JSON.stringify(state.proficiency.fox);
    u.learned=[{key:'x',name:'測試'}];eraseNote(u,'x');syncLearnedState();const e=JSON.stringify(state.proficiency.fox);b.result=was;return {a,e};});

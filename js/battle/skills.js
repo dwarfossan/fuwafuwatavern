@@ -200,8 +200,23 @@ function hitThen(u, t, o, fx){ const r = weaponAttack(u, t, o||{}); if(r.hit && 
 // 目標自己選豁免：取調整值比較高的那個
 const bestOfSave = (t, a, b) => (t.mods[a]||0) >= (t.mods[b]||0) ? a : b;
 const fxProne  = (u, t, stat, save, up=0) => { if(!saveRoll(t, save, dcOf(u, stat) + up)){ knockProne(t); blog(`　${t.name}倒地！`, "skill"); } };
-// 扎腿：釘住那種緩速＝移動歸零（大爺 10-20：跟被擒抱一樣，移動為 0）
-const fxSlow   = (u, t, up=0) => { addStatus(t, "slowed", {until:"start", of:u.id, left:up, stop:true}); blog(`　${t.name}${up?`接下來 ${1+up} 回合`:"下回合"}不能移動`, "skill"); };
+// 扎腿（大爺 10-20）：命中後目標體質豁免（DC＝8＋2＋出手的武器屬性），失敗被釘住（釘住那種緩速＝移動歸零，還能攻擊施法）；
+// 被釘住的每次自己回合結束再擲一次，成功才解除。升階：每高一階，每次豁免失敗多 1d6（武器的傷害類型），第一次失敗也算
+function pinHurt(t, s){ if(s.pinUp>0 && !t.dead && !t.down) hurt(t, rollDice(`${s.pinUp}d6`).total, s.pinType, B().units.find(v=>v.id===s.of)||null); }
+const fxSlow   = (u, t, up=0) => {
+  const dc = dcOf(u, weaponStat(u));
+  if(saveRoll(t, "CON", dc, u)){ blog(`　${t.name}撐住了，沒被釘住`, "miss"); return; }
+  addStatus(t, "slowed", {via:"pin", stop:true, of:u.id, resave:{stat:"CON", dc}, pinUp:up, pinType:dmgType(u)});
+  blog(`　${t.name}被釘住，不能移動`, "skill"); pinHurt(t, t.statuses.find(s=>s.via==="pin"));
+};
+// 回合結束（探索每 6 秒）重擲；成功解除，失敗繼續釘著（升階的再痛一次）
+function pinSave(u){
+  const s = u.statuses.find(x=>x.k==="slowed" && x.via==="pin"); if(!s || u.dead) return false;
+  panelStart(`${u.name}【扎腿豁免】`); const ok = saveRoll(u, s.resave.stat, s.resave.dc); panelEnd();
+  if(ok){ u.statuses = u.statuses.filter(x=>x!==s); blog(`${u.name}掙脫了，不再被釘住。`, "skill"); }
+  else { blog(`${u.name}還是被釘住。`, "skill"); pinHurt(u, s); }
+  return true;
+}
 const fxHamper = t => { addStatus(t, "sapped", {via:"hamper"}); blog(`　削弱：${t.name}下次攻擊有劣勢`, "skill"); };
 const fxDaze   = (u, t, stat, up=0) => { if(!saveRoll(t, "CON", dcOf(u, stat))){ addStatus(t, "dazed", {until:"end", of:t.id, left:up}); blog(`　${t.name}被震暈了！${up?`接下來 ${1+up} 回合`:"下回合"}只能移動或行動二選一`, "skill"); } };
 const standStill = {can:u=>!B().movedThisTurn, why:"這回合已經移動過了"};

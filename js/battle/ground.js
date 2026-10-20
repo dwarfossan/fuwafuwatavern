@@ -59,6 +59,7 @@ function groundAdvance(ms,combat=false){
    groundPoison(u);if(poisonDamage(u))changed=true;
    if(!u.dead&&!u.down&&has(u,'burning')){hurt(u,rollDice('1d4').total,'火焰',null);changed=true;}
    if(groundStatusSave(u))changed=true;
+   if(pinSave(u))changed=true;
   }
    // 探索的六秒也算一次地面蔓延；沒有角色回合或行動次數。
    for(const f of Object.values(b.groundEffects||{}))if(f.kind==='fire')for(const o of b.def.blocks)if(o.kind==='bush'&&Math.max(Math.abs(o.x-f.x),Math.abs(o.y-f.y))===1&&!groundAt(o.x,o.y))spread.push(o);
