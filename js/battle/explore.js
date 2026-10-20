@@ -49,7 +49,7 @@ function exploreSolidHit(o,x,y){
 function explorePositionClear(u,x,y,units=true){
  const b=B();if(x<0||y<0||x>b.def.w-1||y>b.def.h-1)return false;
  if(b.def.blocks.some(o=>TERRAIN[o.kind]?.solid&&exploreSolidHit(o,x,y)))return false;
- return !units||!b.units.some(v=>v!==u&&!v.dead&&!v.fled&&!(exploring()&&v.side==="pc"&&v!==exploreUnit())&&Math.hypot(v.x-x,v.y-y)<.55);
+ return !units||!b.units.some(v=>v!==u&&!v.dead&&!v.fled&&!(exploring()&&v.side==="pc"&&v!==exploreUnit())&&bodyHit(v,x,y));
 }
 function exploreSegmentClear(u,a,t,units=true){
  const n=Math.max(1,Math.ceil(Math.hypot(t.x-a.x,t.y-a.y)*20));
@@ -172,13 +172,13 @@ function exploreAlignCombat(){
  const b=B(),units=b.units.filter(u=>!u.dead&&!u.fled&&!mountOf(u)),used=new Set(),positions=[];   // 騎著的騎士跟著坐騎（10-20）
  const candidates=units.map(u=>{const out=[],cx=Math.round(u.x),cy=Math.round(u.y),kind=groundAt(u.x,u.y)?.kind;
   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const x=cx+dx,y=cy+dy;
-   if(blocked(x,y)||hAt(x,y)!==hAt(u.x,u.y)||groundAt(x,y)?.kind!==kind||
+   if(cellsOf(u,x,y).some(c=>blocked(c.x,c.y))||hAt(x,y)!==hAt(u.x,u.y)||groundAt(x,y)?.kind!==kind||
     b.def.blocks.some(o=>o.x===x&&o.y===y&&((o.kind==="trap"&&!o.disarmed)||(o.kind==="poisonSwamp"&&(x!==cx||y!==cy))))||
     !exploreAlignmentClear(u,{x,y}))continue;
    out.push({x,y,d:Math.hypot(x-u.x,y-u.y)});
   }return out.sort((a,c)=>a.d-c.d);});
  const order=units.map((u,i)=>i).sort((a,c)=>candidates[a].length-candidates[c].length);
- function assign(n){if(n===order.length)return true;const i=order[n];for(const p of candidates[i]){const k=`${p.x},${p.y}`;if(used.has(k))continue;used.add(k);positions[i]=p;if(assign(n+1))return true;used.delete(k);}return false;}
+ function assign(n){if(n===order.length)return true;const i=order[n];for(const p of candidates[i]){const ks=cellsOf(units[i],p.x,p.y).map(c=>`${c.x},${c.y}`);if(ks.some(k=>used.has(k)))continue;ks.forEach(k=>used.add(k));positions[i]=p;if(assign(n+1))return true;ks.forEach(k=>used.delete(k));}return false;}   // 多格的整塊都要空（10-20）
  if(!assign(0)){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;b.exploreStopped=false;blog(EXPLORE_UI.alignmentBlocked);refreshBattle();return false;}
  units.forEach((u,i)=>{u.x=positions[i].x;u.y=positions[i].y;delete u.exploreWalking;});b.units.forEach(r=>{const h=mountOf(r);if(h){r.x=h.x;r.y=h.y;}});return true;
 }

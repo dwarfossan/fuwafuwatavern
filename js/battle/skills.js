@@ -326,4 +326,4 @@ function coneTiles(u, dir, len){   // 以 dir 方向、45 度以內、len 格內
   }
   return out;
 }
-const coneUnits = (u,dir,len) => coneTiles(u,dir,len).map(p=>unitAt(p.x,p.y)).filter(Boolean);
+const coneUnits = (u,dir,len) => [...new Set(coneTiles(u,dir,len).map(p=>unitAt(p.x,p.y)).filter(Boolean))];   // 多格的只算一次（10-20）

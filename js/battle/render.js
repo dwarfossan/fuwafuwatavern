@@ -9,7 +9,8 @@ const iconSVG = (k, size=16) => `<svg viewBox="-14 -14 148 148" width="${size}" 
 function iso(x, y){ const d=B().def; return {x:(x-y)*TW/2 + d.h*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
 // 探索連續座標的呈現高度：格子中心間平滑銜接，只影響角色與HUD，不改攀爬成本。
 function unitIso(v){
- const p=iso(v.x,v.y);if(B().phase!=='explore')return p;
+ const p=iso(v.x,v.y),n=footOf(v);if(n>1)p.y+=(n-1)*TH/2;   // 多格的畫在整塊的正中間（10-20）
+ if(B().phase!=='explore')return p;
  const x=Math.floor(v.x),y=Math.floor(v.y),tx=v.x-x,ty=v.y-y;
  const h=(hAt(x,y)*(1-tx)+hAt(x+1,y)*tx)*(1-ty)+(hAt(x,y+1)*(1-tx)+hAt(x+1,y+1)*tx)*ty;
  p.y+=(hAt(v.x,v.y)-h)*HZ;return p;
@@ -22,13 +23,13 @@ function boardMarkState(){
   let moveSet = new Map(), tgtSet = new Set(), areaSet = new Set(), range = -1;
   const myTurn = playerControlled(u) && !b.busy && !b.result;
   if(myTurn && !b.mode && b.moveMode && !(b.dazed && b.actionUsed)) moveSet = reachable(u, b.moveLeft);
-  if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
+  if(myTurn && b.mode && b.mode.key==="search"){ range = SEARCH_RANGE; searchTargets(u).forEach(p=>cellsOf(p).forEach(c=>tgtSet.add(`${c.x},${c.y}`))); }
   else if(myTurn && b.mode && b.mode.key==="placeBarrel"){ range=1;for(let x=0;x<d.w;x++)for(let y=0;y<d.h;y++)if(placeableCell(worldActor(),x,y))tgtSet.add(`${x},${y}`); }
-  else if(myTurn && b.mode && b.mode.key==="help"){ range = 1; helpList(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
+  else if(myTurn && b.mode && b.mode.key==="help"){ range = 1; helpList(u).forEach(p=>cellsOf(p).forEach(c=>tgtSet.add(`${c.x},${c.y}`))); }
   else if(myTurn && b.mode && b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item);
-    if(it){ range = it.use.range; itemTargets(u, it).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); } }
-  else if(myTurn && b.mode && GEN_ACT[b.mode.key]){ range = 1; GEN_ACT[b.mode.key].targets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
-  else if(myTurn && b.mode && b.mode.key==="steal"){ range = 1; stealTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }   // 偷竊（10-20）
+    if(it){ range = it.use.range; itemTargets(u, it).forEach(p=>cellsOf(p).forEach(c=>tgtSet.add(`${c.x},${c.y}`))); } }
+  else if(myTurn && b.mode && GEN_ACT[b.mode.key]){ range = 1; GEN_ACT[b.mode.key].targets(u).forEach(p=>cellsOf(p).forEach(c=>tgtSet.add(`${c.x},${c.y}`))); }
+  else if(myTurn && b.mode && b.mode.key==="steal"){ range = 1; stealTargets(u).forEach(p=>cellsOf(p).forEach(c=>tgtSet.add(`${c.x},${c.y}`))); }   // 偷竊（10-20）
   else if(myTurn && b.mode){
     const sk = unitSkills(u).find(s=>s.key===b.mode.key);
     if(!sk || !sk.impl){ b.mode=null; return boardMarkState(); }
@@ -224,7 +225,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !ridden(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));   // 被騎著的坐騎畫在騎士那張圖裡（10-20）
-  shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
+  shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+(footOf(v)-1)+.5, svg:tokenSVG(v, v===u), unit:v}));   // 多格的照整塊中間排前後
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
   // 血條、狀態圖示畫在物件上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
@@ -692,13 +693,16 @@ function unitDoll(v, active){
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
   if(v.look==="mimic")return `<g class="${live?'chest-result':''}">${mimicSVG(v,cx,cy-34)}</g>`;
   const look = !isPcCritter(v) ? MONSTER_LOOK[v.look] : null;
+  // 多格的放大畫（10-20）：2×2 放大 1.45 倍，腳底對齊整塊的中間
+  const k = DOLL_SCALE[footOf(v)] || 1, W = 118*k, X = cx - 59*k, Y = cy + 8 - 126.4*k;
   // 騎乘（10-20）：小傢伙騎著坐騎＝先畫小傢伙、再畫馬蓋在前面（外觀暫定）
   const h = isPcCritter(v) && mountOf(v);
-  const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:cx-59, y:cy-118, w:118, seed:7}) : "";
-  if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, raise:true, x:cx-46+(v.face||1)*-4, y:cy-146, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
+  const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:X, y:Y, w:W, seed:7}) : "";
+  if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, raise:true, x:cx-46+(v.face||1)*-4*k, y:cy + 8 - 154*k, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
-                        x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
+                        x:X, y:Y, w:W, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
 }
+const DOLL_SCALE = {2:1.45, 3:1.9, 4:2.35};
 // 頭上／狀態卡共用18種狀態圖示：白色主體＋少量代表色，增益藍底、減益紅底。
 // 頭上仍最多顯示五個，縮放沿用原規則，圖示不顯示倒數；燃燒保留身上火焰且新增頭上提示。
 const STATUS_BADGE = {
@@ -865,7 +869,7 @@ function unitHUD(v, cx, top, badgeUp){
     <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>${steed}
     ${statusBadges(v, cx, top - 12)}${hid}`;
 }
-const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
+const hudTop = (v, cy) => ((v.down || has(v,"prone")) ? cy-56 : cy-122) - 126*((DOLL_SCALE[footOf(v)]||1)-1);   // 多格放大畫：血條跟著往上   // 躺下的人血條跟著降到身體上方
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
   const p = unitIso(v), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;

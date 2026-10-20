@@ -148,8 +148,9 @@ function reachable(u, max){
       const nx=x+dx, ny=y+dy, k=`${nx},${ny}`;
       if(B().phase==="explore"&&B().exploreGoal&&B().exploreGoal.id!==u.id&&nx===B().exploreGoal.x&&ny===B().exploreGoal.y)continue;
       if(B().phase==="explore"&&dx&&dy&&(blocked(x+dx,y)||blocked(x,y+dy)))continue;
-      const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&!v.dead&&!v.fled&&!bExploreHidden(v)&&!(v.side==="pc"&&v!==exploreUnit())&&Math.hypot(v.x-nx,v.y-ny)<.55) : !!unitAt(nx,ny);
-      if(groundAvoid(u,nx,ny)||blocked(nx,ny)||occupied) continue;
+      const big = footOf(u)>1;   // 多格的（10-20）：整塊都要放得下
+      const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&v!==mountOf(u)&&!v.dead&&!v.fled&&!bExploreHidden(v)&&!(v.side==="pc"&&v!==exploreUnit())&&bodyHit(v,nx,ny)) : big ? !fitsAt(u,nx,ny) : (()=>{ const o = unitAt(nx,ny); return !!o && o!==mountOf(u); })();
+      if(groundAvoid(u,nx,ny)||(!big&&blocked(nx,ny))||occupied) continue;
       const nc = c + stepCost(x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
       best.set(k, nc);
@@ -1216,15 +1217,12 @@ function aiTurn(e){
   if(foeRange(e)) return aiRanged(e, pcs, foeRange(e));
   const adj = pcs.filter(p=>dist(p,e)<=reachOf(e));
   if(adj.length){ if(aimReady(e)) doAim(e); later(endTurn, foeMelee(e, adj)); return; }   // 已經貼身不用走：帶瞄準就瞄（大爺 10-10）
-  // 找離自己最近、能貼身的角色
+  // 找離自己最近、能貼身的角色（多格的從身體最近的那格算，10-20）
   const all = reachable(e, 99);
   let best = null;
-  pcs.forEach(p=>{
-    for(const [dx,dy] of DIRS){
-      const path = all.get(`${p.x+dx},${p.y+dy}`);
-      if(path && (!best || path.cost < best.path.cost)) best = {p, path};
-    }
-  });
+  const probe = (x,y) => ({...e, x, y});
+  for(const [k, path] of all){ const [x,y] = k.split(",").map(Number), here = probe(x,y);
+    pcs.forEach(p=>{ if(dist(here,p)<=reachOf(e) && (!best || path.cost < best.path.cost)) best = {p, path}; }); }
   if(!best || !b.moveLeft){ blog(`${e.name}在原地大叫。`); later(endTurn, 600); return; }
   if(best.path.cost > b.moveLeft) aiCunning(e, "dash");            // 走不到：帶狡詐就免費衝刺
   const steps = trimPath(best.path, b.moveLeft, victimsOf(e).length ? 2 : 1, e);

@@ -14,12 +14,12 @@ function summonBlock(u){
   if(b.phase!=="combat") return "戰鬥中才能叫";
   if(steedUnit()) return "已經叫出來了";
   if(state.steed && state.steed.bones) return "骨頭散了，長休後才拼得回來";
-  if(!nearFree(u.x, u.y)) return "旁邊沒有空位";
+  if(!freeSpotFor({side:"pc", steed:true, type:reinsOf(u).summon, x:u.x, y:u.y}, u.x, u.y, 2)) return "旁邊沒有空位";
   return "";
 }
 function summonSteed(u){
   const b = B(), it = reinsOf(u); if(!it || summonBlock(u) || !canAct()) return;
-  const m = ENEMIES[it.summon], p = nearFree(u.x, u.y);
+  const m = ENEMIES[it.summon], p = freeSpotFor({side:"pc", steed:true, type:it.summon, x:u.x, y:u.y}, u.x, u.y, 2);   // 大型的馬要整塊 2×2 放得下（10-20）
   state.steed ||= {type:it.summon, name:null, hp:m.hp, bones:false};
   const s = state.steed;
   useAction(u);
@@ -98,7 +98,7 @@ const steedOwner = h => B().units.find(r=>r.steedId===h.id && r.side===h.side &&
 function aiSteedReturn(e){
   const b = B(), owner = steedOwner(e); if(!owner || dist(owner, e)<=1 || !b.moveLeft) return false;
   const all = reachable(e, 99); let best = null;
-  for(const [dx,dy] of DIRS){ const path = all.get(`${owner.x+dx},${owner.y+dy}`); if(path && (!best || path.cost < best.cost)) best = path; }
+  for(const [k, path] of all){ const [x,y] = k.split(",").map(Number); if(dist({...e, x, y}, owner)<=1 && (!best || path.cost < best.cost)) best = path; }   // 多格的馬（10-20）
   if(!best) return false;
   const steps = trimPath(best, b.moveLeft, 1, e);
   blog(`${e.name}往${owner.name}那邊跑過去！`);

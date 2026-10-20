@@ -18,7 +18,9 @@ function rollDice(expr){           // "2d6+3" → {total, rolls, mod}
 const d20 = () => 1+Math.floor(diceRand()*20);
 // 距離（D&D 方格，2026-10-01 加入高度）：水平兩軸加上高度差，取最大。一層＝5 呎＝一格
 //   所以近戰（觸及 1）只打得到高度差一層以內的人；差兩層手就搆不到
-const dist = (a,b) => Math.max(Math.abs(a.x-b.x), Math.abs(a.y-b.y), Math.abs(hAt(a.x,a.y)-hAt(b.x,b.y)));
+//   大型以上佔多格（大爺 10-20）：從兩邊最近的那兩格算
+const dist = (a,b) => { const na = footOf(a), nb = footOf(b);
+  return Math.max(Math.max(0, a.x-(b.x+nb-1), b.x-(a.x+na-1)), Math.max(0, a.y-(b.y+nb-1), b.y-(a.y+na-1)), Math.abs(hAt(a.x,a.y)-hAt(b.x,b.y))); };
 const sgn = v => v>0?1:v<0?-1:0;
 
 // ---------- 建立戰鬥 ----------
@@ -136,6 +138,7 @@ function startBattle(id, retry=false, phase="combat"){
     id, def, phase, units, turn:-1, round:0, log:[], mode:null, result:null,
     tut: def.tutorial ? 0 : -1, busy:false
   };
+  fixFootprints();                                   // 多格單位挪到放得下的地方（10-20）
   syncBGM();
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
   if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u) && !u.riderId).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
@@ -148,7 +151,7 @@ const B = () => state.battle;
 // （10-02：輸掉後馬上按重新挑戰，上一場排好的換回合跑進新的一場，第一隻被跳過）。js/battle/flow.js 的計時器都用這個
 function later(fn, ms){ const b=B(),epoch=b?.flowEpoch||0;return setTimeout(()=>{if(b&&B()===b&&(b.flowEpoch||0)===epoch)fn();},ms); }
 const mapCell = n => B()?.phase==="explore" ? Math.round(n) : n;
-const unitsAt = (x,y) => B().units.filter(u=>!u.dead && !u.fled && mapCell(u.x)===mapCell(x) && mapCell(u.y)===mapCell(y));
+const unitsAt = (x,y) => B().units.filter(u=>!u.dead && !u.fled && covers(u, mapCell(x), mapCell(y)));
 // 同一格騎著馬的：預設是騎士；選目標時選了坐騎（B().pickId）就回坐騎（騎乘，10-20）
 const unitAt = (x,y) => { const l = unitsAt(x,y), p = B().pickId && l.find(u=>u.id===B().pickId); return p || l.find(u=>u.mountId) || l[0]; };
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
@@ -719,6 +722,43 @@ function releaseGrapple(t, why){
   t.statuses = t.statuses.filter(s=>!(s.k==="restrained" && s.via==="grapple"));
   if(why) blog(`　${t.name}${why}`, "skill");
 }
+// ---------- 佔格（大爺 10-20，SRD）：大型 2×2、巨型 3×3、超巨型 4×4 ----------
+// x,y 是錨點（x、y 最小的那一格），身體佔 x～x+n-1、y～y+n-1。騎著的騎士跟坐騎同一塊。
+// 第一批只有骷髏戰馬用（MULTI_TILE）；其他大型怪物照舊 1 格，第三批再一起換
+const FOOTPRINT = {"大型":2, "巨型":3, "超巨型":4};
+const MULTI_TILE = new Set(["dk_horse"]);
+function footOf(u){
+  if(!u || u.side===undefined || u.worldObject) return 1;
+  if(u.mountId && B()){ const h = B().units.find(v=>v.id===u.mountId); if(h) return footOf(h); }
+  if(!MULTI_TILE.has(u.type)) return 1;
+  return FOOTPRINT[sizeOf(u)] || 1;
+}
+const covers = (u, x, y) => { const n = footOf(u), ux = mapCell(u.x), uy = mapCell(u.y); return x>=ux && x<ux+n && y>=uy && y<uy+n; };
+function cellsOf(u, x=u.x, y=u.y, n=footOf(u)){ const out = []; for(let i=0;i<n;i++) for(let j=0;j<n;j++) out.push({x:mapCell(x)+i, y:mapCell(y)+j}); return out; }
+// 這個身體放在 (x,y) 放得下嗎：每一格都沒擋、沒有別人（自己和騎乘的另一半不算）
+function fitsAt(u, x, y, n=footOf(u), ignore=null){
+  const skip = new Set([u, ...(ignore || [mountOf(u), riderOf(u)])].filter(Boolean));
+  return cellsOf(u, x, y, n).every(c=>!blocked(c.x,c.y) && !B().units.some(v=>!skip.has(v) && !v.dead && !v.fled && covers(v, c.x, c.y)));
+}
+// 從 (x,y) 往外找最近放得下的錨點
+function freeSpotFor(u, x, y, r=4){
+  for(let d=0; d<=r; d++) for(let ox=-d; ox<=d; ox++) for(let oy=-d; oy<=d; oy++){
+    if(Math.max(Math.abs(ox),Math.abs(oy))!==d) continue;
+    if(fitsAt(u, x+ox, y+oy)) return {x:x+ox, y:y+oy};
+  }
+  return null;
+}
+// 開戰時把多格單位挪到放得下的位置（地圖原本照 1 格擺）
+function fixFootprints(){
+  B().units.filter(u=>footOf(u)>1 && !u.dead && !mountOf(u)).forEach(u=>{
+    if(fitsAt(u, u.x, u.y)) return;
+    const p = freeSpotFor(u, u.x, u.y); if(!p) return;
+    u.x = p.x; u.y = p.y; const r = riderOf(u); if(r){ r.x = u.x; r.y = u.y; }
+  });
+}
+// 探索（連續座標）：(x,y) 有沒有碰到 v 的身體
+const bodyHit = (v, x, y, pad=.55) => { const n = footOf(v); return x > v.x - pad && x < v.x + n - 1 + pad && y > v.y - pad && y < v.y + n - 1 + pad; };
+
 // ---------- 騎乘（大爺 10-20，參考 SRD 5.2 騎乘戰鬥） ----------
 // 騎著時騎士掛在坐騎身上、同一格，不另外佔格；騎士、坐騎各一條血。騎士的回合用坐騎的速度移動；
 // 坐騎被騎著時不輪回合（受控坐騎只負責移動）、不藉機攻擊。任何一邊被推開、倒地、倒下或兩邊不在同一格 → 分開，
@@ -896,8 +936,8 @@ function knockProne(t){ addStatus(t, "prone", {}); funNote("prone", t); t.anim =
 function push(from, t, n){
   const dx = sgn(t.x-from.x), dy = sgn(t.y-from.y);
   for(let i=0;i<n;i++){
-    const nx=t.x+dx, ny=t.y+dy, dh = hAt(nx,ny) - hAt(t.x,t.y);
-    if(blocked(nx,ny) || unitAt(nx,ny) || dh >= 2) break;   // 高兩層以上的山壁推不上去
+    const nx=t.x+dx, ny=t.y+dy, dh = hAt(nx,ny) - hAt(t.x,t.y), m = mountOf(t);
+    if(!(m ? fitsAt(t, nx, ny, 1, []) : fitsAt(t, nx, ny)) || dh >= 2) break;   // 高兩層以上的山壁推不上去；被推下馬的騎士只看自己那一格（大爺 10-20）
     t.x=nx; t.y=ny;
     if(dh <= -2){ fall(t, -dh); break; }                     // 被推下高台
   }
