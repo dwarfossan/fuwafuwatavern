@@ -2,7 +2,7 @@
    香香定、全部暫定：每天 3 個（★、★★、★★★ 各一）、報酬、委託文字、地形
    - 「每天」＝遊戲日（長休推進一天，跟道具店換貨同一個天數）；沒做完的換日就消失
    - 只有討伐：地圖上的敵人全倒＝完成（給測試的朋友有東西打）
-   - 戰場用隨機地圖產生器（data/random-map.js），敵人照委託；地形看在哪條路上 */
+   - 戰場用委託地圖產生器（data/quest-map.js），敵人照委託；地形主題看在哪條路上（QUEST_THEME） */
 const QUEST_PER_DAY = 3;
 // 報酬：gold＝全隊合計（gp），四隻平分；magic＝給魔法物品的機率（一件，隨機給一隻）
 const QUEST_REWARD = {1:{gold:60, magic:0}, 2:{gold:160, magic:.25}, 3:{gold:400, magic:1}};
@@ -23,12 +23,6 @@ const QUEST_TEMPLATES = [
   {id:"bone_master",   stars:3, title:"骨頭的主人",   client:"守墓人",   foes:["lich","skeleton","skeleton_archer"],        text:"骨頭會走路，是因為有人在後面拉線。去把拉線的找出來。"},
   {id:"black_rider",   stars:3, title:"黑馬騎士",     client:"公會",     foes:["death_knight","skeleton","skeleton"],      text:"路上有個騎黑馬的騎士。他不說話，只是一直往這邊騎。"}
 ];
-// 地形：委託在哪條路上（WORLD.links 的 a-b），隨機地圖的疏密照這個調（暫定）
-const QUEST_TERRAIN = {
-  "town-forest":{tree:[24,40], bush:[30,50]},
-  "town-cave":  {tree:[3,8], bush:[8,18], plateaus:4, crate:[2,5]},
-  "tavern-town":{}
-};
 const QUEST_UI = {
   board:"委託板", day:"第 {d} 天的委託", refresh:"長休之後換新的委託；沒做完的會消失。",
   accept:"接下委託", accepted:"已接下 · 到地圖上點 ❗", done:"已完成", client:"委託人", reward:"報酬",

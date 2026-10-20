@@ -67,7 +67,7 @@ function beginQuestTravel(id){
 // 走到了：開戰（探索開場，委託地圖不跳教學）
 function questBattle(q){
   const t = questTpl(q), l = questLink(q);
-  const d = generateRandomBattle(q.seed, {...(QUEST_TERRAIN[`${l.a}-${l.b}`]||{}), foes:t.foes.length, foeList:t.foes, name:t.title, tutorial:false});
+  const d = generateQuestMap(q.seed, {theme:QUEST_THEME[`${l.a}-${l.b}`]||"plain", foeList:t.foes, name:t.title});   // 委託專用地圖（10-21）
   d.quest = q.id; d.questStars = q.stars; d.questHome = questHome(q); d.after = "questDone";
   return d;
 }
