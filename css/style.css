@@ -514,6 +514,7 @@ button.token:hover{transform:translateY(-2px)}
 .board .tile:hover{filter:brightness(1.15)}
 .board .token{cursor:pointer;transition:none} /* 戰場 SVG token 不繼承創角籌碼的 transform transition；探索角色與 HUD 必須逐幀同步 */
 .board .token.aimed-foe{filter:drop-shadow(0 0 4px #ff3948) drop-shadow(0 0 9px #e02538)}
+.board .token.aimed-ally{filter:drop-shadow(0 0 4px #7fe08a) drop-shadow(0 0 9px #3fbf5a)}
 
 .board .token.down > ellipse{opacity:.4}
 .board .gob{transform-box:fill-box;transform-origin:50% 100%}

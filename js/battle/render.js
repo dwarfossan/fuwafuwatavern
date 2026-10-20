@@ -377,6 +377,43 @@ function startPinch(){
   const [p1, p2] = [...touches.values()];
   pinch = {d:Math.hypot(p1.x-p2.x, p1.y-p2.y) || 1, mx:(p1.x+p2.x)/2, my:(p1.y+p2.y)/2, z:camZoom(), cam:{...B().cam}};
 }
+// 手指／游標底下是哪一格（照畫面位置反推，高的格子先看：高台會擋住後面低的格子）
+function screenTile(e){
+  const b = B(), d = b.def, q = wrapXY(e), z = camZoom(), c = b.cam || {x:0, y:0};
+  for(const h of [3,2,1,0]){
+    const sx = ((q.x-c.x)/z - d.h*TW/2)/(TW/2), sy = ((q.y-c.y)/z - 130 - TH/2 + h*HZ)/(TH/2);
+    const x = Math.round((sx+sy)/2), y = Math.round((sy-sx)/2);
+    if(x>=0 && y>=0 && x<d.w && y<d.h && (hAt(x,y)===h || !h)) return {x, y};
+  }
+  return null;
+}
+// 瞄準框住誰（大爺 10-21）：滑鼠移過去、手指按下去都用這個，點下去也照這個出手
+//   順序：點到頭上的血條 → 手指底下那一格上的合法目標 → 身體畫面範圍框住的（畫在最前面的優先）
+//   只看「點人」的瞄準（tgtSet）；範圍、錐形、放火藥桶照舊點格子
+function aimPick(e){
+  const b = B(); if(!b || !b.mode || b.busy || b.result || b.phase==="explore" || b.mode.key==="placeBarrel") return null;
+  const ctx = boardMarkState(); if(!ctx.tgtSet.size) return null;
+  const legal = v => v && !v.dead && !v.fled && !foeHid(v) && cellsOf(v).some(c=>ctx.tgtSet.has(`${c.x},${c.y}`));
+  const hud = e.target.closest?.(".board .hud[data-moving-unit]")?.dataset.movingUnit, byHud = hud && b.units.find(v=>v.id===hud);
+  if(legal(byHud)) return byHud;
+  const t = screenTile(e), onTile = t && unitsAt(t.x, t.y).filter(legal);
+  if(onTile && onTile.length) return onTile.find(v=>v.mountId) || onTile[0];
+  return b.units.filter(legal).sort((a,c)=>(c.x+c.y+footOf(c))-(a.x+a.y+footOf(a))).find(v=>{
+    const r = document.querySelector(`.board .token[data-moving-unit="${v.id}"]`)?.getBoundingClientRect();
+    return r && e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
+  }) || null;
+}
+// 手指按著時的紅光：直接改那隻的 class，不重畫（重畫會換掉手指底下的元素，手機放開事件就收不到）
+function aimGlow(id){
+  document.querySelectorAll(".board .token.aimed-foe, .board .token.aimed-ally").forEach(el=>el.classList.remove("aimed-foe","aimed-ally"));
+  const v = id && B()?.units.find(u=>u.id===id); if(!v) return;
+  document.querySelector(`.board .token[data-moving-unit="${v.id}"]`)?.classList.add(v.side==="foe" ? "aimed-foe" : "aimed-ally");
+}
+// 對框住的那隻出手：點牠身上在目標範圍裡的那一格（騎乘的兩隻疊在一起照舊會問要打誰）
+function aimClick(v){
+  const ctx = boardMarkState(), c = cellsOf(v).find(q=>ctx.tgtSet.has(`${q.x},${q.y}`)) || {x:mapCell(v.x), y:mapCell(v.y)};
+  clickTile(c.x, c.y);
+}
 function initBoardDrag(){
   if(initBoardDrag.done) return; initBoardDrag.done = true;
   let objectHold=null;const clearHold=()=>{clearTimeout(objectHold);objectHold=null;};
@@ -385,16 +422,8 @@ function initBoardDrag(){
     if(e.pointerType!=="mouse"||touches.size)return;
     tip(e.target.closest?.("[data-world-object]")?.dataset.worldObject||null);
     const b=B();if(!b)return;
-    // 游標落在哪個 SVG 零件不該改變瞄準：遮擋物的格子未必是被遮住敵人的格子，改以合法敵人本體的實際畫面範圍判斷。
-    const unitId=e.target.closest?.(".board [data-moving-unit]")?.dataset.movingUnit;
-    let id=null;
-    if(b.mode&&!b.busy&&!b.result){
-      const byUnit=unitId&&b.units.find(x=>x.id===unitId);
-      const ctx=boardMarkState(),legal=v=>v?.side==="foe"&&!foeHid(v)&&ctx.tgtSet.has(`${mapCell(v.x)},${mapCell(v.y)}`);
-      const byBody=b.units.filter(legal).sort((a,c)=>(c.x+c.y)-(a.x+a.y)).find(v=>{const r=document.querySelector(`.board .token[data-moving-unit="${v.id}"]`)?.getBoundingClientRect();return r&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;});
-      const v=[byUnit,byBody].find(legal);
-      if(v)id=v.id;
-    }
+    // 游標落在哪個 SVG 零件不該改變瞄準：照 aimPick（血條 → 游標底下那格 → 身體範圍）
+    const id=aimPick(e)?.id||null;
     if(b.aimHover!==id){b.aimHover=id;refreshBattle();}
   });
   window.addEventListener("pointerout",e=>{
@@ -414,6 +443,8 @@ function initBoardDrag(){
     if(touches.size>2) return;
     const t = e.target.closest("[data-tile]");
     drag = {id:e.pointerId, sx:e.clientX, sy:e.clientY, c:{...(B().cam||{x:0,y:0})}, moved:false, unit:e.target.closest("[data-explore-body]")?.dataset.exploreBody, tile:t && t.dataset.tile};
+    const aim = aimPick(e); drag.aim = aim && aim.id;   // 瞄準中按下去：先框住（手機也亮），放開才出手
+    if(e.pointerType!=="mouse") aimGlow(drag.aim);
     const key=e.target.closest("[data-world-object]")?.dataset.worldObject,b=B(),d=drag;
     if(e.pointerType!=="mouse"&&key)objectHold=setTimeout(()=>{if(B()===b&&drag===d&&!d.moved&&touches.size===1){d.held=true;tip(key);}},450);
   });
@@ -430,7 +461,7 @@ function initBoardDrag(){
     }
     if(!drag || e.pointerId!==drag.id) return;
     const dx = e.clientX-drag.sx, dy = e.clientY-drag.sy;
-    if(!drag.moved && Math.hypot(dx,dy) > DRAG_TOL){ clearHold();tip(null);drag.moved = true; document.body.classList.add("board-dragging"); }
+    if(!drag.moved && Math.hypot(dx,dy) > DRAG_TOL){ clearHold();tip(null);drag.moved = true; document.body.classList.add("board-dragging"); if(e.pointerType!=="mouse" && drag.aim) aimGlow(null); }
     if(drag.moved){ B().cam = clampCam({x:drag.c.x+dx, y:drag.c.y+dy}); applyCam(); e.preventDefault(); }
   }, {passive:false});
   const up = e=>{
@@ -448,6 +479,9 @@ function initBoardDrag(){
     }
     if(!drag || e.pointerId!==drag.id) return;
     const d = drag;clearHold();if(d.held){tip(null);ghostUntil=Date.now()+400;} drag = null; document.body.classList.remove("board-dragging");
+    if(e.pointerType!=="mouse" && d.aim) aimGlow(null);
+    const aimed = e.type==="pointerup" && !d.moved && !d.held && d.aim && B()?.units.find(v=>v.id===d.aim);
+    if(aimed){ if(e.pointerType!=="mouse") ghostUntil = Date.now() + 400; aimClick(aimed); return; }
     if(e.type==="pointerup" && !d.moved && !d.held && d.tile){
       if(e.pointerType!=="mouse") ghostUntil = Date.now() + 400;
       const [x,y] = d.tile.split(",").map(Number);
@@ -884,7 +918,7 @@ function tokenSVG(v, active){
     : v.frenzy ? `<g class="frenzy-shake">${doll}</g>` : doll;   // 失控：晃動（10-10）
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""} ${aimed?"aimed-foe":""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
+  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""} ${aimed?(v.side==="foe"?"aimed-foe":"aimed-ally"):""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     ${v.frenzy?`<ellipse class="frenzy-glow" cx="${cx}" cy="${cy-2}" rx="40" ry="18" fill="#e0443a" opacity=".45"/>`:""}
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="${v.frenzy?"#7a1c1c":"#2a2630"}" stroke="${v.frenzy?"#ff5a4a":ring}" stroke-width="3"/>
