@@ -1428,3 +1428,6 @@ body.image-boot{background:#000}
 .guide-group{margin:10px 0 6px;color:var(--honey);font-size:14px}.guide-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.guide-list .btn{font-size:13px;padding:8px 6px}
 /* 戰後閒聊（10-11） */
 .after-talk{display:flex;gap:12px;align-items:flex-start}.after-head img,.after-head .c-head{width:72px;height:72px}.after-body p{margin:6px 0 0;line-height:1.6}.after-nav{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* 坐騎取名（10-20）：詢問框裡的名字輸入 */
+.bt-react .steed-name{display:block;width:100%;box-sizing:border-box;margin:6px 0 10px;padding:8px 10px;border-radius:10px;border:2px solid #2a2630;font:inherit;font-size:18px;text-align:center;background:#fffaf0;color:#2a2630}

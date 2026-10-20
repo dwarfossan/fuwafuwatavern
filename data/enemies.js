@@ -90,12 +90,12 @@ const ENEMIES = {
     special:"lich_whisper",
     scores:{STR:8,DEX:14,CON:14,INT:18,WIS:14,CHA:16}},
   // 死亡騎士騎著骷髏戰馬出場（騎乘，大爺 10-20）：騎士中型；騎著時用馬的速度、外觀是人馬一張圖，下馬換 lookOnFoot、speedOnFoot
-  death_knight:{detectRange:7,name:"死亡騎士",look:"death_knight",lookOnFoot:"death_knight_foot",mount:"dk_horse",gear:[],hp:45,ac:17,speed:6,speedOnFoot:6,xp:1800,stars:3,
+  death_knight:{detectRange:7,name:"死亡騎士",look:"death_knight",lookOnFoot:"death_knight_foot",mount:"dk_horse",drops:[{n:"骷髏戰馬的韁繩",chance:.25}],gear:[],hp:45,ac:17,speed:6,speedOnFoot:6,xp:1800,stars:3,
     natural:{name:"騎士劍",dmg:"1d10 揮砍",stat:"STR"},special:"dk_hellstrike",
     scores:{STR:18,DEX:10,CON:16,INT:10,WIS:12,CHA:14}},
-  // 骷髏戰馬：數值參考 SRD 的骷髏戰馬（Warhorse Skeleton），速度、經驗暫定；沒有易傷規則，怕鈍擊先不做
-  dk_horse:{size:"大型",detectRange:7,name:"骷髏戰馬",look:"dk_horse",gear:[],hp:22,ac:13,speed:10,xp:100,
-    natural:{name:"蹄擊",dmg:"2d6 鈍擊",stat:"STR"},damageImmunities:["毒素"],
+  // 骷髏戰馬：照 SRD 5.1 的 Warhorse Skeleton（大型不死、AC 13、HP 22、60 呎、蹄擊 2d6+力量、怕鈍擊、免疫毒素）
+  dk_horse:{size:"大型",detectRange:7,name:"骷髏戰馬",look:"dk_horse",gear:[],hp:22,ac:13,speed:12,xp:100,
+    natural:{name:"蹄擊",dmg:"2d6 鈍擊",stat:"STR"},damageImmunities:["毒素"],vulnerabilities:["鈍擊"],
     scores:{STR:18,DEX:12,CON:15,INT:2,WIS:8,CHA:5}}
 };
 // 隨機測試場（#battle）照舊只出原本這幾種，新怪物只在委託出現（不讓 #battle 的種子配置跑掉）

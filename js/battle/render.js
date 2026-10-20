@@ -653,7 +653,7 @@ function blockSVG(o){
 function faceSVG(v, x, y, size){
   if(foeHid(v)) return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#2a2630"/>
     <text x="50" y="69" text-anchor="middle" font-size="58" font-weight="900" fill="#e0766e" font-family="var(--font-num),serif">?</text></svg>`;
-  if(v.side==="pc") return critterSVG(v.id,v.down?"hurt":B().result==="win"?"happy":v.svgMood).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
+  if(isPcCritter(v)) return critterSVG(v.id,v.down?"hurt":B().result==="win"?"happy":v.svgMood).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
   if(v.look==="mimic")return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="-80 -115 160 160">${mimicSVG(v)}</svg>`;
   const L = MONSTER_LOOK[v.look];
   return (L.face || L.head).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"`);
@@ -689,9 +689,13 @@ function unitDoll(v, active){
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
   if(v.look==="mimic")return `<g class="${live?'chest-result':''}">${mimicSVG(v,cx,cy-34)}</g>`;
-  const look = v.side!=="pc" ? MONSTER_LOOK[v.look] : null;
+  const look = !isPcCritter(v) ? MONSTER_LOOK[v.look] : null;
+  // 騎乘（10-20）：小傢伙騎著坐騎＝先畫馬、再把小傢伙畫在馬背上（外觀暫定）
+  const h = isPcCritter(v) && mountOf(v);
+  const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:cx-59, y:cy-118, w:118, seed:7}) : "";
+  if(h) return steedUnder + dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, x:cx-46+(v.face||1)*-4, y:cy-150, w:92, seed:v.id.length*3});
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
-                        x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side!=="pc"?+v.id.slice(3)*5:0)});
+                        x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
 }
 // 頭上／狀態卡共用18種狀態圖示：白色主體＋少量代表色，增益藍底、減益紅底。
 // 頭上仍最多顯示五個，縮放沿用原規則，圖示不顯示倒數；燃燒保留身上火焰且新增頭上提示。
@@ -945,7 +949,7 @@ function infoBarsHTML(v, pct){
   const row=(k,label,w,col,num)=>`<span class="ib-l">${label}</span><span class="ib-bar ib-${k}"><i style="width:${Math.max(0,Math.min(100,w*100))}%;background:${col}"></i></span><span class="ib-n">${num}</span>`;
   const gone = v.dead;
   let h = row("hp","生命",gone?0:pct,pct>.5?"var(--moss)":pct>.25?"var(--honey)":"var(--bad)",`${Math.max(0,v.hp)}/${v.maxHp}`);
-  if(v.side==="pc"){
+  if(isPcCritter(v)){
     const lv=v.level||1, need=xpNeed(lv), xp=v.xp||0;
     h += row("xp","經驗",xp/need,"#7fb8e0",`${xp}/${need}`) + row("stress","壓力",stressOf(v)/STRESS_MAX,"#9b7fd0",`${stressOf(v)}/${STRESS_MAX}`);
   }
@@ -1020,7 +1024,9 @@ function menuHTML(u, b, level=null){
     body = mbtn("walk","移動", !canWalk(), `剩 ${b.moveLeft} 格`) + mbtn("dash","衝刺", !mv, pay, `這回合移動 +${b.baseMove} 格。`) +
            mbtn("disengage","撤離", !mv, pay, "這回合移動不會被藉機攻擊。") +
            (passiveSkills(u).some(s=>s.key==="aim") ? mbtn("aim","瞄準", !aimReady(u), b.movedThisTurn ? "這回合已經移動過" : has(u,"aiming") ? "已經在瞄準" : "放棄移動", "放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。") : "") +
-           mbtn("hide","潛行", !mv || !!hb, hb || pay, `躲起來：d20＋敏捷 ≥ ${HIDE_DC} 就成功${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}。從藏身處攻擊有優勢。`) + back;
+           mbtn("hide","潛行", !mv || !!hb, hb || pay, `躲起來：d20＋敏捷 ≥ ${HIDE_DC} 就成功${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}。從藏身處攻擊有優勢。`) +
+           (mountOf(u) ? mbtn("dismount","下馬", !!dismountBlock(u), dismountBlock(u) || "花一半移動", "跳到旁邊的空格，不會倒地。")
+             : steedUnit() && isPcCritter(u) && mountBlock(u)!=="-" ? mbtn("mountUp",`騎上${steedUnit().name}`, !!mountBlock(u), mountBlock(u) || "花一半移動", "騎著時用坐騎的速度移動，坐騎不另外輪回合。") : "") + back;
   } else if(lv==="act"){
     title = "行動";
     const atks = attackSkills(u);
@@ -1033,7 +1039,8 @@ function menuHTML(u, b, level=null){
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "", "鄰格隊友下次攻擊有優勢；隊友昏迷時改成扶起來。") +
            mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : tooBigOnly(u) ? "敵人太大了" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手；只能抓最多比你大一級的敵人。") +
            mbtn("shove","推撞", !act || !foesNear || tooBigOnly(u), tooBigOnly(u) ? "敵人太大了" : "", "把貼身的敵人推開 1 格，或推倒在地。只能推最多比你大一級的敵人。") +
-           mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") + back;
+           mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") +
+           (reinsOf(u) ? mbtn("summon","呼喚坐騎", !act || !!summonBlock(u), summonBlock(u) || "用掉主要動作", "拉一下韁繩，把坐騎叫到旁邊的空格。") : "") + back;
   } else if(lv==="shove"){
     title = "推撞";
     body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, tooBigOnly(u) ? "敵人太大了" : "", "把敵人推開 1 格。只能推最多比你大一級的敵人。") +
@@ -1270,7 +1277,7 @@ function battleInterfaceHTML(){
   // 探索中四隻都昏迷時 cur() 挑不到人（10-09 昏迷規則才會走到）：輸掉畫面只需要一個參照，用第一隻
   const u = cur() || b.units.find(v=>v.side==="pc");
   const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || ridden(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""} ${v.frenzy?"frenzy":""}" style="--c:${v.frenzy?"#e0443a":v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
-      <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${v.side==="pc"?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
+      <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${isPcCritter(v)?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
   let hint = "";
@@ -1291,6 +1298,7 @@ function battleInterfaceHTML(){
   // 反應詢問（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時；文字、外觀暫定（香香）
   if(b.campChoosing) ov = campPickerHTML(b);   // 露營：誰去找食材（10-10）
   if(b.mountAsk) ov = mountAskHTML(b);         // 騎乘：騎士和坐騎同一格，問要選誰（10-20）
+  if(b.steedNameAsk) ov = steedNameHTML(b);    // 坐騎取名／改名（10-20）
   if(b.markAsk) ov = markAskHTML(b);           // 狩印轉移（10-11）
   else if(b.reactPending && !b.result && b.reactPending.info.luck){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
@@ -1542,6 +1550,8 @@ function bindBattle(){
   document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>pickCamp(el.dataset.campWho)));
   document.querySelectorAll("[data-mark-to]").forEach(el=>battleListen(el,"click",()=>answerMarkTransfer(el.dataset.markTo)));
   document.querySelectorAll("[data-mount-pick]").forEach(el=>battleListen(el,"click",()=>answerMountPick(el.dataset.mountPick)));
+  document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
+  document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });

@@ -25,7 +25,7 @@ const sgn = v => v>0?1:v<0?-1:0;
 // 重新挑戰（大爺 10-02）：輸掉後可以從開戰前重打，三次用完只剩「傳送回酒館」，長休回滿
 //   開戰時把會被戰鬥改到的 state 存起來；重新挑戰先還原再開戰，所以道具、熟練格、這場理解的招都回到開戰前
 const RETRY_MAX = 3;
-const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","equipmentItems","equipmentSerial","focusItems","focusSerial","shopFocusStock","magicItems","market","stress"];
+const SNAP_KEYS = ["startingGear","xp","level","gold","inv","learned","activeSkills","proficiency","shortRestsUsed","scout","equipmentItems","equipmentSerial","focusItems","focusSerial","shopFocusStock","magicItems","market","stress","steed"];
 function snapBattle(id){ state.battleSnap = {id, data: JSON.parse(JSON.stringify(Object.fromEntries(SNAP_KEYS.map(k=>[k, state[k] ?? null]))))}; }
 function retryBattle(){
   const s = state.battleSnap; if(!s || state.retriesLeft <= 0) return;
@@ -75,12 +75,13 @@ function startBattle(id, retry=false, phase="combat"){
   });
   def.foes.forEach((f,i)=>{
     const e = ENEMIES[f.type], inv = retry && state.battleSnap.foeGear ? state.battleSnap.foeGear[i] : (f.gear || e.gear).map(n=>ITEMS.find(it=>it.n===n)).filter(Boolean).map(it=>makeItem(it,false,e));
+    if(!retry){ for(const d of e.drops||[]) if(Math.random()<d.chance){ const it=ITEMS.find(x=>x.n===d.n); if(it) inv.push(makeItem(it,false,e)); } }   // 機率掉落（韁繩，10-20）：開戰就放進背包，重新挑戰照同一份
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
       id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, testSkill:f.testSkill||null, testSkillUsed:false,
-      resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])],
+      resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])], vulnerabilities:[...(e.vulnerabilities||[])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
       learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])],
@@ -92,7 +93,7 @@ function startBattle(id, retry=false, phase="combat"){
       units.push({
         id:r.id+"m", side:"foe", squad:r.squad, type:e.mount, name:m.name+r.name.slice(e.name.length), look:m.look, natural:m.natural||null, special:m.special||null,
         x:f.x, y:f.y, hp:m.hp, maxHp:m.hp, scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac, testSkill:null, testSkillUsed:false,
-        resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])],
+        resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])], vulnerabilities:[...(m.vulnerabilities||[])],
         weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpackEquip:null, backpack:[], born:null,
         learned:[], activeSkills:[], speed:m.speed, statuses:[], level:m.level||1, down:false, face:1, oaUsed:false, riderId:r.id
       });
@@ -223,7 +224,7 @@ const alive = side => B().units.filter(u=>u.side===side && !u.down && !u.dead &&
 // 昏迷時被打不會死也沒懲罰（敵人 AI 照舊不打倒地的）；四隻都昏迷＝輸（checkResult）。拿掉個別傳送。
 function wakeAfterBattle(){
   const b = B(); if(!b) return;
-  b.units.filter(u=>u.side==="pc" && !u.dead && u.down).forEach(u=>{ u.hp = 1; u.down = false; blog(`${u.name}醒過來了（生命 1）`, "heal"); });
+  b.units.filter(u=>isPcCritter(u) && !u.dead && u.down).forEach(u=>{ u.hp = 1; u.down = false; blog(`${u.name}醒過來了（生命 1）`, "heal"); });
 }
 
 // ---------- 潛行與察覺（SRD 5.2 的躲藏；檢定直接用六圍，沒有技能熟練） ----------
@@ -238,6 +239,8 @@ const isHid = u => !!has(u,"hidden");
 // 敵對：雙方陣營不同、而且都不是 NPC。NPC（商人等）站在戰場上但不屬於任何一方，不能被當成目標、也不會攻擊人
 // 玩家操作的單位：小傢伙、而且沒有失控（失控的由 AI 接手，10-10）
 const playerControlled = u => !!u && u.side==="pc" && !u.frenzy;
+// 我方的小傢伙（不含叫出來的坐騎 steed，10-20）：經驗、壓力、小筆記、熟練格、輸贏判定只算她們
+const isPcCritter = u => !!u && u.side==="pc" && !u.steed;
 const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc" && inCombat(a) && inCombat(b);
 const sideColor = v => v.side==="pc" ? v.color : v.side==="npc" ? "#c9b7a6" : "#e0766e";
 const foeHid = u => u.side==="foe" && isHid(u);                 // 玩家看不到的敵人
@@ -396,7 +399,7 @@ function expire(when, unitId){
 // ---------- 數值 ----------
 function acOfUnit(u){
   let ac;
-  if(u.side!=="pc") ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
+  if(u.side!=="pc" || u.steed) ac = u.baseAc;                 // 敵人、NPC 的 AC 照屬性表
   else if((has(u,"mageArmor") || passiveSkills(u).some(s=>s.key==="mage_armor")) && (!u.armor || u.armor.cloth)) ac = 13 + u.mods.DEX + (u.shield?2:0);
   else ac = armorAC(u.armor, u.shield, u.mods.DEX);   // 身上現在穿的（戰鬥中可以換裝）
   // 破甲（含劈盾）：同名不疊加，取降最多的；破甲升階每高一階再 −1；劈盾那種只在有拿盾時算
@@ -566,7 +569,7 @@ function reactOptions(t){
 // 跟反應共用「快照重跑」：問的那刻丟出暫停，選完同一組骰子重跑到同一個地方。重跑中用掉的先記在 REACT_RUN.luck，
 // 整個招式跑完才寫進 state.luckUsed（不然暫停、重跑會重複扣）。只在招式裡問（doSkill）；藉機攻擊、潛行等招式外的擲骰還不問（暫定）。
 const LUCK_MAX = 2;
-const luckLeft = u => u && u.side==="pc" && !u.frenzy ? Math.max(0, LUCK_MAX + (mealOf(u)==="mushroom"?1:0) - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
+const luckLeft = u => isPcCritter(u) && !u.frenzy ? Math.max(0, LUCK_MAX + (mealOf(u)==="mushroom"?1:0) - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
 function luckHook(u, kind, info){
   if(!REACT_RUN || luckLeft(u)<=0) return false;
   const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
@@ -625,13 +628,15 @@ function dmgRoll(dice, mod, crit, extraDice=0){
 function damageAfterResistance(t, n, type){
   n = Math.max(0, n);
   if((t.damageImmunities||[]).includes(type)) return 0;
-  return [...(t.resistances||[]),...itemResistances(t)].includes(type) ? Math.floor(n/2) : n;
+  const m = [...(t.resistances||[]),...itemResistances(t)].includes(type) ? Math.floor(n/2) : n;
+  return (t.vulnerabilities||[]).includes(type) ? m*2 : m;   // 易傷（SRD，10-20）：抗性之後再加倍
 }
 function hurt(t, n, type, src, hitSfx){
   if(t.worldObject){if(n>0&&!t.dead){t.dead=true;explodeBarrel(t.worldObject,src);}return;}
   if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
+  if(raw<n && !t.down && !t.dead) blog(`　${t.name}怕${dmgShown(type)}（易傷）：${raw} → ${n}`, "skill");
   { const em = B().empower; if(em && src && src.id===em.by && n>0 && !em.hit.has(t.id)){ em.hit.add(t.id); n += em.bonus; blog(`　強化：+${em.bonus}`, "skill"); } }   // 法師風格：強化（戲法傷害加施法屬性）
   if(t.halveFrom && src && src.id===t.halveFrom && n>0){ const h=Math.floor(n/2); blog(`　化險：${n} → ${h}`, "skill"); n=h; }   // 化險：這次敵方招式的傷害減半（招式結束清掉）
   { const b = B(), row = b.panel && [...b.panel.rows].reverse().find(r=>r.tid===t.id);   // 骰子面板：傷害算給這個目標最近的那一列，連同剛擲的骰（0 點也算）
@@ -660,7 +665,7 @@ function hurt(t, n, type, src, hitSfx){
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
     if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
-    else { t.down = true; t.statuses = []; funNote("down", t); blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
+    else { t.down = true; t.statuses = []; funNote("down", t); blog(t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
     checkGrapples(); checkMounts();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
@@ -690,7 +695,7 @@ function heal(t, n){
 // 體型（SRD 5.2，大爺 10-20）：擒抱、推開、推倒只能對「最多比自己大一級」的目標。佔格還是一律 1 格。
 // 小傢伙們照毛球族（小型）；敵人照 ENEMIES 的 size，沒寫的是中型
 const SIZES = ["微型","小型","中型","大型","巨型","超巨型"];
-const sizeOf = u => u.side==="pc" ? RACE.size : ((ENEMIES[u.type]||{}).size || "中型");
+const sizeOf = u => isPcCritter(u) ? RACE.size : ((ENEMIES[u.type]||{}).size || "中型");
 const sizeFits = (u, t) => SIZES.indexOf(sizeOf(t)) <= SIZES.indexOf(sizeOf(u)) + 1;
 const grappled = t => hasVia(t,"restrained","grapple");
 const grapplerOf = t => { const s = grappled(t); return s && B().units.find(v=>v.id===s.src); };
@@ -728,8 +733,9 @@ function dismount(r, why){
   const h = mountOf(r); if(!h) return;
   delete r.mountId; delete h.riderId;
   const e = ENEMIES[r.type]; if(e && e.lookOnFoot){ r.look = e.lookOnFoot; r.speed = e.speedOnFoot ?? r.speed; }
-  if(r.dead || r.down) return;
-  if(r.x===h.x && r.y===h.y){ const p = nearFree(h.x, h.y); if(p){ r.x = p.x; r.y = p.y; } }
+  if(r.dead) return;
+  if(r.x===h.x && r.y===h.y){ const p = nearFree(h.x, h.y); if(p){ r.x = p.x; r.y = p.y; } }   // 昏迷的小傢伙也要從馬背上滑下來，不能疊在同一格
+  if(r.down) return;
   blog(`　${r.name}${why||"從"+h.name+"身上摔下來"}！`, "skill");
   knockProne(r);
 }
@@ -827,7 +833,7 @@ function barkOn(ev, about, delay=0){
   // 符合的好幾組（例如每隻各一組）隨機挑一組講，不會永遠是排在前面的那隻
   const ok = BARKS.filter(r=>r.on===ev && barkMatch(about, r.about)).map(r=>({r,
     lines: r.lines.filter(l=>!b.barked.includes(l)),
-    who: b.units.filter(v=>v!==about && !v.dead && !v.down && !foeHid(v) && barkMatch(v, r.speaker))})).filter(c=>c.lines.length && c.who.length);
+    who: b.units.filter(v=>v!==about && !v.dead && !v.down && !v.steed && !foeHid(v) && barkMatch(v, r.speaker))})).filter(c=>c.lines.length && c.who.length);
   if(!ok.length) return;
   const c = ok[Math.floor(Math.random()*ok.length)];
   say(c.who[Math.floor(Math.random()*c.who.length)], c.lines[Math.floor(Math.random()*c.lines.length)], delay, c.r.lang);

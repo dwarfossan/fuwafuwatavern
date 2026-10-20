@@ -68,15 +68,15 @@ function statusCardHTML(v, b, embedded=false){
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges" style="${indicatorLayout.style}">${groupedStatus.map(row=>`<div class="status-badge-row" data-status-row="${row.good?"good":"bad"}" aria-label="${row.good?"正面狀態":"負面狀態"}">${row.items.map(x=>`<button class="status-unit-badge ${x.icon?"":"plain "}${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}" style="--status-item-width:${x.width}px">${x.icon?`<svg viewBox="0 0 20 20">${statusIndicatorFace(x)}</svg>`:x.label}</button>`).join("")}</div>`).join("")}</div>`:"";
   const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
   // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
-  const doll=v.side==="pc"?`<div class="inf-doll ${v.frenzy?"frenzy":""}"><svg viewBox="-20 -10 180 170" width="150" height="145">${statusDollSVG(v)}</svg></div>`:"";
-  const page=v.side==="pc"?(b.infoPage||"status"):"status";
-  const tabs=v.side==="pc"?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
-  const notes=v.side==="pc"?notebookPageHTML(v,b):"";
+  const doll=isPcCritter(v)?`<div class="inf-doll ${v.frenzy?"frenzy":""}"><svg viewBox="-20 -10 180 170" width="150" height="145">${statusDollSVG(v)}</svg></div>`:"";
+  const page=isPcCritter(v)?(b.infoPage||"status"):"status";
+  const tabs=isPcCritter(v)?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";
+  const notes=isPcCritter(v)?notebookPageHTML(v,b):"";
   let statusPage="";
   const armorIcon=it=>`<svg class="status-armoricon" viewBox="38 76 64 66" width="42" height="42" aria-hidden="true">${armorSVG(it.base||it.n)}</svg>`;
   const eqIcon=it=>{if(!it)return `<span class="status-eqempty">＋</span>`;if(it.type==="armor")return armorIcon(it);if(isBag(it))return `<svg viewBox="0 0 120 120" width="42" height="42" aria-hidden="true">${ITEM_ART.backpack||ITEM_RAW.backpack}</svg>`;const g=groupOf(it);return equipmentArtKey(it)?iconSVG(equipmentArtKey(it),38):`<span class="eq-text">${it.n}</span>`};
   const eqTip=it=>it?`${it.n}\n${it.cat||it.type||"裝備"}${it.wt!=null?`・${it.wt} lb`:""}`:"空裝備格";
-  if(v.side==="pc"){
+  if(isPcCritter(v)){
     const bagOpen=!!b.gearBagOpen;
     const abilities=`<div class="status-abilities" data-status-abilities ${bagOpen?"hidden":""}>${ABILITIES.map(a=>{const n=abilityScore(v,a.k),m=modOf(n);return `<div class="status-ability"><small>${a.n}</small><div class="ab-v"><b>${n}</b><span>${m>=0?"+":""}${m}</span></div></div>`}).join("")}</div>`;
     const sh1=v.shield?(Equipment.shieldItem(v,v.activeSet===2?"secondOff":"off")||{n:"盾牌",type:"shield",id:"shield",wt:6}):v.offhand||null;
@@ -101,15 +101,15 @@ function statusCardHTML(v, b, embedded=false){
     const main=v.weapon||v.focus||null;
     statusPage=`<div class="status-page"><div class="status-loadout" data-status-rows="${groupedStatus.length}"><div class="status-paper" data-status-rows="${groupedStatus.length}">${statusBadgeHTML}${statusPop}${big}</div>${bag}${roSlot(v.accessories&&v.accessories[0],"飾Ⅰ","acc1")}${roSlot(v.accessories&&v.accessories[1],"飾Ⅱ","acc2")}${roSlot(v.armor,"身體","armor")}${roSlot(main,"主手","main")}${isTwoHand(main)?`<div class="status-eqslot ro off locked"><small>副手</small><span class="gear-empty">雙手</span></div>`:roSlot(v.shield?(Equipment.shieldItem(v,v.activeSet===2?"secondOff":"off")||{n:"盾牌",type:"shield",id:"shield",wt:6}):null,"副手","off")}</div>${drawer}${abilities}</div>`;
   }
-  const pageBody=v.side==="pc"&&page==="notes"?notes:statusPage;
-  return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${v.side==="pc"?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):v.side==="pc"?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
+  const pageBody=isPcCritter(v)&&page==="notes"?notes:statusPage;
+  return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${isPcCritter(v)?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):isPcCritter(v)?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     ${embedded?"":`<button class="inf-x" data-closeinfo aria-label="關閉">✕</button>`}
-    <div class="bt-me"><div><h3>${v.name}${v.side==="pc"?`　${levelButtonHTML(v.id)}`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?(v.side==="pc"?"昏迷（隊友協助或治療才醒） · ":"倒下了 · "):""}AC ${acOfUnit(v)} · 移動 ${v.speed}${v.side==="pc"?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
-    ${v.side==="pc"?`<div class="dim race-line" data-tip="體型${RACE.size}。天生黑暗視覺 ${RACE.darkvision} 格（黑暗看成黑白）。好運：每次長休後 ${LUCK_MAX} 顆，攻擊、豁免失敗時可以花 1 顆重擲。" data-tip-title="${RACE.name}">${RACE.name} · 黑暗視覺 ${RACE.darkvision} 格 · 好運 ${luckLeft(v)}/${LUCK_MAX}</div>`:""}
+    <div class="bt-me"><div><h3>${v.name}${isPcCritter(v)?`　${levelButtonHTML(v.id)}`:v.steed&&!embedded?`　<button class="btn mini" data-steed-rename>${MOUNT_UI.rename}</button>`:""}</h3><div class="dim">${v.dead?"已被打倒":v.down?(isPcCritter(v)?"昏迷（隊友協助或治療才醒） · ":"倒下了 · "):""}AC ${acOfUnit(v)} · 移動 ${v.speed}${isPcCritter(v)?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    ${isPcCritter(v)?`<div class="dim race-line" data-tip="體型${RACE.size}。天生黑暗視覺 ${RACE.darkvision} 格（黑暗看成黑白）。好運：每次長休後 ${LUCK_MAX} 顆，攻擊、豁免失敗時可以花 1 顆重擲。" data-tip-title="${RACE.name}">${RACE.name} · 黑暗視覺 ${RACE.darkvision} 格 · 好運 ${luckLeft(v)}/${LUCK_MAX}</div>`:""}
     ${monsterInfoHTML(v)}
     ${infoBarsHTML(v, pct)}
     ${v.side==="pc" && econHTML(v,b,false)?`<div class="econ">${econHTML(v,b,false)}</div>`:""}
-    ${v.side==="pc"?slotGridHTML(v,b):""}
+    ${isPcCritter(v)?slotGridHTML(v,b):""}
     ${v.oaUsed&&!v.down&&!v.dead?`<div class="inf-g dim">這輪已經藉機攻擊過了</div>`:""}
     ${tabs}${pageBody}
   </div>`;

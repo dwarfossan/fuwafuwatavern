@@ -101,3 +101,9 @@ const AFTER_TALK = {draft:"香香",
     other:{fox:{mood:"confused",text:"{self}……你剛剛是不是有點恐怖？"}, tiger:{mood:"surprised",text:"{self}剛剛好兇！比我還兇！"},
           wolf:{mood:"serious",text:"{self}，回去找大爺摸摸頭吧。"}, raccoon:{mood:"surprised",text:"……{self}，嚇人。"}}}
 };
+
+// 坐騎取名／改名後的吐槽（10-20，香香草稿，大爺看過再改）：[誰, 台詞]，{name}＝取的名字
+const STEED_NAME_BARKS = {draft:"香香",
+  first:[["tiger","好名字！……可是我還是想叫牠骨骨。"],["fox","骨頭馬叫{name}……牠自己同意了嗎？"],["wolf","……牠沒有耳朵，聽不到吧。"],["raccoon","名字很好，就是有點不像骨頭。"]],
+  gugu:[["tiger","耶！大爺也覺得叫骨骨！"],["wolf","……嬌嬌，妳是不是偷偷跟大爺講過？"]],
+  rename:[["fox","又改名了？{name}會搞混的。"],["tiger","{name}！{name}！……還是骨骨順口。"]]};

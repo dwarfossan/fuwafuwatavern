@@ -82,7 +82,7 @@ function arriveQuest(tr){
 // 打贏（checkResult 呼叫）：報酬當場給，勝利畫面顯示
 function grantQuestReward(){
   const b = B(); if(!b?.def.quest || b.questReward) return;
-  const rw = QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(u=>u.side==="pc"), each = Math.floor(rw.gold / pcs.length);
+  const rw = QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(isPcCritter), each = Math.floor(rw.gold / pcs.length);
   pcs.forEach(u=>{ state.gold[u.id] = (state.gold[u.id]||0) + each*GP; });
   const out = {each, item:null, who:null};
   if(rw.magic>0 && Math.random() < rw.magic){

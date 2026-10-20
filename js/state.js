@@ -42,4 +42,5 @@ const state = {
   xp:{}, level:{},   // 經驗與等級（大爺 10-04）：打倒敵人照 SRD 平分、劇情完成另給；見 js/rules.js gainXP
   retriesLeft:3,     // 輸掉後「重新挑戰」還剩幾次；長休回滿（大爺 10-02，RETRY_MAX 在 js/battle/engine.js）
   battleSnap:null,   // 開戰前的存檔：重新挑戰時整個還原（血、熟練格、道具、筆記）
+  steed:null,        // 韁繩叫的坐騎（10-20）：{type, name, hp, bones}；同一匹，血量跨戰鬥保留
 };

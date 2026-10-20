@@ -103,7 +103,7 @@ function awardBattleXP(){
   const b = B(); if(!b) return;
   const got = b.units.filter(u=>u.side==="foe" && u.dead && !u.xpGiven);
   const total = got.reduce((a,u)=>a+((ENEMIES[u.type]||{}).xp||0),0); got.forEach(u=>u.xpGiven=true);
-  const pcs = b.units.filter(u=>u.side==="pc"), each = Math.floor(total / pcs.length);
+  const pcs = b.units.filter(isPcCritter), each = Math.floor(total / pcs.length);
   if(!each) return;
   gainXP(pcs.map(u=>u.id), each);
   pcs.forEach(u=>u.xp = critterXP(u.id));
@@ -112,13 +112,13 @@ function awardBattleXP(){
 function checkResult(){
   const b = B();
   if(!b || b.result) return true;            // 戰鬥已經不在（傳送回酒館）＝結束了
-  if(b.explorationMap&&!b.units.some(u=>u.side==="pc"&&!u.dead&&!u.down)){b.result="lose";blog("四隻都昏迷了……","kill");refreshBattle();return true;}
+  if(b.explorationMap&&!b.units.some(u=>isPcCritter(u)&&!u.dead&&!u.down)){stashSteed();b.result="lose";blog("四隻都昏迷了……","kill");refreshBattle();return true;}
   if(b.explorationMap&&!alive("foe").length){if(!alive("pc").length)return false;
     // 委託（10-10）：地圖上的敵人全倒（或逃走）＝委託完成，跳勝利畫面
-    if(b.def.quest&&!b.units.some(u=>u.side==="foe"&&!u.dead&&!u.fled)){wakeAfterBattle();stressBattleEnd();awardBattleXP();b.result="win";grantQuestReward();blog(QUEST_UI.cleared,"kill");sfx("win",900);syncBGM();refreshBattle();return true;}
-    if(!b.manualCombat){wakeAfterBattle();finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
-  if(!b.units.some(u=>u.side==="pc" && !u.dead && !u.down)){ b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
+    if(b.def.quest&&!b.units.some(u=>u.side==="foe"&&!u.dead&&!u.fled)){wakeAfterBattle();stressBattleEnd();awardBattleXP();stashSteed();b.result="win";grantQuestReward();blog(QUEST_UI.cleared,"kill");sfx("win",900);syncBGM();refreshBattle();return true;}
+    if(!b.manualCombat){stashSteed();wakeAfterBattle();finishExploreCombat();return true;}return false;}
+  if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); stashSteed(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
+  if(!b.units.some(u=>isPcCritter(u) && !u.dead && !u.down)){ stashSteed(); b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
   return false;
 }
 
@@ -528,7 +528,7 @@ function observedSkill(e,key,name){
   if(b.observeRound!==b.round){ b.observeRound=b.round; b.observeFoe=null; }
   if(!b.observeFoe) b.observeFoe=e.id;
 
-  const dc=observeDC(e),party=b.units.filter(v=>v.side==="pc"&&!v.dead);
+  const dc=observeDC(e),party=b.units.filter(v=>isPcCritter(v)&&!v.dead);
   const watchers=party.filter(p=>p.id==="raccoon" || e.id===b.observeFoe);
   if(!watchers.length)return;
   blog(`大家注意到${e.name}使出【${name}】（招式，學習 DC ${dc}）`,"skill");
@@ -560,7 +560,7 @@ const notePages = id => id==="fox" ? 3 : 2;
 const noteCap = id => notePages(id) * NOTE_PAGE_SIZE;
 function syncLearnedState(b=B()){
   if(!b)return;
-  b.units.filter(u=>u.side==="pc").forEach(u=>{ state.learned[u.id]=(u.learned||[]).map(x=>({...x})); state.activeSkills[u.id]=carriedSkillKeys(u); state.proficiency[u.id]=slotsOf(u).slice(); });   // 10-03 修：以前存 u.pts（舊點數制，已不存在）＝ undefined，休息或擦筆記後熟練格被蓋掉
+  b.units.filter(isPcCritter).forEach(u=>{ state.learned[u.id]=(u.learned||[]).map(x=>({...x})); state.activeSkills[u.id]=carriedSkillKeys(u); state.proficiency[u.id]=slotsOf(u).slice(); });   // 10-03 修：以前存 u.pts（舊點數制，已不存在）＝ undefined，休息或擦筆記後熟練格被蓋掉
 }
 function restMessage(b,text){if(b===B())blog(text,"skill");else state.restMessage=text;}
 function eraseNote(u,key,b=B()){
@@ -590,7 +590,7 @@ function takeRest(kind, selections={},b=B()){
   if(!b || (!["short","long"].includes(kind)) || (!atInn && (b!==B() || (b.result!=="win" && b.phase!=="explore"))) || b.busy || b.exploreStopped)return false;
   if(kind==="short" && state.shortRestsUsed>=2)return false;
   b.noteCopy={};
-  b.units.filter(u=>u.side==="pc").forEach(u=>{
+  b.units.filter(isPcCritter).forEach(u=>{
     b.noteCopy[u.id]=transcribePending(u,selections[u.id]||[]).map(n=>n.key);
     if(b.noteCopy[u.id].length)(b.notePages||={})[u.id]=Math.ceil(u.learned.length/NOTE_PAGE_SIZE);
     // 短休：每一階各回一半（無條件進位）；長休全回
@@ -600,6 +600,7 @@ function takeRest(kind, selections={},b=B()){
   });
   restStress(kind);   // 壓力：短休 −10、長休 −30（10-10，暫定）
   if(kind==="long") clearMeals(b);   // 料理效果到下一次長休（10-10）
+  if(kind==="long") steedLongRest();  // 坐騎：散掉的骨頭拼回來、血回滿（10-20）
   if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
@@ -636,6 +637,9 @@ function battleCmd(c){
       else { b.info=u.id; b.infoPage="status"; }
       break;
     case "aim": if(!doAim(u)) return; b.menu = null; b.moveMode = false; break;
+    case "summon": if(summonBlock(u) || !canAct()) return; b.menu = null; summonSteed(u); return;   // 坐騎（10-20，steed.js）
+    case "mountUp": if(!pcMount(u)) return; b.menu = null; b.moveMode = canWalk(); break;
+    case "dismount": if(!pcDismount(u)) return; b.menu = null; b.moveMode = canWalk(); break;
     case "walk":  if(!canWalk()) return; b.menu = null; b.moveMode = true; break;
     case "dash":
       if(!payMoveAction(u)) return; b.moveLeft += b.baseMove;
@@ -722,7 +726,7 @@ function doEscape(u){
 }
 
 // 協助：相鄰的隊友（倒下的也行，改成扶起來）
-const helpList = u => alliesOf(u).filter(p=>p!==u && dist(p,u)===1);
+const helpList = u => alliesOf(u).filter(p=>p!==u && dist(p,u)===1 && !(p.steed && p.down));   // 散成骨頭的坐騎扶不起來（長休才拼回來）
 function helpTarget(u, x, y){ const t = unitAt(x,y); return t && helpList(u).includes(t) ? t : null; }
 // 搜索（主動感知，大爺 10-02）：免費動作；6 格內看得到、還沒看穿的敵人；d20＋感知 對 DC（見 engine.js 的感知）
 const searchTargets = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.down && !foeHid(v) && !pocketKnown(v) && dist(u,v)<=SEARCH_RANGE);
@@ -775,7 +779,7 @@ function itemTargets(u, it){
   const k = it.use.kind;
   if(k==="ammo") return [u];
   if(k==="drink" || k==="eat") return B().units.filter(v=>v.side===u.side && !v.dead && dist(u,v)<=1);
-  return B().units.filter(v=>!v.dead && ((hostile(v,u) && !v.down && !isHid(v) && dist(u,v)<=it.use.range) || (v.side===u.side && v!==u && dist(u,v)===1)));
+  return B().units.filter(v=>!v.dead && ((hostile(v,u) && !v.down && !isHid(v) && dist(u,v)<=it.use.range) || (v.side===u.side && v!==u && !v.steed && dist(u,v)===1)));   // 坐騎不收東西
 }
 function dropItem(u, it){
   if(u.side==="pc"){
@@ -790,7 +794,7 @@ function dropItem(u, it){
 function snackRest(t){
   const max = slotMax(t), s = slotsOf(t);
   t.slots = max.map((m,i)=>Math.min(m, (s[i]||0) + Math.ceil(m/2)));
-  if(t.side==="pc") state.proficiency[t.id] = t.slots.slice();
+  if(isPcCritter(t)) state.proficiency[t.id] = t.slots.slice();
   blog(`　${t.name}吃飽了，像短休過一樣：熟練格 ${t.slots.join("/")}`, "heal", `${t.name} 熟練格回復`);
   fxFloat(t, POP_TEXT.yum, "heal"); fxHit(t, "heal");
 }
@@ -1083,8 +1087,8 @@ function foeMelee(e, adj){
 // 看得到的對手（躲著的不算）。AI 敵我共用（10-10：失控的小傢伙也走這套，不打隊友）
 const seenFoes = e => B().units.filter(x=>hostile(x,e) && !x.down && !x.dead && !isHid(x));
 // 騎乘（10-20）：自己的坐騎在相鄰、沒被騎、站著，花一半移動（騎士自己的速度）騎上去；剩下的移動照比例換成坐騎的速度
-function tryRemount(u){
-  const b = B(), h = u.steedId && b.units.find(v=>v.id===u.steedId);
+function tryRemount(u, h0){
+  const b = B(), h = h0 || (u.steedId && b.units.find(v=>v.id===u.steedId));
   if(!h || u.mountId || h.riderId || h.dead || h.down || h.fled || has(h,"prone") || has(u,"restrained") || dist(u,h)>1) return false;
   const cost = Math.ceil(u.speed/2); if(b.moveLeft < cost) return false;
   const frac = (b.moveLeft - cost) / u.speed;
@@ -1126,6 +1130,7 @@ function aiTurn(e){
       if(t){ e.testSkillUsed=true; doSkill(e,sk,t); later(endTurn,settle(1000)); return; }
     }
   }
+  if(aiSteedReturn(e)) return;                       // 敵方坐騎：主人摔下來，先回去接他（10-20，steed.js）
   if(e.special && monsterTurn(e)) return;                               // 怪物技能（10-10，monster.js）
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
   const pcs = seenFoes(e);
