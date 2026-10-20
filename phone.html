@@ -9,10 +9,84 @@
 html,body{height:100%;margin:0}
 body{background:#1f1a24;display:flex;justify-content:center;align-items:center}
 iframe{width:390px;height:min(844px,100vh);border:0;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 10px 40px rgba(0,0,0,.5)}
+/* 唯讀唸稿區（10-20）：畫面上看不到，給讀網頁文字的工具（瀏覽器 AI 側邊欄等）用 */
+#readout{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:pre-wrap}
 </style>
 </head>
 <body>
 <iframe id="game" title="毛絨絨小隊" allow="autoplay"></iframe>
+<section id="readout" aria-label="遊戲畫面文字（唯讀，自動同步）">
+<h1>毛絨絨小隊：目前遊戲畫面</h1>
+<p id="readout-time">遊戲載入中</p>
+<h2>畫面上的文字</h2>
+<div id="readout-text"></div>
+<h2>畫面上的按鈕</h2>
+<ul id="readout-buttons"></ul>
+</section>
 <script>document.getElementById("game").src = "index.html" + location.hash;</script>
+<script>
+/* 唯讀唸稿區（10-20）：遊戲在 iframe 裡，外層頁面只有標題和網址，讀網頁的工具讀不到框裡的內容。
+   這裡把框裡「玩家現在看得到的」文字與按鈕抄一份到外層的隱藏區，畫面、玩法、存檔都不動。
+   只抄已經畫出來、看得到的東西（innerText 跳過 display:none／hidden／visibility:hidden），
+   躲著的敵人、沒發現的陷阱與油、沒看穿的背包，遊戲本來就不畫，所以這裡也不會有。 */
+(function(){
+  const frame = document.getElementById("game");
+  const $time = document.getElementById("readout-time");
+  const $text = document.getElementById("readout-text");
+  const $btns = document.getElementById("readout-buttons");
+  const WAIT = 300;            // 畫面變動後等多久再抄（戰鬥動畫會一直變，合併成一次）
+  let observer = null, timer = 0, lastText = null, lastBtns = null;
+
+  const clear = msg => {
+    $time.textContent = msg; $text.textContent = ""; $btns.textContent = "";
+    lastText = lastBtns = null;
+  };
+  const visible = el => el.checkVisibility
+    ? el.checkVisibility({checkOpacity:true, checkVisibilityCSS:true})
+    : el.getClientRects().length > 0;
+  // 有 aria-label 的用它（整塊可點的區域，例如劇情舞台「下一句」，內文已在上面的文字區）
+  const labelOf = el => (el.getAttribute("aria-label") || "").trim()
+    || (el.innerText || "").replace(/\s+/g, " ").trim()
+    || (el.getAttribute("title") || "").trim();
+
+  function sync(){
+    timer = 0;
+    let doc;
+    try { doc = frame.contentDocument; } catch(e) { doc = null; }
+    if(!doc || !doc.body){ clear("遊戲載入中"); return; }
+    if(doc.body.classList.contains("image-boot")){ clear("遊戲載入中"); return; }
+    const text = (doc.body.innerText || "").replace(/\n{3,}/g, "\n\n").trim();
+    const seen = new Set(), btns = [];
+    doc.querySelectorAll('button,[role="button"],a[href],input,select,summary').forEach(el=>{
+      if(!visible(el)) return;
+      const name = labelOf(el); if(!name) return;
+      const off = el.disabled || el.getAttribute("aria-disabled") === "true";
+      const line = off ? `${name}（不能按）` : name;
+      if(seen.has(line)) return; seen.add(line); btns.push(line);
+    });
+    const joined = btns.join("\n");
+    if(text !== lastText){ $text.textContent = text; lastText = text; }
+    if(joined !== lastBtns){
+      $btns.replaceChildren(...btns.map(b=>{ const li = document.createElement("li"); li.textContent = b; return li; }));
+      lastBtns = joined;
+    }
+    $time.textContent = "最後同步：" + new Date().toLocaleTimeString("zh-TW", {hour12:false});
+  }
+  const schedule = () => { if(!timer) timer = setTimeout(sync, WAIT); };
+
+  function attach(){
+    if(observer){ observer.disconnect(); observer = null; }
+    clear("遊戲載入中");
+    let doc;
+    try { doc = frame.contentDocument; } catch(e) { doc = null; }
+    if(!doc) return;
+    observer = new MutationObserver(schedule);
+    observer.observe(doc.documentElement, {subtree:true, childList:true, characterData:true,
+      attributes:true, attributeFilter:["class","hidden","style","disabled","aria-disabled","aria-label","open"]});
+    schedule();
+  }
+  frame.addEventListener("load", attach);
+})();
+</script>
 </body>
 </html>
