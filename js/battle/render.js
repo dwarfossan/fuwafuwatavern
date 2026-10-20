@@ -224,7 +224,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
-  const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !ridden(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));   // 被騎著的坐騎畫在騎士那張圖裡（10-20）
+  const shown = b.units.filter(v=>!v.fled&&(!v.dead || v.ko || now - v.deadAt < 900) && !foeHid(v) && !ridden(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));   // 被騎著的坐騎畫在騎士那張圖裡（10-20）
   shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+(footOf(v)-1)+.5, svg:tokenSVG(v, v===u), unit:v}));   // 多格的照整塊中間排前後
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
@@ -753,7 +753,7 @@ function unitDoll(v, active){
   const h = isPcCritter(v) && mountOf(v);
   const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:X, y:Y, w:W, seed:7}) : "";
   if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, raise:true, x:cx-46+(v.face||1)*-4*k, y:cy + 8 - 154*k, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
-  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
+  return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down||v.ko, prone:!v.down && !v.ko && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:X, y:Y, w:W, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
 }
 const DOLL_SCALE = {2:1.45, 3:1.9, 4:2.35};
@@ -935,11 +935,11 @@ function tokenSVG(v, active){
   const now = Date.now(), pct = v.hp/v.maxHp;
   const aimed = B().mode && B().aimHover===v.id;
   const doll = unitDoll(v, active);
-  const body = v.dead ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>`
+  const body = v.dead && !v.ko ? `<g class="dying" style="animation-delay:${v.deadAt-now}ms">${doll}</g>`
     : v.frenzy ? `<g class="frenzy-shake">${doll}</g>` : doll;   // 失控：晃動（10-10）
   const top = hudTop(v, cy);
   const badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down?"down":""} ${isHid(v)?"hid-me":""} ${aimed?(v.side==="foe"?"aimed-foe":"aimed-ally"):""}" ${v.dead?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
+  return `<g data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} class="token ${active?"active":""} ${v.down||v.ko?"down":""} ${isHid(v)?"hid-me":""} ${aimed?(v.side==="foe"?"aimed-foe":"aimed-ally"):""}" ${v.dead&&!v.ko?`data-exp="${v.deadAt+900}"`:`data-tile="${mapCell(v.x)},${mapCell(v.y)}"`}>
     <ellipse cx="${cx}" cy="${cy}" rx="30" ry="14" fill="#000" opacity=".25"/>
     ${v.frenzy?`<ellipse class="frenzy-glow" cx="${cx}" cy="${cy-2}" rx="40" ry="18" fill="#e0443a" opacity=".45"/>`:""}
     <ellipse cx="${cx}" cy="${cy-2}" rx="28" ry="12" fill="${v.frenzy?"#7a1c1c":"#2a2630"}" stroke="${v.frenzy?"#ff5a4a":ring}" stroke-width="3"/>
@@ -1619,6 +1619,8 @@ function bindBattle(){
   document.querySelectorAll("[data-retreat]").forEach(el=>battleListen(el,"click",()=>answerRetreat(!!el.dataset.retreat)));
   document.querySelectorAll("[data-steal-item]").forEach(el=>battleListen(el,"click",()=>answerStealPick(el.dataset.stealItem)));
   document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
+  document.querySelectorAll("[data-ko-toggle]").forEach(el=>battleListen(el,"click",()=>{ const id = el.dataset.koToggle, on = !((state.knockout ||= {})[id]); state.knockout[id] = on; sfx("pop");
+    el.textContent = on ? KO_UI.on : KO_UI.off; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); }));   // 狀態卡不重畫，直接改按鈕
   document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));

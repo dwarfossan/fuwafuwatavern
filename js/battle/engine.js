@@ -503,6 +503,7 @@ function guardOf(t){
 function attackRoll(a, t, o={}){
   let adv = 0;
   const melee = !o.ranged;
+  B().meleeBy = melee ? {a:a.id, t:t.id} : null;   // 敲暈（10-21）：記住這一擊是不是近戰，hurt 歸零時看
   if(o.adv) adv++;
   if(o.dis) adv--;
   if(has(t,"prone")) adv += melee ? 1 : -1;
@@ -686,7 +687,8 @@ function hurt(t, n, type, src, hitSfx){
   else endConc(t, "倒下了");
   // 已經倒下的再被打（例如普攻打死後狩印、偷襲的追加傷害）不再觸發一次倒下：紀錄、音效、台詞只算一次（大爺 10-11 回報哥布林吐槽兩次）
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
-    if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
+    if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
+    else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
     else { t.down = true; t.statuses = []; funNote("down", t); blog(t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
@@ -702,6 +704,10 @@ function hurt(t, n, type, src, hitSfx){
   if(mh && src && mh.a===src.id && mh.t===t.id){ B().markHit = null;
     if(!t.dead && !t.down){ const m = rollDice(mh.crit ? "2d6" : "1d6").total; blog(`　狩印追加：`, "skill"); hurt(t, m, "力場", null); } }
 }
+// 敲暈（大爺 10-21，SRD）：小傢伙打開「敲暈」開關，用近戰攻擊把敵人打到 0 血 → 牠昏過去、不會死。
+// 遠程、法術、豁免型的傷害不算；失控時 AI 接手，不管開關。被敲暈的照「打倒」算：經驗、背包、輸贏都一樣，只是畫成躺著、不消失
+const koOn = u => !!(isPcCritter(u) && state.knockout && state.knockout[u.id]);
+const koApplies = (src, t) => !!(src && koOn(src) && !src.frenzy && B().meleeBy && B().meleeBy.a===src.id && B().meleeBy.t===t.id);
 function heal(t, n){
   B()._pend = [];                                   // 補血的骰不是傷害骰
   n = Math.max(0, n);                         // 補血不會變成扣血

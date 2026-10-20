@@ -222,7 +222,7 @@ function opportunityAttack(h, u){
   h.anim = {k, t:Date.now()}; animSfx(k);
   b.impact = DOLL_IMPACT[k] || 0;
   weaponAttack(h, u, {});
-  b.impact = 0;
+  b.impact = 0; b.meleeBy = null;
   checkResult();
 }
 // 阻截：走進架式範圍就挨一下。敵我同一套（大爺 10-02；以前只有小傢伙們的架式有效）
@@ -1030,10 +1030,11 @@ function doSkillNow(u, sk, t){
   if(meta){ blog(`　超魔：${META_NAME[meta]}（多花一個免費動作）`, "skill"); if(meta==="careful") b.careful = u.id; }
   const cantrip = isSpellSkill(sk) && !(sk.def.tier>0), emBonus = u.mods[spellStat(u)]||0;
   b.empower = cantrip && emBonus>0 && passiveSkills(u).some(s=>s.key==="empowered_cantrip") ? {by:u.id, bonus:emBonus, hit:new Set()} : null;
-  sk.impl.run(u, t);
+  b.meleeBy = null; sk.impl.run(u, t);
   b.empower = null; b.careful = null;
   if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
   b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
+  b.meleeBy = null;                          // 敲暈：這一招結束就不算近戰了
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();
   reveal(u, "出手，現身了！");               // 用技能（攻擊、施法）就現身
   b.impact = 0;

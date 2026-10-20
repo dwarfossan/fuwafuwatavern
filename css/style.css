@@ -1444,3 +1444,6 @@ body.image-boot{background:#000}
 .give-row{margin-top:10px;border-top:1px dashed rgba(42,38,48,.25);padding-top:8px}
 .give-row>small{display:block;color:var(--dim,#7a6f80)}
 .res-stolen{color:#9be08a}
+
+.ko-row{margin:4px 0 2px}
+.ko-toggle.on{background:var(--honey,#f2b441);color:#2a2630}

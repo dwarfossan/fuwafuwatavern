@@ -13,7 +13,7 @@ function battleReadoutText(){
   const statusText = v => { const s = [...new Set(v.statuses.map(x=>STATUS_NAME[x.k]).filter(Boolean))]; return s.length ? `，狀態：${s.join("、")}` : ""; };
   const unitLine = v => {
     const m = mountOf(v), r = riderOf(v), far = u && u!==v && !v.dead ? `，離${nameFor(u)} ${dist(u,v)} 格` : "";
-    const hp = v.dead ? "已倒下" : v.down ? (v.steed ? "散成骨頭" : "昏迷") : `生命 ${v.hp}/${v.maxHp}`;
+    const hp = v.ko ? KO_UI.status : v.dead ? "已倒下" : v.down ? (v.steed ? "散成骨頭" : "昏迷") : `生命 ${v.hp}/${v.maxHp}`;
     return `・${v.name}：${hp}，位置 ${at(v)}${far}${m ? `，騎著${m.name}` : ""}${r ? `，被${r.name}騎著` : ""}${isPcCritter(v) ? `，壓力 ${stressOf(v)}` : ""}${statusText(v)}`;
   };
   const L = [];
