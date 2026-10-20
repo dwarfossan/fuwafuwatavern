@@ -164,14 +164,14 @@ function dollSVG(o){
   const main = o.main, off = o.off, h = main && HELD[main];
   const two = h && h.two && !off;
   const now = Date.now(), level = leveling(o), cheer = o.cheer || level;
-  // 主手：武器跟著手一起轉
+  // 主手：武器跟著手一起轉；o.raise＝把慣用手舉高（騎在馬上，大爺 10-20：跟死亡騎士一樣，看得到拿什麼武器）
   let arm;
   if(main && h){
     const s = h.s ?? .4;
-    arm = `<g transform="translate(${h.hx??100} ${h.hy??104}) rotate(${h.ang})">
+    arm = `<g transform="translate(${o.raise?106:h.hx??100} ${o.raise?72:h.hy??104}) rotate(${o.raise?12:h.ang})">
       <g transform="scale(${s}) translate(${-(h.gx??60)} ${-h.gy})">${ITEM_RAW[main]}</g>
       ${handSVG(0,0,c)}${two?handSVG(((h.twoX??(h.gx??60))-(h.gx??60))*s,(h.two-h.gy)*s,c):""}</g>`;
-  } else arm = handSVG(100,104,c, main==="unarmed"?10:8.5);
+  } else arm = o.raise ? handSVG(106,72,c, main==="unarmed"?10:8.5) : handSVG(100,104,c, main==="unarmed"?10:8.5);
   // 副手
   let offHand = "";
   if(!two){
