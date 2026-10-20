@@ -380,6 +380,13 @@ function startPinch(){
   const [p1, p2] = [...touches.values()];
   pinch = {d:Math.hypot(p1.x-p2.x, p1.y-p2.y) || 1, mx:(p1.x+p2.x)/2, my:(p1.y+p2.y)/2, z:camZoom(), cam:{...B().cam}};
 }
+// 敲暈開關（10-21）：放在行動選單的攻擊按鈕下面，戰鬥中隨時切；不花動作。記在存檔 state.knockout（每隻各自）
+const koToggleInner = on => `<span>${on ? KO_UI.on : KO_UI.off}</span><small>${KO_UI.sub}</small>`;
+function koToggleHTML(u){
+  if(!isPcCritter(u)) return "";
+  const on = koOn(u);
+  return `<button class="mn-b ko-toggle ${on?"on":""}" data-ko-toggle="${u.id}" aria-pressed="${on}" data-tip="${KO_UI.tip}" data-tip-title="${KO_UI.tipTitle}">${koToggleInner(on)}</button>`;
+}
 // 手指／游標底下是哪一格（照畫面位置反推，高的格子先看：高台會擋住後面低的格子）
 function screenTile(e){
   const b = B(), d = b.def, q = wrapXY(e), z = camZoom(), c = b.cam || {x:0, y:0};
@@ -1096,7 +1103,7 @@ function menuHTML(u, b, level=null){
     body = (grappled(u) ? mbtn("escape","掙脫", !act, `被${(grapplerOf(u)||{}).name||""}抓住`) : "") +
            (hasVia(u,"restrained","net") ? mbtn("unnet","掙脫網子", !act, `力量檢定 ${hasVia(u,"restrained","net").dc}`) : "") +
            (has(u,"burning") ? mbtn("douse","撲滅火焰", !act, "身上著火了") : "") +
-           (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "", "到你下回合開始前，敵人打你都有劣勢。") +
+           (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + koToggleHTML(u) + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "", "到你下回合開始前，敵人打你都有劣勢。") +
            mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "", "鄰格隊友下次攻擊有優勢；隊友昏迷時改成扶起來。") +
            mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : tooBigOnly(u) ? "敵人太大了" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手；只能抓最多比你大一級的敵人。") +
@@ -1620,7 +1627,7 @@ function bindBattle(){
   document.querySelectorAll("[data-steal-item]").forEach(el=>battleListen(el,"click",()=>answerStealPick(el.dataset.stealItem)));
   document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
   document.querySelectorAll("[data-ko-toggle]").forEach(el=>battleListen(el,"click",()=>{ const id = el.dataset.koToggle, on = !((state.knockout ||= {})[id]); state.knockout[id] = on; sfx("pop");
-    el.textContent = on ? KO_UI.on : KO_UI.off; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); }));   // 狀態卡不重畫，直接改按鈕
+    el.innerHTML = koToggleInner(on); el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); }));   // 不重畫選單，直接改按鈕
   document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));

@@ -1445,5 +1445,4 @@ body.image-boot{background:#000}
 .give-row>small{display:block;color:var(--dim,#7a6f80)}
 .res-stolen{color:#9be08a}
 
-.ko-row{margin:4px 0 2px}
-.ko-toggle.on{background:var(--honey,#f2b441);color:#2a2630}
+.mn-b.ko-toggle.on{border-color:var(--honey,#f2b441);box-shadow:inset 0 0 0 2px var(--honey,#f2b441)}
