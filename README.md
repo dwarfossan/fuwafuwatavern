@@ -132,5 +132,5 @@ tools/skills_doc.mjs  從 data/skills.js 產生 docs/技能表.md
 
 本作品包含取自 Wizards of the Coast LLC 的 System Reference Document 5.1（「SRD 5.1」）的內容，來源：https://dnd.wizards.com/resources/systems-reference-document 。SRD 5.1 以 Creative Commons Attribution 4.0 International License 授權：https://creativecommons.org/licenses/by/4.0/legalcode 。
 
-目前借用的部分：屬性值與調整值算法、4d6 取高三、武器與護甲的數值（傷害、屬性、價格、重量、AC、力量需求）、武器專精名稱、部分道具與怪物數值、攀爬與跌落規則；專注規則、獵人印記（本作叫狩印）、次元背包、套組內容、彈袋、火槍與手槍（10-03）；奇襲個別判定（SRD 5.1，已接入探索／戰棋）。
+目前借用的部分：屬性值與調整值算法、4d6 取高三、武器與護甲的數值（傷害、屬性、價格、重量、AC、力量需求）、武器專精名稱、部分道具與怪物數值、攀爬與跌落規則；專注規則、獵人印記（本作叫狩印）、次元背包、套組內容、彈袋、火槍與手槍（10-03）；奇襲個別判定（SRD 5.1，已接入探索／戰棋）；體型分級與擒抱、推撞的體型限制（SRD 5.2，10-20）。
 角色、世界觀、地圖、劇情、美術皆為本專案原創。

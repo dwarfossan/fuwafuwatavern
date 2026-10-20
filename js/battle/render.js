@@ -1028,13 +1028,13 @@ function menuHTML(u, b, level=null){
            (atks.length>1 ? atks.map(sk=>skillBtn(u,sk)).join("") : atks.length ? skillBtn(u,atks[0],"攻擊") : "") + mbtn("skills","技能", false) + mbtn("dodge","閃避", !act, "", "到你下回合開始前，敵人打你都有劣勢。") +
            mbtn("search","搜索", !canFree(), freeLeft() ? "免費動作" : "用掉主要動作") +
            mbtn("help","協助", !act || !helpList(u).length, helpList(u).some(p=>p.down) ? "可扶起倒下隊友" : "", "鄰格隊友下次攻擊有優勢；隊友昏迷時改成扶起來。") +
-           mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手。") +
-           mbtn("shove","推撞", !act || !foesNear, "", "把貼身的敵人推開 1 格，或推倒在地。") +
+           mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : tooBigOnly(u) ? "敵人太大了" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手；只能抓最多比你大一級的敵人。") +
+           mbtn("shove","推撞", !act || !foesNear || tooBigOnly(u), tooBigOnly(u) ? "敵人太大了" : "", "把貼身的敵人推開 1 格，或推倒在地。只能推最多比你大一級的敵人。") +
            mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") + back;
   } else if(lv==="shove"){
     title = "推撞";
-    body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, "", "把敵人推開 1 格。") +
-           mbtn("shove_prone","推倒", !act || !GEN_ACT.shove_prone.targets(u).length, "", "把敵人推倒：近戰打他有優勢、遠程打他有劣勢。") + back;
+    body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, tooBigOnly(u) ? "敵人太大了" : "", "把敵人推開 1 格。只能推最多比你大一級的敵人。") +
+           mbtn("shove_prone","推倒", !act || !GEN_ACT.shove_prone.targets(u).length, tooBigOnly(u) ? "敵人太大了" : "", "把敵人推倒：近戰打他有優勢、遠程打他有劣勢。只能推最多比你大一級的敵人。") + back;
   } else if(lv==="items"){
     title = "道具";
     const groups = [...new Set(u.items)];

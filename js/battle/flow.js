@@ -636,10 +636,11 @@ function battleCmd(c){
 // ---------- 通用動作：擒抱、推撞（SRD 5.2 徒手攻擊的選項，每個人都能用） ----------
 // 目標做力量或敏捷豁免（挑高的），DC = 8 + 力量 + 熟練 2
 const adjFoes = u => enemiesOf(u).filter(e=>dist(e,u)<=1);
+const tooBigOnly = u => { const a = adjFoes(u); return a.length > 0 && !a.some(e=>sizeFits(u,e)); };   // 貼身的全都太大：按鈕寫原因
 const GEN_ACT = {
-  grapple:     {name:"擒抱", targets:u=>adjFoes(u).filter(e=>!grappled(e))},
-  shove_push:  {name:"推開", targets:u=>adjFoes(u)},
-  shove_prone: {name:"推倒", targets:u=>adjFoes(u).filter(e=>!has(e,"prone"))},
+  grapple:     {name:"擒抱", targets:u=>adjFoes(u).filter(e=>!grappled(e) && sizeFits(u,e))},
+  shove_push:  {name:"推開", targets:u=>adjFoes(u).filter(e=>sizeFits(u,e))},
+  shove_prone: {name:"推倒", targets:u=>adjFoes(u).filter(e=>!has(e,"prone") && sizeFits(u,e))},
   disarm:      {name:"繳械", targets:u=>twoHandLocked(u) ? [] : enemiesOf(u).filter(e=>dist(e,u)<=meleeReach(u) && disarmable(e))}
 };
 const meleeReach = u => isRanged(u) ? 1 : reachOf(u);

@@ -673,6 +673,11 @@ function heal(t, n){
 
 // ---------- 擒抱（SRD 5.2） ----------
 // 被抓住＝束縛（via:"grapple"，src＝抓他的人）：不能移動、打他有優勢、他攻擊有劣勢；一直持續到掙脫、抓的人倒下或兩人不相鄰。抓的人移動時拖著走，移動花費加倍。
+// 體型（SRD 5.2，大爺 10-20）：擒抱、推開、推倒只能對「最多比自己大一級」的目標。佔格還是一律 1 格。
+// 小傢伙們照毛球族（小型）；敵人照 ENEMIES 的 size，沒寫的是中型
+const SIZES = ["微型","小型","中型","大型","巨型","超巨型"];
+const sizeOf = u => u.side==="pc" ? RACE.size : ((ENEMIES[u.type]||{}).size || "中型");
+const sizeFits = (u, t) => SIZES.indexOf(sizeOf(t)) <= SIZES.indexOf(sizeOf(u)) + 1;
 const grappled = t => hasVia(t,"restrained","grapple");
 const grapplerOf = t => { const s = grappled(t); return s && B().units.find(v=>v.id===s.src); };
 const victimsOf = u => B().units.filter(v=>!v.dead && (grappled(v)||{}).src===u.id);

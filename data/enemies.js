@@ -5,6 +5,7 @@
    hp、ac、speed：屬性表數字（AC 直接寫，不照護甲算）
    scores：完整六項屬性值，調整值由共用 modOf 算出；passives：被動技能代號清單（選填）
    resistances、damageImmunities：原始傷害類型的陣列，選填；foes 同名欄位可覆寫。現有敵人未新增抗性。
+   size：體型（微型／小型／中型／大型／巨型／超巨型），沒寫＝中型；只用在擒抱、推開、推倒「最多大一級」（SRD 5.2，10-20），佔格一律 1 格
    special：天生技能代號，例如 nimble＝靈巧脫逃（SRD 5.2 哥布林的種族特性：花免費動作撤離或躲藏） */
 /* NPC：站在戰場上、不屬於任何一方（不能被當成目標、不參與先攻、不行動）。行為之後跟劇情一起定
    數值先用 SRD 5.2 的平民（Commoner）：AC 10、生命 4、屬性全 +0 */
@@ -17,13 +18,13 @@ const ENEMIES = {
   world_mimic:{detectRange:6,name:"寶箱怪",look:"mimic",gear:[],hp:7,ac:12,speed:6,xp:0,
     scores:{STR:12,DEX:10,CON:12,INT:6,WIS:10,CHA:6}},
   // xp：打倒給的經驗，照 SRD 5.2 挑戰等級（哥布林 1/4＝50）；薩滿血量同哥布林，先同樣 50（暫定，大爺 10-04）
-  goblin: {
+  goblin: {size:"小型",
     detectRange:5, name:"哥布林", look:"goblin", shieldArt:"round_shield", gear:["短劍","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
     special:"nimble",
     scores:{STR:8, DEX:14, CON:10, INT:10, WIS:8, CHA:8}
   },
-  goblin_archer: {
+  goblin_archer: {size:"小型",
     detectRange:7, name:"哥布林弓手", look:"goblin", shieldArt:"round_shield", gear:["短弓","箭袋","破布衣"],
     hp:7, ac:12, speed:6, xp:50,
     special:"nimble",
@@ -31,7 +32,7 @@ const ENEMIES = {
   },
   // 哥布林薩滿：躲在草叢裡施法（火焰箭、治癒真言、災禍術都來自薩滿圖騰；圖騰被打掉就不能施法）
   // 行動方式見 js/battle/flow.js 的 aiShaman
-  goblin_shaman: {
+  goblin_shaman: {size:"小型",
     detectRange:6, name:"哥布林薩滿", look:"goblin_shaman", shieldArt:"round_shield", gear:["薩滿圖騰","+1 薩滿袍"],
     hp:7, ac:12, speed:6, xp:50,
     special:"nimble",
@@ -43,7 +44,7 @@ const ENEMIES = {
      natural：天生攻擊（沒拿武器時用這個，不會被繳械、不會掉落）{name, dmg:"骰 傷害種類", stat:命中與傷害用的屬性}
      special：天生技能代號（data/skills.js 的「天生技能」組，js/battle/monster.js 實作）；小傢伙們學不走
      stars：委託星等（data/quests.js 用） */
-  bat:{detectRange:6,name:"蝙蝠",look:"bat",gear:[],hp:5,ac:12,speed:8,xp:25,stars:1,
+  bat:{size:"微型",detectRange:6,name:"蝙蝠",look:"bat",gear:[],hp:5,ac:12,speed:8,xp:25,stars:1,
     natural:{name:"咬",dmg:"1d4 穿刺",stat:"DEX"},special:"bat_drain",
     scores:{STR:6,DEX:15,CON:10,INT:2,WIS:12,CHA:4}},
   slime:{detectRange:4,name:"史萊姆",look:"slime",gear:[],hp:16,ac:8,speed:4,xp:50,stars:1,
@@ -70,16 +71,16 @@ const ENEMIES = {
   ghost:{detectRange:6,name:"幽靈",look:"ghost",gear:[],hp:18,ac:11,speed:6,xp:200,stars:2,
     natural:{name:"枯萎之觸",dmg:"1d8 死靈",stat:"DEX"},special:"ghost_wail",resistances:["揮砍","穿刺","鈍擊"],
     scores:{STR:7,DEX:13,CON:10,INT:10,WIS:12,CHA:15}},
-  giant_spider:{detectRange:7,name:"巨蛛",look:"giant_spider",gear:[],hp:20,ac:13,speed:6,xp:200,stars:2,
+  giant_spider:{size:"大型",detectRange:7,name:"巨蛛",look:"giant_spider",gear:[],hp:20,ac:13,speed:6,xp:200,stars:2,
     natural:{name:"咬",dmg:"1d8 穿刺",stat:"DEX"},special:"spider_web",
     scores:{STR:14,DEX:16,CON:12,INT:2,WIS:11,CHA:4}},
-  griffin:{detectRange:8,name:"獅鷲",look:"griffin",gear:[],hp:26,ac:12,speed:8,xp:450,stars:2,
+  griffin:{size:"大型",detectRange:8,name:"獅鷲",look:"griffin",gear:[],hp:26,ac:12,speed:8,xp:450,stars:2,
     natural:{name:"利爪",dmg:"1d8 揮砍",stat:"STR"},special:"griffin_dive",
     scores:{STR:16,DEX:14,CON:14,INT:2,WIS:13,CHA:8}},
-  owlbear:{detectRange:6,name:"梟熊",look:"owlbear",gear:[],hp:32,ac:12,speed:6,xp:700,stars:3,
+  owlbear:{size:"大型",detectRange:6,name:"梟熊",look:"owlbear",gear:[],hp:32,ac:12,speed:6,xp:700,stars:3,
     natural:{name:"利爪",dmg:"1d8 揮砍",stat:"STR"},special:"owlbear_hug",
     scores:{STR:18,DEX:12,CON:16,INT:3,WIS:12,CHA:7}},
-  chimera:{detectRange:7,name:"奇美拉",look:"chimera",gear:[],hp:42,ac:13,speed:6,xp:1100,stars:3,
+  chimera:{size:"大型",detectRange:7,name:"奇美拉",look:"chimera",gear:[],hp:42,ac:13,speed:6,xp:1100,stars:3,
     natural:{name:"咬",dmg:"1d10 穿刺",stat:"STR"},special:"chimera_breath",
     scores:{STR:18,DEX:11,CON:16,INT:3,WIS:12,CHA:10}},
   vampire:{detectRange:7,name:"吸血鬼",look:"vampire",gear:["吸血鬼禮服"],hp:36,ac:14,speed:6,xp:1100,stars:3,
