@@ -690,7 +690,7 @@ function hurt(t, n, type, src, hitSfx){
     if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
     else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
-    else { t.down = true; t.statuses = []; funNote("down", t); blog(t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
+    else { t.down = true; t.statuses = []; funNote("down", t); blog(t.pet ? `${t.name}${OWLBEAR_STORY.pet.down}` : t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
     checkGrapples(); checkMounts();
     if(t.side==="foe") owlbearOnDown(t, src);        // 梟熊寶寶劇情（10-21，js/owlbear-story.js）

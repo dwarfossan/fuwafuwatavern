@@ -659,7 +659,8 @@ function battleCmd(c){
     case "aim": if(!doAim(u)) return; b.menu = null; b.moveMode = false; break;
     case "retreat": if(!canRetreat()) return; askRetreat(); return;   // 撤退（10-20，quests.js）
     case "steal": if(stealBlock(u) || !canAct()) return; b.menu = null; b.mode = {key:"steal"}; break;   // 偷竊（10-20，steal.js）
-    case "summon": if(summonBlock(u) || !canAct()) return; b.menu = null; summonSteed(u); return;   // 坐騎（10-20，steed.js）
+    case "summon": if(summonBlock(u) || !canAct()) return; b.menu = null; summonSteed(u); return;
+    case "summonPet": if(petSummonBlock(u) || !canAct()) return; b.menu = null; summonPet(u); return;   // 梟熊寶寶（10-21）   // 坐騎（10-20，steed.js）
     case "mountUp": if(!pcMount(u)) return; b.menu = null; b.moveMode = canWalk(); break;
     case "dismount": if(!pcDismount(u)) return; b.menu = null; b.moveMode = canWalk(); break;
     case "walk":  if(!canWalk()) return; b.menu = null; b.moveMode = true; break;

@@ -6,6 +6,9 @@
    目前只在戰鬥中叫；戰鬥結束（勝、敗、切回探索）牠就回去，血量記著。 */
 const STEED_ID = "steed", STEED_DEFAULT_NAME = "骨骨", STEED_NAME_MAX = 8;
 const steedUnit = () => B()?.units.find(v=>v.steed) || null;
+// 梟熊寶寶（10-21，js/owlbear-story.js）：加入以後也走這一套（steed:true＋pet:true），記錄在 state.pet；場上一次只叫一隻
+const companionRec = h => h && h.pet ? state.pet : state.steed;
+const companionDefaultName = pet => pet ? OWLBEAR_STORY.pet.defaultName : STEED_DEFAULT_NAME;
 // 韁繩全隊共用（大爺 10-20）：隊上任何一隻帶著，誰都能叫
 const reinsOf = u => (B()?.units||[]).filter(isPcCritter).flatMap(v=>v.backpack||[]).find(it=>it.summon) || null;
 function summonBlock(u){
@@ -18,13 +21,27 @@ function summonBlock(u){
   return "";
 }
 function summonSteed(u){
-  const b = B(), it = reinsOf(u); if(!it || summonBlock(u) || !canAct()) return;
-  const m = ENEMIES[it.summon], p = freeSpotFor({side:"pc", steed:true, type:it.summon, x:u.x, y:u.y}, u.x, u.y, 2);   // 大型的馬要整塊 2×2 放得下（10-20）
-  state.steed ||= {type:it.summon, name:null, hp:m.hp, bones:false};
-  const s = state.steed;
+  const it = reinsOf(u); if(!it || summonBlock(u) || !canAct()) return;
+  state.steed ||= {type:it.summon, name:null, hp:ENEMIES[it.summon].hp, bones:false};
+  callCompanion(u, state.steed, false);
+}
+function petSummonBlock(u){
+  const b = B(), s = state.pet;
+  if(!s) return "-";
+  if(b.phase!=="combat") return "戰鬥中才能叫";
+  if(steedUnit()) return "已經叫出來了";
+  if(s.bones) return OWLBEAR_STORY.pet.hurtBlock;
+  if(!freeSpotFor({side:"pc", steed:true, type:s.type, x:u.x, y:u.y}, u.x, u.y, 2)) return "旁邊沒有空位";
+  return "";
+}
+function summonPet(u){ if(!state.pet || petSummonBlock(u) || !canAct()) return; callCompanion(u, state.pet, true); }
+// 叫出來（韁繩的馬、梟熊寶寶共用）：放在叫的人旁邊放得下的地方，排在牠後面行動
+function callCompanion(u, s, pet){
+  const b = B(), m = ENEMIES[s.type], p = freeSpotFor({side:"pc", steed:true, type:s.type, x:u.x, y:u.y}, u.x, u.y, 2);   // 大型的要整塊 2×2 放得下（10-20）
+  if(!p) return;
   useAction(u);
   const h = {
-    id:STEED_ID, side:"pc", steed:true, type:s.type, name:s.name || m.name, color:"#b9a0ff", look:m.look, natural:m.natural||null, special:null,
+    id:pet ? "pet" : STEED_ID, side:"pc", steed:true, pet, type:s.type, name:s.name || m.name, color:pet ? "#d9a66b" : "#b9a0ff", look:m.look, natural:m.natural||null, special:null,
     x:p.x, y:p.y, hp:Math.max(1, Math.min(s.hp, m.hp)), maxHp:m.hp, scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac,
     resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])], vulnerabilities:[...(m.vulnerabilities||[])],
     weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpackEquip:null, learned:[], activeSkills:[],
@@ -32,39 +49,41 @@ function summonSteed(u){
   };
   b.units.splice(b.turn + 1, 0, h);                 // 排在叫牠的人後面：這輪接著輪到牠
   faceTo(u, h); u.anim = {k:"cast", t:Date.now()}; sfx("pop");
-  blog(`${u.name}拉了拉韁繩，${h.name}從地上冒了出來！`, "skill"); fxHit(h, "spark");
-  if(!s.name){ b.steedNameAsk = {first:true}; b.busy = true; }
+  blog(pet ? `${u.name}喊了一聲，${h.name}從樹叢裡跑了過來！` : `${u.name}拉了拉韁繩，${h.name}從地上冒了出來！`, "skill"); fxHit(h, "spark");
+  if(!s.name){ b.steedNameAsk = {first:true, pet}; b.busy = true; }
   refreshBattle();
 }
 // 取名／改名：確定後同步到場上那匹和存檔，再吐槽一輪
 function steedNameHTML(b){
-  const a = b.steedNameAsk, cur0 = (state.steed && state.steed.name) || "";
-  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${a.first ? MOUNT_UI.nameFirst : MOUNT_UI.nameAgain}</h3>
-    <p>${MOUNT_UI.nameHint}</p><input class="steed-name" id="steedName" maxlength="${STEED_NAME_MAX}" value="${a.first ? "" : cur0}" placeholder="${STEED_DEFAULT_NAME}" autocomplete="off">
+  const a = b.steedNameAsk, rec = a.pet ? state.pet : state.steed, cur0 = (rec && rec.name) || "", P = OWLBEAR_STORY.pet;
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${a.first ? (a.pet ? P.nameFirst : MOUNT_UI.nameFirst) : MOUNT_UI.nameAgain}</h3>
+    <p>${a.pet ? P.nameHint : MOUNT_UI.nameHint}</p><input class="steed-name" id="steedName" maxlength="${STEED_NAME_MAX}" value="${a.first ? "" : cur0}" placeholder="${companionDefaultName(a.pet)}" autocomplete="off">
     ${choiceBtnsHTML([{attr:`data-steed-name="ok"`, label:MOUNT_UI.ok}], a.first ? null : {attr:`data-steed-name=""`, label:MOUNT_UI.cancel})}</div>`;
 }
 function answerSteedName(ok, value){
   const b = B(), a = b && b.steedNameAsk; if(!a) return;
   b.steedNameAsk = null; b.busy = false;
   if(!ok){ refreshBattle(); return; }
-  const name = String(value||"").trim().slice(0, STEED_NAME_MAX) || STEED_DEFAULT_NAME;
-  state.steed.name = name; const h = steedUnit(); if(h) h.name = name;
-  blog(`${MOUNT_UI.named}「${name}」`, "skill");
-  steedBanter(a.first ? (name===STEED_DEFAULT_NAME ? "gugu" : "first") : "rename", name);
+  const rec = a.pet ? state.pet : state.steed; if(!rec){ refreshBattle(); return; }
+  const def = companionDefaultName(a.pet), name = String(value||"").trim().slice(0, STEED_NAME_MAX) || def;
+  rec.name = name; const h = steedUnit(); if(h && !!h.pet===!!a.pet) h.name = name;
+  blog(`${a.pet ? "梟熊寶寶的名字：" : MOUNT_UI.named}「${name}」`, "skill");
+  steedBanter(a.first ? (name===def ? "gugu" : "first") : "rename", name, a.pet);
   refreshBattle();
 }
-function steedBanter(kind, name){
-  const b = B(), lines = (STEED_NAME_BARKS[kind] || []);
+function steedBanter(kind, name, pet=false){
+  const b = B(), lines = ((pet ? OWLBEAR_STORY.pet.nameBarks : STEED_NAME_BARKS)[kind] || []);
   lines.forEach(([id, text], i)=>{ const u = b.units.find(v=>v.id===id && !v.dead && !v.down); if(u) say(u, text.replaceAll("{name}", name), i*1700); });
 }
 // 戰鬥結束：記下血量（倒下＝散成骨頭），把牠從戰場收回去
 function stashSteed(b=B()){
   const h = b && b.units.find(v=>v.steed); if(!h) return;
   const r = riderOf(h); if(r){ delete r.mountId; delete h.riderId; }
-  if(state.steed){ state.steed.hp = h.down || h.dead ? 0 : h.hp; state.steed.bones = !!(h.down || h.dead || h.hp<=0); }
+  const rec = companionRec(h);
+  if(rec){ rec.hp = h.down || h.dead ? 0 : h.hp; rec.bones = !!(h.down || h.dead || h.hp<=0); }
   const i = b.units.indexOf(h); b.units.splice(i, 1); if(i <= b.turn) b.turn--;
 }
-function steedLongRest(){ if(!state.steed) return; const m = ENEMIES[state.steed.type]; state.steed.hp = m ? m.hp : state.steed.hp; state.steed.bones = false; }
+function steedLongRest(){ for(const s of [state.steed, state.pet]){ if(!s) continue; const m = ENEMIES[s.type]; s.hp = m ? m.hp : s.hp; s.bones = false; } }
 
 // 小傢伙騎上／下馬（花一半移動，照 SRD 騎乘）
 const steedNear = u => { const h = steedUnit(); return h && !h.dead && !h.down && !ridden(h) && !has(h,"prone") && dist(u,h)<=1 ? h : null; };

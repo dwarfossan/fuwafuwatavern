@@ -1110,7 +1110,8 @@ function menuHTML(u, b, level=null){
            mbtn("shove","推撞", !act || !foesNear || tooBigOnly(u), tooBigOnly(u) ? "敵人太大了" : "", "把貼身的敵人推開 1 格，或推倒在地。只能推最多比你大一級的敵人。") +
            mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") +
            mbtn("steal","偷竊", !act || !!stealBlock(u), stealBlock(u) || "用掉主要動作", "偷貼身敵人背包裡的東西：d20＋敏捷對牠的被動感知，躲著偷有優勢。還沒看穿就是盲摸。") +
-           (reinsOf(u) ? mbtn("summon","呼喚坐騎", !act || !!summonBlock(u), summonBlock(u) || "用掉主要動作", "拉一下韁繩，把坐騎叫到旁邊的空格。") : "") + back;
+           (reinsOf(u) ? mbtn("summon","呼喚坐騎", !act || !!summonBlock(u), summonBlock(u) || "用掉主要動作", "拉一下韁繩，把坐騎叫到旁邊的空格。") : "") +
+           (state.pet && isPcCritter(u) ? mbtn("summonPet", `${OWLBEAR_STORY.pet.summon}${state.pet.name||OWLBEAR_STORY.pet.defaultName}`, !act || !!petSummonBlock(u), petSummonBlock(u) || "用掉主要動作", OWLBEAR_STORY.pet.summonTip) : "") + back;
   } else if(lv==="shove"){
     title = "推撞";
     body = mbtn("shove_push","推開", !act || !GEN_ACT.shove_push.targets(u).length, tooBigOnly(u) ? "敵人太大了" : "", "把敵人推開 1 格。只能推最多比你大一級的敵人。") +
@@ -1628,7 +1629,7 @@ function bindBattle(){
   document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
   document.querySelectorAll("[data-ko-toggle]").forEach(el=>battleListen(el,"click",()=>{ const id = el.dataset.koToggle, on = !((state.knockout ||= {})[id]); state.knockout[id] = on; sfx("pop");
     el.innerHTML = koToggleInner(on); el.classList.toggle("on", on); el.setAttribute("aria-pressed", on); }));   // 不重畫選單，直接改按鈕
-  document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));
+  document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(), pet=el.dataset.steedRename==="pet"; if(!b||b.busy||!(pet?state.pet:state.steed)) return; b.info=null; b.steedNameAsk={first:false, pet}; b.busy=true; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });

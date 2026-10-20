@@ -104,7 +104,7 @@ function statusCardHTML(v, b, embedded=false){
   const pageBody=isPcCritter(v)&&page==="notes"?notes:statusPage;
   return `<div class="${embedded?"character-status-card":"bt-ov"} bt-info gear-info ${isPcCritter(v)?(page==="status"?"status-view":"notes-view"):"status-view foe-view"}" data-anchor="${v.id}" style="--c:${v.side==="npc"?sideColor(v):isPcCritter(v)?v.color:"var(--bad)"};--info-scale:${page==="status"?(b.infoScale||1):1}">
     ${embedded?"":`<button class="inf-x" data-closeinfo aria-label="關閉">✕</button>`}
-    <div class="bt-me"><div><h3>${v.name}${isPcCritter(v)?`　${levelButtonHTML(v.id)}`:v.steed&&!embedded?`　<button class="btn mini" data-steed-rename>${MOUNT_UI.rename}</button>`:""}</h3><div class="dim">${v.ko?KO_UI.status:v.dead?"已被打倒":v.down?(isPcCritter(v)?"昏迷（隊友協助或治療才醒） · ":"倒下了 · "):""}AC ${acOfUnit(v)} · 移動 ${v.speed}${isPcCritter(v)?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
+    <div class="bt-me"><div><h3>${v.name}${isPcCritter(v)?`　${levelButtonHTML(v.id)}`:v.steed&&!embedded?`　<button class="btn mini" data-steed-rename="${v.pet?"pet":""}">${MOUNT_UI.rename}</button>`:""}</h3><div class="dim">${v.ko?KO_UI.status:v.dead?"已被打倒":v.down?(isPcCritter(v)?"昏迷（隊友協助或治療才醒） · ":"倒下了 · "):""}AC ${acOfUnit(v)} · 移動 ${v.speed}${isPcCritter(v)?` · 被動感知 ${passivePer(v)}`:""}</div></div></div>
     ${isPcCritter(v)?`<div class="dim race-line" data-tip="體型${RACE.size}。天生黑暗視覺 ${RACE.darkvision} 格（黑暗看成黑白）。好運：每次長休後 ${LUCK_MAX} 顆，攻擊、豁免失敗時可以花 1 顆重擲。" data-tip-title="${RACE.name}">${RACE.name} · 黑暗視覺 ${RACE.darkvision} 格 · 好運 ${luckLeft(v)}/${LUCK_MAX}</div>`:""}
     ${monsterInfoHTML(v)}
     ${infoBarsHTML(v, pct)}

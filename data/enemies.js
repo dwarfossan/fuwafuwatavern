@@ -10,7 +10,8 @@
 /* NPC：站在戰場上、不屬於任何一方（不能被當成目標、不參與先攻、不行動）。行為之後跟劇情一起定
    數值先用 SRD 5.2 的平民（Commoner）：AC 10、生命 4、屬性全 +0 */
 const NPCS = {
-  merchant: {name:"商人", look:"merchant", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}}
+  merchant: {name:"商人", look:"merchant", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
+  owlbear_cub: {name:"梟熊寶寶", look:"owlbear_cub", hp:5, ac:12, speed:8, scores:{STR:13, DEX:14, CON:12, INT:3, WIS:12, CHA:7}}   // 被獵人網住（梟熊寶寶劇情第二段，10-21）
 };
 
 const ENEMIES = {
@@ -81,6 +82,15 @@ const ENEMIES = {
   owlbear_cub:{size:"小型",detectRange:6,name:"梟熊寶寶",look:"owlbear_cub",gear:[],hp:5,ac:12,speed:8,xp:25,stars:1,
     natural:{name:"啃咬",dmg:"1d6 穿刺",stat:"STR"},special:"cub_pounce",
     scores:{STR:13,DEX:14,CON:12,INT:3,WIS:12,CHA:7}},
+  // 半大的梟熊（10-21，小傢伙們養大的那隻第二階段）：數值照 SRD 5.1 的黑熊（Black Bear），中型，小傢伙們騎得上
+  owlbear_young:{size:"中型",detectRange:6,name:"半大梟熊",look:"owlbear_young",gear:[],hp:19,ac:11,speed:8,xp:100,stars:1,
+    natural:{name:"利爪",dmg:"2d4 揮砍",stat:"STR"},
+    scores:{STR:15,DEX:10,CON:14,INT:3,WIS:12,CHA:7}},
+  // 獵人（10-21，梟熊寶寶劇情第二段）：數值照盜賊／盜賊弓手（暫定）
+  hunter:{size:"中型",detectRange:6,name:"獵人",look:"human_male",gear:["彎刀","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
+    scores:{STR:11,DEX:12,CON:12,INT:10,WIS:10,CHA:10}},
+  hunter_archer:{size:"中型",detectRange:8,name:"獵人弓手",look:"human_female",gear:["短弓","箭袋","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
+    scores:{STR:10,DEX:13,CON:12,INT:10,WIS:10,CHA:10}},
   owlbear:{size:"大型",detectRange:6,name:"梟熊",look:"owlbear",gear:[],hp:32,ac:12,speed:6,xp:700,stars:3,
     natural:{name:"利爪",dmg:"1d8 揮砍",stat:"STR"},special:"owlbear_hug",
     scores:{STR:18,DEX:12,CON:16,INT:3,WIS:12,CHA:7}},

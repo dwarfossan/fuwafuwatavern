@@ -1,11 +1,11 @@
 /* 每日委託（10-10）：資料在 data/quests.js
    state.quests＝{day, list:[{id, tpl, stars, link, t, seed, accepted, done}]}；day 跟道具店同一個遊戲日（長休 +1）
    流程：公會委託板接下 → 大地圖路上出現 ❗ 泡泡 → 點了走過去 → 隨機地圖（探索開場）→ 敵人全倒＝完成、給報酬 → 回大地圖 */
-const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl);
+const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl) || owlbearPinTpl(q.tpl);   // 梟熊寶寶劇情的 ❗ 也借用（10-21）
 const questLink = q => WORLD.links[q.link] || WORLD.links[0];
 const questPos = q => { const l = questLink(q); return roadPoint(l.a, l.b, q.t); };
 const questHome = q => { const l = questLink(q); return q.t < .5 ? l.a : l.b; };   // 打完回到比較近的那一頭
-const questStars = n => "★".repeat(n) + "☆".repeat(3-n);
+const questStars = n => n ? "★".repeat(n) + "☆".repeat(3-n) : "";   // 0＝劇情的 ❗，不顯示星星
 function ensureQuests(){
   const m = ensureMarket(), day = m.day;
   if(state.quests && state.quests.day===day && Array.isArray(state.quests.list)) return state.quests;
@@ -19,8 +19,8 @@ function ensureQuests(){
   state.quests = {day, list};
   return state.quests;
 }
-const questById = id => ensureQuests().list.find(q=>q.id===id) || null;
-const questOpen = () => ensureQuests().list.filter(q=>q.accepted && !q.done);
+const questById = id => ensureQuests().list.find(q=>q.id===id) || owlbearPins().find(q=>q.id===id) || null;
+const questOpen = () => [...ensureQuests().list.filter(q=>q.accepted && !q.done), ...owlbearPins()];
 // 目擊的怪物：「哥布林 ×2、哥布林弓手」
 function questFoeText(t){
   const n = {}; t.foes.forEach(f=>{ const name = ENEMIES[f].name; n[name] = (n[name]||0) + 1; });
@@ -44,8 +44,9 @@ function bindQuestBoard(){
 }
 // ---------- 大地圖：❗ 泡泡 ----------
 function questPinsSVG(){
-  if(typeof state==="undefined" || !state.quests) return "";
-  return questOpen().map(q=>{ const p = questPos(q), t = questTpl(q), on = state.questSel===q.id;
+  if(typeof state==="undefined") return "";
+  // 還沒去過公會也會有梟熊寶寶的 ❗（10-21）
+  return (state.quests ? questOpen() : owlbearPins()).map(q=>{ const p = questPos(q), t = questTpl(q), on = state.questSel===q.id;
     return `<g class="quest-pin${on?" on":""}" data-quest="${q.id}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" tabindex="0" role="button" aria-label="${QUEST_UI.pin}：${t.title}"><g class="quest-bob"><path d="M-17 -62 H17 Q25 -62 25 -54 V-34 Q25 -26 17 -26 H6 L0 -16 L-6 -26 H-17 Q-25 -26 -25 -34 V-54 Q-25 -62 -17 -62Z" fill="#fff" stroke="#2a2630" stroke-width="3.5" stroke-linejoin="round"/><path d="M0 -56 V-40" stroke="#d64545" stroke-width="6" stroke-linecap="round"/><circle cx="0" cy="-32.5" r="3.6" fill="#d64545"/></g><circle r="30" cy="-36" fill="transparent"/></g>`;
   }).join("");
 }
@@ -77,6 +78,7 @@ function arriveQuest(tr){
   state.travel = null; state.worldLine = null;
   if(!q){ render(); return; }
   state.location = questHome(q); state.mapSel = state.location;   // 輸了傳回酒館、贏了回到這一頭
+  if(q.story){ owlbearArrive(q); return; }   // 梟熊寶寶劇情的 ❗（10-21）
   BATTLES.quest = questBattle(q);
   state.page = "battle"; state.scout = null; startBattle("quest", false, "explore"); render(); window.scrollTo(0,0);
 }
