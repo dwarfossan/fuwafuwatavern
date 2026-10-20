@@ -28,6 +28,7 @@ function boardMarkState(){
   else if(myTurn && b.mode && b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item);
     if(it){ range = it.use.range; itemTargets(u, it).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); } }
   else if(myTurn && b.mode && GEN_ACT[b.mode.key]){ range = 1; GEN_ACT[b.mode.key].targets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }
+  else if(myTurn && b.mode && b.mode.key==="steal"){ range = 1; stealTargets(u).forEach(p=>tgtSet.add(`${p.x},${p.y}`)); }   // 偷竊（10-20）
   else if(myTurn && b.mode){
     const sk = unitSkills(u).find(s=>s.key===b.mode.key);
     if(!sk || !sk.impl){ b.mode=null; return boardMarkState(); }
@@ -58,6 +59,7 @@ function exploreDockHTML(){
  if(b.exploreMenu==="act"){   // 探索的行動（大爺 10-11）：直接用戰鬥同一份行動選單，探索時用不了的變灰；搜索直接搜四周
   return menuHTML(exploreUnit(),b,"act").replace(/<button (?!class="sk-info")/g,"<button disabled ")
    .replace(/<button disabled class="mn-b" data-cmd="search"[^>]*>/,`<button class="mn-b" data-explore-cmd="actSearch" ${b.busy?"disabled":""}>`)
+   .replace(/<button disabled class="mn-b" data-cmd="steal"[^>]*>/,m=>exploreStealTarget()&&!b.busy?`<button class="mn-b" data-explore-cmd="actSteal">`:m)   // 探索中偷竊（10-20）
    .replace(/<button disabled class="mn-back" data-cmd="root">/,`<button class="mn-back" data-explore-cmd="actBack">`);
  }
  return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
@@ -774,7 +776,7 @@ const DIE_SHAPE = {
   10:"M0 -16 L14 -3 L0 16 L-14 -3 Z", 12:"M0 -15 L14.3 -4.6 L8.8 12.1 L-8.8 12.1 L-14.3 -4.6 Z",
   20:"M0 -16 L13.9 -8 L13.9 8 L0 16 L-13.9 8 L-13.9 -8 Z"
 };
-const RES_TEXT = {hit:"HIT", miss:"MISS", crit:"CRITICAL!", fumble:"MISS", save:"SAVE", fail:"FAIL", found:"FOUND", hide:"STEALTH"};
+const RES_TEXT = {hit:"HIT", miss:"MISS", crit:"CRITICAL!", fumble:"MISS", save:"SAVE", fail:"FAIL", found:"FOUND", hide:"STEALTH", stolen:"STOLEN"};
 // 一顆骰子：start＝開始滾的時間、land＝停住的時間（相對現在，毫秒）；drop＝優劣勢沒用到的那顆
 // still：不滾動，直接停在 v（被動檢定用）
 function dieFace(sides, v, start, land, flick, drop, tint, still){
@@ -1040,6 +1042,7 @@ function menuHTML(u, b, level=null){
            mbtn("grapple","擒抱", !act || !freeHand(u) || !GEN_ACT.grapple.targets(u).length, holdsTwoHanded(u) ? "拿著雙手武器" : !freeHand(u) ? "要空一隻手" : tooBigOnly(u) ? "敵人太大了" : "", "抓住貼身的敵人，被抓住的不能移動。要空一隻手；只能抓最多比你大一級的敵人。") +
            mbtn("shove","推撞", !act || !foesNear || tooBigOnly(u), tooBigOnly(u) ? "敵人太大了" : "", "把貼身的敵人推開 1 格，或推倒在地。只能推最多比你大一級的敵人。") +
            mbtn("disarm","繳械", !act || !GEN_ACT.disarm.targets(u).length, "", "打掉敵人手上的武器；雙手武器比較難打掉。") +
+           mbtn("steal","偷竊", !act || !!stealBlock(u), stealBlock(u) || "用掉主要動作", "偷貼身敵人背包裡的東西：d20＋敏捷對牠的被動感知，躲著偷有優勢。還沒看穿就是盲摸。") +
            (reinsOf(u) ? mbtn("summon","呼喚坐騎", !act || !!summonBlock(u), summonBlock(u) || "用掉主要動作", "拉一下韁繩，把坐騎叫到旁邊的空格。") : "") + back;
   } else if(lv==="shove"){
     title = "推撞";
@@ -1299,6 +1302,7 @@ function battleInterfaceHTML(){
   if(b.campChoosing) ov = campPickerHTML(b);   // 露營：誰去找食材（10-10）
   if(b.mountAsk) ov = mountAskHTML(b);         // 騎乘：騎士和坐騎同一格，問要選誰（10-20）
   if(b.steedNameAsk) ov = steedNameHTML(b);    // 坐騎取名／改名（10-20）
+  if(b.stealAsk) ov = stealAskHTML(b);         // 偷竊：看穿了就挑要偷哪件（10-20）
   if(b.markAsk) ov = markAskHTML(b);           // 狩印轉移（10-11）
   else if(b.reactPending && !b.result && b.reactPending.info.luck){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
@@ -1551,6 +1555,7 @@ function bindBattle(){
   document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>pickCamp(el.dataset.campWho)));
   document.querySelectorAll("[data-mark-to]").forEach(el=>battleListen(el,"click",()=>answerMarkTransfer(el.dataset.markTo)));
   document.querySelectorAll("[data-mount-pick]").forEach(el=>battleListen(el,"click",()=>answerMountPick(el.dataset.mountPick)));
+  document.querySelectorAll("[data-steal-item]").forEach(el=>battleListen(el,"click",()=>answerStealPick(el.dataset.stealItem)));
   document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
   document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）

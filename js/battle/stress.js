@@ -95,7 +95,7 @@ function frenzyTurnEnd(u){
 // ---------- 失控技能（第二批，大爺 10-04 定、10-10 做；細節暫定） ----------
 // 嬌嬌【魯莽打擊】：衝去打最兇的（生命最多的）；她攻擊有優勢、打她也有優勢
 // 香香【同一招到底】：失控那一刻鎖定一招、一個目標，每回合重複，不花熟練格；目標倒了才換
-// 默默【順手牽羊】：先撿走得到的地上武器／法器，再打架（偷敵人身上的要等偷竊系統）；
+// 默默【順手牽羊】：旁邊有敵人就先偷牠背包裡的（10-20），再撿走得到的地上武器／法器，最後才打架；
 //                  高等隱形術（暫定只做優劣勢）：她攻擊有優勢、打她有劣勢
 // 玲玲【效率至上】：挑範圍法術（沒有就挑最高階的傷害法術），用剩下最高階的格子升階放，真的耗格；
 //                  格子用完就照一般 AI 打；她的範圍招不打自己人（skills.js spellCaught）
@@ -157,6 +157,9 @@ function frenzyTurn(e){
   }
   if(e.id==="raccoon"){
     const b = B();
+    // 旁邊有敵人帶著東西：先偷（10-20 偷竊做好了）
+    const mark = canAct() && stealTargets(e).filter(t=>!pocketKnown(t) || stealItems(t).some(it=>stealFits(e,it)))[0];
+    if(mark){ blog(`${e.name}${tag}手伸向${mark.name}的背包！`, "kill"); const want = pocketKnown(mark) ? stealItems(mark).filter(it=>stealFits(e,it)).sort((a,c)=>(c.cost||0)-(a.cost||0))[0] : null; doSteal(e, mark, want); later(endTurn, settle(1300)); return true; }
     const reach = (b.drops||[]).length ? reachable(e, b.moveLeft) : null;
     const grab = reach && (b.drops||[]).filter(d=>canPick(e, d.item) && reach.has(`${d.x},${d.y}`))
       .map(d=>({d, path:reach.get(`${d.x},${d.y}`)})).sort((x,y)=>x.path.cost-y.path.cost)[0];

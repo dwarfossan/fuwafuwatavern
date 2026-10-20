@@ -361,6 +361,7 @@ function pickOk(u, x, y, id){
   try{ const a = unitAt(x,y);
     if(m.key==="search") ok = searchTargets(u).includes(a);
     else if(m.key==="help") ok = !!helpTarget(u, x, y);
+    else if(m.key==="steal") ok = stealTargets(u).includes(a);
     else if(m.key==="item"){ const it = u.items.find(i=>i.id===m.item); ok = !!it && itemTargets(u, it).includes(a); }
     else if(GEN_ACT[m.key]) ok = GEN_ACT[m.key].targets(u).includes(a);
     else { const sk = unitSkills(u).find(s=>s.key===m.key); ok = !!sk && ["enemy","line","ally"].includes(sk.impl.target) && validTarget(u, sk, x, y)===a; }
@@ -394,6 +395,8 @@ function clickTile(x, y){
     if(b.mode.key==="placeBarrel"){placeBarrel(x,y);return;}
     if(b.mode.key==="search"){ const a = unitAt(x,y);
       if(a && searchTargets(u).includes(a)) doSearch(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
+    if(b.mode.key==="steal"){ const a = unitAt(x,y);
+      if(a && stealTargets(u).includes(a)) stealPick(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="help"){ const a = helpTarget(u, x, y); if(a) doHelp(u, a); else { b.mode = null; b.menu = "act"; refreshBattle(); } return; }
     if(b.mode.key==="item"){ const it = u.items.find(i=>i.id===b.mode.item), a = t0 && !foeHid(t0) ? t0 : null;
       if(it && a && itemTargets(u, it).includes(a)) useItem(u, it, a); else { b.mode = null; b.menu = "items"; refreshBattle(); } return; }
@@ -637,6 +640,7 @@ function battleCmd(c){
       else { b.info=u.id; b.infoPage="status"; }
       break;
     case "aim": if(!doAim(u)) return; b.menu = null; b.moveMode = false; break;
+    case "steal": if(stealBlock(u) || !canAct()) return; b.menu = null; b.mode = {key:"steal"}; break;   // 偷竊（10-20，steal.js）
     case "summon": if(summonBlock(u) || !canAct()) return; b.menu = null; summonSteed(u); return;   // 坐騎（10-20，steed.js）
     case "mountUp": if(!pcMount(u)) return; b.menu = null; b.moveMode = canWalk(); break;
     case "dismount": if(!pcDismount(u)) return; b.menu = null; b.moveMode = canWalk(); break;

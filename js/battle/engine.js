@@ -311,7 +311,7 @@ const SEARCH_RANGE = 6;
 const pocketKnown = v => v.side==="foe" && (v.dead || !!(B().pocketSeen||{})[v.id]);
 function markPocket(v){ (B().pocketSeen = B().pocketSeen || {})[v.id] = true; }
 function passivePocket(){
-  const b = B(), pcs = b.units.filter(u=>u.side==="pc" && !u.dead && !u.down);
+  const b = B(), pcs = b.units.filter(u=>isPcCritter(u) && !u.dead && !u.down);
   b.units.filter(v=>v.side==="foe" && !v.dead && !foeHid(v) && !pocketKnown(v)).forEach(v=>{
     const who = pcs.filter(u=>passivePer(u) >= pocketDC(v));
     if(!who.length) return;
