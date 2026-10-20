@@ -77,6 +77,10 @@ const ENEMIES = {
   griffin:{size:"大型",detectRange:8,name:"獅鷲",look:"griffin",gear:[],hp:26,ac:12,speed:8,xp:450,stars:2,
     natural:{name:"利爪",dmg:"1d8 揮砍",stat:"STR"},special:"griffin_dive",
     scores:{STR:16,DEX:14,CON:14,INT:2,WIS:13,CHA:8}},
+  // 梟熊寶寶（大爺 10-21）：數值照 SRD 5.1 的獒犬（Mastiff），體型先定小型；只在第一次梟熊委託的劇情出現（js/owlbear-story.js）
+  owlbear_cub:{size:"小型",detectRange:6,name:"梟熊寶寶",look:"owlbear_cub",gear:[],hp:5,ac:12,speed:8,xp:25,stars:1,
+    natural:{name:"啃咬",dmg:"1d6 穿刺",stat:"STR"},special:"cub_pounce",
+    scores:{STR:13,DEX:14,CON:12,INT:3,WIS:12,CHA:7}},
   owlbear:{size:"大型",detectRange:6,name:"梟熊",look:"owlbear",gear:[],hp:32,ac:12,speed:6,xp:700,stars:3,
     natural:{name:"利爪",dmg:"1d8 揮砍",stat:"STR"},special:"owlbear_hug",
     scores:{STR:18,DEX:12,CON:16,INT:3,WIS:12,CHA:7}},

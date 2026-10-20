@@ -54,10 +54,13 @@ SKILL_IMPL.natural = [
   // 獄火斬（死亡騎士）
   {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
     if(r.hit && !t.dead && !t.down){ hurt(t, dmgRoll("2d6",0,r.crit), "火焰", u); groundReact(t.x,t.y,"火焰"); } }},
+  // 撲咬（梟熊寶寶，SRD 獒犬）：咬，命中後力量豁免，失敗倒地
+  {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
+    if(r.hit && !t.dead && !t.down && !saveRoll(t,"STR",MONSTER_DC(u,"STR"))){ knockProne(t); blog(`　${t.name}被撲倒了！`,"skill"); } }},
   {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
   {passive:true}    // 黑暗視覺：darkvisionRange
 ];
-SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash"];
+SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust"];
 
 // 殭屍：不死韌性（hurt() 打到 0 時呼叫；光耀不能撐）
 function undeadFortitude(t, n, type){
@@ -95,7 +98,8 @@ const MONSTER_AI = {
   chimera_breath: e=>monsterConeAim(e),
   vampire_bite:   e=>monsterAdj(e),
   lich_whisper:   e=>monsterNear(e,8),
-  dk_hellstrike:  e=>monsterAdj(e)
+  dk_hellstrike:  e=>monsterAdj(e),
+  cub_pounce:     e=>monsterAdj(e)
 };
 function monsterSpecialReady(e, def){
   if(def.once) return !e.specialUsed;

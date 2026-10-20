@@ -69,6 +69,7 @@ function questBattle(q){
   const t = questTpl(q), l = questLink(q);
   const d = generateQuestMap(q.seed, {theme:QUEST_THEME[`${l.a}-${l.b}`]||"plain", foeList:t.foes, name:t.title});   // 委託專用地圖（10-21）
   d.quest = q.id; d.questStars = q.stars; d.questHome = questHome(q); d.after = "questDone";
+  if(owlbearStoryFor(q)) d.owlbearStory = true;   // 第一次的梟熊委託：梟熊寶寶劇情（10-21）
   return d;
 }
 function arriveQuest(tr){
@@ -93,11 +94,12 @@ function grantQuestReward(){
   }
   const q = questById(b.def.quest); if(q) q.done = true;   // 打到一半長休換日了：委託不在了，報酬照給
   b.questReward = out;
+  owlbearQuestEnd(b);
   blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
 }
 function questRewardHTML(){
   const r = B()?.questReward; if(!r) return "";
-  return `<p class="quest-reward">${QUEST_UI.got.replace("{g}", r.each)}${r.item ? `<br>${QUEST_UI.gotItem.replace("{who}", r.who).replace("{item}", r.item)}` : ""}</p>`;
+  return `<p class="quest-reward">${QUEST_UI.got.replace("{g}", r.each)}${r.item ? `<br>${QUEST_UI.gotItem.replace("{who}", r.who).replace("{item}", r.item)}` : ""}</p>${owlbearEndHTML()}`;
 }
 // 勝利畫面按「繼續」：回大地圖
 function finishQuest(){

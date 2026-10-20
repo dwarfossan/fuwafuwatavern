@@ -693,6 +693,7 @@ function hurt(t, n, type, src, hitSfx){
     else { t.down = true; t.statuses = []; funNote("down", t); blog(t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
     checkGrapples(); checkMounts();
+    if(t.side==="foe") owlbearOnDown(t, src);        // 梟熊寶寶劇情（10-21，js/owlbear-story.js）
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
     // 看得到的敵人全倒、還有躲著的（大爺 10-02）：小傢伙們覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
     const b = B();

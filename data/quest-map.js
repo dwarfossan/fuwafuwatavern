@@ -51,6 +51,9 @@ function generateQuestMap(seed, options={}){
         else { x = campX + int(-2,3); yy = campY + int(-3,4); }
         if(!inMap(x,yy) || x<1 || yy<1 || x+s>W-1 || yy+s>H-1) continue;
         if(!roomFor(x,yy,s)) continue;
+        // 一開場就看到小傢伙們會直接開戰（跳過探索）：離出生點要比牠的偵測距離多 2 格
+        const det = (ENEMIES[t]?.detectRange||6) + 2;
+        if(d.party.some(([qx,qy])=>Math.max(Math.abs(qx-x),Math.abs(qy-yy)) <= det)) continue;
         spot = [x,yy];
       }
       if(!spot) break;
