@@ -640,6 +640,7 @@ function battleCmd(c){
       else { b.info=u.id; b.infoPage="status"; }
       break;
     case "aim": if(!doAim(u)) return; b.menu = null; b.moveMode = false; break;
+    case "retreat": if(!canRetreat()) return; askRetreat(); return;   // 撤退（10-20，quests.js）
     case "steal": if(stealBlock(u) || !canAct()) return; b.menu = null; b.mode = {key:"steal"}; break;   // 偷竊（10-20，steal.js）
     case "summon": if(summonBlock(u) || !canAct()) return; b.menu = null; summonSteed(u); return;   // 坐騎（10-20，steed.js）
     case "mountUp": if(!pcMount(u)) return; b.menu = null; b.moveMode = canWalk(); break;

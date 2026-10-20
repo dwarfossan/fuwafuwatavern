@@ -62,7 +62,7 @@ function exploreDockHTML(){
    .replace(/<button disabled class="mn-b" data-cmd="steal"[^>]*>/,m=>exploreStealTarget()&&!b.busy?`<button class="mn-b" data-explore-cmd="actSteal">`:m)   // 探索中偷竊（10-20）
    .replace(/<button disabled class="mn-back" data-cmd="root">/,`<button class="mn-back" data-explore-cmd="actBack">`);
  }
- return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}`);
+ return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}${canRetreat()?button("leave",RETREAT_UI.goExplore):""}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
@@ -1028,7 +1028,8 @@ function menuHTML(u, b, level=null){
            (passiveSkills(u).some(s=>s.key==="aim") ? mbtn("aim","瞄準", !aimReady(u), b.movedThisTurn ? "這回合已經移動過" : has(u,"aiming") ? "已經在瞄準" : "放棄移動", "放棄這回合的移動，換這回合第一次攻擊有優勢。不花動作。") : "") +
            mbtn("hide","潛行", !mv || !!hb, hb || pay, `躲起來：d20＋敏捷 ≥ ${HIDE_DC} 就成功${u.armor && u.armor.stealth ? `（${u.armor.n}：劣勢）` : ""}。從藏身處攻擊有優勢。`) +
            (mountOf(u) ? mbtn("dismount","下馬", !!dismountBlock(u), dismountBlock(u) || "花一半移動", "跳到旁邊的空格，不會倒地。")
-             : steedUnit() && isPcCritter(u) && mountBlock(u)!=="-" ? mbtn("mountUp",`騎上${steedUnit().name}`, !!mountBlock(u), mountBlock(u) || "花一半移動", "騎著時用坐騎的速度移動，坐騎不另外輪回合。") : "") + back;
+             : steedUnit() && isPcCritter(u) && mountBlock(u)!=="-" ? mbtn("mountUp",`騎上${steedUnit().name}`, !!mountBlock(u), mountBlock(u) || "花一半移動", "騎著時用坐騎的速度移動，坐騎不另外輪回合。") : "") +
+           (canRetreat() ? mbtn("retreat", RETREAT_UI.goCombat, false, RETREAT_UI.costCombat, RETREAT_UI.hintCombat) : "") + back;
   } else if(lv==="act"){
     title = "行動";
     const atks = attackSkills(u);
@@ -1303,6 +1304,7 @@ function battleInterfaceHTML(){
   if(b.mountAsk) ov = mountAskHTML(b);         // 騎乘：騎士和坐騎同一格，問要選誰（10-20）
   if(b.steedNameAsk) ov = steedNameHTML(b);    // 坐騎取名／改名（10-20）
   if(b.stealAsk) ov = stealAskHTML(b);         // 偷竊：看穿了就挑要偷哪件（10-20）
+  if(b.retreatAsk) ov = retreatAskHTML(b);     // 撤退確認（10-20，js/quests.js）
   if(b.markAsk) ov = markAskHTML(b);           // 狩印轉移（10-11）
   else if(b.reactPending && !b.result && b.reactPending.info.luck){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
@@ -1555,6 +1557,7 @@ function bindBattle(){
   document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>pickCamp(el.dataset.campWho)));
   document.querySelectorAll("[data-mark-to]").forEach(el=>battleListen(el,"click",()=>answerMarkTransfer(el.dataset.markTo)));
   document.querySelectorAll("[data-mount-pick]").forEach(el=>battleListen(el,"click",()=>answerMountPick(el.dataset.mountPick)));
+  document.querySelectorAll("[data-retreat]").forEach(el=>battleListen(el,"click",()=>answerRetreat(!!el.dataset.retreat)));
   document.querySelectorAll("[data-steal-item]").forEach(el=>battleListen(el,"click",()=>answerStealPick(el.dataset.stealItem)));
   document.querySelectorAll("[data-steed-name]").forEach(el=>battleListen(el,"click",()=>answerSteedName(!!el.dataset.steedName, document.getElementById("steedName")?.value)));
   document.querySelectorAll("[data-steed-rename]").forEach(el=>battleListen(el,"click",()=>{ const b=B(); if(!b||b.busy||!state.steed) return; b.info=null; b.steedNameAsk={first:false}; b.busy=true; refreshBattle(); }));

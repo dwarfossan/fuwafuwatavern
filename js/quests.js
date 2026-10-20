@@ -107,3 +107,33 @@ function finishQuest(){
   state.battle = null; state.scout = null; state.questSel = null;
   state.page = "map"; render(); window.scrollTo(0,0);
 }
+
+// ---------- 撤退（大爺 10-20） ----------
+// 只有委託這類隨機地圖能撤；一鍵全隊一起走（毛毛們同進同出），昏迷的一起帶走，不會被藉機攻擊。
+// 戰鬥中撤：已經打倒的照給經驗、全隊壓力 +10；探索中（還沒開戰）＝直接離開，沒有代價。
+// 撤出後站在大地圖上委託那一頭；委託沒完成、留到換日，下次進去敵人照原本的種子滿血重來。
+const canRetreat = () => { const b = B(); return !!(b && b.explorationMap && b.def.quest && !b.result); };
+function askRetreat(){ const b = B(); if(!canRetreat() || b.busy) return; b.retreatAsk = true; b.busy = true; b.menu = null; b.exploreMenu = null; refreshBattle(); }
+function retreatAskHTML(b){
+  const combat = b.phase==="combat";
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${combat ? RETREAT_UI.titleCombat : RETREAT_UI.titleExplore}</h3><p>${combat ? RETREAT_UI.hintCombat : RETREAT_UI.hintExplore}</p>${choiceBtnsHTML([{attr:`data-retreat="go"`, label:combat ? RETREAT_UI.goCombat : RETREAT_UI.goExplore, sub:combat ? RETREAT_UI.costCombat : RETREAT_UI.costExplore}], {attr:`data-retreat=""`, label:combat ? RETREAT_UI.cancel : RETREAT_UI.cancelExplore})}</div>`;
+}
+function answerRetreat(go){
+  const b = B(); if(!b || !b.retreatAsk) return;
+  b.retreatAsk = false; b.busy = false;
+  if(!go){ refreshBattle(); return; }
+  retreatBattle();
+}
+function retreatBattle(){
+  const b = B(); if(!canRetreat()) return;
+  if(b.phase==="combat"){
+    awardBattleXP();
+    b.units.filter(u=>u.frenzy).forEach(u=>endFrenzy(u, "撤退"));
+    changeStressAll(v=>v + STRESS.retreat);
+    queueAfterTalk(b);
+  }
+  stashSteed(b); wakeAfterBattle(); syncLearnedState();
+  state.location = b.def.questHome || state.location; state.mapSel = state.location;
+  state.battle = null; state.scout = null; state.questSel = null;
+  state.page = "map"; render(); window.scrollTo(0,0);
+}
