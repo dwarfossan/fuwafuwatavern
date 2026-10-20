@@ -403,11 +403,12 @@ function aimPick(e){
     return r && e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
   }) || null;
 }
-// 手指按著時的紅光：直接改那隻的 class，不重畫（重畫會換掉手指底下的元素，手機放開事件就收不到）
+// 手指按著時的紅光：直接改那隻的 class，不主動重畫（重畫會換掉手指底下的元素，手機放開事件就收不到）
 function aimGlow(id){
-  document.querySelectorAll(".board .token.aimed-foe, .board .token.aimed-ally").forEach(el=>el.classList.remove("aimed-foe","aimed-ally"));
+  if(B()) B().aimHover = id || null;   // 記在狀態裡：按著的時候畫面剛好重畫，光也不會不見
+  document.querySelectorAll(".board .aimed-foe, .board .aimed-ally").forEach(el=>el.classList.remove("aimed-foe","aimed-ally"));
   const v = id && B()?.units.find(u=>u.id===id); if(!v) return;
-  document.querySelector(`.board .token[data-moving-unit="${v.id}"]`)?.classList.add(v.side==="foe" ? "aimed-foe" : "aimed-ally");
+  document.querySelectorAll(`.board .token[data-moving-unit="${v.id}"], .board .hud[data-moving-unit="${v.id}"]`).forEach(el=>el.classList.add(v.side==="foe" ? "aimed-foe" : "aimed-ally"));
 }
 // 對框住的那隻出手：點牠身上在目標範圍裡的那一格（騎乘的兩隻疊在一起照舊會問要打誰）
 function aimClick(v){
@@ -907,7 +908,8 @@ const hudTop = (v, cy) => ((v.down || has(v,"prone")) ? cy-56 : cy-122) - 126*((
 // 角色頭上那一塊（血條＋狀態圖示＋潛行眼睛），畫在最上層；底下墊一塊透明的點擊範圍，手機比較好點
 function hudSVG(v){
   const p = unitIso(v), cx = p.x, cy = p.y+TH/2, top = hudTop(v, cy), badgeUp = hasBadge(v) ? 40*overlayK() : 0;
-  return `<g class="hud" data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
+  const aimK = B().mode && B().aimHover===v.id ? (v.side==="foe"?" aimed-foe":" aimed-ally") : "";   // 瞄準框住：血條也亮（10-21，被整隻擋住時看得到）
+  return `<g class="hud${aimK}" data-moving-unit="${v.id}" data-render-x="${v.x}" data-render-y="${v.y}" ${B().phase==="explore"?`data-explore-body="${v.id}"`:""} data-tile="${mapCell(v.x)},${mapCell(v.y)}"><rect x="${cx-30}" y="${top-16}" width="60" height="22" fill="transparent"/>${unitHUD(v, cx, top, badgeUp)}${exploreAlertSVG(v,cx,top-badgeUp-34)}</g>`;
 }
 function tokenSVG(v, active){
   const p = unitIso(v), cx = p.x, cy = p.y+TH/2, ring = sideColor(v);
