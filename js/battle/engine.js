@@ -192,31 +192,45 @@ const stepCost = (fx,fy,x,y) => moveCost(x,y) + climbCost(fx,fy,x,y);
 //   高度（2026-10-01）：線從攻擊者出手的高度（站的層 + .8）直直連到目標身體中間（層 + .5）。
 //   經過的格子，東西的頂端比線在那裡的高度還低，線就從上面過去、不算掩護；地面本身比線高（斷層）就是四分之三掩護
 const COVER_TOP = {wagon:1.5, crate:1, chest:1, door:3, tree:3};   // 地形物件高出地面幾層；角色算 1 層
+// 多格的（10-21，SRD）：攻擊者挑自己身體的任一格、對準目標身體的任一格，取最有利（掩護最少）的那條線
 function coverOf(a, t){
-  const n = Math.max(1, dist(a,t)) * 6, seen = new Set();
-  const za = hAt(a.x,a.y) + .8, zt = hAt(t.x,t.y) + .5;
+  if(footOf(a)===1 && footOf(t)===1) return coverLine(a, t, a.x, a.y, t.x, t.y);
+  let best = null;
+  for(const ca of cellsOf(a)) for(const ct of cellsOf(t)){
+    const c = coverLine(a, t, ca.x, ca.y, ct.x, ct.y);
+    if(!best || c.v < best.v) best = c;
+    if(!best.v) return best;
+  }
+  return best;
+}
+function coverLine(a, t, ax, ay, tx, ty){
+  const n = Math.max(1, Math.max(Math.abs(Math.round(tx)-Math.round(ax)), Math.abs(Math.round(ty)-Math.round(ay)))) * 6, seen = new Set();
+  const za = hAt(ax,ay) + .8, zt = hAt(tx,ty) + .5, pair = new Set([a, t, mountOf(a), riderOf(a), mountOf(t), riderOf(t)].filter(Boolean));
+  const own = (x,y) => (x===Math.round(ax)&&y===Math.round(ay)) || (x===Math.round(tx)&&y===Math.round(ty)) || covers(a,x,y) || covers(t,x,y);
   let best = {v:0, by:""};
   for(let i=1;i<n;i++){
-    const x = Math.round(a.x + (t.x-a.x)*i/n), y = Math.round(a.y + (t.y-a.y)*i/n), k = `${x},${y}`;
-    if(seen.has(k) || (x===a.x&&y===a.y) || (x===t.x&&y===t.y)) continue;
+    const x = Math.round(ax + (tx-ax)*i/n), y = Math.round(ay + (ty-ay)*i/n), k = `${x},${y}`;
+    if(seen.has(k) || own(x,y)) continue;
     seen.add(k);
     const z = za + (zt-za)*i/n, g = hAt(x,y);
     if(g > z && best.v < .75) best = {v:.75, by:"斷層"};
     const o = B().def.blocks.find(q=>q.x===x&&q.y===y), ter = o && TERRAIN[o.kind];
     if(ter && ter.cover > best.v && g + (COVER_TOP[o.kind]||1) > z) best = {v:ter.cover, by:ter.name};
     const v = unitAt(x,y);
-    if(v && v!==t && v.side!==a.side && !v.down && best.v < .5 && g + 1 > z) best = {v:.5, by:v.name};
+    if(v && !pair.has(v) && v.side!==a.side && !v.down && best.v < .5 && g + 1 > z) best = {v:.5, by:v.name};
   }
-  for(let i=1;i<=n;i++){const x=Math.round(a.x+(t.x-a.x)*i/n),y=Math.round(a.y+(t.y-a.y)*i/n);if(groundAt(x,y)?.kind==="steam"&&best.v<.5)best={v:.5,by:"蒸氣"};}
+  for(let i=1;i<=n;i++){const x=Math.round(ax+(tx-ax)*i/n),y=Math.round(ay+(ty-ay)*i/n);if(groundAt(x,y)?.kind==="steam"&&best.v<.5)best={v:.5,by:"蒸氣"};}
   return best;
 }
 const coverAC = c => c.v>=.75 ? 5 : c.v>=.5 ? 2 : 0;
 const coverName = c => c.v>=.75 ? "四分之三掩護" : c.v>=.5 ? "半掩護" : "";
 // 夾擊（D&D DMG 的選用規則）：你和一名隊友都貼著同一個敵人、站在牠的正對面兩側 → 近戰攻擊牠有優勢。敵我都適用
+// 多格的（10-21）：看站在牠身體的哪一側（左／中／右 × 上／中／下），隊友要在正對面那一側
 function flankMate(a, t){
   if(dist(a,t)!==1) return null;
-  const x = 2*t.x - a.x, y = 2*t.y - a.y;
-  return B().units.find(v=>v!==a && v.side===a.side && !v.down && !v.dead && v.x===x && v.y===y) || null;
+  const n = footOf(t), x0 = mapCell(t.x), y0 = mapCell(t.y), side = (v, x1) => v < x1 ? -1 : v > x1 + n - 1 ? 1 : 0;
+  const sx = side(mapCell(a.x), x0), sy = side(mapCell(a.y), y0);
+  return B().units.find(v=>v!==a && v.side===a.side && !v.down && !v.dead && dist(v,t)===1 && side(mapCell(v.x), x0)===-sx && side(mapCell(v.y), y0)===-sy) || null;
 }
 // 站在草叢裡：遠程攻擊他有劣勢
 const hidden = t => !!(terrainAt(t.x,t.y)||{}).hide;
@@ -701,7 +715,7 @@ function heal(t, n){
 
 // ---------- 擒抱（SRD 5.2） ----------
 // 被抓住＝束縛（via:"grapple"，src＝抓他的人）：不能移動、打他有優勢、他攻擊有劣勢；一直持續到掙脫、抓的人倒下或兩人不相鄰。抓的人移動時拖著走，移動花費加倍。
-// 體型（SRD 5.2，大爺 10-20）：擒抱、推開、推倒只能對「最多比自己大一級」的目標。佔格還是一律 1 格。
+// 體型（SRD 5.2，大爺 10-20）：擒抱、推開、推倒只能對「最多比自己大一級」的目標。佔格看下面的佔格段。
 // 小傢伙們照毛球族（小型）；敵人照 ENEMIES 的 size，沒寫的是中型
 const SIZES = ["微型","小型","中型","大型","巨型","超巨型"];
 const sizeOf = u => isPcCritter(u) ? RACE.size : ((ENEMIES[u.type]||{}).size || "中型");
@@ -724,13 +738,12 @@ function releaseGrapple(t, why){
 }
 // ---------- 佔格（大爺 10-20，SRD）：大型 2×2、巨型 3×3、超巨型 4×4 ----------
 // x,y 是錨點（x、y 最小的那一格），身體佔 x～x+n-1、y～y+n-1。騎著的騎士跟坐騎同一塊。
-// 第一批只有骷髏戰馬用（MULTI_TILE）；其他大型怪物照舊 1 格，第三批再一起換
+// 10-21 第三批：所有大型以上的怪物都佔多格（小傢伙們是小型，永遠 1 格）
 const FOOTPRINT = {"大型":2, "巨型":3, "超巨型":4};
-const MULTI_TILE = new Set(["dk_horse"]);
 function footOf(u){
   if(!u || u.side===undefined || u.worldObject) return 1;
   if(u.mountId && B()){ const h = B().units.find(v=>v.id===u.mountId); if(h) return footOf(h); }
-  if(!MULTI_TILE.has(u.type)) return 1;
+  if(isPcCritter(u)) return 1;
   return FOOTPRINT[sizeOf(u)] || 1;
 }
 const covers = (u, x, y) => { const n = footOf(u), ux = mapCell(u.x), uy = mapCell(u.y); return x>=ux && x<ux+n && y>=uy && y<uy+n; };

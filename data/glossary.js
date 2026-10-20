@@ -94,6 +94,14 @@ const GUIDE = {title:"教學", back:"← 返回", groups:[
 ]};
 
 // 騎乘（10-20）：騎士和坐騎在同一格時選目標的詢問；介面文字暫定（香香）
+// 敵人狀態卡的體型那一行（10-21，draft：香香）
+const SIZE_UI = {
+  foot:n=>`佔 ${n}×${n} 格`,
+  tipTitle:"體型",
+  bigger:k=>`比小傢伙們（小型）大 ${k} 級：擒抱、推撞都對牠沒用（只能對最多大一級的）。`,
+  ok:"小傢伙們抓得動、推得動。",
+  footTip:n=>`身體佔 ${n}×${n} 格：距離從最近的那格算，一格寬的縫過不去。`
+};
 const MOUNT_UI = {pick:"要對誰出手？", cancel:"取消", remount:"騎上", fall:"摔下來", bones:"散成一堆骨頭了……", rename:"改名",
   nameFirst:"幫牠取個名字吧", nameAgain:"要改成什麼名字？", nameHint:"最多 8 個字；不填就叫骨骨。", ok:"就叫這個", named:"坐騎的名字："};
 

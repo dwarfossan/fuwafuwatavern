@@ -126,11 +126,19 @@ function monsterTurn(e){
   use(got); later(endTurn, settle(1000)); return true;
 }
 // 狀態卡一行：天生攻擊＋怪物技能（說明放提示）
+// 體型（10-21）：敵人和坐騎的狀態卡上寫「大型 · 佔 2×2 格」，點了說明抓不抓得動
+function sizeLineHTML(v){
+  if(isPcCritter(v) || v.side==="npc") return "";
+  const sz = sizeOf(v), n = footOf(v), k = SIZES.indexOf(sz) - SIZES.indexOf(RACE.size) - 1;
+  const tip = (k>0 ? SIZE_UI.bigger(k+1) : SIZE_UI.ok) + (n>1 ? SIZE_UI.footTip(n) : "");
+  return `<div class="dim race-line size-line" data-tip="${tip}" data-tip-title="${SIZE_UI.tipTitle}">${sz}${n>1 ? ` · ${SIZE_UI.foot(n)}` : ""}</div>`;
+}
 function monsterInfoHTML(v){
-  if(v.side!=="foe" || (!v.natural && !v.special)) return "";
+  const size = sizeLineHTML(v);
+  if(v.side!=="foe" || (!v.natural && !v.special)) return size;
   const sk = v.special && learnedSkillByKey(v.special), parts = [];
   if(v.natural) parts.push(`${v.natural.name} ${v.natural.dmg.replace(" ","・")}`);
   if(sk) parts.push(`技能：${sk.def.name}${sk.def.recharge ? (v.specialReady===false ? "（充能中）" : "（可用）") : sk.def.once && v.specialUsed ? "（用過了）" : ""}`);
   const tip = sk ? `${sk.def.name}：${sk.def.text}` : "";
-  return `<div class="dim race-line monster-line" data-tip="${tip}" data-tip-title="${sk?sk.def.name:""}">${parts.join(" · ")}</div>`;
+  return size + `<div class="dim race-line monster-line" data-tip="${tip}" data-tip-title="${sk?sk.def.name:""}">${parts.join(" · ")}</div>`;
 }
