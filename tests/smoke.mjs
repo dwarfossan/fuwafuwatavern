@@ -154,7 +154,7 @@ console.log('規則');
   ok('推不上兩層山壁', r.wall.join()==='9,18', r.wall);
   ok('台地後面有斷層掩護、邊緣沒有', r.coverBehind==='斷層' && r.coverEdge===0, `${r.coverBehind} / ${r.coverEdge}`);
   ok('NPC 不是任何人的敵人', r.npcHostile===false && r.foeHostile===true);
-  ok('小筆記一頁 5 招：玲玲 3 頁 15 招、其他 2 頁 10 招', r.cap.join()==='15,10,3,2', r.cap);
+  ok('小筆記一頁 5 招：玲玲 4 頁 20 招、其他 3 頁 15 招（大爺 10-20）', r.cap.join()==='20,15,4,3', r.cap);
   ok('起始技能記成 1 級', r.starterLv);
   ok('熟練格照全施法者表（1 級 2、3 級 4/2、5 級 4/3/2、20 級）', r.table.join(' ')==='2 4/2 4/3/2 4/3/3/3/3/2/2/1/1', r.table);
   ok('嬌嬌物理招免費升一階，別人不會', r.tiger && r.tiger.join()==='1,2,0,1', r.tiger);

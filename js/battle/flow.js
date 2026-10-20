@@ -559,7 +559,14 @@ function observedSkill(e,key,name){
 // ---------- 休息／小筆記 ----------
 // 小筆記一頁 5 招；玲玲 3 頁，其他人 2 頁
 const NOTE_PAGE_SIZE = 5;
-const notePages = id => id==="fox" ? 3 : 2;
+const notePages = id => id==="fox" ? 4 : 3;   // 大爺 10-20：每頁 5 招（主被動都算），一般 3 頁、玲玲 4 頁；不隨等級成長
+// 小筆記自動整理（大爺 10-20）：只改顯示順序、不動存檔裡的 learned。先主動、再被動；被動照風格（戰士／俠盜／法師／其他）排在一起；同一類照學會的先後
+const STYLE_ORDER = ["warrior","rogue","mage"];
+function sortedNotes(learned){
+  const rank = n => { const sk = learnedSkillByKey(n.key); if(!isPassiveSkill(sk)) return 0; const st = sk?.def.style; const i = STYLE_ORDER.indexOf(st); return 1 + (i<0 ? STYLE_ORDER.length : i); };
+  return (learned||[]).map((n,i)=>({n,i,r:rank(n)})).sort((a,c)=>a.r-c.r || a.i-c.i).map(x=>x.n);
+}
+const notePageOf = (u, key) => Math.max(1, Math.ceil((sortedNotes(u.learned).findIndex(n=>n.key===key)+1) / NOTE_PAGE_SIZE));
 const noteCap = id => notePages(id) * NOTE_PAGE_SIZE;
 function syncLearnedState(b=B()){
   if(!b)return;
@@ -595,7 +602,7 @@ function takeRest(kind, selections={},b=B()){
   b.noteCopy={};
   b.units.filter(isPcCritter).forEach(u=>{
     b.noteCopy[u.id]=transcribePending(u,selections[u.id]||[]).map(n=>n.key);
-    if(b.noteCopy[u.id].length)(b.notePages||={})[u.id]=Math.ceil(u.learned.length/NOTE_PAGE_SIZE);
+    if(b.noteCopy[u.id].length)(b.notePages||={})[u.id]=notePageOf(u, b.noteCopy[u.id].at(-1));   // 跳到剛抄進去那招所在的頁（整理後的位置）
     // 短休：每一階各回一半（無條件進位）；長休全回
     const max=slotMax(u), s=slotsOf(u);
     u.slots = max.map((m,i)=>kind==="short" ? Math.min(m,(s[i]||0)+Math.ceil(m/2)) : m);

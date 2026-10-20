@@ -8,7 +8,7 @@ function noteLockText(){return state.page==='battle'&&state.battle&&state.battle
 function notebookPageHTML(u,b,rest=false){
  const learned=u.learned||[],total=notePages(u.id);b.notePages=b.notePages||{};
  const page=Math.min(Math.max(1,b.notePages[u.id]||1),total);b.notePages[u.id]=page;
- const entries=learned.slice((page-1)*NOTE_PAGE_SIZE,page*NOTE_PAGE_SIZE).map(n=>{
+ const entries=sortedNotes(learned).slice((page-1)*NOTE_PAGE_SIZE,page*NOTE_PAGE_SIZE).map(n=>{   // 自動整理：先主動再被動（10-20）
   const on=(u.activeSkills||[]).includes(n.key),copy=b.noteCopy?.[u.id]?.includes(n.key);
   return `<div class="note-entry ${copy?'note-copying':''}"><button class="note-check ${on?'on':''}" data-noteskill="${n.key}" ${rest?'':'disabled'} aria-label="${rest?'啟動技能':noteLockText()}：${n.name}">${on?'✓':''}</button><div>${noteSkillRowHTML(n,u)}<small>${isPassiveSkill(learnedSkillByKey(n.key))?'被動':'主動'} · ${n.from==='天生'?'天生技能':n.from==='起始技能'?'起始技能':`招式 · 從${n.from||'未知對手'}觀察學會`}</small>${copy?'<span class="copy-pencil" aria-label="正在抄寫">✎ 抄寫中……</span>':''}</div></div>`;
  }).join('');
