@@ -8,7 +8,7 @@ function nextTurn(){
   do {
     b.turn++;
     if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();}
-  } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]));   // 昏迷的輪不到（10-09 拿掉死亡豁免）
+  } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]) || ridden(b.units[b.turn]));   // 被騎著的坐騎不輪回合（10-20）   // 昏迷的輪不到（10-09 拿掉死亡豁免）
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
@@ -39,6 +39,11 @@ function beginTurn(u){
   { const sl = u.statuses.filter(s=>s.k==="slowed");
     if(sl.length) mv = sl.some(s=>s.stop) ? 0 : Math.max(0, mv - Math.max(...sl.map(s=>2 + (s.n||0)))); }
   if(has(u,"restrained") || has(u,"frozen")) mv = 0;   // 束縛（網子、擒抱）、凍結：不能移動
+  // 騎乘（10-20）：騎著時用坐騎的速度（騎士自己的緩速不算）；坐騎被釘住、束縛、凍結或騎士被束縛、凍結就動不了，坐騎緩速扣 2
+  { const h = mountOf(u);
+    if(h){ mv = h.speed;
+      if(has(u,"restrained") || has(u,"frozen") || has(h,"restrained") || has(h,"frozen") || h.statuses.some(s=>s.k==="slowed"&&s.stop)) mv = 0;
+      else if(has(h,"slowed")) mv = Math.max(0, mv - 2); } }
   // 燃燒：回合開始受 1d4 火焰，直到花動作撲滅
   if(has(u,"burning")){ blog(`${u.name}身上著火了！`, "dmg"); hurt(u, rollDice("1d4").total, "火焰", null); }
   // 流血：回合開始受 1d4，次數用完就止血
@@ -174,9 +179,10 @@ function walk(u, path, done){
       }
     }
     const prev = {x:u.x, y:u.y}, dragged = victimsOf(u);
-    u.x = path[i].x; u.y = path[i].y; i++;
+    u.x = path[i].x; u.y = path[i].y; i++; syncMount(u);
     dragged.forEach(v=>{ const vp = {x:v.x, y:v.y}; v.x = prev.x; v.y = prev.y; faceTo(v, u); });
     { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
+    syncMount(u);
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(!groundEnter(u,groundMove)){refreshBattle();done?.(i);return;}
     if(exploreTraps(u)){refreshBattle();done?.(i);return;}
@@ -190,7 +196,7 @@ function walk(u, path, done){
 }
 // ---------- 藉機攻擊 ----------
 // 能不能藉機攻擊：要有近戰手段（拿弓弩的不行），這輪還沒藉機攻擊過（敵我一樣）
-const canOA = h => inCombat(h) && !h.surprised && !h.shockNoOA && !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
+const canOA = h => inCombat(h) && !ridden(h) && !h.surprised && !h.shockNoOA && !h.down && !h.dead && !h.oaUsed && !twoHandLocked(h) && !isRanged(h);
 function oaTriggers(u, next){
   if(has(u,"disengage") || isHid(u)) return [];
   const dragged = victimsOf(u);                     // 被拖著的人跟著走，不算被甩開
@@ -250,7 +256,7 @@ function confirmMove(ok){
   if(!s || b.busy) return;
   b.pendingMove = null;
   if(ok){ b.menu = "root"; refreshBattle(); return; }
-  u.x = s.x; u.y = s.y; u.face = s.face;
+  u.x = s.x; u.y = s.y; u.face = s.face; syncMount(u);
   s.drag.forEach(d=>{ d.v.x = d.x; d.v.y = d.y; });
   b.moveLeft = s.moveLeft; b.movedThisTurn = s.moved; b.actionUsed = s.acted;
   b.moveMode = true;                         // 回到選格子
@@ -349,6 +355,28 @@ function validTarget(u, sk, x, y){
   }
   return null;
 }
+// 騎乘（10-20）：騎士和坐騎在同一格，指定單一目標時兩個都能選就先問要打誰
+function pickOk(u, x, y, id){
+  const b = B(), m = b.mode; b.pickId = id; let ok = false;
+  try{ const a = unitAt(x,y);
+    if(m.key==="search") ok = searchTargets(u).includes(a);
+    else if(m.key==="help") ok = !!helpTarget(u, x, y);
+    else if(m.key==="item"){ const it = u.items.find(i=>i.id===m.item); ok = !!it && itemTargets(u, it).includes(a); }
+    else if(GEN_ACT[m.key]) ok = GEN_ACT[m.key].targets(u).includes(a);
+    else { const sk = unitSkills(u).find(s=>s.key===m.key); ok = !!sk && ["enemy","line","ally"].includes(sk.impl.target) && validTarget(u, sk, x, y)===a; }
+  } finally { b.pickId = null; }
+  return ok;
+}
+function answerMountPickDirect(id, x, y){ const b = B(); b.pickId = id; try{ clickTile(x, y); } finally { if(B()) B().pickId = null; } }
+function answerMountPick(id){
+  const b = B(), a = b && b.mountAsk; if(!a) return; b.mountAsk = null;
+  if(!id){ refreshBattle(); return; }
+  b.pickId = id; try{ clickTile(a.x, a.y); } finally { if(B()) B().pickId = null; }
+}
+function mountAskHTML(b){
+  const a = b.mountAsk, ts = a.ids.map(id=>b.units.find(v=>v.id===id)).filter(Boolean);
+  return `<div class="bt-ov bt-react" role="dialog" aria-live="assertive"><h3>${MOUNT_UI.pick}</h3>${ts.map(t=>`<button class="btn" data-mount-pick="${t.id}">${t.name}（${t.hp}/${t.maxHp}）</button>`).join("")}<button class="btn" data-mount-pick="">${MOUNT_UI.cancel}</button></div>`;
+}
 // 點格子：瞄準中 → 選目標；點到輪到的角色 → 開關指令選單；點到別隻 → 狀態卡；移動模式點藍格 → 走過去
 function clickTile(x, y){
   const b = B(); if(!b) return;
@@ -356,6 +384,12 @@ function clickTile(x, y){
   const u = cur(), t0 = unitAt(x, y), t = t0 && foeHid(t0) ? null : t0;
   const myTurn = playerControlled(u) && !b.busy && !b.result;
   if(myTurn && b.pendingMove) return;        // 先回答「確認移動？」
+  if(myTurn && b.mode && !b.pickId && t && b.mode.key!=="placeBarrel"){
+    const pr = mountPair(t);
+    if(pr){ const ok = [pr.rider, pr.horse].filter(v=>!v.dead && !v.down && pickOk(u, x, y, v.id));
+      if(ok.length===2){ b.mountAsk = {x, y, ids:ok.map(v=>v.id)}; refreshBattle(); return; }
+      if(ok.length===1){ answerMountPickDirect(ok[0].id, x, y); return; } }
+  }
   if(myTurn && b.mode){
     if(b.mode.key==="placeBarrel"){placeBarrel(x,y);return;}
     if(b.mode.key==="search"){ const a = unitAt(x,y);
@@ -379,7 +413,9 @@ function clickTile(x, y){
   }
   if(myTurn&&!b.moveMode&&!b.mode){const o=b.def.blocks.find(o=>o.kind==="powderBarrel"&&o.x===x&&o.y===y);if(o&&dist(u,o)<=1){b.worldObject=o;b.info=null;refreshBattle();return;}}
   // 指令列一直在右下角，點角色（包括自己）就是看狀態卡
-  if(t){ b.info = b.info===t.id ? null : t.id; sfx(b.info ? "pop" : "back"); refreshBattle(); return; }
+  if(t){ const pr = mountPair(t);   // 騎乘：再點一次看坐騎的狀態卡，再點收起（10-20）
+    b.info = pr && b.info===pr.rider.id ? pr.horse.id : (b.info===t.id || (pr && b.info===pr.horse.id)) ? null : t.id;
+    sfx(b.info ? "pop" : "back"); refreshBattle(); return; }
   if(myTurn && b.moveMode && reachable(u, b.moveLeft).has(`${x},${y}`)){ b.info = null; pcMove(x, y); return; }
   if((b.menu && b.menu!=="root") || b.info || b.moveMode){ b.menu = null; b.info = null; b.moveMode = false; refreshBattle(); }
 }
@@ -655,7 +691,18 @@ function doGenAct(u, key, t){
   reveal(u, "出手，現身了！");
   if(key==="disarm"){ tryDisarm(u, t); b.impact = 0; panelEnd(); if(checkResult()) return; if(u.side==="pc") afterShow(u, 1300 + DICE_LEAD); else refreshBattle(); return; }
   const s = t.mods.STR>=t.mods.DEX ? "STR" : "DEX";
-  if(saveRoll(t, s, dc)){ blog(`　${t.name}沒被${g.name==="擒抱"?"抓住":g.name}。`); fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact); }
+  // 騎乘（大爺 10-20）：推撞騎著馬的，騎士和馬各擲一次豁免（推得動的那個才擲，照體型）；任一邊失敗被推開／推倒就分開
+  const pr = key!=="grapple" && mountPair(t);
+  if(pr){
+    const fails = v => !saveRoll(v, v.mods.STR>=v.mods.DEX ? "STR" : "DEX", dc);
+    const rFail = sizeFits(u, pr.rider) && fails(pr.rider), hFail = sizeFits(u, pr.horse) && fails(pr.horse);
+    const v = rFail ? pr.rider : hFail ? pr.horse : null;
+    if(!v){ blog(`　${pr.rider.name}和${pr.horse.name}都站穩了。`); fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact); }
+    else if(key==="shove_push"){ const x0=v.x, y0=v.y; b.holdMounts = true; push(u, v, 1); b.holdMounts = false; fxHit(v, "burst"); sfx("hit_blunt", b.impact);
+      blog(v.x===x0&&v.y===y0 ? `　${v.name}後面被擋住，推不動。` : `　${v.name}被推開 1 格！`, "skill"); checkMounts(); }
+    else { knockProne(v); fxHit(v, "burst"); sfx("hit_blunt", b.impact); blog(`　${v.name}被推倒在地！`, "skill"); }
+  }
+  else if(saveRoll(t, s, dc)){ blog(`　${t.name}沒被${g.name==="擒抱"?"抓住":g.name}。`); fxFloat(t, POP_TEXT.miss, "miss"); sfx("miss", b.impact); }
   else if(key==="grapple"){ addStatus(t, "restrained", {via:"grapple", src:u.id, dc}); fxHit(t, "burst"); sfx("hit_blunt", b.impact); blog(`　${t.name}被抓住了！不能移動，直到掙脫。`, "skill"); }
   else if(key==="shove_push"){ const x0=t.x, y0=t.y; push(u, t, 1); fxHit(t, "burst"); sfx("hit_blunt", b.impact);
     blog(t.x===x0&&t.y===y0 ? `　${t.name}後面被擋住，推不動。` : `　${t.name}被推開 1 格！`, "skill"); }
@@ -1035,6 +1082,17 @@ function foeMelee(e, adj){
 // ---------- AI：走向最近的對手，貼身就打（敵人＋失控的小傢伙共用，10-10） ----------
 // 看得到的對手（躲著的不算）。AI 敵我共用（10-10：失控的小傢伙也走這套，不打隊友）
 const seenFoes = e => B().units.filter(x=>hostile(x,e) && !x.down && !x.dead && !isHid(x));
+// 騎乘（10-20）：自己的坐騎在相鄰、沒被騎、站著，花一半移動（騎士自己的速度）騎上去；剩下的移動照比例換成坐騎的速度
+function tryRemount(u){
+  const b = B(), h = u.steedId && b.units.find(v=>v.id===u.steedId);
+  if(!h || u.mountId || h.riderId || h.dead || h.down || h.fled || has(h,"prone") || has(u,"restrained") || dist(u,h)>1) return false;
+  const cost = Math.ceil(u.speed/2); if(b.moveLeft < cost) return false;
+  const frac = (b.moveLeft - cost) / u.speed;
+  mountUp(u, h);
+  b.moveLeft = (has(h,"restrained") || has(h,"frozen") || h.statuses.some(s=>s.k==="slowed"&&s.stop)) ? 0 : Math.floor(frac * h.speed);
+  blog(`${u.name}${MOUNT_UI.remount}${h.name}（花一半移動）`, "skill");
+  return true;
+}
 function aiTurn(e){
   if(B()?.reactPending) return;
   const b = B();
@@ -1043,6 +1101,7 @@ function aiTurn(e){
   // 被網住：先掙脫；身上著火快燒死：先撲滅
   if(hasVia(e,"restrained","net")){ doUnnet(e); later(endTurn, settle(800)); return; }
   if(has(e,"burning") && e.hp<=4){ doDouse(e); later(endTurn, 800); return; }
+  if(tryRemount(e)) refreshBattle();               // 騎乘：自己的馬在旁邊就騎回去（10-20）
   // 免費動作：有用得上的免費招式就先用，再回來做這回合的主動作
   // 免費那格用過了、同伴快倒（剩四分之一）→ 用主動作再補一次
   { const f = foeFreePick(e);

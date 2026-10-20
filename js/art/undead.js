@@ -73,3 +73,19 @@ MONSTER_LOOK.death_knight_bare = {...MONSTER_LOOK.death_knight, kind:"death_knig
   MONSTER_LOOK.death_knight.face = front;
   MONSTER_LOOK.death_knight_bare.face = front;
 }
+// 騎乘（大爺 10-20）：人馬一張圖拆成「骷髏戰馬」和「下馬的死亡騎士」，原圖不動，從裡面取出各自的部分（外觀暫定，香香）
+// 原圖第二層的三塊依序是：劍、馬（id="horse"）、騎士
+{
+  const split = art => {
+    const re = /<(\/?)g\b[^>]*>/g, out = []; let m, d = 0, st = 0;
+    while((m = re.exec(art))){ if(m[1]){ d--; if(d===2) out.push(art.slice(st, m.index + m[0].length)); } else { if(d===2) st = m.index; d++; } }
+    return {head:art.slice(0, art.indexOf(out[0])), parts:out, tail:art.slice(art.lastIndexOf(out[out.length-1]) + out[out.length-1].length)};
+  };
+  const INK = "#2a2630", dk = split(UNDEAD_ART.death_knight);
+  UNDEAD_ART.dk_horse = dk.head + dk.parts[1] + dk.tail;
+  // 下馬：騎士和劍往下移到地上、補一條站著的腿（騎著時被馬身擋住）
+  const leg = `<path d="M70 110 L71 136 L64 141 L80 141 L78 110 Z" fill="#626976" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+  UNDEAD_ART.death_knight_foot = `${leg}<g transform="translate(-14 36)">${dk.head}${dk.parts[0]}${dk.parts[2]}${dk.tail}</g>`;
+  MONSTER_LOOK.dk_horse = {kind:"dk_horse", face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(50 54) scale(1.7) translate(-133 -36)">${UNDEAD_ART.dk_horse}</g></svg>`, render:undeadStaticDollSVG};
+  MONSTER_LOOK.death_knight_foot = {...MONSTER_LOOK.death_knight, kind:"death_knight_foot"};
+}

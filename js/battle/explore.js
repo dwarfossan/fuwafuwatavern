@@ -169,7 +169,7 @@ function exploreAlignmentClear(u,t){
  }return true;
 }
 function exploreAlignCombat(){
- const b=B(),units=b.units.filter(u=>!u.dead&&!u.fled),used=new Set(),positions=[];
+ const b=B(),units=b.units.filter(u=>!u.dead&&!u.fled&&!mountOf(u)),used=new Set(),positions=[];   // 騎著的騎士跟著坐騎（10-20）
  const candidates=units.map(u=>{const out=[],cx=Math.round(u.x),cy=Math.round(u.y),kind=groundAt(u.x,u.y)?.kind;
   for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const x=cx+dx,y=cy+dy;
    if(blocked(x,y)||hAt(x,y)!==hAt(u.x,u.y)||groundAt(x,y)?.kind!==kind||
@@ -180,7 +180,7 @@ function exploreAlignCombat(){
  const order=units.map((u,i)=>i).sort((a,c)=>candidates[a].length-candidates[c].length);
  function assign(n){if(n===order.length)return true;const i=order[n];for(const p of candidates[i]){const k=`${p.x},${p.y}`;if(used.has(k))continue;used.add(k);positions[i]=p;if(assign(n+1))return true;used.delete(k);}return false;}
  if(!assign(0)){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;b.exploreStopped=false;blog(EXPLORE_UI.alignmentBlocked);refreshBattle();return false;}
- units.forEach((u,i)=>{u.x=positions[i].x;u.y=positions[i].y;delete u.exploreWalking;});return true;
+ units.forEach((u,i)=>{u.x=positions[i].x;u.y=positions[i].y;delete u.exploreWalking;});b.units.forEach(r=>{const h=mountOf(r);if(h){r.x=h.x;r.y=h.y;}});return true;
 }
 function enterExploreCombat(targetId,manual=false){B().exploreMenu=null;
  const b=B();if(!exploring()||b.exploreStopReason==="trap")return;const target=b.units.find(u=>u.id===targetId&&u.side==="foe"&&!u.fled&&!u.dead&&!u.down),leader=exploreUnit();

@@ -221,7 +221,7 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
-  const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));
+  const shown = b.units.filter(v=>!v.fled&&(!v.dead || now - v.deadAt < 900) && !foeHid(v) && !ridden(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));   // 被騎著的坐騎畫在騎士那張圖裡（10-20）
   shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+.5, svg:tokenSVG(v, v===u), unit:v}));
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
@@ -852,8 +852,11 @@ function unitHUD(v, cx, top, badgeUp){
   const pct = v.hp/v.maxHp;
   const hid = isHid(v) ? `<g class="hid-eye" transform="translate(${cx} ${top-24-badgeUp})"><path d="M-17 0 Q0 -14 17 0 Q0 14 -17 0 Z" fill="#1f1a24" stroke="#f6e9d8" stroke-width="2.5"/>
     <circle r="5.5" fill="#f6e9d8"/><path d="M-19 9 L19 -9" stroke="#1f1a24" stroke-width="7" stroke-linecap="round"/><path d="M-17 8 L17 -8" stroke="#f6e9d8" stroke-width="2.5" stroke-linecap="round"/></g>` : "";
+  // 騎乘（10-20）：騎著時坐騎的血條細細地接在騎士血條下面（坐騎本身不另外畫）
+  const h = mountOf(v), hp = h ? h.hp/h.maxHp : 0;
+  const steed = h ? `<rect x="${cx-24}" y="${top}" width="48" height="5" rx="2" fill="#1f1a24"/><rect x="${cx-23}" y="${top+1}" width="${46*hp}" height="3" rx="1.5" fill="#b9a0ff"/>` : "";
   return `<rect x="${cx-28}" y="${top-8}" width="56" height="7" rx="3" fill="#1f1a24"/>
-    <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>
+    <rect x="${cx-27}" y="${top-7}" width="${54*pct}" height="5" rx="2" fill="${pct>.5?"#8fbf7a":pct>.25?"#f2b441":"#e0766e"}"/>${steed}
     ${statusBadges(v, cx, top - 12)}${hid}`;
 }
 const hudTop = (v, cy) => (v.down || has(v,"prone")) ? cy-56 : cy-122;   // 躺下的人血條跟著降到身體上方
@@ -1266,7 +1269,7 @@ function battleInterfaceHTML(){
   if(!b) return `<section class="page"><p>沒有進行中的戰鬥。</p></section>`;
   // 探索中四隻都昏迷時 cur() 挑不到人（10-09 昏迷規則才會走到）：輸掉畫面只需要一個參照，用第一隻
   const u = cur() || b.units.find(v=>v.side==="pc");
-  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""} ${v.frenzy?"frenzy":""}" style="--c:${v.frenzy?"#e0443a":v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
+  const order = b.units.map((v,i)=>v.side==="npc" || foeHid(v) || ridden(v) || (b.phase==="combat"&&!inCombat(v)) ? "" : `<div class="ord ${i===b.turn?"now":""} ${v.dead||v.down?"out":""} ${v.frenzy?"frenzy":""}" style="--c:${v.frenzy?"#e0443a":v.side==="pc"?v.color:"#e0766e"}" title="${nameFor(v)}" ${b.phase==="explore"&&v.side==="pc"?`data-explore-unit="${v.id}" role="button" aria-label="${v.name}"`:""}>
       <svg viewBox="0 0 60 60" width="40" height="40">${faceSVG(v,4,4,52)}</svg>${v.side==="pc"?`<span class="ord-stress" title="壓力 ${stressOf(v)}/${STRESS_MAX}"><i style="width:${stressOf(v)}%"></i></span>`:""}</div>`).join("");
 
   // 上方狀態列：輪到誰、行動經濟、提示
@@ -1287,6 +1290,7 @@ function battleInterfaceHTML(){
   let ov = "";
   // 反應詢問（大爺 10-09）：敵人命中小傢伙、她有保留的免費動作與反應技能時；文字、外觀暫定（香香）
   if(b.campChoosing) ov = campPickerHTML(b);   // 露營：誰去找食材（10-10）
+  if(b.mountAsk) ov = mountAskHTML(b);         // 騎乘：騎士和坐騎同一格，問要選誰（10-20）
   if(b.markAsk) ov = markAskHTML(b);           // 狩印轉移（10-11）
   else if(b.reactPending && !b.result && b.reactPending.info.luck){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
@@ -1537,6 +1541,7 @@ function bindBattle(){
   battleListen(document.getElementById("longRest"),"click",()=>{ const b=B(), wild=campWild(b); if(takeRest("long",restSelections()) && wild) askCamp(b); });   // 野外長休：按完才問誰去找食材（10-10）
   document.querySelectorAll("[data-camp-who]").forEach(el=>battleListen(el,"click",()=>pickCamp(el.dataset.campWho)));
   document.querySelectorAll("[data-mark-to]").forEach(el=>battleListen(el,"click",()=>answerMarkTransfer(el.dataset.markTo)));
+  document.querySelectorAll("[data-mount-pick]").forEach(el=>battleListen(el,"click",()=>answerMountPick(el.dataset.mountPick)));
   battleListen(document.getElementById("retry"),"click", ()=>retryBattle());          // 還原開戰前再打（不再呼叫 syncLearnedState，它會把熟練格寫壞）
   document.querySelectorAll("[data-react]").forEach(el=>battleListen(el,"click",()=>answerReaction(el.dataset.react==="none"?"none":el.dataset.react)));
   battleListen(document.getElementById("toTavern"),"click", ()=>{ B().leaving=true; sfx("poof"); refreshBattle(); });

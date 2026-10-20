@@ -86,6 +86,18 @@ function startBattle(id, retry=false, phase="combat"){
       learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])],
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
     });
+    // 騎乘出場（10-20）：坐騎是同一格的另一個敵人，騎士掛在牠身上
+    if(e.mount){ const m = ENEMIES[e.mount], r = units[units.length-1];
+      if(r.squad===undefined) r.squad = r.id;   // 騎士和坐騎同一小隊：探索切戰棋一起加入
+      units.push({
+        id:r.id+"m", side:"foe", squad:r.squad, type:e.mount, name:m.name+r.name.slice(e.name.length), look:m.look, natural:m.natural||null, special:m.special||null,
+        x:f.x, y:f.y, hp:m.hp, maxHp:m.hp, scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac, testSkill:null, testSkillUsed:false,
+        resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])],
+        weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpackEquip:null, backpack:[], born:null,
+        learned:[], activeSkills:[], speed:m.speed, statuses:[], level:m.level||1, down:false, face:1, oaUsed:false, riderId:r.id
+      });
+      r.mountId = r.steedId = r.id+"m";   // steedId：自己的坐騎，摔下來之後還認得
+    }
   });
   if(!retry){
     for(const k of ["equipmentItems","equipmentSerial","focusItems","focusSerial"])state.battleSnap.data[k]=JSON.parse(JSON.stringify(state[k]??null)); }
@@ -125,7 +137,7 @@ function startBattle(id, retry=false, phase="combat"){
   };
   syncBGM();
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
-  if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u)).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
+  if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u) && !u.riderId).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
   passivePocket();                                 // 開場看得到的敵人：先比一次被動感知
   if(phase==="explore")beginExplore();else nextTurn();
 }
@@ -135,7 +147,9 @@ const B = () => state.battle;
 // （10-02：輸掉後馬上按重新挑戰，上一場排好的換回合跑進新的一場，第一隻被跳過）。js/battle/flow.js 的計時器都用這個
 function later(fn, ms){ const b=B(),epoch=b?.flowEpoch||0;return setTimeout(()=>{if(b&&B()===b&&(b.flowEpoch||0)===epoch)fn();},ms); }
 const mapCell = n => B()?.phase==="explore" ? Math.round(n) : n;
-const unitAt = (x,y) => B().units.find(u=>!u.dead && !u.fled && mapCell(u.x)===mapCell(x) && mapCell(u.y)===mapCell(y));
+const unitsAt = (x,y) => B().units.filter(u=>!u.dead && !u.fled && mapCell(u.x)===mapCell(x) && mapCell(u.y)===mapCell(y));
+// 同一格騎著馬的：預設是騎士；選目標時選了坐騎（B().pickId）就回坐騎（騎乘，10-20）
+const unitAt = (x,y) => { const l = unitsAt(x,y), p = B().pickId && l.find(u=>u.id===B().pickId); return p || l.find(u=>u.mountId) || l[0]; };
 // 地形：solid 擋路；cover 攻擊線經過時給的掩護（.5 半掩護 AC+2、.75 四分之三 AC+5）；
 //       cost 走進去要花幾格移動；hide 站在裡面時遠程攻擊他有劣勢（被遮蔽）
 const TERRAIN = {
@@ -648,7 +662,7 @@ function hurt(t, n, type, src, hitSfx){
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
     else { t.down = true; t.statuses = []; funNote("down", t); blog(t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }
     stressOnDown(t, src); if(t.side==="pc") loseMeal(t);   // 生命歸零：料理效果消失
-    checkGrapples();
+    checkGrapples(); checkMounts();
     barkOn("down", t, at + 700);                     // 戰鬥台詞：倒下的 X_X 演完再講
     // 看得到的敵人全倒、還有躲著的（大爺 10-02）：小傢伙們覺得怪怪的，提示玩家去搜索。不講位置、不講是誰
     const b = B();
@@ -693,6 +707,42 @@ function releaseGrapple(t, why){
   const g = grapplerOf(t);
   t.statuses = t.statuses.filter(s=>!(s.k==="restrained" && s.via==="grapple"));
   if(why) blog(`　${t.name}${why}`, "skill");
+}
+// ---------- 騎乘（大爺 10-20，參考 SRD 5.2 騎乘戰鬥） ----------
+// 騎著時騎士掛在坐騎身上、同一格，不另外佔格；騎士、坐騎各一條血。騎士的回合用坐騎的速度移動；
+// 坐騎被騎著時不輪回合（受控坐騎只負責移動）、不藉機攻擊。任何一邊被推開、倒地、倒下或兩邊不在同一格 → 分開，
+// 騎士摔下來倒地（落在旁邊的空格）。分開後坐騎是獨立的敵人；騎士在自己回合可以花一半移動重新騎上相鄰的坐騎。
+const mountOf = u => u && u.mountId ? B().units.find(v=>v.id===u.mountId) || null : null;
+const riderOf = h => h && h.riderId ? B().units.find(v=>v.id===h.riderId && v.mountId===h.id) || null : null;
+const ridden = h => !!riderOf(h);
+const mountPair = t => { const h = mountOf(t); if(h) return {rider:t, horse:h}; const r = riderOf(t); return r ? {rider:r, horse:t} : null; };
+function syncMount(u){ const h = mountOf(u); if(h){ h.x = u.x; h.y = u.y; h.face = u.face; } }
+function nearFree(x, y){
+  for(let r=1;r<=2;r++) for(let ox=-r;ox<=r;ox++) for(let oy=-r;oy<=r;oy++){
+    if(Math.max(Math.abs(ox),Math.abs(oy))!==r) continue;
+    const nx=x+ox, ny=y+oy; if(!blocked(nx,ny) && !unitAt(nx,ny)) return {x:nx, y:ny};
+  }
+  return null;
+}
+function dismount(r, why){
+  const h = mountOf(r); if(!h) return;
+  delete r.mountId; delete h.riderId;
+  const e = ENEMIES[r.type]; if(e && e.lookOnFoot){ r.look = e.lookOnFoot; r.speed = e.speedOnFoot ?? r.speed; }
+  if(r.dead || r.down) return;
+  if(r.x===h.x && r.y===h.y){ const p = nearFree(h.x, h.y); if(p){ r.x = p.x; r.y = p.y; } }
+  blog(`　${r.name}${why||"從"+h.name+"身上摔下來"}！`, "skill");
+  knockProne(r);
+}
+function mountUp(r, h){
+  r.mountId = h.id; h.riderId = r.id;
+  const e = ENEMIES[r.type]; if(e && e.lookOnFoot) r.look = e.look;
+  r.x = h.x; r.y = h.y; r.face = h.face;
+}
+// 推開、倒地、倒下、被拉開之後檢查：不在同一格、任一邊倒地／倒下／逃走 → 分開
+function checkMounts(){
+  if(B().holdMounts) return;   // 推撞騎乘的：先寫「被推開」再寫「摔下來」
+  B().units.forEach(r=>{ const h = mountOf(r); if(!h) return;
+    if(r.dead || r.down || h.dead || h.down || h.fled || r.fled || has(r,"prone") || has(h,"prone") || r.x!==h.x || r.y!==h.y) dismount(r); });
 }
 // 抓的人倒下、兩人不相鄰 → 自動鬆開
 function checkGrapples(){
@@ -828,7 +878,7 @@ function critMoment(t){
 }
 
 // 倒地：掛狀態＋在打中的那一刻播倒下去的動作
-function knockProne(t){ addStatus(t, "prone", {}); funNote("prone", t); t.anim = {k:"fall", t:impactAt()}; }
+function knockProne(t){ addStatus(t, "prone", {}); funNote("prone", t); t.anim = {k:"fall", t:impactAt()}; if(mountPair(t)) checkMounts(); }
 
 // 把 t 從 from 推開 n 格
 function push(from, t, n){
@@ -839,7 +889,7 @@ function push(from, t, n){
     t.x=nx; t.y=ny;
     if(dh <= -2){ fall(t, -dh); break; }                     // 被推下高台
   }
-  checkGrapples();
+  checkGrapples(); checkMounts();
 }
 // 跌落：每 10 呎（兩層）1d6 鈍擊，並倒地
 function fall(t, levels){
