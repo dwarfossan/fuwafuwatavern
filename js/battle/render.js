@@ -690,10 +690,10 @@ function unitDoll(v, active){
   const live = a && el >= 0 && el < (DOLL_DUR[a.k]||0) ? {k:a.k, el, hand:a.hand} : null;   // el < 0：還在擲骰，動作還沒開始
   if(v.look==="mimic")return `<g class="${live?'chest-result':''}">${mimicSVG(v,cx,cy-34)}</g>`;
   const look = !isPcCritter(v) ? MONSTER_LOOK[v.look] : null;
-  // 騎乘（10-20）：小傢伙騎著坐騎＝先畫馬、再把小傢伙畫在馬背上（外觀暫定）
+  // 騎乘（10-20）：小傢伙騎著坐騎＝先畫小傢伙、再畫馬蓋在前面（外觀暫定）
   const h = isPcCritter(v) && mountOf(v);
   const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:cx-59, y:cy-118, w:118, seed:7}) : "";
-  if(h) return steedUnder + dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, x:cx-46+(v.face||1)*-4, y:cy-150, w:92, seed:v.id.length*3});
+  if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, x:cx-46+(v.face||1)*-4, y:cy-146, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down, prone:!v.down && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:cx-59, y:cy-118, w:118, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
 }
