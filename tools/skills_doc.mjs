@@ -9,10 +9,25 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 // 施展條件的中文名在 js/battle/flow.js 的 REQ_TEXT（那支檔案相依太多，只取這一段）
 const reqSrc = read('js/battle/flow.js').match(/const REQ_TEXT = \{[\s\S]*?\n\};/)[0];
+// 法器拿著就附帶、不在 data/skills.js 裡的招（法書打擊、聖火術、法杖火焰箭……，10-20）：直接取 js/battle/skills.js 的兩個函式，跟遊戲同一份定義
+const skillsSrc = read('js/battle/skills.js');
+const fnSrc = name => skillsSrc.match(new RegExp(`function ${name}\\(g\\)\\{[\\s\\S]*?\\n\\}`))[0];
 const ctx = vm.createContext({});
 vm.runInContext([read('data/items.js'), read('data/skills.js'), reqSrc,
-  'globalThis.__out = {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC, ITEMS};'].join('\n;\n'), ctx);
-const {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC} = ctx.__out;
+  'const FIRE_BOLT_IMPL={}, FOCUS_STRIKE_IMPLS={staff:{},other:{}};', fnSrc('focusStrikeSkill'), fnSrc('focusCantripSkill'),
+  'globalThis.__out = {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC, ITEMS, FOCUS_GROUPS, focusStrikeSkill, focusCantripSkill};'].join('\n;\n'), ctx);
+const {SKILL_GROUPS, REQ_TEXT, skillType, componentsText, basicNames, HAS_BASIC, ITEMS, FOCUS_GROUPS, focusStrikeSkill, focusCantripSkill} = ctx.__out;
+// 照 js/battle/skills.js 的 equipmentSkills：法杖以外的法器附帶打擊；奧術法杖、治癒法書附帶戲法（元素法杖 elementFocus 沒有）
+function focusExtras(g){
+  if(!FOCUS_GROUPS.includes(g.id)) return [];
+  const out = [];
+  if(g.id!=="arcane_staff") out.push({def:focusStrikeSkill(g).def, note:"法器附帶"});
+  if(g.id==="arcane_staff" || g.id==="healing_book"){
+    const skip = g.weapons.filter(n=>(ITEMS.find(i=>i.n===n)||{}).elementFocus);
+    out.push({def:focusCantripSkill(g).def, note:"法器附帶" + (skip.length ? `（${skip.join("、")}沒有）` : "")});
+  }
+  return out;
+}
 
 const TIER = ["不用格子","一階","二階","三階","四階","五階","六階","七階","八階","九階"];
 const reqText = r => !r ? "—" : (Array.isArray(r) ? r : [r]).map(x=>REQ_TEXT[x]||x).join("或");
@@ -51,6 +66,9 @@ for(const g of SKILL_GROUPS){
     out.push(`| ${cell(name)}${s.srd ? " ✦" : ""} | ${s.activation==='passive'?'被動':'主動'} | ${cell(skillType(g, s))} | ${cost} | ${cell(reqText(s.req))} | ${cell(componentsText(s.components))} | ${cell([s.areaText,s.conc?"專注至中斷":""].filter(Boolean).join("；")||"—")} | ${cell(s.text)} | ${cell(upText(s))} |`);
     n++;
   });
+  for(const x of focusExtras(g)){ const s = x.def;
+    out.push(`| ${cell(s.name)}${s.srd ? " ✦" : ""} | 主動 | ${cell(skillType(g, s))} | ${TIER[s.tier||0]} | ${cell(x.note)} | ${cell(componentsText(s.components))} | — | ${cell(s.text)} | — |`);
+    n++; }
   out.push("");
 }
 fs.writeFileSync(path.join(root, 'docs/技能表.md'), out.join("\n"));
