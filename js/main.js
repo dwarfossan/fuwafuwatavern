@@ -20,6 +20,7 @@ function render(){
   if(state.page==="battle" && B() && app.querySelector("#board-floor") && refreshBattle.battle===B()){
     updateBattleFrame(); return;
   }
+  if(typeof updateAiReadout==="function") setTimeout(updateAiReadout, 0);   // 換頁：戰場摘要跟著重寫或清空，不留舊資料
   rememberShopView(app);
   autoHelpOnce();
   app.classList.toggle('shop-screen',state.page==='shop'||(state.page==='town'&&!!state.townPanel));

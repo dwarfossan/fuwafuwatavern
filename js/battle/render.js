@@ -1466,6 +1466,7 @@ function updateBattleFrame(){
   if(terrain || keys.scene!==prev.scene) updateBoardScene();
   const uiChanged=keys.ui!==prev.ui;
   if(uiChanged) updateBattleUI();
+  if(terrain || uiChanged || keys.scene!==prev.scene) updateAiReadout();   // 戰場文字摘要（10-20，js/ui/ai-readout.js）
   if(keys.modal!==prev.modal){
     document.querySelector(".modal-back")?.remove();
     document.getElementById("app").insertAdjacentHTML("beforeend",renderModal());
