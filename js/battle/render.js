@@ -230,6 +230,9 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
   // 血條、狀態圖示畫在物件上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
   // 樹、篷車、前面的人擋住角色時，血條還浮在上面，看得到也點得到（data-tile，瞄準時點它＝選那一隻）
+  // 瞄準框住的那隻：在樹、篷車上面畫一圈剪影外框（大爺 10-21：10-03 拿掉的外框改成只在瞄準時出現）
+  const aimedV = b.mode && b.aimHover && shown.find(v=>v.id===b.aimHover && !v.dead);
+  if(aimedV) out.push(aimOutlineSVG(aimedV));
   shown.filter(v=>!v.dead).sort((a,c)=>(a.x+a.y)-(c.x+c.y)).forEach(v=>out.push(hudSVG(v)));
   out.push(`<use href="#mark-tags"/>`);
   // 飛行物（出手時才出現，飛到目標消失）
@@ -407,8 +410,12 @@ function aimPick(e){
 function aimGlow(id){
   if(B()) B().aimHover = id || null;   // 記在狀態裡：按著的時候畫面剛好重畫，光也不會不見
   document.querySelectorAll(".board .aimed-foe, .board .aimed-ally").forEach(el=>el.classList.remove("aimed-foe","aimed-ally"));
+  document.querySelectorAll(".board .aim-outline").forEach(el=>el.remove());
   const v = id && B()?.units.find(u=>u.id===id); if(!v) return;
   document.querySelectorAll(`.board .token[data-moving-unit="${v.id}"], .board .hud[data-moving-unit="${v.id}"]`).forEach(el=>el.classList.add(v.side==="foe" ? "aimed-foe" : "aimed-ally"));
+  const scene = document.querySelector(".board #board-scene");
+  if(scene){ const tmp = document.createElementNS("http://www.w3.org/2000/svg","g"); tmp.innerHTML = aimOutlineSVG(v);
+    scene.insertBefore(tmp.firstElementChild, scene.querySelector(":scope > .hud")); }
 }
 // 對框住的那隻出手：點牠身上在目標範圍裡的那一格（騎乘的兩隻疊在一起照舊會問要打誰）
 function aimClick(v){
@@ -722,6 +729,18 @@ function fxSVG(kind, x, y, el){
   return impact("M-10 -48 L1 -27 L19 -51 L22 -25 L48 -38 L32 -15 L58 -8 L34 3 L54 22 L28 18 L34 47 L12 27 L-2 54 L-9 29 L-34 47 L-27 20 L-57 25 L-34 5 L-56 -10 L-29 -14 L-42 -40 L-17 -26 Z","M-6 -31 L1 -18 L13 -33 M29 -22 L19 -10 L36 -6 M28 15 L17 13 L21 30 M-18 27 L-14 14 L-31 17 M-30 -11 L-17 -10 L-24 -25");
 }
 
+// 剪影外框（10-03 的原版濾鏡）：把紙娃娃的形狀往外擴一圈、挖掉本體，只留輪廓；畫在場景最上層、血條下面
+const aimOlColor = v => v.side==="foe" ? "#e0766e" : "#7fe08a";
+function aimOutlineSVG(v){
+  const c = aimOlColor(v), id = `aim-ol-${c.slice(1)}`;
+  return `<g class="aim-outline" data-scene-key="aim-outline" pointer-events="none"><defs><filter id="${id}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feComponentTransfer in="SourceAlpha" result="a"><feFuncA type="discrete" tableValues="0 1"/></feComponentTransfer>
+  <feMorphology in="a" operator="dilate" radius="3.5" result="d1"/><feMorphology in="a" operator="dilate" radius="6" result="d2"/>
+  <feComposite in="d1" in2="a" operator="out" result="ring"/><feComposite in="d2" in2="d1" operator="out" result="edge"/>
+  <feFlood flood-color="${c}"/><feComposite in2="ring" operator="in" result="cr"/>
+  <feFlood flood-color="#1f1a24" flood-opacity=".75"/><feComposite in2="edge" operator="in" result="er"/>
+  <feMerge><feMergeNode in="er"/><feMergeNode in="cr"/></feMerge></filter></defs><g filter="url(#${id})">${unitDoll(v, false)}</g></g>`;
+}
 function unitDoll(v, active){
   const p = unitIso(v), cx = p.x, cy = p.y+TH/2;
   const now = Date.now(), a = v.anim, el = a ? now - a.t : 0;
