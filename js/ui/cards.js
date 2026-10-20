@@ -129,7 +129,7 @@ function renderModal(){
   let body = "";
   if(["seal","sealIntro"].includes(m.kind))body=sealModalHTML(m);
   if(m.kind==="save") body = saveModalHTML(m);
-  if(m.kind==="item") body = itemCardHTML(itemById(m.id));
+  if(m.kind==="item") body = itemCardHTML(itemById(m.id)) + giveHTML(m);   // 交給隊友（10-20，js/ui/give.js）
   if(m.kind==="help"){
     const h=PAGE_UI.helpPages[m.id];
     body=`<h3 class="page-bubble-title">${h.title}</h3><p class="page-bubble-text">${h.text}</p>`;
@@ -178,7 +178,8 @@ function bindModal(){
   document.querySelectorAll("[data-guide]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"guide",id:el.dataset.guide||null};refreshGameUI();}));
   document.querySelectorAll("[data-about]").forEach(el=>modalListen(el,"click",e=>{e.stopPropagation();state.modal={kind:"about"};refreshGameUI();}));
   document.querySelectorAll("[data-pagehelp]").forEach(el=>modalListen(el,"click",()=>{state.modal={kind:"help",id:el.dataset.pagehelp};refreshGameUI();}));
-  document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo, prev:state.modal?.kind==="character"?state.modal:null}; refreshGameUI(); }));
+  document.querySelectorAll("[data-iteminfo]").forEach(el=>modalListen(el,"click", e=>{ if(!el.dataset.iteminfo)return; e.stopPropagation(); state.modal={kind:"item", id:el.dataset.iteminfo, owner:el.dataset.uid || el.closest("[data-anchor]")?.dataset.anchor || (state.modal?.kind==="character"?state.modal.id:null) || null, prev:state.modal?.kind==="character"?state.modal:null}; refreshGameUI(); }));
+  document.querySelectorAll("[data-give-to]").forEach(el=>modalListen(el,"click",e=>{ e.stopPropagation(); const m=state.modal; if(m && giveItem(m.owner, el.dataset.giveTo, m.id)) state.modal = m.prev || null; refreshGameUI(); }));
   document.querySelectorAll("[data-skinfo]").forEach(el=>modalListen(el,"click", e=>{
     e.stopPropagation();
     const [group, idx, item, unit] = el.dataset.skinfo.split(":");

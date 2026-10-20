@@ -1434,3 +1434,12 @@ body.image-boot{background:#000}
 
 /* 戰場文字摘要（10-20）：畫面上看不到，給讀網頁文字的工具；保留換行 */
 .ai-readout{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:pre-line}
+
+/* 交給隊友（10-20）：物品卡下面一排小傢伙頭像 */
+.give-row{margin-top:10px;border-top:1px dashed rgba(42,38,48,.25);padding-top:8px}
+.give-row>small{display:block;margin-bottom:6px;color:var(--dim,#7a6f80)}
+.give-people{display:flex;gap:6px}
+.give-to{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;border:2px solid #2a2630;background:#fffaf0;font:inherit;font-size:13px;color:#2a2630}
+.give-to:disabled{opacity:.5}
+.give-to small{font-size:10px;line-height:1.2;text-align:center}
+.give-face svg{width:34px;height:34px;display:block}

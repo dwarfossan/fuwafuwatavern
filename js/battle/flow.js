@@ -1090,6 +1090,7 @@ const seenFoes = e => B().units.filter(x=>hostile(x,e) && !x.down && !x.dead && 
 function tryRemount(u, h0){
   const b = B(), h = h0 || (u.steedId && b.units.find(v=>v.id===u.steedId));
   if(!h || u.mountId || h.riderId || h.dead || h.down || h.fled || has(h,"prone") || has(u,"restrained") || dist(u,h)>1) return false;
+  if(SIZES.indexOf(sizeOf(h)) <= SIZES.indexOf(sizeOf(u))) return false;   // 坐騎至少要比騎士大一級（SRD，10-20）
   const cost = Math.ceil(u.speed/2); if(b.moveLeft < cost) return false;
   const frac = (b.moveLeft - cost) / u.speed;
   mountUp(u, h);

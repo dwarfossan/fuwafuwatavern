@@ -134,6 +134,6 @@ const ITEMS = [
   {type:"gear",n:"聖徽",en:"Holy Symbol",cat:"冒險用品",cost:5*GP,wt:1,srd:true,desc:"祝福術所需的至少 5 gp 聖徽；不會因施法消耗。需要空手取用，法器不能代替這件有標價的材料。"}
   ,{type:"focus",n:"霜雷法杖",en:"Frost and Spark Staff",cat:"法器",cost:20*GP,wt:4,stat:"INT",art:"arcane_staff",elementFocus:true,grants:["ray_of_frost","shocking_grasp"],spells:"寒冷射線、電擊術",draft:"GPT",desc:"暫定：20 gp、4 lb，沿用奧術法杖外觀；兩種元素戲法。"}
 , {type:"gear",n:"火藥桶",en:"Powder Barrel",cat:"冒險用品",cost:0,wt:20,noShop:true,placeable:"powderBarrel",art:"powder_barrel",desc:"可放在相鄰空格。攻擊破壞或遇火焰會引爆：所在格與周圍八格，2d6 火焰傷害，敏捷 DC13 成功減半，敵我皆傷。戰棋收納與放置各用一個主要動作。"}
-, {type:"gear",n:"骷髏戰馬的韁繩",en:"Skeletal Reins",cat:"冒險用品",cost:0,wt:1,noShop:true,summon:"dk_horse",desc:"死亡騎士的韁繩。戰鬥中拉一下（主要動作），骷髏戰馬就會從地上冒出來。牠被打倒會散成骨頭，長休後拼回來。"}
+, {type:"gear",n:"骷髏戰馬的韁繩",en:"Skeletal Reins",cat:"冒險用品",cost:0,wt:1,noShop:true,summon:"dk_horse",desc:"死亡騎士的韁繩。隊上有人帶著，戰鬥中誰拉一下（主要動作），骷髏戰馬就會從地上冒出來。牠被打倒會散成骨頭，長休後拼回來。"}
 ].map((it,i)=>({...it,id:"it"+i}));
 const CATS = ["簡易近戰","簡易遠程","軍用近戰","軍用遠程","護甲","盾牌","法器","道具","冒險用品"];

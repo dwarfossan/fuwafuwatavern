@@ -6,7 +6,8 @@
    目前只在戰鬥中叫；戰鬥結束（勝、敗、切回探索）牠就回去，血量記著。 */
 const STEED_ID = "steed", STEED_DEFAULT_NAME = "骨骨", STEED_NAME_MAX = 8;
 const steedUnit = () => B()?.units.find(v=>v.steed) || null;
-const reinsOf = u => (u?.backpack||[]).find(it=>it.summon) || null;
+// 韁繩全隊共用（大爺 10-20）：隊上任何一隻帶著，誰都能叫
+const reinsOf = u => (B()?.units||[]).filter(isPcCritter).flatMap(v=>v.backpack||[]).find(it=>it.summon) || null;
 function summonBlock(u){
   const b = B();
   if(!reinsOf(u)) return "沒帶韁繩";
@@ -71,6 +72,7 @@ function mountBlock(u){
   const b = B();
   if(!isPcCritter(u) || mountOf(u)) return "-";
   if(!steedNear(u)) return "坐騎不在旁邊";
+  if(SIZES.indexOf(sizeOf(steedNear(u))) <= SIZES.indexOf(sizeOf(u))) return "坐騎太小";
   if(has(u,"restrained")) return "被抓住了";
   if(b.moveLeft < Math.ceil(u.speed/2)) return "移動不夠";
   return "";
