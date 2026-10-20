@@ -89,7 +89,7 @@ const ENEMIES = {
   lich:{detectRange:8,name:"巫妖",look:"lich",gear:["火焰法球","巫妖法袍"],hp:38,ac:13,speed:6,xp:1800,stars:3,
     special:"lich_whisper",
     scores:{STR:8,DEX:14,CON:14,INT:18,WIS:14,CHA:16}},
-  death_knight:{detectRange:7,name:"死亡騎士",look:"death_knight",gear:[],hp:45,ac:17,speed:8,xp:1800,stars:3,
+  death_knight:{size:"大型",detectRange:7,name:"死亡騎士",look:"death_knight",gear:[],hp:45,ac:17,speed:8,xp:1800,stars:3,
     natural:{name:"騎士劍",dmg:"1d10 揮砍",stat:"STR"},special:"dk_hellstrike",
     scores:{STR:18,DEX:10,CON:16,INT:10,WIS:12,CHA:14}}
 };
