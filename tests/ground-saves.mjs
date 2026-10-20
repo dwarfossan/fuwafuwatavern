@@ -1,7 +1,7 @@
 import {chromium} from 'playwright';import assert from 'node:assert/strict';import path from 'node:path';
-import {bootReady} from './boot.mjs';
+import {bootReady, noLuck} from './boot.mjs';   // 10-20：回合結束的豁免也會問好運，測規則先把好運用光
 const browser=await chromium.launch();try{
-const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);
+const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(p);await noLuck(p);
 const r=await p.evaluate(()=>{
  const b=B(),u=b.units.find(u=>u.id==='fox');b.flowEpoch++;b.phase='combat';b.turn=b.units.indexOf(u);b.busy=false;b.groundClockAt=null;b.def.blocks=[];b.def.elev=[];u.x=10;u.y=10;u.mods.DEX=u.mods.CON=0;u.hp=u.maxHp=100;
  const old=Math.random,out=[],calls=[],save=saveRoll;saveRoll=(u,s,dc,...a)=>{calls.push([s,dc]);return save(u,s,dc,...a);};

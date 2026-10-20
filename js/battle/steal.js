@@ -33,10 +33,16 @@ function answerStealPick(id){
 }
 // 擲骰與結算；explore＝探索中（不花動作，失敗直接開戰）
 function doSteal(u, t, want, explore=false){
+  if(luckMayAsk() && luckLeft(u)>0){ runFoeSkill({type:"steal", actor:u.id, t:t.id, want:want?.id||null, explore, answers:[], rec:null, snap:null}); return; }   // 好運重擲（10-20）
+  return doStealNow(u, t, want, explore);
+}
+function doStealNow(u, t, want, explore=false){
   const b = B(); b.mode = null; b.menu = null; faceTo(u, t);
   if(!explore) useAction(u);
-  const hidden = isHid(u), r1 = d20(), r2 = hidden ? d20() : null, r = hidden ? Math.max(r1, r2) : r1;
-  const total = r + u.mods.DEX, dc = passivePer(t), ok = total >= dc;
+  const hidden = isHid(u), dc = passivePer(t);
+  let r1 = d20(), r2 = hidden ? d20() : null, r = hidden ? Math.max(r1, r2) : r1, total = r + u.mods.DEX;
+  if(total < dc && luckHook(u, "偷竊", {r, total, dc})){ r1 = d20(); r2 = hidden ? d20() : null; r = hidden ? Math.max(r1, r2) : r1; total = r + u.mods.DEX; }
+  const ok = total >= dc;
   u.anim = {k:"punch", t:Date.now() + DICE_LEAD}; animSfx("punch", DICE_LEAD);
   panelStart(`${u.name}【${STEAL_UI.name}】`);
   panelRow("chk", t, hidden ? [r1, r2] : [r], r, total, ok ? "stolen" : "fail");

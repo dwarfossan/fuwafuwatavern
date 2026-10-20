@@ -89,8 +89,17 @@ function endTurn(){
   const u = cur();
   if(u.side==="pc") u.reserveFree = u.frenzy ? 0 : Math.max(0, 2-(b.freeUsed||0));   // 沒用完的免費動作留到敵人回合當反應（10-09）
   if(u.side==="pc") b.panel = null;                 // 骰子面板：我方按待機（結束回合）才消失
+  // 回合結束的豁免（地面、中毒、扎腿）：小傢伙還有好運就包成可以暫停的重跑（10-20）
+  if(luckMayAsk() && luckLeft(u)>0 && u.statuses.some(s=>s.via==="ground"||s.via==="pin"||s.k==="poisoned")){ if(!runFoeSkill({type:"turnEnd", actor:u.id, answers:[], rec:null, snap:null})) return; }
+  else turnEndSaves(u);
+  endTurnRest(u);
+}
+function turnEndSaves(u){
   groundStatusSave(u);
   pinSave(u);                                       // 扎腿：回合結束體質豁免，成功才解除（10-20）
+}
+function endTurnRest(u){
+  const b = B();
   frenzyTurnEnd(u);                                 // 失控的回合結束：擲感知豁免回神（10-10）
   expire("end", u.id);
   b.mode = null;
@@ -697,6 +706,11 @@ const GEN_ACT = {
 };
 const meleeReach = u => isRanged(u) ? 1 : reachOf(u);
 function doGenAct(u, key, t){
+  // 小傢伙是出手的（繳械擲攻擊）或被抓／被推的（擲豁免）：好運可能要問，包成重跑（10-20）
+  if(luckMayAsk() && (luckLeft(u)>0 || luckLeft(t)>0 || (mountPair(t) && B().units.some(v=>luckLeft(v)>0)))){ REACT_SK = null; runFoeSkill({type:"genAct", actor:u.id, key, t:t.id, answers:[], rec:null, snap:null}); return; }
+  return doGenActNow(u, key, t);
+}
+function doGenActNow(u, key, t){
   const b = B(), g = GEN_ACT[key], dc = dcOf(u,"STR");
   b.mode = null; faceTo(u, t); camOnAttack(u, t); useAction(u);
   // 戰技是豁免判定：先擲骰、再出手
@@ -729,9 +743,13 @@ function doGenAct(u, key, t){
 }
 // 掙脫：力量或敏捷檢定（挑高的）對抗擒抱的 DC
 function doEscape(u){
+  if(luckMayAsk() && luckLeft(u)>0){ runFoeSkill({type:"escape", actor:u.id, answers:[], rec:null, snap:null}); return; }
+  return doEscapeNow(u);
+}
+function doEscapeNow(u){
   const b = B(), gs = grappled(u), s = u.mods.STR>=u.mods.DEX ? "STR" : "DEX";
   useAction(u);
-  const r = d20(), total = r + u.mods[s], ok = total >= gs.dc;
+  const {r, total, ok} = checkRoll(u, "掙脫", u.mods[s], gs.dc);
   blog(`${u.name}想掙脫：d20=${r}${fmtN(u.mods[s])} = ${total} ${ok?"≥":"<"} DC ${gs.dc} → ${ok?"成功":"失敗"}`, ok?"skill":"miss");
   if(ok){ releaseGrapple(u, "掙脫了！"); u.anim = {k:"hop", t:Date.now()}; sfx("swing"); }
   if(u.side==="pc") afterShow(u, 700); else refreshBattle();
@@ -746,9 +764,13 @@ const searchTargets = u => B().units.filter(v=>v.side==="foe" && !v.dead && !v.d
 //   按鈕只要有免費動作就能按：如果「附近有躲著的才能按」，等於告訴玩家附近有東西
 const hiddenNear = u => B().units.filter(v=>hostile(v,u) && !v.dead && !v.down && isHid(v) && dist(u,v)<=SEARCH_RANGE);   // 敵我同一套（10-10 敵人也會搜索）
 function doSearch(u, t){
+  if(t && luckMayAsk() && luckLeft(u)>0){ runFoeSkill({type:"search", actor:u.id, t:t.id, answers:[], rec:null, snap:null}); return; }   // 看穿背包的檢定能用好運（10-20）
+  return doSearchNow(u, t);
+}
+function doSearchNow(u, t){
   const b = B(); b.mode = null; if(t) faceTo(u, t); spendFree(u);
   panelStart(`${u.name}【搜索】`);
-  const r = d20(), total = r + u.mods.WIS;
+  const {r, total} = t ? checkRoll(u, "搜索", u.mods.WIS, pocketDC(t)) : (()=>{ const r = d20(); return {r, total:r + u.mods.WIS}; })();
   const found = hiddenNear(u).filter(v=>total >= has(v,"hidden").val);
   const groundFound=u.side==="pc"&&groundDetect(u,total,SEARCH_RANGE);   // 地面（藏油）只有我方搜索；敵人各自的 knownGround 照被動感知
   const ok = t ? total >= pocketDC(t) : false;
@@ -875,8 +897,12 @@ function doDouse(u){
 }
 // 掙脫網子（動作）：力量檢定對網子的難度
 function doUnnet(u){
-  const rs = hasVia(u,"restrained","net"), r = d20(), total = r + u.mods.STR, ok = total >= rs.dc;
+  if(luckMayAsk() && luckLeft(u)>0){ runFoeSkill({type:"unnet", actor:u.id, answers:[], rec:null, snap:null}); return; }
+  return doUnnetNow(u);
+}
+function doUnnetNow(u){
   useAction(u);
+  const rs = hasVia(u,"restrained","net"), {r, total, ok} = checkRoll(u, "掙脫網子", u.mods.STR, rs.dc);
   blog(`${u.name}想掙脫網子：力量 d20=${r}${fmtN(u.mods.STR)} = ${total} ${ok?"≥":"<"} ${rs.dc} → ${ok?"掙脫了！":"還纏著"}`, ok?"skill":"miss");
   if(ok){ u.statuses = u.statuses.filter(s=>s!==rs); u.anim = {k:"hop", t:Date.now()}; sfx("swing"); }
   if(u.side==="pc") afterShow(u, 700); else refreshBattle();
@@ -917,6 +943,19 @@ const serReactT = t => Array.isArray(t) ? {arr:t.map(serReactT)} : t && t.id ? {
 const deserReactT = o => { if(!o) return o; if(o.arr) return o.arr.map(deserReactT);
   if(o.barrel){ const blk = B().def.blocks.find(v=>v.kind==="powderBarrel" && v.x===o.x && v.y===o.y); return blk ? barrelTarget(blk) : {x:o.x, y:o.y}; }
   return o.id ? B().units.find(v=>v.id===o.id) : {x:o.x, y:o.y}; };
+// 可以暫停重跑的動作（反應、好運共用；10-20 從招式擴大到戰技、搜索、掙脫、偷竊、回合結束的豁免）
+const UNIT = id => id ? B().units.find(v=>v.id===id) : null;
+const REPLAY = {
+  skill: p => { const u = UNIT(p.actor), sk = REACT_SK || unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk); doSkillNow(u, sk, deserReactT(p.t)); },
+  genAct: p => doGenActNow(UNIT(p.actor), p.key, UNIT(p.t)),
+  search: p => doSearchNow(UNIT(p.actor), UNIT(p.t)),
+  escape: p => doEscapeNow(UNIT(p.actor)),
+  unnet: p => doUnnetNow(UNIT(p.actor)),
+  steal: p => { const t = UNIT(p.t); doStealNow(UNIT(p.actor), t, p.want ? stealItems(t).find(it=>it.id===p.want) || null : null, p.explore); },
+  turnEnd: p => turnEndSaves(UNIT(p.actor))
+};
+// 好運可能要問：還沒在重跑裡、場上有小傢伙還有好運骰
+const luckMayAsk = () => !REACT_RUN && !!B() && B().units.some(v=>luckLeft(v)>0);
 // 重跑用的招式本體：有些招式不是從小筆記查得到的（副手攻擊、測試直接組的招），整個詢問期間留著原物件（同時只會有一個詢問）
 let REACT_SK = null;
 function runFoeSkill(p){
@@ -925,8 +964,7 @@ function runFoeSkill(p){
   diceRand = () => { const v = queue.length ? queue.shift() : Math.random(); rec.push(v); return v; };
   REACT_RUN = {answers:p.answers, n:0, luck:{}}; SFX_HOLD = [];
   try{
-    const u = B().units.find(v=>v.id===p.actor), sk = REACT_SK || unitSkills(u).find(s=>s.key===p.sk) || learnedSkillByKey(p.sk);
-    doSkillNow(u, sk, deserReactT(p.t));
+    (REPLAY[p.type||"skill"])(p);
     B().units.forEach(v=>delete v.halveFrom);
     state.luckUsed ||= {}; for(const [id,n] of Object.entries(REACT_RUN.luck)) state.luckUsed[id] = (state.luckUsed[id]||0) + n;   // 跑完才扣好運
     sfxRelease(true);
@@ -946,9 +984,10 @@ function answerReaction(choice){
   const b = B(), p = b && b.reactPending; if(!p) return;
   const nb = JSON.parse(p.snap); delete nb.def._h; nb.flowEpoch = (b.flowEpoch||0)+1;
   state.battle = nb; refreshBattle.keys = null;
-  const done = runFoeSkill({actor:p.actor, sk:p.sk, t:p.t, answers:[...p.answers, choice], rec:p.rec, snap:p.snap});
+  const done = runFoeSkill({...p, answers:[...p.answers, choice], info:undefined});
   if(!done) return;
   const c = B(), actor = c.units.find(v=>v.id===p.actor);
+  if(p.type==="turnEnd"){ endTurnRest(actor); return; }   // 回合結束的豁免問完：接著把回合收尾
   if(actor?.side==="pc"){ refreshBattle(); return; }   // 自己的招式（好運）：doSkillNow 已照常收尾，不結束回合
   c.busy = true; refreshBattle();
   later(()=>{ c.busy = false; if(!checkResult()) endTurn(); }, settle(900));

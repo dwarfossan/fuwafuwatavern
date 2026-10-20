@@ -1310,7 +1310,7 @@ function battleInterfaceHTML(){
     // 好運詢問（大爺 10-09）：文字、外觀暫定（香香）
     const q=b.reactPending.info, T=b.units.find(v=>v.id===q.t), vs=q.kind==="攻擊"?`AC ${q.ac}`:`DC ${q.dc}`;
     ov = `<div class="bt-ov bt-react" role="dialog" aria-live="assertive">
-      <h3>${T?T.name:""}${q.kind==="攻擊"?"的攻擊沒中":"豁免失敗"}……</h3>
+      <h3>${T?T.name:""}${q.kind==="攻擊"?"的攻擊沒中":q.kind==="豁免"?"豁免失敗":`${q.kind}失敗`}……</h3>
       <p>擲出 ${q.total}（d20=${q.r}）對 ${vs}。好運骰還剩 ${q.left} 顆，要花 1 顆重擲嗎？</p>
       <div class="react-btns"><button class="btn" data-react="luck">好運：重擲<small>用新結果・剩 ${q.left} → ${q.left-1}</small></button><button class="btn ghost" data-react="none">不用</button></div></div>`;
   }

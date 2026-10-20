@@ -570,6 +570,12 @@ function reactOptions(t){
 // 整個招式跑完才寫進 state.luckUsed（不然暫停、重跑會重複扣）。只在招式裡問（doSkill）；藉機攻擊、潛行等招式外的擲骰還不問（暫定）。
 const LUCK_MAX = 2;
 const luckLeft = u => isPcCritter(u) && !u.frenzy ? Math.max(0, LUCK_MAX + (mealOf(u)==="mushroom"?1:0) - ((state.luckUsed||{})[u.id]||0) - ((REACT_RUN?.luck||{})[u.id]||0)) : 0;
+// 檢定也能用好運（10-20）：擲 d20＋調整值，沒過 DC 就問要不要花好運重擲；回傳最後採用的那次
+function checkRoll(u, kind, mod, dc){
+  let r = d20(), total = r + mod;
+  if(total < dc && luckHook(u, kind, {r, total, dc})){ r = d20(); total = r + mod; }
+  return {r, total, ok: total >= dc};
+}
 function luckHook(u, kind, info){
   if(!REACT_RUN || luckLeft(u)<=0) return false;
   const idx = REACT_RUN.n++, ans = REACT_RUN.answers[idx];
