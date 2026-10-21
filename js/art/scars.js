@@ -1,6 +1,6 @@
 /* 復仇敵人的傷疤（大爺 10-21，外觀暫定：香香）
    被敲暈過、回來報仇的敵人，頭上疊一層傷疤 SVG：照「上次被敲暈的那一擊」的傷害類型
-     揮砍＝三道刀疤、穿刺＝眼罩、鈍擊＝腫包＋OK 繃、火焰＝燒痕、其他（法術）＝發亮的疤紋（顏色照傷害類型）
+     揮砍＝三道刀疤、穿刺＝眼罩、鈍擊＝眼皮腫起來（再一次＝頭頂腫包＋OK 繃）、火焰＝燒痕、其他（法術）＝發亮的疤紋（顏色照傷害類型）
    疊在紙娃娃的頭（側臉、受傷臉）和頭像（正面）上，不重畫怪物本身；回來幾次就疊幾道（最多 3）
    座標：每種頭各一組（100×100 的頭圖座標），先做哥布林、獸人兩種，之後再補 */
 const SCAR_SPOTS = {
@@ -20,8 +20,12 @@ function scarSVG(kind, s, n=0){
     return `<g class="scar scar-patch"><path d="M${bx-16} ${by-14} Q${bx} ${by-20} ${bx+16} ${by-8}" stroke="${SCAR_INK}" stroke-width="2.6" fill="none"/>
       <ellipse cx="${bx}" cy="${by}" rx="8.5" ry="7.5" fill="#3a3340" stroke="${SCAR_INK}" stroke-width="2.6"/><path d="M${bx-4} ${by-3} Q${bx} ${by-5} ${bx+3} ${by-3}" stroke="#6b6175" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
   }
-  if(kind==="鈍擊"){   // 頭頂腫一個包，貼十字 OK 繃
-    const x = tx + n*6, y = ty;
+  if(kind==="鈍擊" && n===0){   // 第一次：眼皮被打腫（大爺 10-21：紅色肉球放眼皮上，超有被打腫的感覺）
+    return `<g class="scar scar-swollen"><ellipse cx="${ax}" cy="${ay-2.5}" rx="8" ry="6.2" fill="#d9776a" stroke="${SCAR_INK}" stroke-width="2.4"/>
+      <ellipse cx="${ax-2.5}" cy="${ay-5}" rx="3" ry="1.8" fill="#f2a99b"/></g>`;
+  }
+  if(kind==="鈍擊"){   // 第二次以後：頭頂腫一個包，貼十字 OK 繃
+    const x = tx + (n-1)*6, y = ty;
     return `<g class="scar scar-bump"><ellipse cx="${x}" cy="${y}" rx="8" ry="6" fill="#e9a58f" stroke="${SCAR_INK}" stroke-width="2.6"/>
       <g transform="rotate(-25 ${x} ${y})"><rect x="${x-9}" y="${y-2.5}" width="18" height="5" rx="2" fill="#f3dcb0" stroke="${SCAR_INK}" stroke-width="1.8"/></g>
       <g transform="rotate(35 ${x} ${y})"><rect x="${x-9}" y="${y-2.5}" width="18" height="5" rx="2" fill="#f3dcb0" stroke="${SCAR_INK}" stroke-width="1.8"/></g></g>`;
