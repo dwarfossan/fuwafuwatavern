@@ -16,7 +16,7 @@ const WEAPON_HELD={};
  const scaled=(raw,k,x=60,y=106)=>`<g transform="translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})">${raw}</g>`;
  const add=(key,raw,base,meta={})=>{
   ITEM_RAW[key]=`<g data-weapon-art="${key}">${raw}</g>`;
-  ITEM_ART[key]=`<g transform="translate(60 60) scale(.62) translate(-60 -52) rotate(-32 60 52)">${ITEM_RAW[key]}</g>`;
+  ITEM_ART[key]=`<g transform="translate(120 0) scale(-1 1)"><g transform="translate(60 60) scale(.62) translate(-60 -52) rotate(-32 60 52)">${ITEM_RAW[key]}</g></g>`;   // 10-21 大爺：全部朝右＝圖示照鏡子翻一次（刀尖朝右上）
   WEAPON_HELD[key]={base,...meta};
  };
  add('shortsword',blade(15,29,81,9)+guard+grip()+p('M53 128 H67 V135 H53Z',gold),'sword');

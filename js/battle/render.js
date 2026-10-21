@@ -558,7 +558,7 @@ function dropSVG(dp){
   return `<g class="drop ${flying?"flying":""}" ${st}>
     <ellipse cx="${cx}" cy="${cy+2}" rx="26" ry="9" fill="#000" opacity=".22"/>
     <g class="drop-glint"><ellipse cx="${cx}" cy="${cy}" rx="30" ry="12" fill="none" stroke="#f2b441" stroke-width="2" opacity=".7"/></g>
-    <g transform="translate(${cx} ${cy-4}) rotate(-62) scale(${s}) translate(${-gx} ${-gy})">${art}</g>
+    <g transform="translate(${cx} ${cy-4}) scale(-1 1) rotate(-62) scale(${s}) translate(${-gx} ${-gy})">${art}</g>
   </g>`;
 }
 
