@@ -4,8 +4,8 @@
    疊在紙娃娃的頭（側臉、受傷臉）和頭像（正面）上，不重畫怪物本身；回來幾次就疊幾道（最多 3）
    座標：每種頭各一組（100×100 的頭圖座標），先做哥布林、獸人兩種，之後再補 */
 const SCAR_SPOTS = {
-  goblin: {side:{eyeA:[43,53], eyeB:[67,52], top:[53,24], cheek:[48,72]}, front:{eyeA:[38,53], eyeB:[61,53], top:[50,23], cheek:[34,69]}},
-  orc:    {side:{eyeA:[43,49], eyeB:[68,49], top:[58,31], cheek:[48,66]}, front:{eyeA:[36,49], eyeB:[63,49], top:[50,31], cheek:[31,65]}}
+  goblin: {side:{eyeR:6, eyeA:[43,53], eyeB:[67,52], top:[53,24], cheek:[48,72]}, front:{eyeR:6.5, eyeA:[38,53], eyeB:[61,53], top:[50,23], cheek:[34,69]}},
+  orc:    {side:{eyeR:6, eyeA:[43,49], eyeB:[68,49], top:[58,31], cheek:[48,66]}, front:{eyeR:6.5, eyeA:[36,49], eyeB:[63,49], top:[50,31], cheek:[31,65]}}
 };
 const SCAR_INK = "#2a2630";
 const SCAR_GLOW = {寒冷:"#8fd3ff", 閃電:"#ffe36a", 強酸:"#a6e05a", 毒素:"#9bd06a", 死靈:"#b48ae0", 光耀:"#fff1a8", 力場:"#c9a2ff", 雷鳴:"#9fb7ff", 心靈:"#ff9ad5"};
@@ -20,9 +20,10 @@ function scarSVG(kind, s, n=0){
     return `<g class="scar scar-patch"><path d="M${bx-16} ${by-14} Q${bx} ${by-20} ${bx+16} ${by-8}" stroke="${SCAR_INK}" stroke-width="2.6" fill="none"/>
       <ellipse cx="${bx}" cy="${by}" rx="8.5" ry="7.5" fill="#3a3340" stroke="${SCAR_INK}" stroke-width="2.6"/><path d="M${bx-4} ${by-3} Q${bx} ${by-5} ${bx+3} ${by-3}" stroke="#6b6175" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
   }
-  if(kind==="鈍擊" && n===0){   // 第一次：眼皮被打腫（大爺 10-21：紅色肉球放眼皮上，超有被打腫的感覺）
-    return `<g class="scar scar-swollen"><ellipse cx="${ax}" cy="${ay-2.5}" rx="8" ry="6.2" fill="#d9776a" stroke="${SCAR_INK}" stroke-width="2.4"/>
-      <ellipse cx="${ax-2.5}" cy="${ay-5}" rx="3" ry="1.8" fill="#f2a99b"/></g>`;
+  if(kind==="鈍擊" && n===0){   // 第一次：眼皮被打腫，腫起來的上眼皮剛好蓋住眼睛上半（大爺 10-21）
+    const r = (s.eyeR || 6.5) + 1.6, y0 = ay + .4;   // 比眼睛大一圈，下緣切在眼睛正中間、微微往下垂
+    return `<g class="scar scar-swollen"><path d="M${ax-r} ${y0} A${r} ${r*.95} 0 0 1 ${ax+r} ${y0} Q${ax} ${y0+2.2} ${ax-r} ${y0} Z" fill="#d9776a" stroke="${SCAR_INK}" stroke-width="2.4" stroke-linejoin="round"/>
+      <ellipse cx="${ax-r*.3}" cy="${ay-r*.5}" rx="${r*.35}" ry="${r*.2}" fill="#f2a99b"/></g>`;
   }
   if(kind==="鈍擊"){   // 第二次以後：頭頂腫一個包，貼十字 OK 繃
     const x = tx + (n-1)*6, y = ty;
@@ -52,12 +53,12 @@ function scarredLook(look, base, scars){
 
 // 立繪（劇情用的哥布林大圖，700×700）：同一套傷疤畫法放大疊上去。px＝這張圖上眼睛、頭頂、臉頰的位置，k＝放大倍率（照兩眼距離抓）
 const SCAR_ILLUST = {
-  "assets/scenes/goblin_bow.webp":   {k:2.0, eyeA:[320,168], eyeB:[367,168], top:[352,128], cheek:[318,208]},
-  "assets/scenes/goblin_club.webp":  {k:3.4, eyeA:[397,215], eyeB:[481,220], top:[413,112], cheek:[371,268]},
-  "assets/scenes/goblin_sword.webp": {k:4.6, eyeA:[206,220], eyeB:[322,200], top:[238,104], cheek:[178,272]}
+  "assets/scenes/goblin_bow.webp":   {k:2.0, eyeR:12, eyeA:[313,167], eyeB:[367,168], top:[352,128], cheek:[318,208]},
+  "assets/scenes/goblin_club.webp":  {k:3.4, eyeR:19, eyeA:[404,210], eyeB:[481,220], top:[413,112], cheek:[371,268]},
+  "assets/scenes/goblin_sword.webp": {k:4.6, eyeR:21, eyeA:[212,219], eyeB:[322,200], top:[238,104], cheek:[178,272]}
 };
 function illustScarSVG(src, scars){
   const m = SCAR_ILLUST[src]; if(!m || !scars || !scars.length) return "";
-  const u = ([x,y]) => [x/m.k, y/m.k], spots = {eyeA:u(m.eyeA), eyeB:u(m.eyeB), top:u(m.top), cheek:u(m.cheek)};
+  const u = ([x,y]) => [x/m.k, y/m.k], spots = {eyeR:(m.eyeR||13)/m.k, eyeA:u(m.eyeA), eyeB:u(m.eyeB), top:u(m.top), cheek:u(m.cheek)};
   return `<g transform="scale(${m.k})">${scars.slice(0,3).map((s,i)=>scarSVG(scarKindOf(s.type), spots, scars.slice(0,i).filter(o=>scarKindOf(o.type)===scarKindOf(s.type)).length)).join("")}</g>`;
 }
