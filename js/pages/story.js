@@ -59,7 +59,7 @@ function pickStarterStyle(id, key){
 }
 function styleChoicesHTML(id){
   const st = STARTER_STYLE[id], c = CRITTERS.find(x=>x.id===id);
-  return `<div class="choice-list">${Object.keys(st.answers).map(k=>{ const sk = learnedSkillByKey(k);
+  return `<div class="choice-list style-list">${Object.keys(st.answers).map(k=>{ const sk = learnedSkillByKey(k);
     return `<button class="choice" data-style-pick="${k}" data-style-who="${id}" style="--c:${c.color}"><b>${sk.def.name}</b><small>${sk.def.text}</small></button>`; }).join("")}</div>`;
 }
 // 對話框內容：一般台詞；選項那句換成四個按鈕；檢定那句多一排骰子
