@@ -151,7 +151,7 @@ function reachable(u, max){
       const big = footOf(u)>1;   // 多格的（10-20）：整塊都要放得下
       const occupied=B().phase==="explore" ? B().units.some(v=>v!==u&&v!==mountOf(u)&&!v.dead&&!v.fled&&!bExploreHidden(v)&&!(v.side==="pc"&&v!==exploreUnit())&&bodyHit(v,nx,ny)) : big ? !fitsAt(u,nx,ny) : (()=>{ const o = unitAt(nx,ny); return !!o && o!==mountOf(u); })();
       if(groundAvoid(u,nx,ny)||(!big&&blocked(nx,ny))||occupied) continue;
-      const nc = c + stepCost(x,y,nx,ny)*drag;
+      const nc = c + stepCostU(u,x,y,nx,ny)*drag;
       if(nc > max || (best.has(k) && best.get(k) <= nc)) continue;
       best.set(k, nc);
       const np = [...paths.get(`${x},${y}`), {x:nx,y:ny}]; np.cost = nc;
@@ -165,7 +165,7 @@ const bExploreHidden=u=>B().phase==="explore" && isHid(u) && u.side==="foe";
 // 路徑只走到花得起的地方（from：出發的位置，算爬升用）
 function trimPath(path, budget, drag=1, from){
   const out = []; let c = 0, prev = from;
-  for(const p of path){ const n = c + stepCost(prev.x,prev.y,p.x,p.y)*drag; if(n > budget) break; c = n; out.push(p); prev = p; }
+  for(const p of path){ const n = c + stepCostU(from && from.side!==undefined ? from : null, prev.x,prev.y,p.x,p.y)*drag; if(n > budget) break; c = n; out.push(p); prev = p; }
   out.cost = c;
   return out;
 }

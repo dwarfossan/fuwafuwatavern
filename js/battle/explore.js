@@ -168,10 +168,16 @@ function exploreAlignmentClear(u,t){
   if(hAt(x,y)!==hAt(u.x,u.y)||groundAt(x,y)?.kind!==kind||B().def.blocks.some(o=>o.x===x&&o.y===y&&((o.kind==="trap"&&!o.disarmed)||(o.kind==="poisonSwamp"&&(x!==cx||y!==cy)))))return false;
  }return true;
 }
+// 10-21：先找旁邊一格內；擠不下（窄路、四隻疊在同一點）就放寬到兩格、三格，不再整個放棄（以前偷竊失手、被發現時可能卡在探索不開戰）
 function exploreAlignCombat(){
+ for(let R=1;R<=3;R++){const r=exploreAlignTry(R,R===3);if(r)return true;}
+ return false;
+}
+function exploreAlignTry(R,last){
  const b=B(),units=b.units.filter(u=>!u.dead&&!u.fled&&!mountOf(u)),used=new Set(),positions=[];   // 騎著的騎士跟著坐騎（10-20）
  const candidates=units.map(u=>{const out=[],cx=Math.round(u.x),cy=Math.round(u.y),kind=groundAt(u.x,u.y)?.kind;
-  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const x=cx+dx,y=cy+dy;
+  for(let dx=-R;dx<=R;dx++)for(let dy=-R;dy<=R;dy++){const x=cx+dx,y=cy+dy;
+   if(x<0||y<0||x>=b.def.w||y>=b.def.h)continue;
    if(cellsOf(u,x,y).some(c=>blocked(c.x,c.y))||hAt(x,y)!==hAt(u.x,u.y)||groundAt(x,y)?.kind!==kind||
     b.def.blocks.some(o=>o.x===x&&o.y===y&&((o.kind==="trap"&&!o.disarmed)||(o.kind==="poisonSwamp"&&(x!==cx||y!==cy))))||
     !exploreAlignmentClear(u,{x,y}))continue;
@@ -179,7 +185,7 @@ function exploreAlignCombat(){
   }return out.sort((a,c)=>a.d-c.d);});
  const order=units.map((u,i)=>i).sort((a,c)=>candidates[a].length-candidates[c].length);
  function assign(n){if(n===order.length)return true;const i=order[n];for(const p of candidates[i]){const ks=cellsOf(units[i],p.x,p.y).map(c=>`${c.x},${c.y}`);if(ks.some(k=>used.has(k)))continue;ks.forEach(k=>used.add(k));positions[i]=p;if(assign(n+1))return true;ks.forEach(k=>used.delete(k));}return false;}   // 多格的整塊都要空（10-20）
- if(!assign(0)){b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;b.exploreStopped=false;blog(EXPLORE_UI.alignmentBlocked);refreshBattle();return false;}
+ if(!assign(0)){if(!last)return false;b.exploreMoveId=(b.exploreMoveId||0)+1;b.busy=false;b.exploreGoal=null;b.exploreStopped=false;blog(EXPLORE_UI.alignmentBlocked);refreshBattle();return false;}
  units.forEach((u,i)=>{u.x=positions[i].x;u.y=positions[i].y;delete u.exploreWalking;});b.units.forEach(r=>{const h=mountOf(r);if(h){r.x=h.x;r.y=h.y;}});return true;
 }
 function enterExploreCombat(targetId,manual=false){B().exploreMenu=null;

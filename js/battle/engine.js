@@ -185,6 +185,14 @@ function hAt(x, y){
 }
 const climbCost = (fx,fy,x,y) => { const dh = hAt(x,y) - hAt(fx,fy); return dh > 0 ? dh : dh <= -2 ? -dh : 0; };
 const stepCost = (fx,fy,x,y) => moveCost(x,y) + climbCost(fx,fy,x,y);
+// 多格的（10-21）：身體跨在不同高度上＝照最高的那格站（畫面、爬升都照這個）；難走的地形看整塊裡最難走的那格
+const bodyH = (n, x, y) => { let h = 0; for(let i=0;i<n;i++) for(let j=0;j<n;j++) h = Math.max(h, hAt(mapCell(x)+i, mapCell(y)+j)); return h; };
+function stepCostU(u, fx, fy, x, y){
+  const n = u ? footOf(u) : 1; if(n<=1) return stepCost(fx,fy,x,y);
+  let mc = 0; for(let i=0;i<n;i++) for(let j=0;j<n;j++) mc = Math.max(mc, moveCost(mapCell(x)+i, mapCell(y)+j));
+  const dh = bodyH(n,x,y) - bodyH(n,fx,fy);
+  return mc + (dh > 0 ? dh : dh <= -2 ? -dh : 0);
+}
 
 // ---------- 掩護與遮蔽 ----------
 // 從攻擊者中心畫線到目標中心，看中間經過的格子：地形給的掩護、或擋在中間的「攻擊者的敵方」角色（半掩護）。
@@ -205,7 +213,8 @@ function coverOf(a, t){
 }
 function coverLine(a, t, ax, ay, tx, ty){
   const n = Math.max(1, Math.max(Math.abs(Math.round(tx)-Math.round(ax)), Math.abs(Math.round(ty)-Math.round(ay)))) * 6, seen = new Set();
-  const za = hAt(ax,ay) + .8, zt = hAt(tx,ty) + .5, pair = new Set([a, t, mountOf(a), riderOf(a), mountOf(t), riderOf(t)].filter(Boolean));
+  const hOf = (v, x, y) => footOf(v)>1 ? bodyH(footOf(v), v.x, v.y) : hAt(x,y);   // 多格的照身體最高那格（10-21）
+  const za = hOf(a,ax,ay) + .8, zt = hOf(t,tx,ty) + .5, pair = new Set([a, t, mountOf(a), riderOf(a), mountOf(t), riderOf(t)].filter(Boolean));
   const own = (x,y) => (x===Math.round(ax)&&y===Math.round(ay)) || (x===Math.round(tx)&&y===Math.round(ty)) || covers(a,x,y) || covers(t,x,y);
   let best = {v:0, by:""};
   for(let i=1;i<n;i++){

@@ -9,7 +9,7 @@ const iconSVG = (k, size=16) => `<svg viewBox="-14 -14 148 148" width="${size}" 
 function iso(x, y){ const d=B().def; return {x:(x-y)*TW/2 + d.h*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
 // 探索連續座標的呈現高度：格子中心間平滑銜接，只影響角色與HUD，不改攀爬成本。
 function unitIso(v){
- const p=iso(v.x,v.y),n=footOf(v);if(n>1)p.y+=(n-1)*TH/2;   // 多格的畫在整塊的正中間（10-20）
+ const p=iso(v.x,v.y),n=footOf(v);if(n>1){p.y+=(n-1)*TH/2;p.y-=(bodyH(n,v.x,v.y)-hAt(v.x,v.y))*HZ;}   // 多格的畫在整塊的正中間（10-20）；跨高度照最高那格站（10-21）
  if(B().phase!=='explore')return p;
  const x=Math.floor(v.x),y=Math.floor(v.y),tx=v.x-x,ty=v.y-y;
  const h=(hAt(x,y)*(1-tx)+hAt(x+1,y)*tx)*(1-ty)+(hAt(x,y+1)*(1-tx)+hAt(x+1,y+1)*tx)*ty;
