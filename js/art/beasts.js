@@ -6,23 +6,9 @@ const BEAST_ART = {};
 BEAST_ART.owlbear = `<g stroke="#29252e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><g id="far-legs"><path d="M101 128 93 156 80 167 67 166 64 175 85 180 112 148Z" fill="#8b6a50"/><path d="M173 132 191 160 187 174 175 175 174 183 196 186 203 169 191 139Z" fill="#8b6a50"/></g><g id="near-legs"><path d="M113 135 111 174 94 180 94 189 120 189 132 144Z" fill="#8b6a50"/><path d="M166 143 153 173 140 179 142 188 167 185 182 149Z" fill="#8b6a50"/></g><ellipse cx="149" cy="126" rx="45" ry="42" fill="#8b6a50"/><path d="M151 94 Q178 100 187 126 L182 153 166 164 143 150Z" fill="#71533f"/><path d="M79 94 70 72 91 82 Q111 72 131 83 L144 75 143 101 Q150 127 134 147 Q108 159 82 141 L71 119Z" fill="#8b6a50"/><ellipse cx="91" cy="110" rx="16" ry="21" fill="#dacaab"/><ellipse cx="119" cy="111" rx="21" ry="23" fill="#dacaab"/><ellipse cx="87" cy="109" rx="5" ry="8" fill="#d3a34b"/><ellipse cx="114" cy="110" rx="7" ry="9" fill="#d3a34b"/><ellipse cx="85" cy="109" rx="3" ry="5" fill="#29252e"/><ellipse cx="111" cy="110" rx="3" ry="5" fill="#29252e"/><path d="M90 120 72 122 81 135 96 126Z" fill="#d3a34b"/><path d="M78 91 94 97 M103 95 126 93" fill="none"/><path d="M99 144 Q90 150 86 168 L72 181 78 188 97 185 114 165Z" fill="#8b6a50"/><path d="M147 147 Q136 163 136 177 L124 185 130 192 151 188 164 161Z" fill="#8b6a50"/><path d="M76 182 73 187 79 186Z" fill="#e5d7b9"/><path d="M84 183 81 188 87 187Z" fill="#e5d7b9"/><path d="M92 181 89 186 95 185Z" fill="#e5d7b9"/><path d="M128 186 125 191 131 190Z" fill="#e5d7b9"/><path d="M136 187 133 192 139 191Z" fill="#e5d7b9"/><path d="M144 185 141 190 147 189Z" fill="#e5d7b9"/><path d="M106 136 112 142 119 136 124 141" fill="none"/></g>`;   // 梟熊
 MONSTER_LOOK.owlbear = {kind:"owlbear", art:`<g transform="translate(-16.4 10.4) scale(0.72)"><g transform="translate(240.0 0) scale(-1 1)">${BEAST_ART.owlbear}</g></g>`,
   face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(50 50) scale(1.25) translate(-106 -111)">${BEAST_ART.owlbear}</g></svg>`, render:undeadStaticDollSVG};
-// 梟熊寶寶（大爺 10-21 給的圖，assets/faces/owlcub/）：戰場上也用這張；表情看狀況換
-//   倒下＝想睡、受傷＝害怕、出手＝生氣、被網子困住＝哭、其他＝平常
-const OWLCUB_IMG = f => `assets/faces/owlcub/${f}.webp`;
-function owlcubFaceFor(o){
-  const u = typeof B==="function" && B() ? B().units.find(v=>v.id===o.id) : null, k = o.anim?.k;
-  if(o.down) return "sleepy";
-  if(k==="hurt") return "afraid";
-  if(["punch","thrust","slash","cast"].includes(k)) return "angry";
-  if(u && (u.statuses||[]).some(s=>s.k==="restrained")) return "crying";
-  return "neutral";
-}
-function owlcubDollSVG(o){
-  const act = o.walking ? "act-walk" : o.anim ? `act-${o.anim.k}` : "";
-  return `<svg class="doll undead-static ${o.down?"dl-down":o.prone?"dl-prone":""}" data-monster="owlbear_cub" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.w*150/140}" viewBox="0 0 140 150" overflow="visible" aria-hidden="true"><g class="dl-face" ${o.face>0?'transform="translate(140 0) scale(-1 1)"':""}><g class="dl-lie"><g class="dl-act ${act}" style="--d:${o.anim?-o.anim.el:0}ms;--walk:${-(Date.now()%360)}ms;--b:${-(Date.now()%1600)}ms"><g class="dl-bob"><image href="${OWLCUB_IMG(owlcubFaceFor(o))}" x="18" y="45" width="104" height="104"/></g></g></g></g></svg>`;
-}
-MONSTER_LOOK.owlbear_cub = {kind:"owlbear_cub", art:"",
-  face:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><image href="${OWLCUB_IMG("neutral")}" x="-38" y="-6" width="176" height="176"/></svg>`, render:owlcubDollSVG};
+// 梟熊寶寶（10-21）：戰場、先攻列、狀態卡用梟熊的圖縮小（大爺：給的那張圖只用在劇情場景，PORTRAITS.owlcub）
+MONSTER_LOOK.owlbear_cub = {kind:"owlbear_cub", art:`<g transform="translate(10 55.8) scale(0.48)"><g transform="translate(240.0 0) scale(-1 1)">${BEAST_ART.owlbear}</g></g>`,
+  face:MONSTER_LOOK.owlbear.face, render:undeadStaticDollSVG};
 // 半大的梟熊（10-21，暫定）：一樣先縮小梟熊的圖
 MONSTER_LOOK.owlbear_young = {kind:"owlbear_young", art:`<g transform="translate(-3.2 33) scale(0.6)"><g transform="translate(240.0 0) scale(-1 1)">${BEAST_ART.owlbear}</g></g>`,
   face:MONSTER_LOOK.owlbear.face, render:undeadStaticDollSVG};

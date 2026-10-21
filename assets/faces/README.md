@@ -93,17 +93,19 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 
 大爺給的 12 種表情（原檔 1254×1254，裁成貼齊腳底的正方形、縮成 384×384 WebP）。**每張都是整隻**，不是無臉底圖＋臉，所以換表情就整張換。原檔裡 `04-puzzled-preview.png` 下半截壞掉了，用同一張底圖的 neutral 補回下半身（臉的部分是原圖）。
 
-| 檔名 | 表情 | 遊戲裡用在 |
-|---|---|---|
-| `neutral.webp` | 平常 | 戰場預設、先攻列頭像 |
-| `happy.webp` | 開心 | 劇情 |
-| `laugh.webp` | 大笑 | 加入的那一句 |
-| `puzzled.webp` | 疑惑 | 劇情 |
-| `surprised.webp` | 驚訝 | — |
-| `angry.webp` | 生氣 | 戰場出手 |
-| `sad.webp` | 難過 | — |
-| `crying.webp` | 哭 | 戰場被網子困住 |
-| `shy.webp` | 害羞 | 劇情 |
-| `smug.webp` | 得意 | 劇情 |
-| `sleepy.webp` | 想睡 | 戰場倒下、露營 |
-| `afraid.webp` | 害怕 | 戰場受傷、劇情 |
+只用在劇情場景（大爺 10-21）；戰場、先攻列、狀態卡照舊用 SVG（js/art/beasts.js）。
+
+| 檔名 | 表情 |
+|---|---|
+| `neutral.webp` | 平常 |
+| `happy.webp` | 開心 |
+| `laugh.webp` | 大笑 |
+| `puzzled.webp` | 疑惑 |
+| `surprised.webp` | 驚訝 |
+| `angry.webp` | 生氣 |
+| `sad.webp` | 難過 |
+| `crying.webp` | 哭 |
+| `shy.webp` | 害羞 |
+| `smug.webp` | 得意 |
+| `sleepy.webp` | 想睡 |
+| `afraid.webp` | 害怕 |
