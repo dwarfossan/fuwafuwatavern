@@ -18,7 +18,7 @@ const GRUDGE = {
   hpPer:.25, trainAc:1, xpPer:.5,
   trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail", mindless:"undead_fortitude"},
   // 傷疤造型（js/art/scars.js）只有這些頭畫得上；其他怪物先只有綽號、狀態卡那行
-  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : null,
+  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton" : null,
   // 綽號：照最後一道傷疤
   nick:{揮砍:"刀疤", 穿刺:"獨眼", 鈍擊:"腫眼", 火焰:"焦臉", 其他:"帶電"},
   nickTail:["", "老對手", "宿敵"],          // 第幾次回來（1、2、3）

@@ -42,9 +42,35 @@ function scarSVG(kind, s, n=0){
   return `<g class="scar scar-glow"><path d="M${x} ${y} L${x+4} ${y+6} L${x-1} ${y+9} L${x+3} ${y+16}" stroke="${SCAR_INK}" stroke-width="3.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
     <path d="M${x} ${y} L${x+4} ${y+6} L${x-1} ${y+9} L${x+3} ${y+16}" stroke="${c}" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`;
 }
+// 骷髏（大爺 10-21：用黑色畫頭骨裂、肋骨斷、斷肢）：頭骨用巫妖那顆頭（100×100）的座標，身體、腳用紙娃娃（140×150）的座標
+//   鈍擊＝頭骨裂開（第二次肋骨也裂）、揮砍＝肋骨斷一根（第二次連左腳都斷了，剩一截骨頭）、穿刺＝頭骨穿一個洞、火焰＝燒焦、法術＝發亮的裂痕
+const BONE_INK = "#1d1820";
+function boneScarHead(kind, n){
+  if(kind==="鈍擊") return `<g class="scar bone-crack"><path d="M${64-n*30} 10 L${69-n*30} 17 L${62-n*30} 22 L${67-n*30} 28 L${63-n*30} 32" stroke="${BONE_INK}" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M${62-n*30} 22 L${55-n*30} 24" stroke="${BONE_INK}" stroke-width="2" stroke-linecap="round"/></g>`;
+  if(kind==="穿刺") return `<g class="scar bone-hole"><ellipse cx="${38+n*26}" cy="24" rx="5.2" ry="4.4" fill="${BONE_INK}"/><path d="M${33+n*26} 22 L${28+n*26} 18 M${43+n*26} 22 L${47+n*26} 17 M${39+n*26} 28 L${40+n*26} 32" stroke="${BONE_INK}" stroke-width="1.8" stroke-linecap="round"/></g>`;
+  if(kind==="火焰") return `<g class="scar bone-burn" opacity=".72"><path d="M22 52 Q20 40 30 34 Q36 40 34 50 Q30 60 22 52 Z" fill="${BONE_INK}"/><path d="M60 16 Q72 14 78 24 Q70 28 62 24 Z" fill="${BONE_INK}"/></g>`;
+  if(kind==="揮砍") return "";
+  const c = SCAR_GLOW[kind] || "#c9a2ff";
+  return `<g class="scar bone-glow"><path d="M26 16 L31 23 L27 27 L32 34" stroke="${BONE_INK}" stroke-width="3.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M26 16 L31 23 L27 27 L32 34" stroke="${c}" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`;
+}
+function boneScarBody(kind, n){
+  if(kind==="揮砍" && n===0) return `<g class="scar rib-break"><path d="M54 86 L60 92 M57 97 L63 103" stroke="${BONE_INK}" stroke-width="2.8" stroke-linecap="round"/><path d="M50 91 L53 89 L54 93 Z" fill="${BONE_INK}"/></g>`;
+  if(kind==="鈍擊" && n>0) return `<g class="scar rib-crack"><path d="M84 88 L80 92 L85 95 L81 99" stroke="${BONE_INK}" stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`;
+  return "";
+}
+// 斷肢：左腳只剩一截斷掉的骨頭
+const BONE_STUMP = `<g class="dl-foot-left scar bone-stump"><path d="M58 124 L60 133" stroke="#2a2630" stroke-width="8" stroke-linecap="round"/><path d="M58 124 L60 133" stroke="#f0e6cc" stroke-width="4" stroke-linecap="round"/><path d="M55 134 L58 129 L60 133 L62 128 L65 135 Z" fill="#f0e6cc" stroke="${BONE_INK}" stroke-width="2" stroke-linejoin="round"/><path d="M50 140 L58 137 L60 140 L52 142 Z" fill="#f0e6cc" stroke="#2a2630" stroke-width="1.6" stroke-linejoin="round"/></g>`;   // 斷掉的那截掉在旁邊
+function boneScarredLook(look, scars){
+  const list = scars.slice(0,3).map(s=>scarKindOf(s.type)), nth = i => list.slice(0,i).filter(k=>k===list[i]).length;
+  const head = list.map((k,i)=>boneScarHead(k, nth(i))).join(""), body = list.map((k,i)=>boneScarBody(k, nth(i))).join("");
+  const stump = list.filter(k=>k==="揮砍").length >= 2;
+  const deco = svg => svg ? svg.replace(/<\/svg>\s*$/, head + "</svg>") : svg;
+  return {...look, face:deco(look.face), head:deco(look.head), headHurt:deco(look.headHurt), extra:(look.extra||"") + body, ...(stump ? {footLeft:BONE_STUMP} : {})};
+}
 const scarKindOf = type => ["揮砍","穿刺","鈍擊","火焰"].includes(type) ? type : (type||"鈍擊");
 // 把傷疤疊到一種外觀上：scars＝[{type}]（最多 3 道）。base＝SCAR_SPOTS 的哪一種頭；沒有座標的外觀照舊不畫
 function scarredLook(look, base, scars){
+  if(base==="skeleton" && look && scars && scars.length) return boneScarredLook(look, scars);
   const spots = SCAR_SPOTS[base]; if(!look || !spots || !scars || !scars.length) return look;
   const art = view => scars.slice(0,3).map((s,i)=>scarSVG(scarKindOf(s.type), spots[view], scars.slice(0,i).filter(o=>scarKindOf(o.type)===scarKindOf(s.type)).length)).join("");
   const deco = (svg, view) => svg ? svg.replace(/<\/svg>\s*$/, art(view) + "</svg>") : svg;
