@@ -5,13 +5,14 @@ try{
  await pg.goto('file://'+path.resolve('index.html')+'#battle?seed=123');await bootReady(pg);
  await pg.evaluate(()=>{const b=B();b.def.blocks=[];b.def.elev=[];delete b.def._h;b.def.lighting='bright';b.groundEffects={};b.info=null;b.exploreSneak=false;b.exploreStopped=false;b.exploreSolo='fox';b.leader='fox';b.turn=b.units.findIndex(u=>u.id==='fox');
   exploreParty().forEach((u,i)=>{u.x=17;u.y=20+i;u.statuses=[];u.hp=u.maxHp;u.down=false;b.def.blocks.push({x:u.x,y:u.y,kind:'bush'});});
-  const foes=b.units.filter(u=>u.side==='foe');foes.forEach(u=>{u.statuses=[];u.type='goblin';u.dead=false;u.down=false;u.fled=false;});
+  const foes=b.units.filter(u=>u.side==='foe');foes.forEach(u=>{u.statuses=[];u.type='goblin';u.dead=false;u.down=false;u.fled=false;u.seen=true;});   // 10-21 起探索地圖要看到過才顯示；這裡測的是潛行的視野，先當作都看到過
   foes[0].x=6;foes[0].y=8;foes[1].x=4;foes[1].y=17;foes[2].x=19;foes[2].y=2;foes[2].statuses=[{k:'hidden',val:30}];foes[3].x=19;foes[3].y=6;foes[3].dead=true;foes[3].deadAt=0;
   b.def.blocks.push({x:8,y:8,kind:'tree'},{x:19,y:2,kind:'bush'});refreshBattle();centerCam(9,12);Math.random=()=>.99;
  });
  assert.equal(await pg.evaluate(()=>exploreWatchCells().size),0);await pg.locator('[data-explore-cmd="hide"]').tap();
  assert(await pg.evaluate(()=>B().exploreSneak&&B().info===null&&isHid(exploreUnit())));
  assert(await pg.evaluate(()=>{const s=exploreWatchCells();return s.has('6,8')&&s.has('4,17')&&!s.has('19,2')&&!s.has('19,6')&&!s.has('10,8');}),'兩隻可見敵人都顯示，隱藏／死亡／樹後不顯示');
+ assert(await pg.evaluate(()=>{const e=B().units.filter(u=>u.side==='foe')[0];e.seen=false;const hid=!exploreWatchCells().has('6,8');e.seen=true;return hid;}),'還沒看到過的敵人，視野也不顯示（10-21）');
  assert(await pg.evaluate(()=>document.querySelector('#board-floor [data-tile="6,8"]').getAttribute('fill').includes('#cbb668')));
  if(process.env.EXPLORE_SHOTS)await pg.screenshot({path:process.env.EXPLORE_SHOTS+'/watch-all.png'});
  await pg.evaluate(()=>{const b=B();window.__cells=[...exploreWatchCells()].sort();window.__floor=document.getElementById('board-floor').firstElementChild;const e=b.units.find(u=>u.side==='foe');b.info=e.id;refreshBattle();b.info=null;refreshBattle();});

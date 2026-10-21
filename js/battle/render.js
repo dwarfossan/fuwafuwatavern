@@ -221,11 +221,14 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
     things.push({key:`tile:${x},${y}`,s:x+y-.1, svg:`<g><use href="#floor-wall-${x}-${y}"/><use href="#floor-top-${x}-${y}" data-tile="${x},${y}"/><use href="#floor-detail-${x}-${y}" pointer-events="none"/>${nowOn && nowOn.x===x && nowOn.y===y ? glow : ""}</g>`}); });
   (b.drops||[]).forEach((dp,i)=> things.push({key:`drop:${i}`,s:dp.x+dp.y+.2, svg:dropSVG(dp)}));
   Object.values(b.groundEffects||{}).forEach(f=>things.push({key:`ground:${f.kind}:${f.x},${f.y}`,s:f.x+f.y+(f.kind==="fire"?.7:.1),svg:groundEffectSVG(f)}));
-  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({key:`block:${o.kind}:${o.x},${o.y}`,s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}>${svg}</g>`});});
   const now = Date.now();
   // 剛被打倒的敵人多留一下，播完倒下動畫才消失
   // 躲著的敵人不畫（玩家不知道牠在哪）
   const shown = b.units.filter(v=>!v.fled&&(!v.dead || v.ko || now - v.deadAt < 900) && !foeHid(v) && !ridden(v) && !(b.phase==="explore"&&v.side==="pc"&&v!==exploreUnit()));   // 被騎著的坐騎畫在騎士那張圖裡（10-20）
+  // 樹擋住後面的人（大爺 10-21）：樹後面有看得到的角色（還站著的）→ 那棵樹變半透明；規則上的掩護、視線不變
+  const behindTree = o => shown.some(v=>{ if(v.dead) return false; const k=footOf(v), vs=v.x+v.y+(k-1); if(vs >= o.x+o.y) return false;
+    const pv=unitIso(v), pt=iso(o.x,o.y); return Math.abs(pv.x-pt.x) < TW*.8*TREE_K && pt.y-pv.y > -TH*.5 && pt.y-pv.y < 120*TREE_K; });
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({key:`block:${o.kind}:${o.x},${o.y}`,s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}${o.kind==="tree"&&behindTree(o)?' class="tree-see-through"':""}>${svg}</g>`});});
   shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+(footOf(v)-1)+.5, svg:tokenSVG(v, v===u), unit:v}));   // 多格的照整塊中間排前後
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
@@ -1547,6 +1550,7 @@ function syncExploreWalking(units){
 }
 function refreshBattle(){
   syncBattleUiTimer();
+  markSeenFoes();   // 探索地圖：看到過的敵人才畫（10-21）
   if(state.page!=="battle" || !B() || !document.getElementById("board-floor") || refreshBattle.battle!==B()) { render(); return; }
   const b=B();
   if(b.phase==="explore"&&b.busy&&b.exploreGoal){syncExploreUnitTransforms();return;}

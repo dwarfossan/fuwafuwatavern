@@ -274,7 +274,15 @@ const playerControlled = u => !!u && u.side==="pc" && !u.frenzy;
 const isPcCritter = u => !!u && u.side==="pc" && !u.steed;
 const hostile = (a, b) => a.side!==b.side && a.side!=="npc" && b.side!=="npc" && inCombat(a) && inCombat(b);
 const sideColor = v => v.side==="pc" ? v.color : v.side==="npc" ? "#c9b7a6" : "#e0766e";
-const foeHid = u => u.side==="foe" && isHid(u);                 // 玩家看不到的敵人
+// 探索地圖還沒看到過的敵人（大爺 10-21）：任何一隻毛毛看到過一次（察覺範圍＋視線，躲著的要被動感知贏）才畫、才列；開戰被叫進來的也算看到
+const foeUnseen = u => !!(u.side==="foe" && !u.seen && !u.combatActive && B()?.explorationMap);
+const foeHid = u => u.side==="foe" && (isHid(u) || foeUnseen(u));   // 玩家看不到的敵人
+function markSeenFoes(){
+  const b = B(); if(!b || !b.explorationMap) return;
+  const pcs = b.phase==="explore" ? [exploreUnit()].filter(Boolean) : b.units.filter(u=>isPcCritter(u) && !u.dead && !u.down);
+  b.units.forEach(e=>{ if(e.side!=="foe" || e.seen) return;
+    if(e.combatActive || e.dead || pcs.some(p=>exploreAware(p, e))) e.seen = true; });
+}
 const nameFor = u => foeHid(u) ? "？？？" : u.name;
 const watchers = u => B().units.filter(v=>!v.fled&&v.side!==u.side&&v.side!=="npc"&&u.side!=="npc"&&!v.down&&!v.dead&&!isHid(v)&&(!B().explorationMap||(dist(v,u)<=(v.side==="foe"?ENEMIES[v.type].detectRange:senseRange(v))&&exploreSight(v,u))));
 const concealed = u => hidden(u) || watchers(u).every(v=>coverOf(v,u).v >= .75);

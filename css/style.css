@@ -1457,3 +1457,5 @@ body.image-boot{background:#000}
 /* 梟熊寶寶（大爺 10-21）：劇情立繪；露營時蹲在營火 CG 的右邊（蓋在 CG 上面） */
 .actor.owlcub{aspect-ratio:1;height:52%;bottom:18%}
 .camp-story .actor.owlcub{left:76%;height:40%;bottom:24%;z-index:3}
+/* 樹後面有人：樹變半透明（10-21） */
+.tree-see-through{opacity:.35;transition:opacity .2s}

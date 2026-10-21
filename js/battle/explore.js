@@ -20,6 +20,7 @@ function exploreSight(a,t){return canSeeInLight(a,t);}
 function exploreReveal(hiddenUnit,observer){panelStart(`${observer.name}【察覺】`);stealthRow(hiddenUnit,observer,true);panelEnd();obsMark(observer,"ok");reveal(hiddenUnit,"被察覺了，現身！");}
 function exploreDetect(){
  const b=B();if(!exploring())return;
+ markSeenFoes();   // 還沒看到過的敵人（10-21）
  const pcs=[exploreUnit()].filter(Boolean),foes=b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down);b.exploreMarks={};[...pcs,...foes].forEach(u=>groundDetect(u));
  b.exploreAwareness=Object.fromEntries([...pcs,...foes].map(u=>[u.id,(u.side==="pc"?foes:pcs).filter(t=>exploreAware(u,t)).map(t=>t.id)]));
  // 我方也用同一條遮擋檢查；察覺範圍沿用移動格數、比較被動感知。
