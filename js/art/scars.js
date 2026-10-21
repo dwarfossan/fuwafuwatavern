@@ -45,3 +45,15 @@ function scarredLook(look, base, scars){
   const deco = (svg, view) => svg ? svg.replace(/<\/svg>\s*$/, art(view) + "</svg>") : svg;
   return {...look, face:deco(look.face, "front"), head:deco(look.head, "side"), headHurt:deco(look.headHurt, "side")};
 }
+
+// 立繪（劇情用的哥布林大圖，700×700）：同一套傷疤畫法放大疊上去。px＝這張圖上眼睛、頭頂、臉頰的位置，k＝放大倍率（照兩眼距離抓）
+const SCAR_ILLUST = {
+  "assets/scenes/goblin_bow.webp":   {k:2.0, eyeA:[320,168], eyeB:[367,168], top:[352,128], cheek:[318,208]},
+  "assets/scenes/goblin_club.webp":  {k:3.4, eyeA:[397,215], eyeB:[481,220], top:[413,112], cheek:[371,268]},
+  "assets/scenes/goblin_sword.webp": {k:4.6, eyeA:[206,220], eyeB:[322,200], top:[238,104], cheek:[178,272]}
+};
+function illustScarSVG(src, scars){
+  const m = SCAR_ILLUST[src]; if(!m || !scars || !scars.length) return "";
+  const u = ([x,y]) => [x/m.k, y/m.k], spots = {eyeA:u(m.eyeA), eyeB:u(m.eyeB), top:u(m.top), cheek:u(m.cheek)};
+  return `<g transform="scale(${m.k})">${scars.slice(0,3).map((s,i)=>scarSVG(scarKindOf(s.type), spots, scars.slice(0,i).filter(o=>scarKindOf(o.type)===scarKindOf(s.type)).length)).join("")}</g>`;
+}
