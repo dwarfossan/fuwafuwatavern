@@ -57,7 +57,7 @@ function exploreDockHTML(){
  if(b.exploreRest)return dockWrap(exploreUnit(),b,"dk-rest",EXPLORE_COMBAT.rest,restChoiceHTML(b)+`<button class="mn-b" data-explore-cmd="rest">${EXPLORE_ACTION_TEXT.close}</button>`);
  if(b.mode?.key==="placeBarrel")return dockWrap(exploreUnit(),b,"dk-pick",WORLD_OBJECT_TEXT.place,`<p>${WORLD_OBJECT_TEXT.placeHint}</p><button class="mn-b" data-explore-cmd="cancelPlace">${WORLD_OBJECT_TEXT.cancel}</button>`);
  const button=(cmd,text)=>`<button class="mn-b" data-explore-cmd="${cmd}" ${b.busy?"disabled":""}>${text}</button>`;
- if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
+ if(b.exploreObject){const o=b.exploreObject;return dockWrap(exploreUnit(),b,"dk-pick",o.name||EXPLORE_OBJECTS[o.kind].name,EXPLORE_OBJECTS[o.kind].actions.map(c=>button(c,EXPLORE_ACTION_TEXT[c])).join("")+button("close",EXPLORE_ACTION_TEXT.close));}
  if(b.exploreMenu==="act"){   // 探索的行動（大爺 10-11）：直接用戰鬥同一份行動選單，探索時用不了的變灰；搜索直接搜四周
   return menuHTML(exploreUnit(),b,"act").replace(/<button (?!class="sk-info")/g,"<button disabled ")
    .replace(/<button disabled class="mn-b" data-cmd="search"[^>]*>/,`<button class="mn-b" data-explore-cmd="actSearch" ${b.busy?"disabled":""}>`)
@@ -657,6 +657,13 @@ function blockSVG(o){
   if(o.kind==="trap"&&!o.found)return "";
   if(o.kind==="poisonSwamp"){const p=iso(o.x,o.y);return `<g class="poison-swamp"><polygon points="${diamond(o.x,o.y)}" fill="#859948" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x-18}" cy="${p.y+30}" r="6" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/><circle cx="${p.x+16}" cy="${p.y+38}" r="9" fill="#c7d96d" stroke="#2a2630" stroke-width="2"/></g>`;}
   if(o.kind==="water")return `<polygon points="${diamond(o.x,o.y)}" fill="#6da8b9" stroke="#2a2630" stroke-width="2"/>`;
+  // 森林的溪、淺灘、倒木（10-21，外觀暫定：香香）
+  if(o.kind==="stream"||o.kind==="ford"||o.kind==="log"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2;
+    const water=`<polygon points="${diamond(o.x,o.y)}" fill="#5a98ad" stroke="#2a2630" stroke-width="2"/><path d="M${cx-22} ${cy-2} q6 -4 12 0 t12 0 M${cx-4} ${cy+10} q6 -4 12 0 t12 0" stroke="#a9d6e2" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    if(o.kind==="stream") return water;
+    if(o.kind==="ford") return water+`<ellipse cx="${cx-14}" cy="${cy-4}" rx="9" ry="5" fill="#a59d93" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+8}" cy="${cy+6}" rx="10" ry="5.5" fill="#b3aba1" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+18}" cy="${cy-8}" rx="7" ry="4" fill="#a59d93" stroke="#2a2630" stroke-width="2"/>`;
+    return water+`<path d="M${cx-34} ${cy+6} L${cx+30} ${cy-14} L${cx+34} ${cy-4} L${cx-30} ${cy+16}Z" fill="#8a6038" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="${cx+32}" cy="${cy-9}" rx="4" ry="5.5" fill="#c49a62" stroke="#2a2630" stroke-width="2"/><path d="M${cx-20} ${cy+6} L${cx+16} ${cy-6}" stroke="#6e4a32" stroke-width="2"/>`; }
+  if(o.kind==="clue") return clueSVG(o);
   if(o.kind==="oil")return o.found?`<polygon class="ground-oil" points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
@@ -703,6 +710,17 @@ function blockSVG(o){
           <ellipse cx="${cx-TW*.1}" cy="${cy-TH*.37}" rx="${TW*.12}" ry="${TH*.15}" fill="#6f9960"/>`;
 }
 
+// 調查點（森林，10-21，外觀暫定：香香）：獵人記號、營地木箱上的地圖、古老石碑、骨堆；調查過的顏色淡一點
+function clueSVG(o){
+  const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2, I = "#2a2630", dim = o.done ? ' opacity=".6"' : "";
+  const art = {
+    marks:`<ellipse cx="0" cy="2" rx="18" ry="7" fill="#000" opacity=".2"/><path d="M-6 2 V-66 H6 V2Z" fill="#8a6038" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M6 -62 L26 -57 L21 -48 L6 -52Z" fill="#c4473f" stroke="${I}" stroke-width="2.5" stroke-linejoin="round"/><path d="M-4 -40 L4 -30 M4 -40 L-4 -30 M-4 -22 L4 -16" stroke="${I}" stroke-width="2.5" stroke-linecap="round"/>`,
+    map:`<polygon points="0,-46 32,-30 0,-14 -32,-30" fill="#c49a62" stroke="${I}" stroke-width="2.5"/><polygon points="-32,-30 0,-14 0,6 -32,-10" fill="#9a6a3e" stroke="${I}" stroke-width="2.5"/><polygon points="32,-30 0,-14 0,6 32,-10" fill="#7a5230" stroke="${I}" stroke-width="2.5"/><polygon points="-14,-36 10,-42 20,-30 -4,-24" fill="#f2e6c4" stroke="${I}" stroke-width="2"/><path d="M-8 -33 L2 -36 L10 -31 M4 -30 l3 -3 m-3 0 l3 3" stroke="#c4473f" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
+    stele:`<ellipse cx="0" cy="2" rx="26" ry="9" fill="#000" opacity=".2"/><path d="M-18 4 L-20 -60 Q0 -78 20 -60 L18 4Z" fill="#9aa1a6" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M-10 -52 L-4 -46 L-10 -40 M2 -54 V-40 M8 -50 L12 -44 M-8 -30 H8 M-6 -20 L0 -14 L6 -20" stroke="${o.done && forestState().clues[o.clue]==="ok" ? "#e9d77a" : "#5d6469"}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M-20 -8 Q-8 -14 0 -6" stroke="#6f9a4c" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+    bones:`<ellipse cx="0" cy="0" rx="28" ry="10" fill="#000" opacity=".2"/><path d="M-22 -2 L14 -12 M-14 6 L20 -2 M-4 -14 L8 6" stroke="${I}" stroke-width="8" stroke-linecap="round"/><path d="M-22 -2 L14 -12 M-14 6 L20 -2 M-4 -14 L8 6" stroke="#efe6cf" stroke-width="4.5" stroke-linecap="round"/><path d="M-6 -30 Q-18 -30 -16 -18 Q-16 -10 -8 -10 L-6 -6 L4 -6 L6 -10 Q14 -12 12 -22 Q10 -32 -6 -30Z" fill="#efe6cf" stroke="${I}" stroke-width="2.5"/><circle cx="-8" cy="-20" r="3" fill="${I}"/><circle cx="4" cy="-20" r="3" fill="${I}"/>`
+  }[o.art] || "";
+  return `<g class="explore-clue" data-clue="${o.clue}" transform="translate(${cx} ${cy})"${dim}>${art}</g>`;
+}
 function faceSVG(v, x, y, size){
   if(foeHid(v)) return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#2a2630"/>
     <text x="50" y="69" text-anchor="middle" font-size="58" font-weight="900" fill="#e0766e" font-family="var(--font-num),serif">?</text></svg>`;

@@ -3,6 +3,7 @@
    look：紙娃娃外觀（js/art/monsters.js 的 MONSTER_LOOK）
    gear：拿什麼、穿什麼（物品名稱，武器／法器／盾牌／身體裝備；身體裝備只是穿著，AC 還是照 ac）；戰場資料的 foes 可以用 gear 換掉
    hp、ac、speed：屬性表數字（AC 直接寫，不照護甲算）
+   spells：會的法術（技能 id，例 burning_hands＝燃燒之手；要拿著那個法器，10-21）
    scores：完整六項屬性值，調整值由共用 modOf 算出；passives：被動技能代號清單（選填）
    resistances、damageImmunities：原始傷害類型的陣列，選填；foes 同名欄位可覆寫。現有敵人未新增抗性。
    size：體型（微型／小型／中型／大型／巨型／超巨型），沒寫＝中型；只用在擒抱、推開、推倒「最多大一級」（SRD 5.2，10-20），佔格一律 1 格
@@ -75,6 +76,20 @@ const ENEMIES = {
   ghoul:{size:"中型",detectRange:6,name:"食屍鬼",look:"ghoul",gear:[],hp:22,ac:12,speed:6,xp:200,
     natural:{name:"利爪",dmg:"2d4 揮砍",stat:"DEX"},special:"ghoul_claw",damageImmunities:["毒素"],
     scores:{STR:13,DEX:15,CON:10,INT:7,WIS:10,CHA:6}},
+  // ===== 森林（大爺 10-21）：狼、野豬照 SRD；食人花 SRD 沒有，原創；哥布林巫師＝SRD 哥布林拿火焰法球；林間德魯伊照 SRD 德魯伊（數值暫定：香香） =====
+  forest_wolf:{size:"中型",detectRange:7,name:"狼",look:"forest_wolf",gear:[],hp:11,ac:13,speed:8,xp:50,stars:1,srd:true,
+    natural:{name:"咬",dmg:"2d4 穿刺",stat:"DEX"},special:"cub_pounce",
+    scores:{STR:12,DEX:15,CON:12,INT:3,WIS:12,CHA:6}},
+  boar:{size:"中型",detectRange:5,name:"野豬",look:"boar",gear:[],hp:11,ac:11,speed:8,xp:50,stars:1,srd:true,
+    natural:{name:"獠牙",dmg:"1d6 揮砍",stat:"STR"},special:"orc_charge",
+    scores:{STR:13,DEX:11,CON:12,INT:2,WIS:9,CHA:5}},
+  mantrap:{size:"中型",detectRange:4,name:"食人花",look:"mantrap",gear:[],hp:18,ac:10,speed:0,xp:100,stars:1,
+    natural:{name:"藤蔓",dmg:"1d6 鈍擊",stat:"STR"},special:"vine_snare",vulnerabilities:["火焰"],
+    scores:{STR:14,DEX:8,CON:14,INT:1,WIS:10,CHA:2}},
+  goblin_mage:{size:"小型",detectRange:6,name:"哥布林巫師",look:"goblin_mage",shieldArt:"round_shield",gear:["火焰法球","破布衣"],spells:["burning_hands","fire_shield"],hp:12,ac:12,speed:6,xp:100,
+    special:"nimble",scores:{STR:8,DEX:14,CON:10,INT:10,WIS:8,CHA:14}},
+  forest_druid:{size:"中型",detectRange:7,name:"林間德魯伊",look:"forest_druid",gear:["治癒法書","聖徽"],spells:["bless"],hp:27,ac:11,speed:6,xp:450,srd:true,
+    scores:{STR:10,DEX:12,CON:13,INT:12,WIS:15,CHA:11}},
   bandit_archer:{size:"中型",detectRange:8,name:"盜賊弓手",look:"human_female",gear:["短弓","箭袋","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
     special:"bandit_sand",
     scores:{STR:10,DEX:13,CON:12,INT:10,WIS:10,CHA:10}},

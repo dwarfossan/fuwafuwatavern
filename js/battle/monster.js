@@ -60,10 +60,14 @@ SKILL_IMPL.natural = [
   // 麻痺之爪（食屍鬼，SRD）：命中後體質豁免，失敗麻痺（下一回合跳過）
   {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
     if(r.hit && !t.dead && !t.down && !saveRoll(t,"CON",10)){ addStatus(t,"paralyzed",{via:"ghoul"}); fxFloat(t,"麻痺","dmg"); blog(`　${t.name}全身麻掉了！下一回合動不了。`,"skill"); } }},
+  // 纏藤（食人花，原創）：跟蛛網同一套束縛
+  {target:"enemy", range:()=>2, run:(u,t)=>{
+    if(!saveRoll(t,"DEX",MONSTER_DC(u,"STR"),u)){ addStatus(t,"restrained",{via:"net", dc:MONSTER_DC(u,"STR")}); fxFloat(t, POP_TEXT.bound, "dmg"); blog(`　${t.name}被藤蔓纏住了！`,"skill"); }
+    else { fxFloat(t, POP_TEXT.miss, "miss"); blog(`　${t.name}躲開了藤蔓。`); } }},
   {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
   {passive:true}    // 黑暗視覺：darkvisionRange
 ];
-SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash"];
+SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash","cast"];
 
 // 殭屍：不死韌性（hurt() 打到 0 時呼叫；光耀不能撐）
 function undeadFortitude(t, n, type){
@@ -103,7 +107,8 @@ const MONSTER_AI = {
   lich_whisper:   e=>monsterNear(e,8),
   dk_hellstrike:  e=>monsterAdj(e),
   cub_pounce:     e=>monsterAdj(e),
-  ghoul_claw:     e=>monsterAdj(e)
+  ghoul_claw:     e=>monsterAdj(e),
+  vine_snare:     e=>monsterNear(e,2,p=>!has(p,"restrained"))
 };
 function monsterSpecialReady(e, def){
   if(def.once) return !e.specialUsed;

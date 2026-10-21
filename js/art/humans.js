@@ -90,5 +90,12 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   MONSTER_LOOK.human_male = humanLook({sex:"male"});
   MONSTER_LOOK.human_female = humanLook({sex:"female"});
   // 盜賊頭目（大爺 10-21，記仇進化）：黑髮＋絡腮鬍、曬黑一點；身上的鑲釘皮甲是裝備（外觀暫定：香香）
+  // 林間德魯伊（大爺 10-21 森林，香香畫、暫定）：波浪長髮、葉子頭冠、綠色長袍
+  { const INK="#2a2630", L=humanLook({sex:"female", hair:"08", hairColor:"#8a5a34", skin:"#e2b48f"});
+    const leaves=(cx,cy,k)=>`<g transform="translate(${cx} ${cy}) scale(${k})">${[[-22,4,-30],[-11,-3,-12],[0,-6,0],[11,-3,12],[22,4,30]].map(([x,y,a])=>`<path d="M${x} ${y} q-4 -9 0 -15 q4 6 0 15z" transform="rotate(${a} ${x} ${y})" fill="#6f9a4c" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`).join("")}<path d="M-24 6 Q0 -6 24 6" fill="none" stroke="#7a5230" stroke-width="3" stroke-linecap="round"/></g>`;
+    const deco=(svg,art)=>svg.replace(/<\/svg>\s*$/,art+"</svg>");
+    const robe=HUMAN_PARTS.base.female.tunic.replace(/#638a83/g,"#4f7a45").replace(/#bed0b8/g,"#c9dca0").replace(/#426963/g,"#3a5c33").replace(/#6b4a35/g,"#7a5230").replace(/#bda366/g,"#d9b44a");
+    MONSTER_LOOK.forest_druid = {...L, face:deco(L.face, leaves(50,24,1.1)), head:deco(L.head, leaves(56,38,.9)), headHurt:deco(L.headHurt, leaves(56,38,.9)),
+      extra:`<g transform="${HUMAN_PARTS.base.female.fit}">${robe}</g>`}; }
   MONSTER_LOOK.bandit_captain = humanLook({sex:"male", hair:"03", beard:"03", hairColor:"#2b2523", beardColor:"#2b2523", skin:"#d4a27e"});
 }

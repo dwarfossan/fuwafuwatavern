@@ -160,6 +160,14 @@ const MONSTER_LOOK = (()=>{
  }
 })();
 
+// 哥布林巫師（大爺 10-21 森林，香香畫、暫定）：哥布林本體＋紫色尖帽（帽上一顆星）＋紫披風；拿的火焰法球是裝備
+(()=>{
+ const INK="#2a2630", hat=(x,y,k=1)=>`<g transform="translate(${x} ${y}) scale(${k})"><path d="M-30 8 Q0 -4 30 6 L26 12 Q0 4 -26 14Z" fill="#4a3f7a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M-18 8 L4 -40 Q8 -24 20 6 Q0 0 -18 8Z" fill="#5b4c96" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M3 -16 l2 4 4 1 -3 3 1 4 -4 -2 -4 2 1 -4 -3 -3 4 -1z" fill="#f2d35e" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/></g>`;
+ const g=MONSTER_LOOK.goblin, side=hat(54,24,.9), front=hat(50,22,.95), deco=(svg,art)=>svg.replace(/<\/svg>\s*$/,art+"</svg>");
+ MONSTER_LOOK.goblin_mage={...g, face:deco(g.face,front), head:deco(g.head,side), headHurt:deco(g.headHurt,side),
+  tail:`<path d="M45 79 L34 131 L58 134 L70 123 L86 135 L106 132 L95 80Z" fill="#5b4c96" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`};
+})();
+
 /* 小龍專屬本體，接共用紙娃娃入口與動作／倒下 class；尺寸、色票暫定。 */
 function dragonDollSVG(o){
  const ink="#2a2630",red="#b96550",light="#d88964",bone="#f0d398";

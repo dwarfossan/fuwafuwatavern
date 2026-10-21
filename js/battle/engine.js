@@ -81,12 +81,12 @@ function startBattle(id, retry=false, phase="combat"){
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
-      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
+      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":def.forest?(def.foes.filter(g=>g.type===f.type).length>1?"ABCDEFGH"[def.foes.slice(0,i).filter(g=>g.type===f.type).length]:""):"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, testSkill:f.testSkill||null, testSkillUsed:false,
       resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])], vulnerabilities:[...(e.vulnerabilities||[])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
-      learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])],
+      learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])], spellKeys:e.spells?[...e.spells]:null,
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:-1, oaUsed:false
     });
     if(f.grudge) applyGrudgeUnit(units[units.length-1], f.grudge);   // 回來報仇的（10-21，js/grudge.js）
@@ -167,6 +167,10 @@ const TERRAIN = {
   wagon: {name:"馬車", solid:true,  cover:.75},
   crate: {name:"箱子", solid:true,  cover:.5},
   tree:  {name:"樹",   solid:true,  cover:.75},
+  stream:{name:"溪流", solid:true},                    // 森林的溪（10-21）：走不過去、不擋視線
+  ford:  {name:"淺灘", solid:false, cost:2},           // 踩石頭過溪，難走
+  log:   {name:"倒木", solid:false},                   // 倒下的大樹，捷徑
+  clue:  {name:"可疑的東西", solid:true, cover:.5},     // 調查點（智力檢定）
   bush:  {name:"草叢", solid:false, cost:2, hide:true}
 };
 const terrainAt = (x,y) => { const o = B().def.blocks.find(b=>b.x===mapCell(x)&&b.y===mapCell(y)); return o ? TERRAIN[o.kind] : null; };

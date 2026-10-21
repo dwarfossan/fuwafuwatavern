@@ -126,7 +126,7 @@ function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.m
 function exploreCmd(c){if(c==="act"||c==="actBack"){B().exploreMenu=c==="act"?"act":null;refreshBattle();return;}if(c==="actSearch"){const b=B();b.exploreMenu=null;doSearch(exploreUnit(),null);refreshBattle();return;}if(c==="actSteal"){exploreSteal();return;}if(c==="leave"){askRetreat();return;}if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="hide")exploreHide();}
 
 // 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
-const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed);
+const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed&&!(o.kind==="clue"&&o.done));   // 調查過的不再跳選單（10-21）
 function exploreApproach(o){
  const b=B(),leader=exploreUnit();if(!leader||leader.down||leader.dead)return;
  b.turn=b.units.indexOf(leader);b.exploreObject=null;
@@ -151,10 +151,11 @@ async function exploreInteract(action){
  else if(action==="push"){const dx=Math.sign(o.x-mapCell(u.x)),dy=Math.sign(o.y-mapCell(u.y)),x=o.x+dx,y=o.y+dy;if(blocked(x,y)||unitAt(x,y)||b.def.blocks.some(q=>q!==o&&q.x===x&&q.y===y)){blog(text.blocked);refreshBattle();return;}o.x=x;o.y=y;b.exploreObject=null;if(o.kind==="powderBarrel"&&groundAt(x,y)?.kind==="fire")explodeBarrel(o,u);}
  else {if(o.kind==="chest"&&o.opened){blog(text.opened);refreshBattle();return;}
  const rule=EXPLORE_CHECKS[action];if(rule.tool&&!hasGear([u.backpackEquip,...u.backpack],rule.tool)){blog(text.needTool);refreshBattle();return;}
- let roll=d20(),value=roll+u.mods[rule.ability],ok=value>=rule.dc;
- if(!ok&&await luckReroll(u.id,`${text[action]} ${roll}${fmtN(u.mods[rule.ability])}＝${value}，沒到 DC ${rule.dc}`)){roll=d20();value=roll+u.mods[rule.ability];ok=value>=rule.dc;}
- blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${rule.dc}，${ok?"OK":text.failed}`);
- if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}}   // 打開就拿到裡面的東西（大爺 10-11：寶箱不用另外搜索）
+ const dc=o.dc??rule.dc;let roll=d20(),value=roll+u.mods[rule.ability],ok=value>=dc;
+ if(!ok&&await luckReroll(u.id,`${text[action]} ${roll}${fmtN(u.mods[rule.ability])}＝${value}，沒到 DC ${dc}`)){roll=d20();value=roll+u.mods[rule.ability];ok=value>=dc;}
+ blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${dc}，${ok?"OK":text.failed}`);
+ if(action==="investigate"){b.exploreObject=null;forestClue(o,ok,u);}   // 調查（森林，10-21）
+ else if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}}   // 打開就拿到裡面的東西（大爺 10-11：寶箱不用另外搜索）
  exploreTraps();exploreDetect();refreshBattle();
 }
 
@@ -202,24 +203,25 @@ function enterExploreCombat(targetId,manual=false){B().exploreMenu=null;
  for(const u of b.units){u.combatActive=active.includes(u);u.init=u.combatActive?d20()+u.mods.DEX+Math.random()*.1:-Infinity;if(u.side==="npc")u.surprised=false;}
  b.units.sort((a,c)=>c.init-a.init);blog(EXPLORE_COMBAT.start);
  snapBattle(b.id);state.battleSnap.battle=JSON.parse(JSON.stringify(b));delete state.battleSnap.battle.def._h;
+ forestCombatStart();   // 森林：德魯伊喊話、石碑祝福（10-21）
  nextTurn();refreshBattle();
 }
 function exploreReinforcements(){
  const b=B();if(!b.explorationMap||b.phase!=="combat")return;const pcs=b.units.filter(u=>u.side==="pc"&&!u.dead&&!u.down),join=new Set();
  for(const e of b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.combatActive&&!u.dead&&!u.down))if(pcs.some(p=>exploreAware(e,p)||(!b.manualCombat&&dist(e,p)<=EXPLORE_COMBAT.hear)))join.add(e.squad===undefined?e.id:e.squad);
  for(const e of b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.combatActive&&!u.dead&&!u.down))if(join.has(e.squad===undefined?e.id:e.squad)){e.combatActive=true;e.surprised=false;e.init=d20()+e.mods.DEX+Math.random()*.1;blog(EXPLORE_COMBAT.reinforce);}
- if(join.size)b.manualCombat=false;
+ if(join.size){b.manualCombat=false;forestCombatStart();}
  // 只在新一輪開始重排；保留原本單位的先攻，不重擲。
  b.units.sort((a,c)=>c.init-a.init);
 }
-function finishExploreCombat(){const b=B();if(!b.explorationMap)return;stashSteed(b);queueAfterTalk(b);stressBattleEnd();awardBattleXP();syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
+function finishExploreCombat(){const b=B();if(!b.explorationMap)return;setTimeout(forestCombatEnd,0);stashSteed(b);queueAfterTalk(b);stressBattleEnd();awardBattleXP();syncLearnedState();b.units.filter(u=>u.side==="pc").forEach(syncBattleBag);b.units.forEach(u=>{u.combatActive=false;u.surprised=false;});b.panel=null;b.info=null;b.manualCombat=false;blog(EXPLORE_COMBAT.end);beginExplore();}
 
 // 手動戰棋只是回合模式；被看到或主動攻擊才把敵方小隊加入先攻。
 function engageExploreSquad(target,attacker=null){
  const b=B();if(!b.explorationMap||b.phase!=="combat"||!target||target.side!=="foe"||target.dead||target.down||target.fled)return;
  const squad=b.units.filter(e=>e.side==="foe"&&!e.dead&&!e.down&&!e.fled&&!e.combatActive&&(e===target||(target.squad!==undefined&&e.squad===target.squad)));
  for(const e of squad){e.surprised=!!attacker&&!exploreAware(e,attacker);e.combatActive=true;e.init=d20()+e.mods.DEX+Math.random()*.1;}
- if(squad.length){b.manualCombat=false;blog(EXPLORE_COMBAT.reinforce);}
+ if(squad.length){b.manualCombat=false;blog(EXPLORE_COMBAT.reinforce);forestCombatStart();}
  // 不在當前動作中重排，下一輪統一排序，保留目前行動者與先攻。
 }
 function detectTurnEnemies(){const b=B();if(!b.explorationMap||b.phase!=="combat")return;

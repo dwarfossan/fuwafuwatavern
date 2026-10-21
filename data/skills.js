@@ -204,6 +204,7 @@ SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"
  {id:"dk_hellstrike",name:"獄火斬",innate:true,kind:"近戰",dmg:"火焰",tier:0,recharge:true,text:"騎士劍攻擊；命中多 2d6 火焰傷害。充能。"},
  {id:"cub_pounce",name:"撲咬",innate:true,kind:"近戰",dmg:"物理",tier:0,text:"咬貼身的敵人；命中後目標力量豁免，失敗倒地（SRD 獒犬）。"},
  {id:"ghoul_claw",name:"麻痺之爪",innate:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"利爪攻擊；命中後目標體質豁免，失敗麻痺（下一回合整個跳過）。充能（SRD 食屍鬼，暫定）。"},
+ {id:"vine_snare",name:"纏藤",innate:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"2 格內一個敵人敏捷豁免；失敗被藤蔓纏住（跟網子一樣，花動作力量檢定掙脫）。充能（暫定）。"},
  {id:"nimble",name:"靈巧脫逃",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"免費動作撤離或躲藏（每回合用免費動作那格）。"},
  {id:"darkvision",name:"黑暗視覺",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
 ]});

@@ -1190,6 +1190,7 @@ function aiTurn(e){
   if(aiSteedReturn(e)) return;                       // 敵方坐騎：主人摔下來，先回去接他（10-20，steed.js）
   if(e.special && monsterTurn(e)) return;                               // 怪物技能（10-10，monster.js）
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
+  if(e.focus && ["flame_orb","healing_book"].includes(groupOf(e.focus).id) && aiFocusCaster(e)) return;   // 森林的施法者（10-21）
   const pcs = seenFoes(e);
   if(!pcs.length){ if(isHid(e)){ endTurn(); return; }
     // 看不到人：每輪一次花免費動作搜索（大爺 10-10，跟玩家同一套）；找到了就接著照常打
@@ -1306,6 +1307,18 @@ function aiShaman(e){
     blog(`${e.name}東張西望，找不到人。`); later(endTurn, 700); return;
   }
   aiRanged(e, pcs, R || 1);
+}
+// 火焰法球、治癒法書的敵人（哥布林巫師、林間德魯伊，10-21，暫定）：有格子就用一階法術，玩家才看得到、學得到
+//   火焰護盾：有人貼近（2 格內）又還沒開 → 開；燃燒之手：3 格內有人 → 朝最近的噴；祝福術：還沒專注、旁邊有兩個以上同伴 → 祝福大家
+//   都不合用就照一般 AI（火焰箭、打擊……）
+function aiFocusCaster(e){
+  const pcs = seenFoes(e), sp = n => foeUsable(e).find(s=>s.def.name===n);
+  const cast = (sk, t) => { B().up = 0; B().tier = 0; doSkill(e, sk, t); later(endTurn, settle(1300)); return true; };
+  const fs = sp("火焰護盾"); if(fs && !has(e,"fireShield") && pcs.some(p=>dist(p,e)<=2)) return cast(fs, e);
+  const bh = sp("燃燒之手"), near = pcs.filter(p=>dist(p,e)<=3).sort((a,c)=>dist(a,e)-dist(c,e))[0];
+  if(bh && near && Math.random() < .7) return cast(bh, {x:near.x, y:near.y});
+  const bl = sp("祝福術"); if(bl && !e.conc && alive(e.side).filter(o=>o!==e && dist(o,e)<=6 && !has(o,"blessed")).length >= 1 && pcs.length) return cast(bl, e);
+  return false;
 }
 function shamanCast(e, sk, t){
   doSkill(e, sk, t);

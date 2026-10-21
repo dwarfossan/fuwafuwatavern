@@ -64,6 +64,7 @@ function unitSkills(u){
   equippedMagic(u).filter(it=>it!==held).forEach(it=>out.push(...equipmentSkills(it,u).filter(s=>s.equipmentGrant)));
   const off=offhandAttackSkill(u);if(off)out.push(off);
   if(u.side==="pc") out.push(...activeLearnedSkills(u));
+  else if(u.spellKeys) out.push(...u.spellKeys.map(learnedSkillByKey).filter(Boolean));   // 敵人會的法術（ENEMIES.spells，10-21：森林的施法者）
   return out.filter((x,i,a)=>!isPassiveSkill(x)&&a.findIndex(y=>y.key===x.key)===i);
 }
 

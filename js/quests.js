@@ -87,7 +87,7 @@ function arriveQuest(tr){
 // 打贏（checkResult 呼叫）：報酬當場給，勝利畫面顯示
 function grantQuestReward(){
   const b = B(); if(!b?.def.quest || b.questReward) return;
-  const rw = QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(isPcCritter), each = Math.floor(rw.gold / pcs.length);
+  const rw = b.def.noReward ? {gold:0, magic:0} : QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(isPcCritter), each = Math.floor(rw.gold / pcs.length);   // 森林打完再來：沒有報酬（10-21）
   pcs.forEach(u=>{ state.gold[u.id] = (state.gold[u.id]||0) + each*GP; });
   const out = {each, item:null, who:null};
   if(rw.magic>0 && Math.random() < rw.magic){
@@ -99,11 +99,13 @@ function grantQuestReward(){
   const q = questById(b.def.quest); if(q) q.done = true;   // 打到一半長休換日了：委託不在了，報酬照給
   b.questReward = out;
   owlbearQuestEnd(b);
+  forestWin(b);       // 森林（10-21）
   grudgeRollAll(b);   // 被敲暈的擲 1d20（10-21）
-  blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
+  if(!b.def.noReward) blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
 }
 function questRewardHTML(){
   const r = B()?.questReward; if(!r) return "";
+  if(B().def.noReward) return owlbearEndHTML();
   return `<p class="quest-reward">${QUEST_UI.got.replace("{g}", r.each)}${r.item ? `<br>${QUEST_UI.gotItem.replace("{who}", r.who).replace("{item}", r.item)}` : ""}</p>${owlbearEndHTML()}`;
 }
 // 勝利畫面按「繼續」：回大地圖
