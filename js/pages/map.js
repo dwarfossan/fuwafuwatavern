@@ -111,6 +111,7 @@ function enterWorldLocation(){
  else if(id==='tavern'){state.page='story';   // 10-11：回酒館不再自動歸零壓力，改在酒館摸摸頭、睡覺
 state.scene=state.townFounded||state.farewellDone?'tavernReturn':'farewell';   // 送別只演第一次出門；小隊成立後回酒館一律演回家劇情（大爺 10-11）
 state.line=0;state.info=null;render();}
+ else if(id==='forest'&&forestLocked()){document.getElementById('map-message').innerHTML=`<h3>森林</h3><p>${FOREST.main.locked}</p>`;}   // 主線還沒接到（10-22）
  else if(DUNGEONS[id]){enterDungeon(id);}   // 森林、洞窟（10-21，js/dungeon.js）
  else {document.getElementById('map-message').innerHTML=`<h3>${WORLD.locations.find(l=>l.id===id).name}</h3><p>探索待製作</p>`;}
 }

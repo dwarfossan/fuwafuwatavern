@@ -172,6 +172,7 @@ const TERRAIN = {
   log:   {name:"倒木", solid:false},                   // 倒下的大樹，捷徑
   clue:  {name:"可疑的東西", solid:true, cover:.5},     // 調查點（智力檢定）
   rock:  {name:"岩壁", solid:true, cover:1},           // 洞窟（10-21）
+  mist:  {name:"霧", solid:true},                     // 森林的霧（10-22）：過不去、不擋視線
   rubble:{name:"塌方", solid:true, cover:1},
   gravel:{name:"碎石路", solid:false, cost:2},
   brazier:{name:"火盆", solid:true, cover:.25},

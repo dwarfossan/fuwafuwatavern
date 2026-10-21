@@ -20,10 +20,10 @@ const PORTRAITS = {
   merchant: {base:"assets/portraits/merchant.webp", faces:null},
   // 10-22 大爺給的素材（劇情場景用；戰場、先攻列、狀態卡照舊用 SVG）。onDemand＝還沒放進劇情，開機不先下載；放進劇情時拿掉
   // 林間德魯伊（精靈）：無臉底圖＋12 種表情（一樣大，直接疊）
-  druid: {base:"assets/portraits/druid_noface.webp", faces:"assets/faces/druid/", def:"cold", onDemand:true,
+  druid: {base:"assets/portraits/druid_noface.webp", faces:"assets/faces/druid/", def:"cold",
           list:["cold","contempt","impatient","cruel_smirk","angry","alert","skeptical","surprised","hurt","sad","acknowledge","shout"]},
   // 兇猛的奇美拉、食人花：一張圖、沒有表情
-  chimera: {base:"assets/portraits/chimera.webp", faces:null, onDemand:true},
+  chimera: {base:"assets/portraits/chimera.webp", faces:null},
   mantrap: {base:"assets/portraits/mantrap.webp", faces:null, onDemand:true}
 };
 // 鎮民（10-22，男女各 4 張，一張圖、沒有表情）：之後鎮上的路人、事件用

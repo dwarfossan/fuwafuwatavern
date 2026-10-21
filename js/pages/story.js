@@ -11,6 +11,10 @@ const SCENES = {
   townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]},
   camp: {get script(){return campScript();}, get actors(){ return state.camp?.owlCub ? ["owlcub"] : undefined; }, bg:"road", back:null, next:["finishCamp","收拾營地"]},   // 野外露營長休（10-10）；梟熊寶寶靠近時多一個角色（10-21）
   owlbearSeen: {get script(){return OWLBEAR_STORY.seen.map(l=>({draft:OWLBEAR_STORY.draft, ...l}));}, bg:"road", actors:["owlcub"], back:null, next:["finishOwlbearSeen","繼續上路"]},   // 梟熊寶寶第二段（10-21）
+  // 森林主線（10-22，台詞 data/forest.js FOREST.main，香香草稿）
+  forestDruidMeet: {get script(){return FOREST.main.druidMeet.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", actors:["druid"], back:null, next:["finishForestScene","離開森林"]},
+  forestReveal: {get script(){return FOREST.main.reveal.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", actors:["druid","chimera"], back:null, next:["startForestBoss","戰鬥開始！"]},
+  forestAfter: {get script(){return FOREST.main.after.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", back:null, next:["finishForestScene","回大地圖"]},
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */

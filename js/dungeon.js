@@ -12,27 +12,34 @@ function dungeonState(id){
 }
 const forestState = () => dungeonState("forest");
 const DUNGEON_KINDS = {T:"tree", W:"rock", b:"bush", "~":"stream", "=":"ford", L:"log", X:"crate", P:"powderBarrel", C:"chest", t:"trap", F:"brazier", g:"gravel"};
+// 階段（10-22，森林主線）：D.stageOf() 回傳現在的階段名，有對應 D.stages[階段] 就用那一份（敵人、出生點、霧、報酬、調查點）
+const dungeonStage = id => { const D = DUNGEONS[id], k = D.stageOf ? D.stageOf() : null; return k && D.stages?.[k] ? {key:k, ...D.stages[k]} : null; };
 function dungeonBattle(id){
-  const D = DUNGEONS[id], st = dungeonState(id), cleared = st.cleared;
+  const D = DUNGEONS[id], st = dungeonState(id), S = dungeonStage(id), cleared = D.stageOf ? !S : st.cleared;
   const d = {name:D.name, seed:0, theme:D.theme||"forest", w:D.map[0].length, h:D.map.length, tutorial:false, road:[], blocks:[], elev:[], party:D.party.map(p=>[...p]), foes:[], npcs:[],
     dungeon:id, forest:id==="forest", lighting:D.lighting, lights:(D.lights||[]).map(l=>({...l})),
-    quest:id, questStars:cleared ? 1 : 3, questHome:D.home||id, questLink:Math.max(0, WORLD.links.findIndex(l=>l.a==="town" && l.b===(D.home||id))), noReward:cleared, after:"questDone"};
+    quest:id, questStars:S ? S.stars : cleared ? 1 : 3, questHome:D.home||id, questLink:Math.max(0, WORLD.links.findIndex(l=>l.a==="town" && l.b===(D.home||id))), noReward:cleared || !!S?.noReward, after:"questDone", stage:S?.key||null};
+  if(S?.party) d.party = S.party.map(p=>[...p]);
+  if(S?.revealAt) d.noClear = true;
+  const stageNow = S ? S.key : cleared ? "done" : null, clueOn = k => !k.stage || !stageNow || k.stage.includes(stageNow);   // 這個階段才有的調查點
   D.map.forEach((row, y)=>[...row].forEach((c, x)=>{
     if(DUNGEON_KINDS[c]){ d.blocks.push({x, y, kind:DUNGEON_KINDS[c], ...(c==="C" ? {locked:true, contents:[]} : {})}); if(c==="F") d.lights.push({x, y, bright:2, dim:4}); }   // 火盆＝光源
     else if(c==="S") d.blocks.push({x, y, kind:st.clues[D.shortcutClue]==="ok" ? D.shortcutOpen : D.shortcutClosed, shortcut:true});   // 捷徑
-    else if(D.clues[c]){ const k = D.clues[c]; d.blocks.push({x, y, kind:"clue", clue:k.id, name:k.name, art:k.art, dc:k.dc, done:!!st.clues[k.id]}); }
+    else if(D.clues[c]){ const k = D.clues[c]; if(clueOn(k)) d.blocks.push({x, y, kind:"clue", clue:k.id, name:k.name, art:k.art, dc:k.dc, done:!!st.clues[k.id]}); }
   }));
+  (S?.mist||[]).forEach(([x,y])=>{ d.blocks = d.blocks.filter(o=>!(o.x===x && o.y===y)); d.blocks.push({x, y, kind:"mist"}); });   // 霧（德魯伊施的法）：過不去
   // 岩壁深處（四周都是岩壁）：畫成平平的黑，不畫成一塊塊石頭，畫面才看得到路（10-21）
   const rockAt = (x,y)=>x<0||y<0||x>=d.w||y>=d.h||D.map[y][x]==="W";
   d.blocks.forEach(o=>{ if(o.kind==="rock" && [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]].every(([dx,dy])=>rockAt(o.x+dx,o.y+dy))) o.deep = true; });
-  (cleared ? D.again : D.foes).forEach(f=>d.foes.push({...f, trapCharges:0}));
+  (S ? S.foes : cleared ? D.again : D.foes).forEach(f=>d.foes.push({...f, trapCharges:0}));
   return d;
 }
 function enterDungeon(id){
   BATTLES.quest = dungeonBattle(id);
   state.page = "battle"; state.scout = null; startBattle("quest", false, "explore"); render(); window.scrollTo(0,0);
-  const D = DUNGEONS[id], lines = dungeonState(id).cleared ? D.againIntro : D.intro;
+  const D = DUNGEONS[id], S = dungeonStage(id), lines = S ? S.intro : (D.stageOf ? true : dungeonState(id).cleared) ? D.againIntro : D.intro;
   (lines||[]).forEach(([who, text], i)=>{ const u = B().units.find(v=>v.id===who); if(u) say(u, text, 500 + i*1700); });
+  if(S?.combat){ const e = B().units.find(u=>u.side==="foe"); if(e) enterExploreCombat(e.id, false); }   // 一進去就開打（撞見之後的頭目戰）
 }
 const enterForest = () => enterDungeon("forest");
 const dungeonOf = b => b && b.def.dungeon && DUNGEONS[b.def.dungeon];
@@ -42,6 +49,7 @@ function forestClue(o, ok, u){
   const k = Object.values(D.clues).find(c=>c.id===o.clue); if(!k) return;
   o.done = true; dungeonState(b.def.dungeon).clues[k.id] = ok ? "ok" : "fail";
   blog(ok ? k.ok : k.fail, ok ? "skill" : "");
+  setTimeout(dungeonAfterClue, 0);
   if(!ok){ if(k.gold){ CRITTERS.forEach(c=>{ state.gold[c.id] = (state.gold[c.id]||0) + k.gold*GP; }); blog(`每隻拿到 ${k.gold} gp`); } return; }
   if(k.effect==="revealTraps") b.def.blocks.filter(q=>q.kind==="trap").forEach(q=>{ q.found = true; });
   if(k.effect==="shortcut"){ b.def.blocks.filter(q=>q.shortcut).forEach(q=>{ q.kind = D.shortcutOpen; }); if(k.opened) blog(k.opened, "skill"); }
@@ -51,6 +59,7 @@ function forestClue(o, ok, u){
   }
   if(k.trapsFound) b.def.blocks.filter(q=>q.kind==="trap").forEach(q=>{ q.found = true; });
 }
+function dungeonAfterClue(){ const b = B(), D = dungeonOf(b); if(D && D.onClue) D.onClue(b); }
 // 開戰（enterExploreCombat／增援 呼叫）：talker 喊話、打頭目時調查得到的好處
 function forestCombatStart(){
   const b = B(), D = dungeonOf(b); if(!D) return;
@@ -63,6 +72,7 @@ function forestCombatStart(){
     Object.values(D.clues).filter(k=>k.boss && st.clues[k.id]==="ok").forEach(k=>{
       if(k.boss==="bless") pcs.forEach(u=>addStatus(u, "blessed", {via:"stele"}));
       if(k.boss==="fireResist") pcs.forEach(u=>{ u.resistances ||= []; if(!u.resistances.includes("火焰")) u.resistances.push("火焰"); });
+      if(k.boss==="drowsy"){ addStatus(boss, "paralyzed", {via:"pollen"}); fxFloat(boss, "Zzz", "dmg"); }
       if(k.boss==="rockfall"){ const n = rollDice("4d6").total; fxHit(boss, "burst"); hurt(boss, n, "鈍擊", null); }
       if(k.bossText) blog(k.bossText, "skill");
     }); }
@@ -77,6 +87,7 @@ function forestCombatEnd(){
 // 打贏（grantQuestReward 呼叫）
 function forestWin(b){
   const D = dungeonOf(b); if(!D) return;
+  if(D.onWin && D.onWin(b)) return;   // 有階段的（森林主線）自己處理
   const st = dungeonState(b.def.dungeon); if(!st.cleared){ st.cleared = true; blog(D.cleared, "kill"); }
   (D.win||[]).forEach(([who, text], i)=>{ const u = b.units.find(v=>v.id===who && !v.down); if(u) say(u, text, 600 + i*1700); });
 }

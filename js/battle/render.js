@@ -670,6 +670,7 @@ function blockSVG(o){
     if(o.kind==="stream") return water;
     if(o.kind==="ford") return water+`<ellipse cx="${cx-14}" cy="${cy-4}" rx="9" ry="5" fill="#a59d93" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+8}" cy="${cy+6}" rx="10" ry="5.5" fill="#b3aba1" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+18}" cy="${cy-8}" rx="7" ry="4" fill="#a59d93" stroke="#2a2630" stroke-width="2"/>`;
     return water+`<path d="M${cx-34} ${cy+6} L${cx+30} ${cy-14} L${cx+34} ${cy-4} L${cx-30} ${cy+16}Z" fill="#8a6038" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="${cx+32}" cy="${cy-9}" rx="4" ry="5.5" fill="#c49a62" stroke="#2a2630" stroke-width="2"/><path d="M${cx-20} ${cy+6} L${cx+16} ${cy-6}" stroke="#6e4a32" stroke-width="2"/>`; }
+  if(o.kind==="mist"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2; return `<g class="forest-mist" pointer-events="none" opacity=".85">${[[-26,-18,30,16],[8,-30,34,18],[22,-6,26,14],[-8,-44,24,13]].map(([dx,dy,rx,ry])=>`<ellipse cx="${cx+dx}" cy="${cy+dy}" rx="${rx}" ry="${ry}" fill="#eef2f0" stroke="#b9c4c0" stroke-width="2"/>`).join("")}</g>`; }   // 森林的霧（10-22）
   if(o.kind==="clue") return clueSVG(o);
   // 洞窟（10-21，外觀暫定：香香）：岩壁、塌方、碎石路、火盆
   if(o.kind==="rock" && o.deep) return `<polygon points="${diamond(o.x,o.y)}" fill="#1c1a20" stroke="#1c1a20" stroke-width="1" pointer-events="none"/>`;
