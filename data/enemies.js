@@ -68,6 +68,13 @@ const ENEMIES = {
   bandit:{size:"中型",detectRange:6,name:"盜賊",look:"human_male",gear:["彎刀","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
     special:"bandit_sand",
     scores:{STR:11,DEX:12,CON:12,INT:10,WIS:10,CHA:10}},
+  // 進化（大爺 10-21）：盜賊／盜賊弓手→盜賊頭目（SRD 強盜頭目）、殭屍→食屍鬼（SRD）；只從記仇進化出來，不進一般委託。多重攻擊用連擊代替（暫定：香香）
+  bandit_captain:{size:"中型",detectRange:6,name:"盜賊頭目",look:"bandit_captain",gear:["彎刀","鑲釘皮甲"],hp:65,ac:15,speed:6,xp:450,
+    special:"bandit_sand",passives:["double_strike"],
+    scores:{STR:15,DEX:16,CON:14,INT:14,WIS:11,CHA:14}},
+  ghoul:{size:"中型",detectRange:6,name:"食屍鬼",look:"ghoul",gear:[],hp:22,ac:12,speed:6,xp:200,
+    natural:{name:"利爪",dmg:"2d4 揮砍",stat:"DEX"},special:"ghoul_claw",damageImmunities:["毒素"],
+    scores:{STR:13,DEX:15,CON:10,INT:7,WIS:10,CHA:6}},
   bandit_archer:{size:"中型",detectRange:8,name:"盜賊弓手",look:"human_female",gear:["短弓","箭袋","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
     special:"bandit_sand",
     scores:{STR:10,DEX:13,CON:12,INT:10,WIS:10,CHA:10}},

@@ -9,18 +9,21 @@ const GRUDGE = {
   table:[[1,1,"dead"],[2,2,"grateful"],[3,5,"retire"],[6,10,"gone"],[11,15,"return"],[16,18,"gang"],[19,19,"train"],[20,20,"evolve"]],
   // 進化：一次只升一階；表裡沒有下一階的，照 19 閉關苦練算（之後補怪物再接）
   evolve:{goblin:"goblin_hero", goblin_archer:"goblin_hero", goblin_hero:"goblin_chief", orc:"orc_hero", orc_hero:"orc_chief",
-    skeleton:"skeleton_warrior", skeleton_archer:"skeleton_warrior", skeleton_warrior:"lich"},   // 骷髏兵／弓手→骷髏勇士→巫妖（大爺 10-21）
+    skeleton:"skeleton_warrior", skeleton_archer:"skeleton_warrior", skeleton_warrior:"lich",
+    bandit:"bandit_captain", bandit_archer:"bandit_captain", zombie:"ghoul"},   // 10-21   // 骷髏兵／弓手→骷髏勇士→巫妖（大爺 10-21）
   // 種類：人形／野獸／不死魔物（沒寫的當野獸）
-  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
+  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",bandit_captain:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
     // 不死：有智慧的才會說話（大爺 10-21）＝幽靈、巫妖、死亡騎士；骷髏、殭屍、骷髏戰馬沒腦子，只有動作
     ghost:"undead",lich:"undead",death_knight:"undead",
     skeleton_warrior:"warrior",   // 骷髏勇士：會說話、記得生前的事（大爺 10-21）
-    skeleton:"mindless",skeleton_archer:"mindless",zombie:"mindless",dk_horse:"mindless"},
+    skeleton:"mindless",skeleton_archer:"mindless",zombie:"mindless",ghoul:"mindless",dk_horse:"mindless"},
   // 回來時變多強：每回來一次等級 +1、血量 +25%；閉關苦練再多 +1 級、AC +1，沒有天生技能的學一招（看種類）
   hpPer:.25, trainAc:1, xpPer:.5,
   trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail", mindless:"undead_fortitude", warrior:"undead_fortitude"},
-  // 傷疤造型（js/art/scars.js）只有這些頭畫得上；其他怪物先只有綽號、狀態卡那行
-  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton" : null,   // skeleton_warrior 也算骷髏
+  // 傷疤造型（js/art/scars.js）：沒有座標的怪物（龍、死亡騎士、寶箱怪、食人花……）先只有綽號、狀態卡那行
+  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton"   // skeleton_warrior 也算骷髏
+    : /^(human|bandit)/.test(look||"") ? "human"                                          // 人類：盜賊、獵人、盜賊頭目（10-21）
+    : (typeof STATIC_SCAR!=="undefined" && STATIC_SCAR[look]) || (SCAR_SPOTS[look] && SCAR_SPOTS[look].doll) ? look : null,   // 殭屍、幽靈、食屍鬼、野獸（10-21）
   // 綽號：照最後一道傷疤
   nick:{揮砍:"刀疤", 穿刺:"獨眼", 鈍擊:"腫眼", 火焰:"焦臉", 其他:"帶電"},
   nickTail:["", "老對手", "宿敵"],          // 第幾次回來（1、2、3）

@@ -5,12 +5,35 @@
    座標：每種頭各一組（100×100 的頭圖座標），先做哥布林、獸人兩種，之後再補 */
 const SCAR_SPOTS = {
   goblin: {side:{eyeR:6, eyeA:[43,53], eyeB:[67,52], top:[53,24], cheek:[48,72]}, front:{eyeR:6.5, eyeA:[38,53], eyeB:[61,53], top:[50,23], cheek:[34,69]}},
-  orc:    {side:{eyeR:6, eyeA:[43,49], eyeB:[68,49], top:[58,31], cheek:[48,66]}, front:{eyeR:6.5, eyeA:[36,49], eyeB:[63,49], top:[50,31], cheek:[31,65]}}
+  orc:    {side:{eyeR:6, eyeA:[43,49], eyeB:[68,49], top:[58,31], cheek:[48,66]}, front:{eyeR:6.5, eyeA:[36,49], eyeB:[63,49], top:[50,31], cheek:[31,65]}},
+  // 人類（盜賊、獵人、盜賊頭目，10-21）：側臉照 humanLook 的頭縮放算出來；正面照 humanFrontSVG
+  human:  {side:{eyeR:5, k:.8, eyeA:[45,69], eyeB:[65,67], top:[55,40], cheek:[37,86]}, front:{eyeR:4.4, k:.75, eyeA:[41,54], eyeB:[59,54], top:[50,25], cheek:[34,64]}},
+  // 森林的野豬、狼：紙娃娃是整隻側面（140×150 座標），頭像是正面（100×100）
+  boar:   {doll:{eyeR:4.5, k:.65, eyeA:[93,96], eyeB:[111,95], top:[103,79], cheek:[96,108]}, front:{eyeR:5, eyeA:[35,47], eyeB:[65,47], top:[50,29], cheek:[29,64]}},
+  forest_wolf:{doll:{eyeR:4.5, k:.65, eyeA:[99,86], eyeB:[115,86], top:[107,68], cheek:[101,99]}, front:{eyeR:5, eyeA:[35,47], eyeB:[65,47], top:[50,30], cheek:[29,64]}}
 };
+// 整隻一張圖的（殭屍、幽靈、食屍鬼、梟熊等六隻野獸）：傷疤畫進原圖同一層，頭像是從原圖裁的，自然一起有
+//   座標＝那張原圖自己的座標（野獸是 BEAST_ART 的座標，外面那層縮放會跟著縮）；k＝傷疤放大倍率（原圖很大的要放大）
+const STATIC_SCAR = {
+  zombie: {eyeR:8, eyeA:[60,54], eyeB:[81,58], top:[76,31], cheek:[51,73]},
+  ghoul:  {eyeR:8, eyeA:[60,55], eyeB:[81,61], top:[77,32], cheek:[50,74]},
+  ghost:  {eyeR:8, eyeA:[59,56], eyeB:[81,56], top:[70,30], cheek:[50,80]},
+  owlbear:{eyeR:20, k:1.8, eyeA:[124,111], eyeB:[151,109], top:[138,80], cheek:[104,146]},
+  griffin:{eyeR:6, k:1.4, eyeA:[151,84], eyeB:[151,84], top:[140,64], cheek:[136,106]},
+  chimera:{eyeR:6, k:1.3, eyeA:[143,107], eyeB:[164,105], top:[155,85], cheek:[140,122]},
+  giant_spider:{eyeR:6, k:1.1, eyeA:[146,120], eyeB:[160,116], top:[151,106], cheek:[139,128]},
+  slime:  {eyeR:8, k:1.5, eyeA:[136,124], eyeB:[165,119], top:[150,96], cheek:[127,140]},
+  bat:    {eyeR:11, k:2, eyeA:[192,124], eyeB:[229,120], top:[210,96], cheek:[176,154]}
+};
+STATIC_SCAR.owlbear_cub = STATIC_SCAR.owlbear_young = STATIC_SCAR.owlbear;
 const SCAR_INK = "#2a2630";
 const SCAR_GLOW = {寒冷:"#8fd3ff", 閃電:"#ffe36a", 強酸:"#a6e05a", 毒素:"#9bd06a", 死靈:"#b48ae0", 光耀:"#fff1a8", 力場:"#c9a2ff", 雷鳴:"#9fb7ff", 心靈:"#ff9ad5"};
 // 一種傷疤：kind＝傷害類型（揮砍／穿刺／鈍擊／火焰／其他），s＝這張頭圖的位置表，n＝第幾道（疊的時候錯開一點）
 function scarSVG(kind, s, n=0){
+  if(s.k && s.k!==1){   // 放大／縮小：以這道疤貼的位置為中心，位置不變、大小照 k
+    const at = kind==="穿刺" ? s.eyeB : (kind==="揮砍" || (kind==="鈍擊" && n===0)) ? s.eyeA : kind==="鈍擊" ? s.top : s.cheek;
+    return `<g transform="translate(${at[0]} ${at[1]}) scale(${s.k}) translate(${-at[0]} ${-at[1]})">${scarSVG(kind, {...s, k:1, eyeR:s.eyeR/s.k}, n)}</g>`;
+  }
   const [ax,ay] = s.eyeA, [bx,by] = s.eyeB, [tx,ty] = s.top, [cx,cy] = s.cheek;
   if(kind==="揮砍"){   // 三道斜刀疤，劃過其中一隻眼
     const x = ax - 7 + n*3, y = ay - 12;
@@ -69,8 +92,19 @@ function boneScarredLook(look, scars){
 }
 const scarKindOf = type => ["揮砍","穿刺","鈍擊","火焰"].includes(type) ? type : (type||"鈍擊");
 // 把傷疤疊到一種外觀上：scars＝[{type}]（最多 3 道）。base＝SCAR_SPOTS 的哪一種頭；沒有座標的外觀照舊不畫
+const scarList = (scars, s) => scars.slice(0,3).map((x,i)=>scarSVG(scarKindOf(x.type), s, scars.slice(0,i).filter(o=>scarKindOf(o.type)===scarKindOf(x.type)).length)).join("");
+// 整隻一張圖的：把傷疤接在原圖後面（紙娃娃的 art、頭像裡同一段原圖都換掉）
+function staticScarredLook(look, kind, scars){
+  const s = STATIC_SCAR[kind], art = look.art || (typeof UNDEAD_ART!=="undefined" && UNDEAD_ART[kind]); if(!s || !art) return look;
+  const m = art.match(/^<g transform="translate\([-\d.]+ [-\d.]+\) scale\([\d.]+\)">([\s\S]*)<\/g>$/), raw = m ? m[1] : art;
+  const withScars = raw + `<g class="scars">${scarList(scars, s)}</g>`, swap = str => str ? str.split(raw).join(withScars) : str;
+  return {...look, art:swap(art), face:swap(look.face)};
+}
 function scarredLook(look, base, scars){
   if(base==="skeleton" && look && scars && scars.length) return boneScarredLook(look, scars);
+  if(look && scars && scars.length && STATIC_SCAR[base]) return staticScarredLook(look, base, scars);
+  if(look && scars && scars.length && SCAR_SPOTS[base] && SCAR_SPOTS[base].doll)   // 森林的：紙娃娃另外疊一層（forestDollSVG 畫 scarArt），頭像疊正面
+    return {...look, scarArt:`<g class="scars">${scarList(scars, SCAR_SPOTS[base].doll)}</g>`, face:look.face && look.face.replace(/<\/svg>\s*$/, scarList(scars, SCAR_SPOTS[base].front) + "</svg>")};
   const spots = SCAR_SPOTS[base]; if(!look || !spots || !scars || !scars.length) return look;
   const art = view => scars.slice(0,3).map((s,i)=>scarSVG(scarKindOf(s.type), spots[view], scars.slice(0,i).filter(o=>scarKindOf(o.type)===scarKindOf(s.type)).length)).join("");
   const deco = (svg, view) => svg ? svg.replace(/<\/svg>\s*$/, art(view) + "</svg>") : svg;

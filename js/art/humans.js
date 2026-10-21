@@ -89,4 +89,6 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   humanLook = o => ({...side(o), face:humanFrontSVG(o||{})});
   MONSTER_LOOK.human_male = humanLook({sex:"male"});
   MONSTER_LOOK.human_female = humanLook({sex:"female"});
+  // 盜賊頭目（大爺 10-21，記仇進化）：黑髮＋絡腮鬍、曬黑一點；身上的鑲釘皮甲是裝備（外觀暫定：香香）
+  MONSTER_LOOK.bandit_captain = humanLook({sex:"male", hair:"03", beard:"03", hairColor:"#2b2523", beardColor:"#2b2523", skin:"#d4a27e"});
 }

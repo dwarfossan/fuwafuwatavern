@@ -57,10 +57,13 @@ SKILL_IMPL.natural = [
   // 撲咬（梟熊寶寶，SRD 獒犬）：咬，命中後力量豁免，失敗倒地
   {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
     if(r.hit && !t.dead && !t.down && !saveRoll(t,"STR",MONSTER_DC(u,"STR"))){ knockProne(t); blog(`　${t.name}被撲倒了！`,"skill"); } }},
+  // 麻痺之爪（食屍鬼，SRD）：命中後體質豁免，失敗麻痺（下一回合跳過）
+  {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
+    if(r.hit && !t.dead && !t.down && !saveRoll(t,"CON",10)){ addStatus(t,"paralyzed",{via:"ghoul"}); fxFloat(t,"麻痺","dmg"); blog(`　${t.name}全身麻掉了！下一回合動不了。`,"skill"); } }},
   {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
   {passive:true}    // 黑暗視覺：darkvisionRange
 ];
-SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust"];
+SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash"];
 
 // 殭屍：不死韌性（hurt() 打到 0 時呼叫；光耀不能撐）
 function undeadFortitude(t, n, type){
@@ -99,7 +102,8 @@ const MONSTER_AI = {
   vampire_bite:   e=>monsterAdj(e),
   lich_whisper:   e=>monsterNear(e,8),
   dk_hellstrike:  e=>monsterAdj(e),
-  cub_pounce:     e=>monsterAdj(e)
+  cub_pounce:     e=>monsterAdj(e),
+  ghoul_claw:     e=>monsterAdj(e)
 };
 function monsterSpecialReady(e, def){
   if(def.once) return !e.specialUsed;
@@ -139,10 +143,12 @@ function sizeLineHTML(v){
 }
 function monsterInfoHTML(v){
   const size = sizeLineHTML(v) + grudgeLineHTML(v);
-  if(v.side!=="foe" || (!v.natural && !v.special)) return size;
+  const pas = v.side==="foe" ? passiveSkills(v).filter(s=>s.key!==v.special) : [];   // 敵人身上的被動（例：骷髏勇士的連擊，10-21）
+  if(v.side!=="foe" || (!v.natural && !v.special && !pas.length)) return size;
   const sk = v.special && learnedSkillByKey(v.special), parts = [];
   if(v.natural) parts.push(`${v.natural.name} ${v.natural.dmg.replace(" ","・")}`);
   if(sk) parts.push(`技能：${sk.def.name}${sk.def.recharge ? (v.specialReady===false ? "（充能中）" : "（可用）") : sk.def.once && v.specialUsed ? "（用過了）" : ""}`);
-  const tip = sk ? `${sk.def.name}：${sk.def.text}` : "";
-  return size + `<div class="dim race-line monster-line" data-tip="${tip}" data-tip-title="${sk?sk.def.name:""}">${parts.join(" · ")}</div>`;
+  if(pas.length) parts.push(`被動：${pas.map(s=>s.def.name).join("、")}`);
+  const tip = [sk, ...pas].filter(Boolean).map(s=>`${s.def.name}：${s.def.text}`).join("\n");
+  return size + `<div class="dim race-line monster-line" data-tip="${tip}" data-tip-title="${sk?sk.def.name:pas[0]?pas[0].def.name:""}">${parts.join(" · ")}</div>`;
 }

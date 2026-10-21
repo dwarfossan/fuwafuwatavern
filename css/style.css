@@ -690,6 +690,9 @@ button.token:hover{transform:translateY(-2px)}
 .doll .dl-lie{transform-box:view-box;transform-origin:70px 140px}
 .doll.dl-down .dl-lie,.doll.dl-prone .dl-lie{transform:rotate(-78deg) translate(-6px,-4px)}
 .doll.dl-down .dl-lie{opacity:.55}
+/* 四腳的大傢伙倒下、跌倒（10-21）：不轉成側躺，整隻趴扁在地上 */
+.doll:is([data-monster^="owlbear"],[data-monster="griffin"],[data-monster="chimera"],[data-monster="giant_spider"],[data-monster="boar"],[data-monster="forest_wolf"]).dl-down .dl-lie{transform:translateY(3px) scale(1.1,.56) rotate(3deg)}
+.doll:is([data-monster^="owlbear"],[data-monster="griffin"],[data-monster="chimera"],[data-monster="giant_spider"],[data-monster="boar"],[data-monster="forest_wolf"]).dl-prone .dl-lie{transform:scale(1.05,.74)}
 .doll.dl-prone .dl-bob{animation:none}
 /* 被推倒：從站著倒下去（外層已經躺平，這裡從「轉回站姿」播到 0） */
 .act-fall.dl-act{animation:body-fall .45s cubic-bezier(.5,0,.8,.6) both;animation-delay:var(--d)}

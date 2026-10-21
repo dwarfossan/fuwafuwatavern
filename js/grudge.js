@@ -1,7 +1,7 @@
 /* 被敲暈的敵人之後怎麼了（大爺 10-21）：資料、文字在 data/grudge.js，傷疤造型在 js/art/scars.js
    state.grudges＝[{id, type, look, link, kind, roll, scars:[{type, by}], by, returns, status}]
      status：pending（等著回來）、news（不幹了／報恩，等大地圖閒聊講出來）、done（結束）
-   - 委託打完（贏、撤退）：被敲暈的各擲 1d20（grudgeRollAll）；回來的仇人被打死＝結束，又被敲暈＝再擲一次、傷疤疊上去
+   - 委託打完（贏、撤退）、大地圖路上的戰鬥打贏：被敲暈的各擲 1d20（grudgeRollAll）；劇情戰不擲；回來的仇人被打死＝結束，又被敲暈＝再擲一次、傷疤疊上去
    - 之後接同一條路的委託：等著回來的仇人混進敵人裡（grudgeFoes／grudgeMark），開場套上綽號、變強、傷疤（applyGrudgeUnit）
    - 碰面時喊一句、優先打上次打暈牠的那隻（aiHp）；狀態卡多一行
    - 不幹了、報恩：之後在大地圖走路時用閒聊講出來，報恩順便給錢（grudgeTravelChat） */
@@ -12,8 +12,10 @@ const grudgeById = id => (state.grudges||[]).find(g=>g.id===id) || null;
 const grudgeExempt = (b, u) => !!(b.def.owlbearStory && ["owlbear","owlbear_cub"].includes(u.type));
 function grudgeResult(r){ const row = GRUDGE.table.find(([a,z])=>r>=a && r<=z); return row ? row[2] : "gone"; }
 function grudgeRollAll(b){
-  if(!b || !b.def.quest || b.grudgeRolled) return; b.grudgeRolled = true;
-  const q = questById(b.def.quest), link = q ? q.link : b.def.questLink;
+  // 委託：用委託那條路；委託以外（大地圖寶箱怪等，大爺 10-21 擴大）：用 def.grudgeLink（打的那條路）；劇情戰沒有路，不擲
+  if(!b || b.grudgeRolled) return;
+  const q = b.def.quest && questById(b.def.quest), link = q ? q.link : b.def.quest ? b.def.questLink : b.def.grudgeLink;
+  if(link==null) return; b.grudgeRolled = true;
   state.grudges ||= [];
   // 回來的仇人被打死：這段恩怨結束
   b.units.filter(u=>u.side==="foe" && u.grudge && u.dead && !u.ko).forEach(u=>{ const g = grudgeById(u.grudge); if(g) g.status = "done"; });

@@ -760,7 +760,8 @@ function unitDoll(v, active){
   // 騎乘（10-20）：小傢伙騎著坐騎＝先畫小傢伙、再畫馬蓋在前面（外觀暫定）
   const h = isPcCritter(v) && mountOf(v);
   const steedUnder = h ? dollSVG({id:h.id, look:MONSTER_LOOK[h.look], walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:h.down, x:X, y:Y, w:W, seed:7}) : "";
-  if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, raise:true, x:cx-46+(v.face||1)*-4*k, y:cy + 8 - 154*k, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
+  const ride = h && MONSTER_LOOK[h.look]?.ride || {dx:0, dy:0};   // 坐騎背的位置（10-21：梟熊的背比馬低、靠後）
+  if(h) return dollSVG({id:v.id, color:v.color, look:null, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), anim:live, face:v.face||1, down:v.down, prone:false, raise:true, x:cx-46+(v.face||1)*(-4+ride.dx)*k, y:cy + 8 - 154*k + ride.dy*k, w:92, seed:v.id.length*3}) + steedUnder;   // 大爺 10-20：小傢伙畫在馬後面，馬身擋住下半身就像騎著
   return dollSVG({id:v.id, color:v.color, look, mood:v.svgMood, levelUpAt:v.levelUpAt, ...dollGear(v), walking:B().phase==="explore"&&v.exploreWalking, anim:live, face:v.face||1, down:v.down||v.ko, prone:!v.down && !v.ko && !!has(v,"prone"), cheer: B().result==="win" && v.side==="pc" && !v.down,
                         x:X, y:Y, w:W, seed:v.id.length*3 + (v.side==="foe"?+v.id.slice(3).replace(/\D/g,"")*5:0)});
 }

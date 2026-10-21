@@ -127,7 +127,8 @@ function checkResult(){
     // 委託（10-10）：地圖上的敵人全倒（或逃走）＝委託完成，跳勝利畫面
     if(b.def.quest&&!b.units.some(u=>u.side==="foe"&&!u.dead&&!u.fled)){wakeAfterBattle();stressBattleEnd();awardBattleXP();stashSteed();b.result="win";grantQuestReward();blog(QUEST_UI.cleared,"kill");sfx("win",900);syncBGM();refreshBattle();return true;}
     if(!b.manualCombat){stashSteed();wakeAfterBattle();finishExploreCombat();return true;}return false;}
-  if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); stashSteed(); b.result = "win"; blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
+  if(!alive("foe").length){ wakeAfterBattle(); stressBattleEnd(); stashSteed(); b.result = "win"; grudgeRollAll(b);   // 委託以外：有路的（大地圖寶箱怪）也擲，劇情戰沒有 grudgeLink 不擲（10-21）
+    blog(b.id==="worldMimic"?"勝利！寶箱怪被打倒了！":"勝利！哥布林全被打倒了！", "kill"); awardBattleXP(); sfx("win", 900); syncBGM(); refreshBattle(); return true; }
   if(!b.units.some(u=>isPcCritter(u) && !u.dead && !u.down)){ stashSteed(); b.result = "lose"; blog("四隻都昏迷了……", "kill"); sfx("lose", 900); syncBGM(); refreshBattle(); return true; }   // 四隻都昏迷＝輸（10-09）
   return false;
 }
@@ -1034,7 +1035,7 @@ function doSkillNow(u, sk, t){
   b.empower = cantrip && emBonus>0 && passiveSkills(u).some(s=>s.key==="empowered_cantrip") ? {by:u.id, bonus:emBonus, hit:new Set()} : null;
   b.meleeBy = null; sk.impl.run(u, t);
   b.empower = null; b.careful = null;
-  if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
+  if(doubleStrikes(u, sk, t)){ b.markHit = null; blog(`　${u.side==="foe" ? learnedSkillByKey("double_strike").def.name : skillLabel(learnedSkillByKey("double_strike").def)}：再攻擊一次`, "skill"); sk.impl.run(u, t); }
   b.markHit = null;                          // 狩印追加傷害只算這一招裡的那一擊
   b.meleeBy = null;                          // 敲暈：這一招結束就不算近戰了
   b.up = 0; b.tier = 0; b.upBy = null; b.upDice = 0; panelEnd();

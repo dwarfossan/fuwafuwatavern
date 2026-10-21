@@ -39,5 +39,6 @@ function worldChestStage(){
 }
 function startWorldMimic(){
  const e=state.worldChest;if(e?.status!=='mimic'||state.page!=='story'||state.scene!=='worldChest'||state.line!==worldChestScript().length-1)return;
- e.status='fighting';BATTLES.worldMimic.foes[0].rarity=e.rarity;state.page='battle';state.scout=null;startBattle('worldMimic');render();window.scrollTo(0,0);
+ e.status='fighting';BATTLES.worldMimic.foes[0].rarity=e.rarity;{const q=state.travel?.quest&&questById(state.travel.quest);BATTLES.worldMimic.grudgeLink=q?q.link:null;}   // 記仇（10-21）：在哪條路上打的
+ state.page='battle';state.scout=null;startBattle('worldMimic');render();window.scrollTo(0,0);
 }
