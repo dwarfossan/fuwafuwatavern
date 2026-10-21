@@ -61,8 +61,10 @@ function grudgeShoutAll(){
   b.units.filter(u=>u.side==="foe" && u.grudge && !u.grudgeShouted && !u.dead && !u.down && !foeHid(u) && inCombat(u)).forEach((u,i)=>{
     u.grudgeShouted = true;
     const by = b.units.find(v=>v.id===u.grudgeBy), byName = by ? by.name : "你們", list = GRUDGE.shout[grudgeCat(u.type)] || GRUDGE.shout.beast;
+    // 怪物不知道毛毛們的名字（大爺 10-21）：喊話用「白虎」「狐狸」這種叫法；旁白紀錄才用名字
+    const crit = by && CRITTERS.find(c=>c.id===by.id), bySeen = crit ? crit.kind.replace(/^小/, "") : GRUDGE.byUnknown;
     blog(GRUDGE.shoutLog.replace("{name}", u.name).replace("{by}", byName), "kill");
-    say(u, list[Math.floor(Math.random()*list.length)].replaceAll("{by}", byName), 400 + i*1500);
+    say(u, list[Math.floor(Math.random()*list.length)].replaceAll("{by}", bySeen), 400 + i*1500);
   });
 }
 function grudgeLineHTML(v){
