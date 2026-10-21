@@ -9,10 +9,12 @@ const GRUDGE = {
   table:[[1,1,"dead"],[2,5,"retire"],[6,10,"gone"],[11,15,"return"],[16,18,"gang"],[19,19,"train"],[20,20,"grateful"]],
   // 種類：人形／野獸／不死魔物（沒寫的當野獸）
   category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
-    skeleton:"undead",skeleton_archer:"undead",zombie:"undead",ghost:"undead",lich:"undead",death_knight:"undead",dk_horse:"undead"},
+    // 不死：有智慧的才會說話（大爺 10-21）＝幽靈、巫妖、死亡騎士；骷髏、殭屍、骷髏戰馬沒腦子，只有動作
+    ghost:"undead",lich:"undead",death_knight:"undead",
+    skeleton:"mindless",skeleton_archer:"mindless",zombie:"mindless",dk_horse:"mindless"},
   // 回來時變多強：每回來一次等級 +1、血量 +25%；閉關苦練再多 +1 級、AC +1，沒有天生技能的學一招（看種類）
   hpPer:.25, trainAc:1, xpPer:.5,
-  trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail"},
+  trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail", mindless:"undead_fortitude"},
   // 傷疤造型（js/art/scars.js）只有這些頭畫得上；其他怪物先只有綽號、狀態卡那行
   scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : null,
   // 綽號：照最後一道傷疤
@@ -35,6 +37,11 @@ const GRUDGE = {
       "（認出{by}，齜牙咧嘴地低吼，口水滴了一地）",
       "（盯著{by}，全身的毛都豎了起來，喉嚨裡滾著怒吼）",
       "（嗅到{by}的味道，發狂似地撞斷了身邊的樹枝）"
+    ],
+    mindless:[
+      "（喀啦喀啦——骨頭全轉向{by}，下巴不停地開合）",
+      "（認出{by}，發出沒有意義的低吼，拖著腳步直直衝過來）",
+      "（身上還留著上次的傷，空洞的眼睛死盯著{by}）"
     ],
     undead:[
       "……{by}……臭毛球……我從墳裡爬回來……就是為了你……",

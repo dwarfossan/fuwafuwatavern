@@ -74,7 +74,7 @@ function grudgeTravelChat(tr){
   const g = (state.grudges||[]).find(g=>g.status==="news"); if(!g || (tr && tr.grudgeTold)) return null;
   if(tr) tr.grudgeTold = true;
   g.status = "done";
-  const name = ENEMIES[g.type]?.name || "", cat = grudgeCat(g.type), src = (g.kind==="grateful" ? GRUDGE.grateful : GRUDGE.retire)[cat];
+  const name = ENEMIES[g.type]?.name || "", cat = grudgeCat(g.type), news = g.kind==="grateful" ? GRUDGE.grateful : GRUDGE.retire, src = news[cat] || news.undead;   // 沒腦子的不死用不死那套旁白
   const lines = src.map(l=>({...l, text:l.text.replaceAll("{type}", name)}));
   if(g.kind==="grateful"){ CRITTERS.forEach(c=>{ state.gold[c.id] = (state.gold[c.id]||0) + GRUDGE.giftGold*GP; }); lines.push({who:"narr", text:GRUDGE.giftLog.replace("{g}", GRUDGE.giftGold)}); }
   return {lines};
