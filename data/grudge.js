@@ -1,14 +1,16 @@
 /* 被敲暈的敵人之後怎麼了（大爺 10-21）：文字、數字全部暫定（draft：香香）
    委託裡被敲暈的敵人，打完（贏或撤退）各擲 1d20，結果不顯示，等事情發生才知道；跟劇情有關的不擲（梟熊媽媽、梟熊寶寶）
-   1：傷太重沒走出來　2–5：不幹了　6–10：就這樣逃走了　11–15：記仇回來　16–18：記仇＋找幫手　19：閉關苦練　20：回心轉意來報恩
+   1：傷太重沒走出來（對牠最慘）　2：回心轉意來報恩　3–5：不幹了　6–10：就這樣逃走了　11–15：記仇回來　16–18：記仇＋找幫手　19：閉關苦練　20：進化（對牠最好，大爺 10-21）
    回來的仇人混進同一條路上之後的委託；再被敲暈就再擲一次（傷疤疊上去），最多回來 3 次；打死就結束 */
 const GRUDGE = {
   draft:"香香",
   maxReturns:3,
   // d20 → 結果
-  table:[[1,1,"dead"],[2,5,"retire"],[6,10,"gone"],[11,15,"return"],[16,18,"gang"],[19,19,"train"],[20,20,"grateful"]],
+  table:[[1,1,"dead"],[2,2,"grateful"],[3,5,"retire"],[6,10,"gone"],[11,15,"return"],[16,18,"gang"],[19,19,"train"],[20,20,"evolve"]],
+  // 進化：一次只升一階；表裡沒有下一階的，照 19 閉關苦練算（之後補怪物再接）
+  evolve:{goblin:"goblin_hero", goblin_archer:"goblin_hero", goblin_hero:"goblin_chief", orc:"orc_hero", orc_hero:"orc_chief"},
   // 種類：人形／野獸／不死魔物（沒寫的當野獸）
-  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
+  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
     // 不死：有智慧的才會說話（大爺 10-21）＝幽靈、巫妖、死亡騎士；骷髏、殭屍、骷髏戰馬沒腦子，只有動作
     ghost:"undead",lich:"undead",death_knight:"undead",
     skeleton:"mindless",skeleton_archer:"mindless",zombie:"mindless",dk_horse:"mindless"},

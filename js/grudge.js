@@ -25,7 +25,8 @@ function grudgeRollAll(b){
     if(g){ g.scars.push(scar); g.kind = kind; g.roll = r; g.by = scar.by || g.by; }
     else { g = {id:`g${Date.now().toString(36)}${Math.floor(Math.random()*1e4)}`, type:u.type, look:u.baseLook || u.look, link, kind, roll:r, scars:[scar], by:scar.by, returns:0};
       state.grudges.push(g); }
-    g.status = ["return","gang","train"].includes(kind) ? (g.returns >= GRUDGE.maxReturns ? "done" : "pending") : ["retire","grateful"].includes(kind) ? "news" : "done";
+    if(kind==="evolve"){ const next = GRUDGE.evolve[g.type]; if(next && ENEMIES[next]){ g.evolvedFrom = g.type; g.type = next; g.look = ENEMIES[next].look; } else g.kind = "train"; }   // 進化：升一階（沒有下一階＝閉關苦練）
+    g.status = ["return","gang","train","evolve"].includes(g.kind) ? (g.returns >= GRUDGE.maxReturns ? "done" : "pending") : ["retire","grateful"].includes(kind) ? "news" : "done";
   });
 }
 // 委託開場：同一條路上等著回來的仇人（一次最多一個）→ 加進敵人名單，找幫手的多帶兩個同種的
