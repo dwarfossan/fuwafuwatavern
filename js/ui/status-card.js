@@ -67,7 +67,7 @@ function statusCardHTML(v, b, embedded=false){
   const indicatorLayout=statusIndicatorLayout([...shownStatus,...plainStatus],28),groupedStatus=indicatorLayout.rows;
   const statusBadgeHTML=(shownStatus.length||plainStatus.length)?`<div class="status-unit-badges" style="${indicatorLayout.style}">${groupedStatus.map(row=>`<div class="status-badge-row" data-status-row="${row.good?"good":"bad"}" aria-label="${row.good?"正面狀態":"負面狀態"}">${row.items.map(x=>`<button class="status-unit-badge ${x.icon?"":"plain "}${x.good?"good":"bad"} ${b.statusTip===x.key?"on":""}" data-statustip="${x.key}" aria-label="${x.label}" style="--status-item-width:${x.width}px">${x.icon?`<svg viewBox="0 0 20 20">${statusIndicatorFace(x)}</svg>`:x.label}</button>`).join("")}</div>`).join("")}</div>`:"";
   const statusPop=b.statusTip?(()=>{const x=statusItems.find(y=>y.key===b.statusTip);return x?`<div class="status-pop"><b>${x.label}</b><br>${rulesHTML(x.desc)}</div>`:""})():"";
-  // 狀態卡的紙娃娃朝左：這裡畫朝右（face:1），CSS 的 .status-paper .inf-doll>svg 整張翻過來
+  // 狀態卡的紙娃娃朝右（10-21 統一規格：原圖朝右，不再用 CSS 翻）；主手、副手兩格照手的位置排
   const doll=isPcCritter(v)?`<div class="inf-doll ${v.frenzy?"frenzy":""}"><svg viewBox="-20 -10 180 170" width="150" height="145">${statusDollSVG(v)}</svg></div>`:"";
   const page=isPcCritter(v)?(b.infoPage||"status"):"status";
   const tabs=isPcCritter(v)?`<div class="gear-tabs"><button class="gear-tab ${page==="status"?"on":""}" data-infopage="status">狀態</button><button class="gear-tab ${page==="notes"?"on":""}" data-infopage="notes">小筆記</button></div>`:"";

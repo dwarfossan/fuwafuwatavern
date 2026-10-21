@@ -21,7 +21,7 @@ try{
  await pg.waitForTimeout(400);await pg.screenshot({path:'/tmp/level-up-explore.png'});
  await pg.waitForTimeout(2600);assert.equal(await pg.locator('.dl-level-aura').count(),0);assert.equal(await pg.locator('.dl-cheer').count(),0);assert.equal(await pg.locator('.level-button.ready').count(),1);
  await pg.evaluate(()=>{state.battle=null;state.page='town';state.townPlace=null;render();});
- await pg.locator('[data-info="fox"]').click();assert.equal(await pg.locator('.character-status-card .status-paper .inf-doll>svg').count(),1);assert.match(await pg.locator('.character-status-card .status-paper .inf-doll>svg').evaluate(el=>getComputedStyle(el).transform),/matrix\(-1,/);assert.equal(await pg.locator('[data-levelup="fox"]').count(),1);
+ await pg.locator('[data-info="fox"]').click();assert.equal(await pg.locator('.character-status-card .status-paper .inf-doll>svg').count(),1);assert.match(await pg.locator('.character-status-card .status-paper .inf-doll>svg').evaluate(el=>getComputedStyle(el).transform),/^none$/);/* 10-21 統一朝右：紙娃娃不再用 CSS 翻 */assert.equal(await pg.locator('[data-levelup="fox"]').count(),1);
  await pg.evaluate(()=>{window.__keep=[...document.querySelectorAll('.modal-back,.status-paper,.status-abilities,.status-loadout')];});
  await pg.locator('[data-levelup="fox"]').click();assert.equal(await pg.evaluate(()=>critterLevel('fox')),3);
  // 10-10：升級只換卡上會變的部分，外框／裝備格／六圍不重建（重建會重播打開視窗的淡入＝閃一下）
@@ -29,7 +29,7 @@ try{
  await pg.waitForTimeout(400);await pg.screenshot({path:'/tmp/level-up-town.png'});
  await pg.waitForTimeout(2600);assert.equal(await pg.locator('.dl-level-aura').count(),0);assert.equal(await pg.locator('.level-button.ready').count(),0);assert.equal(await pg.evaluate(()=>window.__keep.every(n=>n.isConnected)),true);
  await pg.evaluate(()=>{state.modal=null;state.page='story';state.scene='caravan';state.line=0;state.modal={kind:'character',id:'fox'};gainXP(['fox'],1800);render();});
- assert.equal(await pg.locator('.character-status-card .status-paper .inf-doll>svg').count(),1);assert.match(await pg.locator('.character-status-card .status-paper .inf-doll>svg').evaluate(el=>getComputedStyle(el).transform),/matrix\(-1,/);
+ assert.equal(await pg.locator('.character-status-card .status-paper .inf-doll>svg').count(),1);assert.match(await pg.locator('.character-status-card .status-paper .inf-doll>svg').evaluate(el=>getComputedStyle(el).transform),/^none$/);
  await pg.locator('[data-levelup="fox"]').click();assert.equal(await pg.evaluate(()=>critterLevel('fox')),4);
  await pg.evaluate(()=>{state.xp.fox=999999;state.level.fox=20;render();});assert.equal(await pg.locator('.level-button.ready').count(),0);assert.equal(await pg.evaluate(()=>levelUp('fox')),false);
  assert.deepEqual(errs,[]);console.log('✓ 手機點擊：戰鬥鎖定、探索／城鎮／劇情手動升級、資料同步、保留已用格與傷勢、共用歡呼光暈到期移除、逐級與滿級');
