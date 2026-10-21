@@ -72,7 +72,7 @@ function startBattle(id, retry=false, phase="combat"){
       id:c.id, side:"pc", name:c.name, color:c.color,
       x:def.party[i][0], y:def.party[i][1], hp, maxHp:hp, scores, mods, level:lv, xp:critterXP(c.id),
       ...Equipment.read(c.id),items:[],
-      speed:6, statuses:mealStatus(c.id), learned:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).map(x=>({...x})), activeSkills:raceFreeKeys(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id]:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key)), down:false, face:-1, oaUsed:false
+      speed:6, statuses:mealStatus(c.id), learned:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).map(x=>({...x})), activeSkills:raceFreeKeys(state.activeSkills&&state.activeSkills[c.id]?state.activeSkills[c.id]:raceFreeNotes(state.learned&&state.learned[c.id]?state.learned[c.id]:starterNotes(c.id)).slice(0,5).map(x=>x.key)), down:false, face:1, oaUsed:false
     });
   });
   def.foes.forEach((f,i)=>{
@@ -87,7 +87,7 @@ function startBattle(id, retry=false, phase="combat"){
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
       born: weapon ? weapon.n : null,                 // 開場拿的武器（台詞用：「拿棍子的倒了」）
       learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])],
-      speed:e.speed, statuses:[], level:e.level||1, down:false, face:1, oaUsed:false
+      speed:e.speed, statuses:[], level:e.level||1, down:false, face:-1, oaUsed:false
     });
     if(f.grudge) applyGrudgeUnit(units[units.length-1], f.grudge);   // 回來報仇的（10-21，js/grudge.js）
     // 騎乘出場（10-20）：坐騎是同一格的另一個敵人，騎士掛在牠身上
@@ -98,7 +98,7 @@ function startBattle(id, retry=false, phase="combat"){
         x:f.x, y:f.y, hp:m.hp, maxHp:m.hp, scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac, testSkill:null, testSkillUsed:false,
         resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])], vulnerabilities:[...(m.vulnerabilities||[])],
         weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpackEquip:null, backpack:[], born:null,
-        learned:[], activeSkills:[], speed:m.speed, statuses:[], level:m.level||1, down:false, face:1, oaUsed:false, riderId:r.id
+        learned:[], activeSkills:[], speed:m.speed, statuses:[], level:m.level||1, down:false, face:-1, oaUsed:false, riderId:r.id
       });
       r.mountId = r.steedId = r.id+"m";   // steedId：自己的坐騎，摔下來之後還認得
     }
@@ -356,7 +356,7 @@ function checkExposure(){
 const baned = u => { const s = has(u,"bane"); return !!(s && B().units.some(v=>v.id===s.src && !v.dead && !v.down)); };
 const cur = () => B().units[B().turn];
 // 面向目標（畫面上的左右）
-function faceTo(u, t){ const sx = (t.x-t.y)-(u.x-u.y); if(sx) u.face = sx>0 ? 1 : -1; }
+function faceTo(u, t){ const sx = (t.y-t.x)-(u.y-u.x); if(sx) u.face = sx>0 ? 1 : -1; }   // 畫面 x＝y−x（10-21 左右對調）
 // 動作與打中時間：施放技能時設定 B().impact，這段時間後傷害數字、受傷、特效才出現
 const impactAt = () => Date.now() + (B().impact||0);
 

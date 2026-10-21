@@ -102,7 +102,7 @@ function exploreMove(x,y,done){
    const travel=Math.min(d,speed*dt),t={x:v.x+dx/d*travel,y:v.y+dy/d*travel};
    if(!exploreSegmentClear(v,v,t)){remaining=true;continue;}
    const prev={x:mapCell(v.x),y:mapCell(v.y)};v.x=travel===d?m.target.x:t.x;v.y=travel===d?m.target.y:t.y;v.exploreWalking=true;
-   if(dx-dy)v.face=dx-dy>0?1:-1;moved=true;remaining ||= travel<d;
+   if(dy-dx)v.face=dy-dx>0?1:-1;moved=true;remaining ||= travel<d;
    if(prev.x!==mapCell(v.x)||prev.y!==mapCell(v.y)){
     if(v===u)b.exploreSteps++;sfx("step");
     if(!groundEnter(v,{})||exploreTraps(v)){stop();return;}

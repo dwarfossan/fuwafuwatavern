@@ -103,7 +103,7 @@ function owlbearHuntBattle(q){
   for(let r=1; r<=4 && !spot; r++) for(let dx=-r; dx<=r && !spot; dx++) for(let dy=-r; dy<=r && !spot; dy++){
     const x = f0.x+dx, y = f0.y+dy; if(x<0||y<0||x>=d.w||y>=d.h||used.has(`${x},${y}`)) continue; spot = {x, y};
   }
-  if(spot) d.npcs.push({type:"owlbear_cub", x:spot.x, y:spot.y, face:-1});
+  if(spot) d.npcs.push({type:"owlbear_cub", x:spot.x, y:spot.y, face:1});
   d.quest = q.id; d.questStars = 1; d.questHome = questHome(q); d.after = "questDone"; d.owlbearHunt = true;
   return d;
 }

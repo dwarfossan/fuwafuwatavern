@@ -192,7 +192,7 @@ function walk(u, path, done){
     const prev = {x:u.x, y:u.y}, dragged = victimsOf(u);
     u.x = path[i].x; u.y = path[i].y; i++; syncMount(u);
     dragged.forEach(v=>{ const vp = {x:v.x, y:v.y}; v.x = prev.x; v.y = prev.y; faceTo(v, u); });
-    { const sx=(u.x-u.y)-(prev.x-prev.y); if(sx) u.face = sx>0?1:-1; }
+    { const sx=(u.y-u.x)-(prev.y-prev.x); if(sx) u.face = sx>0?1:-1; }
     syncMount(u);
     u.anim = {k:"hop", t:Date.now()}; sfx("step");
     if(!groundEnter(u,groundMove)){refreshBattle();done?.(i);return;}

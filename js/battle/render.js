@@ -6,7 +6,8 @@ const TREE_K = 1.5, WAGON_K = 1.4;   // 樹、篷車的放大倍率（原本照 
 const iconSVG = (k, size=16) => `<svg viewBox="-14 -14 148 148" width="${size}" height="${size}" aria-hidden="true">${ITEM_ART[k]||""}</svg>`;
 
 // 格子座標 → 畫面座標；會加上那格的高度（一層往上 HZ 像素），站在上面的東西都跟著抬高
-function iso(x, y){ const d=B().def; return {x:(x-y)*TW/2 + d.h*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
+// 10-21 大爺：畫面左右對調（毛毛們從畫面左邊進來、朝右）。畫面 x 改成 (y−x)，座標本身不變；反推格子見 screenTile／探索點擊
+function iso(x, y){ const d=B().def; return {x:(y-x)*TW/2 + d.w*TW/2, y:(x+y)*TH/2 + 130 - hAt(x,y)*HZ}; }
 // 探索連續座標的呈現高度：格子中心間平滑銜接，只影響角色與HUD，不改攀爬成本。
 function unitIso(v){
  const p=iso(v.x,v.y),n=footOf(v);if(n>1){p.y+=(n-1)*TH/2;p.y-=(bodyH(n,v.x,v.y)-hAt(v.x,v.y))*HZ;}   // 多格的畫在整塊的正中間（10-20）；跨高度照最高那格站（10-21）
@@ -80,7 +81,7 @@ function boardFloorHTML(){
   // 凸起的格子：頂面（高亮、點擊都在這裡）＋朝畫面前方的兩面山壁（往下畫到前面那格的高度）
   const columnSVG = (x,y) => {
     const k=`${x},${y}`, p=iso(x,y), h=hAt(x,y), L=p.x-TW/2, R=p.x+TW/2, M=p.y+TH/2, Bt=p.y+TH;
-    const dl = (h - hAt(x,y+1))*HZ, dr = (h - hAt(x+1,y))*HZ;   // 左前、右前那格比這格低多少
+    const dl = (h - hAt(x+1,y))*HZ, dr = (h - hAt(x,y+1))*HZ;   // 左前、右前那格比這格低多少（10-21 左右對調後：左前＝x+1、右前＝y+1）
     const strata = (x1,y1,x2,y2,dd) => [1,2].filter(i=>i*HZ/2 < dd).map(i=>`<path d="M${x1} ${y1+i*HZ/2} L${x2} ${y2+i*HZ/2}" stroke="#5e4630" stroke-width="2" opacity=".55"/>`).join("");
     return `<g id="floor-wall-${x}-${y}" class="cliff">
       ${dl>0 ? `<polygon points="${L},${M} ${p.x},${Bt} ${p.x},${Bt+dl} ${L},${M+dl}" fill="#9a7650" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>${strata(L,M,p.x,Bt,dl)}` : ""}
@@ -91,7 +92,7 @@ function boardFloorHTML(){
     const p=iso(x,y), h=hAt(x,y), L=p.x-TW/2, R=p.x+TW/2, M=p.y+TH/2, Bt=p.y+TH;
     return `<g>
       <polygon points="${diamond(x,y)}" fill="#fffbe8" opacity="${Math.min(.24, h*.08)}" pointer-events="none"/>
-      ${[[hAt(x-1,y),L,M,p.x,p.y],[hAt(x,y-1),p.x,p.y,R,M],[hAt(x+1,y),R,M,p.x,Bt],[hAt(x,y+1),p.x,Bt,L,M]]
+      ${[[hAt(x,y-1),L,M,p.x,p.y],[hAt(x-1,y),p.x,p.y,R,M],[hAt(x,y+1),R,M,p.x,Bt],[hAt(x+1,y),p.x,Bt,L,M]]
         .filter(e=>e[0]<h).map(e=>`<path d="M${e[1]} ${e[2]} L${e[3]} ${e[4]}" stroke="#2a2630" stroke-width="2" stroke-linecap="round" pointer-events="none"/>`).join("")}
       </g>`;
   };
@@ -391,8 +392,8 @@ function koToggleHTML(u){
 function screenTile(e){
   const b = B(), d = b.def, q = wrapXY(e), z = camZoom(), c = b.cam || {x:0, y:0};
   for(const h of [3,2,1,0]){
-    const sx = ((q.x-c.x)/z - d.h*TW/2)/(TW/2), sy = ((q.y-c.y)/z - 130 - TH/2 + h*HZ)/(TH/2);
-    const x = Math.round((sx+sy)/2), y = Math.round((sy-sx)/2);
+    const sx = ((q.x-c.x)/z - d.w*TW/2)/(TW/2), sy = ((q.y-c.y)/z - 130 - TH/2 + h*HZ)/(TH/2);   // sx＝y−x、sy＝x+y
+    const x = Math.round((sy-sx)/2), y = Math.round((sy+sx)/2);
     if(x>=0 && y>=0 && x<d.w && y<d.h && (hAt(x,y)===h || !h)) return {x, y};
   }
   return null;
@@ -503,8 +504,8 @@ function initBoardDrag(){
       if(B().phase==="explore" && d.unit){
         if(!B().busy&&!B().exploreStopped){B().info=B().info===d.unit?null:d.unit;refreshBattle();}
       }else if(B().phase==="explore" && !unitAt(x,y) && !exploreObjectAt(x,y)){
-        const q=wrapXY(e),b=B(),z=camZoom(),sx=((q.x-b.cam.x)/z-b.def.h*TW/2)/(TW/2),sy=((q.y-b.cam.y)/z-130-TH/2+hAt(x,y)*HZ)/(TH/2);
-        const px=(sx+sy)/2,py=(sy-sx)/2;
+        const q=wrapXY(e),b=B(),z=camZoom(),sx=((q.x-b.cam.x)/z-b.def.w*TW/2)/(TW/2),sy=((q.y-b.cam.y)/z-130-TH/2+hAt(x,y)*HZ)/(TH/2);
+        const px=(sy-sx)/2,py=(sy+sx)/2;   // 10-21 左右對調：sx＝y−x
         exploreClick(Math.max(x-.45,Math.min(x+.45,px)),Math.max(y-.45,Math.min(y+.45,py)));
       }else clickTile(x,y);
     }

@@ -142,8 +142,8 @@ console.log('規則');
     // 大地圖：方向、回程路線
     o.map = WORLD.locations.find(l=>l.id==='tavern').x > WORLD.locations.find(l=>l.id==='cave').x;
     const p1=roadPoint('tavern','town',.3), p2=roadPoint('town','tavern',.7); o.road = Math.abs(p1.x-p2.x)<1e-6 && Math.abs(p1.y-p2.y)<1e-6;
-    // 戰場方向：四小隻在右、朝左
-    o.dir = b.def.party.every(([x,y])=>x===15) && fox.face===-1;
+    // 戰場方向：四小隻在畫面左邊、朝右（10-21 大爺：全部改朝右）
+    { const foe=b.units.find(u=>u.side==='foe'); o.dir = iso(fox.x,fox.y).x < iso(foe.x,foe.y).x && fox.face===1 && foe.face===-1; }
     return o;
   });
   ok('爬兩層山壁花 4 格', r.climb===4, r.climb);
@@ -164,7 +164,7 @@ console.log('規則');
   ok('投擲物照物品換圖', r.proj.join()==='flask_fire,flask_acid,net,dagger', r.proj);
   ok('大地圖酒館在右、洞窟在左', r.map);
   ok('回程路線跟去程同一條路', r.road);
-  ok('戰場四小隻在右、朝左', r.dir);
+  ok('戰場四小隻在左、朝右', r.dir);
 
   // 觀察學習：DC 5＋怪物等級、向玲玲學用招式原本的等級
   const r2 = await pg.evaluate(()=>{
