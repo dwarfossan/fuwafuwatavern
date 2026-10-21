@@ -24,9 +24,9 @@ function exploreDetect(){
  const pcs=[exploreUnit()].filter(Boolean),foes=b.units.filter(u=>u.side==="foe"&&!u.fled&&!u.dead&&!u.down);b.exploreMarks={};[...pcs,...foes].forEach(u=>groundDetect(u));
  b.exploreAwareness=Object.fromEntries([...pcs,...foes].map(u=>[u.id,(u.side==="pc"?foes:pcs).filter(t=>exploreAware(u,t)).map(t=>t.id)]));
  // 我方也用同一條遮擋檢查；察覺範圍沿用移動格數、比較被動感知。
- for(const p of pcs)for(const e of foes)if(isHid(e)&&dist(p,e)<=senseRange(p)&&exploreSight(p,e)&&passivePer(p)>=has(e,"hidden").val)exploreReveal(e,p);
- for(const p of pcs){let alert=0;for(const e of foes){const range=ENEMIES[e.type].detectRange,d=dist(p,e);if(d>range+1||!exploreSight(e,p))continue;alert=Math.max(alert,1);
-   if(d<=range&&(!isHid(p)||passivePer(e)>=has(p,"hidden").val)){
+ for(const p of pcs)for(const e of foes)if(isHid(e)&&dist(p,e)<=senseRange(p)&&exploreSight(p,e)&&passivePerAt(p,e)>=has(e,"hidden").val)exploreReveal(e,p);
+ for(const p of pcs){let alert=0;for(const e of foes){const range=ENEMIES[e.type].detectRange+(torchSeen(p)?6:0),d=dist(p,e);if(d>range+1||!exploreSight(e,p))continue;alert=Math.max(alert,1);
+   if(d<=range&&(!isHid(p)||passivePerAt(e,p)>=has(p,"hidden").val)){
      alert=2;if(isHid(p))exploreReveal(p,e);if(isHid(e))reveal(e,"發現了小隊，現身！");b.exploreStopped=true;b.discoveredBy=e.id;
    }}b.exploreMarks[p.id]=alert;}
  if(b.exploreStopped){b.busy=false;if(b.exploreStopReason!=="trap")enterExploreCombat(b.discoveredBy,false);}
@@ -124,7 +124,7 @@ function exploreMove(x,y,done){
 function exploreClick(x,y){const b=B();if(b.busy||b.exploreStopped)return;if(b.mode?.key==="placeBarrel"){placeBarrel(Math.round(x),Math.round(y));return;}const o=exploreObjectAt(Math.round(x),Math.round(y));if(o){exploreApproach(o);return;}const t=b.units.find(v=>!(v.side==="pc"&&v!==exploreUnit())&&!v.dead&&!v.fled&&mapCell(v.x)===mapCell(x)&&mapCell(v.y)===mapCell(y));
  if(t&&!foeHid(t)){b.info=b.info===t.id?null:t.id;refreshBattle();return;}exploreMove(x,y);
 }
-function exploreCmd(c){if(c==="act"||c==="actBack"){B().exploreMenu=c==="act"?"act":null;refreshBattle();return;}if(c==="actSearch"){const b=B();b.exploreMenu=null;doSearch(exploreUnit(),null);refreshBattle();return;}if(c==="actSteal"){exploreSteal();return;}if(c==="leave"){askRetreat();return;}if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="hide")exploreHide();}
+function exploreCmd(c){if(c==="torch"){toggleTorch();return;}if(c==="act"||c==="actBack"){B().exploreMenu=c==="act"?"act":null;refreshBattle();return;}if(c==="actSearch"){const b=B();b.exploreMenu=null;doSearch(exploreUnit(),null);refreshBattle();return;}if(c==="actSteal"){exploreSteal();return;}if(c==="leave"){askRetreat();return;}if(c==="place"){beginBarrelPlacement();return;}if(c==="cancelPlace"){B().mode=null;refreshBattle();return;}if(c==="combat"){enterExploreCombat(null,true);return;}if(c==="return"){if(B().manualCombat&&!alive("foe").length)finishExploreCombat();return;}if(c==="rest"){const b=B();if(!b.busy&&!b.exploreStopped){b.exploreRest=!b.exploreRest;refreshBattle();}return;}if(c==="resume"){const b=B();if(b.exploreStopReason!=="trap")return;b.exploreStopped=false;b.exploreStopReason=null;if(!exploreParty().length){enterExploreCombat(null,true);b.manualCombat=false;return;}if(!exploreParty().some(u=>u.id===b.leader)){b.leader=exploreParty()[0].id;b.exploreSolo=null;b.turn=b.units.findIndex(u=>u.id===b.leader);}exploreDetect();refreshBattle();return;}if(c==="close"){B().exploreObject=null;refreshBattle();return;}if(EXPLORE_ACTION_TEXT[c]){exploreInteract(c);return;}if(c==="hide")exploreHide();}
 
 // 互動不另開頁面：選單在原指令列，物件在 blocks，傷害仍走 hurt。
 const exploreObjectAt=(x,y)=>B().def.blocks.find(o=>o.x===x&&o.y===y&&EXPLORE_OBJECTS[o.kind]&&(o.kind!=="trap"||o.found)&&!o.disarmed&&!(o.kind==="clue"&&o.done));   // 調查過的不再跳選單（10-21）
@@ -138,7 +138,7 @@ function exploreApproach(o){
 }
 function exploreTraps(u){
  const b=B();let hit=false;for(const o of b.def.blocks.filter(o=>o.kind==="trap"&&!o.disarmed)){
-  if(!o.found&&[exploreUnit()].filter(Boolean).some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePer(p)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
+  if(!o.found&&[exploreUnit()].filter(Boolean).some(p=>dist(p,o)<=senseRange(p)&&exploreSight(p,o)&&passivePerAt(p,o)>=EXPLORE_CHECKS.trapDC)){o.found=true;blog(EXPLORE_ACTION_TEXT.foundTrap);}
   if(u&&u.side==="pc"&&!u.down&&mapCell(u.x)===o.x&&mapCell(u.y)===o.y&&!o.triggered){o.found=true;o.triggered=true;o.disarmed=true;hit=true;
    if(b.phase==='explore'){b.exploreStopped=true;b.exploreStopReason="trap";b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.exploreObject=null;b.busy=false;}else b.moveRolled=true;
    blog(EXPLORE_ACTION_TEXT.trapHit);addStress(u,STRESS.trap,"踩到陷阱");hurt(u,rollDice(EXPLORE_CHECKS.trapDamage).total,EXPLORE_CHECKS.trapType,null);}
@@ -160,7 +160,9 @@ async function exploreInteract(action){
  exploreTraps();exploreDetect();refreshBattle();
 }
 
-function exploreAware(u,t){const range=u.side==="pc"?senseRange(u):ENEMIES[u.type].detectRange;return dist(u,t)<=range&&exploreSight(u,t)&&(!isHid(t)||passivePer(u)>=has(t,"hidden").val);}
+// 拿火把的人（10-21）：敵人遠遠就看得到，偵測距離 +6
+const torchSeen = t => B().units.some(v=>v.side==="pc"&&v.torch&&!v.dead&&dist(v,t)<=1);
+function exploreAware(u,t){const range=u.side==="pc"?(isHid(t)?senseRange(u):SIGHT_RANGE):ENEMIES[u.type].detectRange+(t.side==="pc"&&torchSeen(t)?6:0);return dist(u,t)<=range&&exploreSight(u,t)&&(!isHid(t)||passivePerAt(u,t)>=has(t,"hidden").val);}
 // 就近對齊所有單位；限制同高度、原地面種類且線段不能穿障礙，不給額外移動利益。
 function exploreAlignmentClear(u,t){
  if(!exploreSegmentClear(u,u,t,false))return false;
@@ -228,4 +230,13 @@ function engageExploreSquad(target,attacker=null){
 function detectTurnEnemies(){const b=B();if(!b.explorationMap||b.phase!=="combat")return;
  const pcs=b.units.filter(u=>u.side==="pc"&&!u.dead&&!u.down);
  for(const e of b.units.filter(u=>u.side==="foe"&&!u.combatActive&&!u.dead&&!u.down&&!u.fled))if(pcs.some(p=>exploreAware(e,p)))engageExploreSquad(e);
+}
+// 火把（大爺 10-21）：暗的地圖才有這顆；隊上帶著火把（或套組裡有）就能點。點的是現在這隻，佔一隻手：盾牌、副手武器先不算
+const torchMenuOk = () => { const b=B(); return !!(b && b.def.lighting && b.def.lighting!=="bright" && exploreParty().some(u=>hasGear([u.backpackEquip,...u.backpack].filter(Boolean),"火把"))); };
+function toggleTorch(){
+  const b=B(); if(b.busy || !b.explorationMap) return;   // 戰鬥中也能熄掉（開戰前點的）
+  const lit=b.units.find(v=>v.torch);
+  if(lit){ lit.torch=false; if(lit.torchShield){ lit.shield=true; lit.torchShield=false; } blog(EXPLORE_UI.torchOut); }
+  else { const u=exploring() ? exploreUnit() : null; if(!u) return; u.torch=true; if(u.shield){ u.torchShield=true; u.shield=false; } blog(EXPLORE_UI.torchLit.replace("{who}",u.name), "skill"); }
+  if(exploring()) exploreDetect(); refreshBattle();
 }

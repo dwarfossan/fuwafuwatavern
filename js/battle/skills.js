@@ -44,12 +44,24 @@ function toggleCarriedSkill(u,key){
 }
 function passiveSkills(u){return carriedSkillKeys(u).map(learnedSkillByKey).filter(isPassiveSkill);}
 const darkvisionRange=u=>Math.max(u.side==="pc"?RACE.darkvision:0,...passiveSkills(u).map(s=>s.def.darkvision||0));   // 小傢伙＝毛球族天生（10-10）；敵人照被動
-// 場景未指定光照時沿用明亮；不自訂日夜循環／火把半徑。
-function visionAt(u,t,light=B()?.def.lighting||"bright"){
- if(coverOf(u,t).v>=.75)return "blocked";
- const radius=darkvisionRange(u),night=radius>0&&dist(u,t)<=radius;
+// 光照（大爺 10-21，照 SRD）：每一格自己的亮度＝地圖底色（def.lighting：bright／dim／dark，沒寫＝明亮）＋光源
+//   光源：def.lights [{x,y,bright,dim}]（火盆、壁上的火把）、拿著火把的人（亮 4 格、再外 4 格微光）、地上的火（亮 1、微光 2）
+const TORCH_LIGHT = {bright:4, dim:8};
+function lightAt(x,y){
+ const b=B(), d=b?.def, base=d?.lighting||"bright"; if(base==="bright") return "bright";
+ let lv = base==="dim" ? 1 : 0; const cx=Math.round(x), cy=Math.round(y);
+ const src=[...(d.lights||[]), ...b.units.filter(u=>u.torch&&!u.dead&&!u.fled).map(u=>({x:Math.round(u.x),y:Math.round(u.y),...TORCH_LIGHT})), ...Object.values(b.groundEffects||{}).filter(f=>f.kind==="fire").map(f=>({x:f.x,y:f.y,bright:1,dim:2}))];
+ for(const s of src){ const dd=Math.max(Math.abs(cx-s.x),Math.abs(cy-s.y)); if(dd<=s.bright) return "bright"; if(dd<=s.dim) lv=1; }
+ return lv ? "dim" : "dark";
+}
+// 只看光（不看掩護）：bright 看清楚、dim 微光、gray 黑暗視覺看到的黑白（跟微光一樣）、blind 看不見
+function lightVision(u,t){
+ const light=lightAt(t.x,t.y), radius=darkvisionRange(u), night=radius>0&&dist(u,t)<=radius;
  return light==="dark"?(night?"gray":"blind"):light==="dim"?(night?"bright":"dim"):"bright";
 }
+function visionAt(u,t){ if(coverOf(u,t).v>=.75) return "blocked"; return lightVision(u,t); }
+// 微光／黑暗視覺裡找東西：被動感知 −5（SRD：感知檢定劣勢）
+const passivePerAt = (u,t) => passivePer(u) - (["dim","gray"].includes(lightVision(u,t)) ? 5 : 0);
 function canSeeInLight(u,t){return !["blind","blocked"].includes(visionAt(u,t));}
 
 function activeLearnedSkills(u){
@@ -122,6 +134,7 @@ function focusCantripSkill(g){
 // 副手按該武器的既有命中、傷害與彈藥規則結算，不交換角色實際裝備。
 const skillWeaponView=(u,sk)=>sk.def.turnLimit==="offhand"?{...u,weapon:u.offhand,shield:false}:u;
 function offhandAttackSkill(u){
+ if(u.torch) return null;   // 拿著火把（10-21）
  const w=u.offhand,g=w&&groupOf(w);if(!g||w.type!=="weapon")return null;
  return {key:"offhand_attack",group:g,idx:0,synthetic:true,def:{name:`副手攻擊：${w.n}`,kind:isRanged({...u,weapon:w})?"遠程":"近戰",tier:0,free:true,turnLimit:"offhand",basicAttack:true,text:"使用副手武器攻擊，每回合一次，耗一個免費動作。"},
  impl:{target:"enemy",range:u=>meleeOrRange({...u,weapon:u.offhand,shield:false}),run:(u,t)=>weaponAttack(u,t,{weapon:u.offhand,mastery:true})}};

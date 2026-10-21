@@ -205,6 +205,9 @@ SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"
  {id:"cub_pounce",name:"撲咬",innate:true,kind:"近戰",dmg:"物理",tier:0,text:"咬貼身的敵人；命中後目標力量豁免，失敗倒地（SRD 獒犬）。"},
  {id:"ghoul_claw",name:"麻痺之爪",innate:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"利爪攻擊；命中後目標體質豁免，失敗麻痺（下一回合整個跳過）。充能（SRD 食屍鬼，暫定）。"},
  {id:"vine_snare",name:"纏藤",innate:true,kind:"豁免",dmg:"",tier:0,recharge:true,text:"2 格內一個敵人敏捷豁免；失敗被藤蔓纏住（跟網子一樣，花動作力量檢定掙脫）。充能（暫定）。"},
+ {id:"wyrm_breath",name:"火焰吐息",innate:true,kind:"豁免",dmg:"火焰",tier:0,recharge:true,text:"前方 3 格錐形敏捷豁免；失敗受 7d6 火焰傷害，成功減半。充能（SRD 紅龍幼龍）。"},
+ {id:"pack_tactics",name:"圍毆",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"同伴貼著目標時，攻擊有優勢（SRD）。"},
+ {id:"sun_sensitive",name:"怕陽光",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"在明亮的地方攻擊有劣勢（SRD 陽光敏感，這裡照亮度算）。"},
  {id:"nimble",name:"靈巧脫逃",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"免費動作撤離或躲藏（每回合用免費動作那格）。"},
  {id:"darkvision",name:"黑暗視覺",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
 ]});

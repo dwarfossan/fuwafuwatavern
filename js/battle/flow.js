@@ -506,7 +506,7 @@ function reqOne(u, r){
   }
 }
 // 施法手與持武器攻擊不同：雙手武器暫時以一手持住時，另一手可做勢。
-const castHandFree = u => ((u.weapon?1:0)+(u.focus?1:0)+(u.shield?1:0)+(u.offhand?1:0)) < 2;
+const castHandFree = u => ((u.weapon?1:0)+(u.focus?1:0)+(u.shield?1:0)+(u.offhand?1:0)+(u.torch?1:0)) < 2;
 function componentProblem(u, sk){
   const c=sk.def.components;if(!c)return "";
   if(c.v && (u.silenced || u.gagged))return "無法發聲";
@@ -1190,7 +1190,7 @@ function aiTurn(e){
   if(aiSteedReturn(e)) return;                       // 敵方坐騎：主人摔下來，先回去接他（10-20，steed.js）
   if(e.special && monsterTurn(e)) return;                               // 怪物技能（10-10，monster.js）
   if(e.focus && groupOf(e.focus).id==="shaman_totem") return aiShaman(e);
-  if(e.focus && ["flame_orb","healing_book"].includes(groupOf(e.focus).id) && aiFocusCaster(e)) return;   // 森林的施法者（10-21）
+  if(e.focus && ["flame_orb","healing_book","arcane_staff"].includes(groupOf(e.focus).id) && aiFocusCaster(e)) return;   // 森林的施法者（10-21）
   const pcs = seenFoes(e);
   if(!pcs.length){ if(isHid(e)){ endTurn(); return; }
     // 看不到人：每輪一次花免費動作搜索（大爺 10-10，跟玩家同一套）；找到了就接著照常打
@@ -1317,6 +1317,9 @@ function aiFocusCaster(e){
   const fs = sp("火焰護盾"); if(fs && !has(e,"fireShield") && pcs.some(p=>dist(p,e)<=2)) return cast(fs, e);
   const bh = sp("燃燒之手"), near = pcs.filter(p=>dist(p,e)<=3).sort((a,c)=>dist(a,e)-dist(c,e))[0];
   if(bh && near && Math.random() < .7) return cast(bh, {x:near.x, y:near.y});
+  const mm = sp("魔法飛彈"), mmT = mm && pcs.filter(p=>validTarget(e, mm, p.x, p.y)).sort((a,c)=>aiHp(e,a)-aiHp(e,c))[0];   // 狗頭人法師（洞窟，10-21）
+  if(mmT) return cast(mm, foeDarts(e, mm, mmT));
+  const fb = groupOf(e.focus).id==="arcane_staff" && sp("火焰箭"); if(fb){ const R = fb.impl.range(e); if(pcs.some(p=>dist(p,e)<=R)){ aiRanged(e, pcs, R); return true; } }
   const bl = sp("祝福術"); if(bl && !e.conc && alive(e.side).filter(o=>o!==e && dist(o,e)<=6 && !has(o,"blessed")).length >= 1 && pcs.length) return cast(bl, e);
   return false;
 }

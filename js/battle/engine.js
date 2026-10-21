@@ -81,7 +81,7 @@ function startBattle(id, retry=false, phase="combat"){
     if(!retry)(state.battleSnap.foeGear ||= [])[i]=inv;
     const weapon = inv.find(it=>it.type==="weapon") || null;
     units.push({
-      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":def.forest?(def.foes.filter(g=>g.type===f.type).length>1?"ABCDEFGH"[def.foes.slice(0,i).filter(g=>g.type===f.type).length]:""):"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
+      id:"foe"+i, side:"foe", trapCharges:f.trapCharges??0, squad:f.squad, type:f.type, rarity:f.rarity, name:e.name+(f.type==="world_mimic"||def.quest&&def.foes.length===1?"":def.dungeon?(def.foes.filter(g=>g.type===f.type).length>1?"ABCDEFGH"[def.foes.slice(0,i).filter(g=>g.type===f.type).length]:""):"ABCDEFGH"[i]), look:e.look, natural:e.natural||null, special:e.special||null,
       x:f.x, y:f.y, hp:e.hp, maxHp:e.hp, scores:{...e.scores}, mods:abilityMods(e), baseAc:e.ac, testSkill:f.testSkill||null, testSkillUsed:false,
       resistances:[...(f.resistances ?? e.resistances ?? [])], damageImmunities:[...(f.damageImmunities ?? e.damageImmunities ?? [])], vulnerabilities:[...(e.vulnerabilities||[])],
       weapon, focus: inv.find(it=>it.type==="focus") || null, shield: inv.some(it=>it.type==="shield"), armor:inv.find(it=>it.type==="armor")||null, spare:[], items:[], backpackEquip:bestBag(inv), backpack:inv.filter(it=>(it.type==="gear" && it!==bestBag(inv)) || it.type==="consumable"),
@@ -171,6 +171,10 @@ const TERRAIN = {
   ford:  {name:"淺灘", solid:false, cost:2},           // 踩石頭過溪，難走
   log:   {name:"倒木", solid:false},                   // 倒下的大樹，捷徑
   clue:  {name:"可疑的東西", solid:true, cover:.5},     // 調查點（智力檢定）
+  rock:  {name:"岩壁", solid:true, cover:1},           // 洞窟（10-21）
+  rubble:{name:"塌方", solid:true, cover:1},
+  gravel:{name:"碎石路", solid:false, cost:2},
+  brazier:{name:"火盆", solid:true, cover:.25},
   bush:  {name:"草叢", solid:false, cost:2, hide:true}
 };
 const terrainAt = (x,y) => { const o = B().def.blocks.find(b=>b.x===mapCell(x)&&b.y===mapCell(y)); return o ? TERRAIN[o.kind] : null; };
@@ -305,6 +309,8 @@ function reveal(u, why){
   if(why) blog(`　${u.name}${why}`, "skill");
   if(u.side==="foe") passivePocket();             // 躲著的敵人現身：這時才第一次被看到
 }
+// 看得到多遠（大爺 10-21）：沒躲著的東西，視線沒被擋就看 12 格（跟黑暗視覺一樣）；找躲著的人、陷阱、地上的東西還是照察覺範圍
+const SIGHT_RANGE = 12;
 const senseRange = u => Math.max(0, u.speed - (u.statuses.some(s=>s.k==="slowed" && !s.stop) ? 2 : 0));   // 察覺範圍＝移動速度
 function perceive(u){
   groundDetect(u);
@@ -533,6 +539,11 @@ function attackRoll(a, t, o={}){
   if(has(a,"aiming")) { adv++; a.statuses = a.statuses.filter(s=>s.k!=="aiming"); }   // 瞄準：這回合第一次攻擊優勢（用掉就沒）
   if(has(a,"sapped")) { adv--; a.statuses = a.statuses.filter(s=>s.k!=="sapped"); }   // 削弱：下次攻擊劣勢（用掉就沒）
   if(has(a,"poisoned")) adv--;                                         // 中毒：攻擊有劣勢
+  if(passiveSkills(a).some(s=>s.key==="pack_tactics") && B().units.some(v=>v!==a && !hostile(v,a) && v.side===a.side && !v.dead && !v.down && dist(v,t)<=1)) adv++;   // 圍毆（10-21，SRD）
+  if(passiveSkills(a).some(s=>s.key==="sun_sensitive") && (!B().def.lighting || B().def.lighting==="bright" || lightAt(a.x,a.y)==="bright" || lightAt(t.x,t.y)==="bright")) adv--;   // 怕陽光（10-21）：自己或目標在亮處
+  if(B().def.lighting && B().def.lighting!=="bright"){                 // 黑暗（10-21，SRD）：看不見目標＝劣勢；目標看不見你＝優勢
+    if(lightVision(a,t)==="blind") adv--;
+    if(lightVision(t,a)==="blind") adv++; }
   // 閃避：打他有劣勢。守護給的閃避只擋第一次（用掉就沒），守護的人要還站在他旁邊
   { const dg = t.statuses.filter(s=>s.k==="dodge"), once = dg.filter(s=>s.once && !s.spent);
     let dis = dg.some(s=>!s.once);
@@ -754,7 +765,7 @@ const grapplerOf = t => { const s = grappled(t); return s && B().units.find(v=>v
 const victimsOf = u => B().units.filter(v=>!v.dead && (grappled(v)||{}).src===u.id);
 // 能不能擒抱：拿雙手武器不行（敵我都一樣）；其餘要有一隻手空著（主手武器、盾、法器各佔一隻手）
 const holdsTwoHanded = u => !!(u.weapon && u.weapon.props && u.weapon.props.includes("雙手"));
-const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (u.offhand?1:0) + (u.focus?1:0)) < 2;
+const freeHand = u => !holdsTwoHanded(u) && ((u.weapon?1:0) + (u.shield?1:0) + (u.offhand?1:0) + (u.focus?1:0) + (u.torch?1:0)) < 2;   // 火把也佔一隻手（10-21）
 // 擒抱期間（抓人的、被抓的都算）不能用雙手武器
 const inGrapple = u => !!grappled(u) || victimsOf(u).length > 0;
 const twoHandLocked = u => holdsTwoHanded(u) && inGrapple(u);

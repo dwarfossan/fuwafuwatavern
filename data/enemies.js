@@ -78,7 +78,7 @@ const ENEMIES = {
     scores:{STR:13,DEX:15,CON:10,INT:7,WIS:10,CHA:6}},
   // ===== 森林（大爺 10-21）：狼、野豬照 SRD；食人花 SRD 沒有，原創；哥布林巫師＝SRD 哥布林拿火焰法球；林間德魯伊照 SRD 德魯伊（數值暫定：香香） =====
   forest_wolf:{size:"中型",detectRange:7,name:"狼",look:"forest_wolf",gear:[],hp:11,ac:13,speed:8,xp:50,stars:1,srd:true,
-    natural:{name:"咬",dmg:"2d4 穿刺",stat:"DEX"},special:"cub_pounce",
+    natural:{name:"咬",dmg:"2d4 穿刺",stat:"DEX"},special:"cub_pounce",passives:["pack_tactics"],
     scores:{STR:12,DEX:15,CON:12,INT:3,WIS:12,CHA:6}},
   boar:{size:"中型",detectRange:5,name:"野豬",look:"boar",gear:[],hp:11,ac:11,speed:8,xp:50,stars:1,srd:true,
     natural:{name:"獠牙",dmg:"1d6 揮砍",stat:"STR"},special:"orc_charge",
@@ -90,6 +90,14 @@ const ENEMIES = {
     special:"nimble",scores:{STR:8,DEX:14,CON:10,INT:10,WIS:8,CHA:14}},
   forest_druid:{size:"中型",detectRange:7,name:"林間德魯伊",look:"forest_druid",gear:["治癒法書","聖徽"],spells:["bless"],hp:27,ac:11,speed:6,xp:450,srd:true,
     scores:{STR:10,DEX:12,CON:13,INT:12,WIS:15,CHA:11}},
+  // ===== 洞窟（大爺 10-21）：狗頭人照 SRD；狗頭人法師＝SRD 狗頭人拿奧術法杖（會魔法飛彈）；頭目紅龍幼龍照 SRD（飛行先不做；咬的火焰追加先不做）。數值暫定：香香 =====
+  kobold:{size:"小型",detectRange:6,name:"狗頭人",look:"kobold",gear:["匕首","破布衣"],hp:5,ac:12,speed:6,xp:25,stars:1,srd:true,
+    passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},
+  kobold_mage:{size:"小型",detectRange:6,name:"狗頭人法師",look:"kobold_mage",gear:["奧術法杖","破布衣"],spells:["magic_missile"],hp:9,ac:12,speed:6,xp:100,
+    passives:["sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:10,INT:14,WIS:9,CHA:8}},
+  red_wyrmling:{size:"中型",detectRange:8,name:"紅龍幼龍",look:"dragon",gear:[],hp:75,ac:17,speed:6,xp:1100,stars:3,srd:true,
+    natural:{name:"咬",dmg:"1d10 穿刺",stat:"STR"},special:"wyrm_breath",damageImmunities:["火焰"],passives:["darkvision"],
+    scores:{STR:19,DEX:10,CON:17,INT:12,WIS:11,CHA:15}},
   bandit_archer:{size:"中型",detectRange:8,name:"盜賊弓手",look:"human_female",gear:["短弓","箭袋","皮甲"],hp:11,ac:12,speed:6,xp:25,stars:1,
     special:"bandit_sand",
     scores:{STR:10,DEX:13,CON:12,INT:10,WIS:10,CHA:10}},

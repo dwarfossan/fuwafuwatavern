@@ -4,8 +4,10 @@
      X 箱子　P 火藥桶　C 寶箱　t 陷阱（藏著）　M 獵人記號　K 營地木箱上的地圖　R 古老石碑　B 骨堆（調查點）
    區域：A 入口（右）→ B 草叢小徑（狼埋伏）→ C 廢棄獵人營地（記號、地圖、陷阱）→ D 哥布林前哨（哥布林×2＋巫師）
          → 溪（南邊淺灘繞路，或西邊倒木捷徑）→ E 德魯伊的林間空地（德魯伊＋野豬×2、石碑）→ F 奇美拉的巢（奇美拉＋食人花×2、骨堆） */
+const DUNGEONS = {};   // 手工地圖的地城登記表（js/dungeon.js 用）：森林、洞窟
 const FOREST = {
-  draft:"香香", name:"森林",
+  draft:"香香", name:"森林", theme:"forest", boss:"chimera",
+  shortcutClue:"map", shortcutClosed:"tree", shortcutOpen:"bush",
   map:[
     "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
     "TT.......TTT~~TTTTTTTTTTTTTTTTTTTTTTTTTT",
@@ -51,22 +53,23 @@ const FOREST = {
   ],
   // 調查點（智力檢定；一個地方只能調查一次，失敗頂多錯過）
   clues:{
-    M:{id:"marks", name:"獵人的記號", art:"marks", dc:12,
+    M:{id:"marks", name:"獵人的記號", art:"marks", dc:12, effect:"revealTraps",
        ok:"樹幹上刻著獵人的記號：前面的路上埋了陷阱。", fail:"看不懂這些刻痕在說什麼。"},
-    K:{id:"map", name:"營地木箱上的地圖", art:"map", dc:10,
+    K:{id:"map", name:"營地木箱上的地圖", art:"map", dc:10, effect:"shortcut",
        ok:"木箱上壓著一張手畫的地圖：哥布林營地西南邊的密林裡有條獸徑，倒下的大樹可以過溪。", fail:"地圖被雨淋糊了，看不出什麼。", opened:"密林裡的獸徑露出來了。"},
-    R:{id:"stele", name:"古老石碑", art:"stele", dc:14,
-       ok:"石碑上的古老文字慢慢亮了起來——「守林者在此祝福」。", fail:"石碑上的字太古老了，讀不出來。", bless:"石碑的祝福還在身上：打奇美拉時全隊受到祝福。"},
-    B:{id:"bones", name:"骨堆", art:"bones", dc:12,
+    R:{id:"stele", name:"古老石碑", art:"stele", dc:14, boss:"bless",
+       ok:"石碑上的古老文字慢慢亮了起來——「守林者在此祝福」。", fail:"石碑上的字太古老了，讀不出來。", bossText:"石碑的祝福還在身上：打奇美拉時全隊受到祝福。"},
+    B:{id:"bones", name:"骨堆", art:"bones", dc:12, effect:"loot",
        ok:"骨堆底下壓著前一個冒險者的背包，裡面還有東西！", fail:"翻了半天，只找到幾枚金幣。", gold:5}
   },
   // 台詞（draft：香香）
   intro:[["wolf","……好安靜。鳥都不叫了。"],["tiger","森林怪怪的耶，連蟲都躲起來了！"],["fox","大家小心，往深處走看看。"],["raccoon","……有東西在看我們。"]],
   againIntro:[["fox","森林恢復熱鬧了呢。"],["tiger","有野豬！今天吃烤肉！"]],
-  druidShout:"盜獵的！又是你們這些人！給我滾出這座森林！",
-  druidTalk:[["druid","……嗚……你們……不是盜獵的？"],["fox","我們是來看看森林怎麼了！"],["druid","對不起……北邊的巢最近住進一隻怪物，野獸都被牠嚇瘋了。"],["druid","那傢伙有三顆頭，其中一顆會噴火……我一個人打不過牠。"],["tiger","交給我們吧！"],["druid","……拜託了。小心牠的火。"]],
-  druidDead:[["wolf","……她好像只是在保護森林。"]],
+  talker:{type:"forest_druid", shout:"盜獵的！又是你們這些人！給我滾出這座森林！",
+  talk:[["talker","……嗚……你們……不是盜獵的？"],["fox","我們是來看看森林怎麼了！"],["talker","對不起……北邊的巢最近住進一隻怪物，野獸都被牠嚇瘋了。"],["talker","那傢伙有三顆頭，其中一顆會噴火……我一個人打不過牠。"],["tiger","交給我們吧！"],["talker","……拜託了。小心牠的火。"]],
+  dead:[["wolf","……她好像只是在保護森林。"]]},
   bossShout:"（三顆頭同時轉過來，獅子頭發出震耳的咆哮）",
   win:[["fox","森林……安靜下來了。"],["wolf","聽，鳥又開始叫了。"]],
   cleared:"打倒了奇美拉，森林恢復平靜。"
 };
+DUNGEONS.forest = FOREST;

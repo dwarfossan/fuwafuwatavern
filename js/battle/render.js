@@ -64,18 +64,19 @@ function exploreDockHTML(){
    .replace(/<button disabled class="mn-b" data-cmd="steal"[^>]*>/,m=>exploreStealTarget()&&!b.busy?`<button class="mn-b" data-explore-cmd="actSteal">`:m)   // 探索中偷竊（10-20）
    .replace(/<button disabled class="mn-back" data-cmd="root">/,`<button class="mn-back" data-explore-cmd="actBack">`);
  }
- return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}${canRetreat()?button("leave",RETREAT_UI.goExplore):""}`);
+ return dockWrap(exploreUnit(),b,"dk-pick",EXPLORE_UI.individual,`${button("act","行動")}${button("hide",b.exploreSneak?EXPLORE_UI.unsneak:EXPLORE_UI.sneak)}${torchMenuOk()?button("torch",b.units.some(v=>v.torch)?EXPLORE_UI.torchOff:EXPLORE_UI.torchOn):""}${powderCount(exploreUnit())?button("place",WORLD_OBJECT_TEXT.place+" ×"+powderCount(exploreUnit())):""}${button("combat",EXPLORE_UI.combat)}${button("rest",EXPLORE_COMBAT.rest)}${canRetreat()?button("leave",RETREAT_UI.goExplore):""}`);
 }
 function boardFloorHTML(){
   const d=B().def, out=[];
   const isRoad=(x,y)=>d.road.some(r=>r[0]===x&&r[1]===y);
   const watch=exploreWatchCells();
-  const tileFill = (x,y) => { if(watch.has(`${x},${y}`))return "#cbb668"; const road=isRoad(x,y), alt=(x+y)%2; return road ? (alt?"#d9c08e":"#d2b683") : (alt?"#8fb462":"#86ab5a"); };
+  const cave = d.theme==="cave";   // 洞窟（10-21）：石頭地
+  const tileFill = (x,y) => { if(watch.has(`${x},${y}`))return "#cbb668"; const road=isRoad(x,y), alt=(x+y)%2; return cave ? (road ? (alt?"#a89e8e":"#a19785") : (alt?"#8f877b":"#878073")) : road ? (alt?"#d9c08e":"#d2b683") : (alt?"#8fb462":"#86ab5a"); };
   const raised = [];
   for(let s=0;s<d.w+d.h-1;s++) for(let x=0;x<d.w;x++){ const y=s-x; if(y<0||y>=d.h) continue;
     if(hAt(x,y) > 0){ raised.push({x,y}); continue; }
     const k=`${x},${y}`;
-    out.push(`<polygon class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>`);
+    out.push(`<polygon class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="${cave?"#6b6359":"#5f8744"}" stroke-width="1"/>`);
   }
   const flat = out.join(""); out.length=0;
   // 凸起的格子：頂面（高亮、點擊都在這裡）＋朝畫面前方的兩面山壁（往下畫到前面那格的高度）
@@ -86,7 +87,7 @@ function boardFloorHTML(){
     return `<g id="floor-wall-${x}-${y}" class="cliff">
       ${dl>0 ? `<polygon points="${L},${M} ${p.x},${Bt} ${p.x},${Bt+dl} ${L},${M+dl}" fill="#9a7650" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>${strata(L,M,p.x,Bt,dl)}` : ""}
       ${dr>0 ? `<polygon points="${p.x},${Bt} ${R},${M} ${R},${M+dr} ${p.x},${Bt+dr}" fill="#7a5a3c" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>${strata(p.x,Bt,R,M,dr)}` : ""}
-      </g><polygon id="floor-top-${x}-${y}" class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="#5f8744" stroke-width="1"/>`;
+      </g><polygon id="floor-top-${x}-${y}" class="tile" data-tile="${k}" points="${diamond(x,y)}" fill="url(#mark-fill-${x}-${y}) ${tileFill(x,y)}" stroke="${cave?"#6b6359":"#5f8744"}" stroke-width="1"/>`;
   };
   const columnDetailSVG = (x,y) => {
     const p=iso(x,y), h=hAt(x,y), L=p.x-TW/2, R=p.x+TW/2, M=p.y+TH/2, Bt=p.y+TH;
@@ -228,8 +229,11 @@ function boardSceneHTML(ctx={b:B(),d:B().def,u:cur()}){
   // 樹擋住後面的人（大爺 10-21）：樹後面有看得到的角色（還站著的）→ 那棵樹變半透明；規則上的掩護、視線不變
   const behindTree = o => shown.some(v=>{ if(v.dead) return false; const k=footOf(v), vs=v.x+v.y+(k-1); if(vs >= o.x+o.y) return false;
     const pv=unitIso(v), pt=iso(o.x,o.y); return Math.abs(pv.x-pt.x) < TW*.8*TREE_K && pt.y-pv.y > -TH*.5 && pt.y-pv.y < 120*TREE_K; });
-  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({key:`block:${o.kind}:${o.x},${o.y}`,s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}${o.kind==="tree"&&behindTree(o)?' class="tree-see-through"':""}>${svg}</g>`});});
-  shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+(footOf(v)-1)+.5, svg:tokenSVG(v, v===u), unit:v}));   // 多格的照整塊中間排前後
+  // 光照（10-21）：地圖不是明亮的，地面照亮度蓋一層黑；站在暗處的人、東西也調暗
+  const darkMap = d.lighting && d.lighting!=="bright", shade = (x,y)=>{ if(!darkMap) return ""; const l=lightAt(x,y); return l==="dark" ? ' style="filter:brightness(.5)"' : l==="dim" ? ' style="filter:brightness(.75)"' : ""; };
+  if(darkMap) for(let y=0;y<d.h;y++) for(let x=0;x<d.w;x++){ const l=lightAt(x,y); if(l!=="bright") things.push({key:`dark:${x},${y}`, s:x+y-.05, svg:`<polygon class="dark-floor" pointer-events="none" points="${diamond(x,y)}" fill="#0a0814" opacity="${l==="dark"?.6:.3}"/>`}); }   // 排在那一格的地形柱後面、東西前面
+  d.blocks.forEach(o=>{const svg=blockSVG(o);if(svg)things.push({key:`block:${o.kind}:${o.x},${o.y}`,s:o.x+o.y + (o.kind==="bush" ? .6 : o.kind==="oil" ? .65 : 0), svg:`<g data-tile="${o.x},${o.y}" ${EXPLORE_OBJECTS[o.kind]&&!(o.kind==="trap"&&(!o.found||o.disarmed))?`data-world-object="${o.x},${o.y}"`:""}${(o.kind==="tree"||o.kind==="rock")&&behindTree(o)?' class="tree-see-through"':""}${shade(o.x,o.y)}>${svg}</g>`});});
+  shown.forEach(v=> things.push({key:`unit:${v.id}`,s:v.x+v.y+(footOf(v)-1)+.5, svg:darkMap?`<g${shade(v.x,v.y)}>${tokenSVG(v, v===u)}</g>`:tokenSVG(v, v===u), unit:v}));   // 多格的照整塊中間排前後
   things.sort((a,c)=>a.s-c.s).forEach(t=>out.push(`<g data-scene-key="${t.key}" data-scene-depth="${t.s}">${t.svg}</g>`));
   // 血條、狀態图示在場景物件之上；對話／表情等即時演出稍後繪製，允許短暫遮住狀態。
   // 血條、狀態圖示畫在物件上層（大爺 10-03：拿掉被擋住時的剪影外框，被擋住就點血條）：
@@ -667,6 +671,17 @@ function blockSVG(o){
     if(o.kind==="ford") return water+`<ellipse cx="${cx-14}" cy="${cy-4}" rx="9" ry="5" fill="#a59d93" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+8}" cy="${cy+6}" rx="10" ry="5.5" fill="#b3aba1" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+18}" cy="${cy-8}" rx="7" ry="4" fill="#a59d93" stroke="#2a2630" stroke-width="2"/>`;
     return water+`<path d="M${cx-34} ${cy+6} L${cx+30} ${cy-14} L${cx+34} ${cy-4} L${cx-30} ${cy+16}Z" fill="#8a6038" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="${cx+32}" cy="${cy-9}" rx="4" ry="5.5" fill="#c49a62" stroke="#2a2630" stroke-width="2"/><path d="M${cx-20} ${cy+6} L${cx+16} ${cy-6}" stroke="#6e4a32" stroke-width="2"/>`; }
   if(o.kind==="clue") return clueSVG(o);
+  // 洞窟（10-21，外觀暫定：香香）：岩壁、塌方、碎石路、火盆
+  if(o.kind==="rock" && o.deep) return `<polygon points="${diamond(o.x,o.y)}" fill="#1c1a20" stroke="#1c1a20" stroke-width="1" pointer-events="none"/>`;
+  if(o.kind==="rock"||o.kind==="rubble"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2, rub=o.kind==="rubble", h=rub?30:52;
+    return `<g class="cave-${o.kind}"><polygon points="${cx},${cy-TH/2-h} ${cx+TW/2},${cy-h} ${cx},${cy+TH/2-h} ${cx-TW/2},${cy-h}" fill="${rub?"#8a8072":"#6f685f"}" stroke="#2a2630" stroke-width="2"/>
+      <polygon points="${cx-TW/2},${cy-h} ${cx},${cy+TH/2-h} ${cx},${cy+TH/2} ${cx-TW/2},${cy}" fill="${rub?"#6e665b":"#5a544c"}" stroke="#2a2630" stroke-width="2"/>
+      <polygon points="${cx+TW/2},${cy-h} ${cx},${cy+TH/2-h} ${cx},${cy+TH/2} ${cx+TW/2},${cy}" fill="${rub?"#5c554b":"#48433d"}" stroke="#2a2630" stroke-width="2"/>
+      ${rub?`<ellipse cx="${cx-14}" cy="${cy-h-4}" rx="10" ry="6" fill="#a59d93" stroke="#2a2630" stroke-width="2"/><ellipse cx="${cx+12}" cy="${cy-h+2}" rx="8" ry="5" fill="#9a9288" stroke="#2a2630" stroke-width="2"/>`:`<path d="M${cx-30} ${cy-h-2} l10 -6 M${cx+8} ${cy-h-12} l14 4" stroke="#8f877b" stroke-width="2.5" stroke-linecap="round"/>`}</g>`; }
+  if(o.kind==="gravel"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2; return `<g class="cave-gravel" pointer-events="none">${[[-20,-4,7],[6,6,8],[18,-8,6],[-4,-12,5]].map(([dx,dy,r])=>`<ellipse cx="${cx+dx}" cy="${cy+dy}" rx="${r}" ry="${r*.6}" fill="#a59d93" stroke="#2a2630" stroke-width="1.6"/>`).join("")}</g>`; }
+  if(o.kind==="brazier"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2;
+    return `<g class="brazier" transform="translate(${cx} ${cy})"><path d="M-10 0 L-6 -26 M10 0 L6 -26 M0 2 V-26" stroke="#2a2630" stroke-width="4" stroke-linecap="round"/><path d="M-20 -30 Q0 -20 20 -30 L16 -40 L-16 -40Z" fill="#5a544c" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>
+      <path class="brazier-flame" d="M-12 -40 Q-14 -56 -4 -64 Q-6 -52 2 -50 Q2 -66 10 -72 Q8 -58 14 -52 Q16 -44 12 -40Z" fill="#f2a13a" stroke="#2a2630" stroke-width="2.2" stroke-linejoin="round"/><path d="M-4 -42 Q-4 -52 2 -56 Q2 -48 6 -46 Q8 -42 6 -40Z" fill="#ffe08a"/></g>`; }
   if(o.kind==="oil")return o.found?`<polygon class="ground-oil" points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
@@ -719,7 +734,7 @@ function clueSVG(o){
   const art = {
     marks:`<ellipse cx="0" cy="2" rx="18" ry="7" fill="#000" opacity=".2"/><path d="M-6 2 V-66 H6 V2Z" fill="#8a6038" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M6 -62 L26 -57 L21 -48 L6 -52Z" fill="#c4473f" stroke="${I}" stroke-width="2.5" stroke-linejoin="round"/><path d="M-4 -40 L4 -30 M4 -40 L-4 -30 M-4 -22 L4 -16" stroke="${I}" stroke-width="2.5" stroke-linecap="round"/>`,
     map:`<polygon points="0,-46 32,-30 0,-14 -32,-30" fill="#c49a62" stroke="${I}" stroke-width="2.5"/><polygon points="-32,-30 0,-14 0,6 -32,-10" fill="#9a6a3e" stroke="${I}" stroke-width="2.5"/><polygon points="32,-30 0,-14 0,6 32,-10" fill="#7a5230" stroke="${I}" stroke-width="2.5"/><polygon points="-14,-36 10,-42 20,-30 -4,-24" fill="#f2e6c4" stroke="${I}" stroke-width="2"/><path d="M-8 -33 L2 -36 L10 -31 M4 -30 l3 -3 m-3 0 l3 3" stroke="#c4473f" stroke-width="1.8" fill="none" stroke-linecap="round"/>`,
-    stele:`<ellipse cx="0" cy="2" rx="26" ry="9" fill="#000" opacity=".2"/><path d="M-18 4 L-20 -60 Q0 -78 20 -60 L18 4Z" fill="#9aa1a6" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M-10 -52 L-4 -46 L-10 -40 M2 -54 V-40 M8 -50 L12 -44 M-8 -30 H8 M-6 -20 L0 -14 L6 -20" stroke="${o.done && forestState().clues[o.clue]==="ok" ? "#e9d77a" : "#5d6469"}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M-20 -8 Q-8 -14 0 -6" stroke="#6f9a4c" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+    stele:`<ellipse cx="0" cy="2" rx="26" ry="9" fill="#000" opacity=".2"/><path d="M-18 4 L-20 -60 Q0 -78 20 -60 L18 4Z" fill="#9aa1a6" stroke="${I}" stroke-width="3" stroke-linejoin="round"/><path d="M-10 -52 L-4 -46 L-10 -40 M2 -54 V-40 M8 -50 L12 -44 M-8 -30 H8 M-6 -20 L0 -14 L6 -20" stroke="${o.done && dungeonState(B().def.dungeon).clues[o.clue]==="ok" ? "#e9d77a" : "#5d6469"}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M-20 -8 Q-8 -14 0 -6" stroke="#6f9a4c" stroke-width="4" fill="none" stroke-linecap="round"/>`,
     bones:`<ellipse cx="0" cy="0" rx="28" ry="10" fill="#000" opacity=".2"/><path d="M-22 -2 L14 -12 M-14 6 L20 -2 M-4 -14 L8 6" stroke="${I}" stroke-width="8" stroke-linecap="round"/><path d="M-22 -2 L14 -12 M-14 6 L20 -2 M-4 -14 L8 6" stroke="#efe6cf" stroke-width="4.5" stroke-linecap="round"/><path d="M-6 -30 Q-18 -30 -16 -18 Q-16 -10 -8 -10 L-6 -6 L4 -6 L6 -10 Q14 -12 12 -22 Q10 -32 -6 -30Z" fill="#efe6cf" stroke="${I}" stroke-width="2.5"/><circle cx="-8" cy="-20" r="3" fill="${I}"/><circle cx="4" cy="-20" r="3" fill="${I}"/>`
   }[o.art] || "";
   return `<g class="explore-clue" data-clue="${o.clue}" transform="translate(${cx} ${cy})"${dim}>${art}</g>`;

@@ -10,7 +10,7 @@ const br=await chromium.launch();try{
  const r0=await p.evaluate(()=>{const b=B(),fox=b.units.find(u=>u.id==='fox'),paths=reachable({...fox,x:37,y:13},100000);
   const can=(x,y)=>[...paths.keys()].some(k=>{const [a,c]=k.split(',').map(Number);return Math.max(Math.abs(a-x),Math.abs(c-y))<=1;});
   return {phase:b.phase,forest:!!b.def.forest,reach:[can(28,13),can(17,12),can(6,14),can(2,2),can(5,17),can(8,4)],clues:b.def.blocks.filter(o=>o.kind==='clue').length,names:b.units.filter(u=>u.side==='foe').map(u=>u.name)};});
- assert.equal(await p.evaluate(()=>B().units.filter(u=>u.side==='foe'&&!foeHid(u)).length),0,'一進去：還沒看到的敵人都不顯示（10-21）');
+ assert.equal(await p.evaluate(()=>B().units.filter(u=>u.side==='foe'&&!foeHid(u)&&u.type!=='forest_wolf').length),0,'一進去：深處還沒看到的敵人都不顯示（狼躲得不好，12 格內看得到；10-21）');
  assert.ok(await p.evaluate(()=>document.querySelectorAll('.tree-see-through').length>0),'樹後面有人：樹變半透明');
  assert.equal(r0.phase,'explore');assert.ok(r0.forest);assert.deepEqual(r0.reach,[true,true,true,true,true,true],'每一區都走得到（不靠捷徑）');assert.equal(r0.clues,4);assert.ok(!r0.names.some(n=>/undefined/.test(n)),r0.names.join());
  const tp=(x,y)=>p.evaluate(({x,y})=>{const b=B(),u=exploreUnit();exploreParty().forEach(v=>{v.x=x;v.y=y;});b.exploreStopped=false;b.busy=false;refreshBattle();},{x,y});

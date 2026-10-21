@@ -64,10 +64,16 @@ SKILL_IMPL.natural = [
   {target:"enemy", range:()=>2, run:(u,t)=>{
     if(!saveRoll(t,"DEX",MONSTER_DC(u,"STR"),u)){ addStatus(t,"restrained",{via:"net", dc:MONSTER_DC(u,"STR")}); fxFloat(t, POP_TEXT.bound, "dmg"); blog(`　${t.name}被藤蔓纏住了！`,"skill"); }
     else { fxFloat(t, POP_TEXT.miss, "miss"); blog(`　${t.name}躲開了藤蔓。`); } }},
+  // 火焰吐息（紅龍幼龍，SRD）：前方 3 格錐形；用龍的吐息演出（dragon.js），演不出來就直接結算
+  {target:"cone", range:()=>1, run:(u,c)=>{ const hit = tiles=>{ tiles.forEach(p=>groundReact(p.x,p.y,"火焰")); const es = coneUnits(u,c,3).filter(v=>hostile(v,u)); if(!es.length) blog("　火焰沒燒到任何人。");
+      es.forEach(e=>{ const n = rollDice("7d6").total; hurt(e, saveRoll(e,"DEX",MONSTER_DC(u,"CON"),u) ? Math.floor(n/2) : n, "火焰", u); }); };
+    const b = B(), busy = b.busy; b.busy = false; if(!dragonBreath(u, c, {range:3, onImpact:hit})){ b.busy = busy; hit(coneTiles(u,c,3)); } }},
+  {passive:true},   // 圍毆（狼、狗頭人）：attackRoll
+  {passive:true},   // 怕陽光（狗頭人）：attackRoll
   {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
   {passive:true}    // 黑暗視覺：darkvisionRange
 ];
-SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash","cast"];
+SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash","cast","cast"];
 
 // 殭屍：不死韌性（hurt() 打到 0 時呼叫；光耀不能撐）
 function undeadFortitude(t, n, type){
@@ -108,7 +114,8 @@ const MONSTER_AI = {
   dk_hellstrike:  e=>monsterAdj(e),
   cub_pounce:     e=>monsterAdj(e),
   ghoul_claw:     e=>monsterAdj(e),
-  vine_snare:     e=>monsterNear(e,2,p=>!has(p,"restrained"))
+  vine_snare:     e=>monsterNear(e,2,p=>!has(p,"restrained")),
+  wyrm_breath:    e=>monsterConeAim(e)
 };
 function monsterSpecialReady(e, def){
   if(def.once) return !e.specialUsed;
