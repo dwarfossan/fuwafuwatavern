@@ -88,9 +88,9 @@ const ENEMIES = {
     scores:{STR:15,DEX:10,CON:14,INT:3,WIS:12,CHA:7}},
   // 進化（10-21，大爺：記仇的敵人擲到 20 就升一階）：外觀 10-09 就有（js/art/monsters.js），數值香香配、暫定
   //   哥布林英雄＝SRD 5.1 哥布林首領（Goblin Boss）；哥布林酋長往上加一點；獸人酋長照 SRD 獸人督軍（Orc War Chief）往下調，獸人英雄在中間
-  goblin_hero:{size:"小型",detectRange:6,name:"哥布林英雄",look:"goblin_hero",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:21,ac:17,speed:6,xp:200,stars:2,
+  goblin_hero:{size:"小型",detectRange:6,name:"哥布林英雄",look:"goblin_hero",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:21,ac:17,speed:6,xp:200,
     special:"nimble", scores:{STR:10,DEX:14,CON:10,INT:10,WIS:8,CHA:10}},
-  goblin_chief:{size:"小型",detectRange:6,name:"哥布林酋長",look:"goblin_chief",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:30,ac:17,speed:6,xp:450,stars:2,
+  goblin_chief:{size:"小型",detectRange:6,name:"哥布林酋長",look:"goblin_chief",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:30,ac:17,speed:6,xp:450,
     special:"nimble", scores:{STR:10,DEX:15,CON:12,INT:11,WIS:10,CHA:12}},
   orc_hero:{size:"中型",detectRange:6,name:"獸人英雄",look:"orc_hero",gear:["巨斧","鏈甲衫"],hp:40,ac:14,speed:6,xp:450,stars:3,
     special:"orc_charge", scores:{STR:17,DEX:12,CON:16,INT:9,WIS:11,CHA:12}},
