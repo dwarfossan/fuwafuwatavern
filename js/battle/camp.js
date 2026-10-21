@@ -31,13 +31,14 @@ async function startCamp(b){
     });
     if(food==="honey") changeStressAll(v=>v-10);   // 蜂蜜麵包：壓力額外 −10
   }
-  state.camp = {who:u.id, name:u.name, r, total, mod:u.mods.WIS||0, result, food, owl:owlbearCampStep()};   // 梟熊寶寶：靠近、加入、長大（10-21）
+  const owl = owlbearCampStep();
+  state.camp = {who:u.id, name:u.name, r, total, mod:u.mods.WIS||0, result, food, owl, owlCub:!!(owl && owl.some(l=>l.face))};   // 梟熊寶寶：靠近、加入、長大（10-21）
   blog(`${u.name}去找食材：感知 d20=${r}${fmtN(u.mods.WIS||0)} = ${total} ${total>=CAMP_DC?"≥":"<"} DC ${CAMP_DC} → ${result==="good"?`找到${CAMP_FOODS[food].ingredient}！`:result==="bad"?"擲出 1……":"什麼都沒找到"}`, result==="good"?"skill":"miss");
   state.page = "story"; state.scene = "camp"; state.line = 0; state.info = null; render(); window.scrollTo(0,0);
 }
 function campScript(){
   const c = state.camp || {who:"wolf", result:"plain"}, T = CAMP_TEXT, art = c.result==="good" ? "campGood" : c.result==="bad" ? "campBad" : "campPlain";
-  const L = (o) => ({art, draft:T.draft, ...o});
+  const L = (o) => ({art, draft:T.draft, ...(c.owlCub ? {on:"-"} : {}), ...o});   // 梟熊寶寶那幾句才讓牠出場
   const out = [L({who:"narr", text:"天色暗了，小傢伙們在野外搭起營地。"}), L({who:c.who, text:T.go[c.who]}),
     L({who:"narr", text:`${c.name}的感知檢定：d20=${c.r}${fmtN(c.mod||0)} = ${c.total}（DC ${CAMP_DC}）`})];
   if(c.result==="good"){
@@ -54,7 +55,7 @@ function campScript(){
     out.push(L({who:c.who, mood:c.who==="tiger"?"blank":c.who==="fox"?"awkward":c.who==="wolf"?"sigh":"down", text:T.miss[c.who]}));
     T.plain.forEach(l=>out.push(L(l)));
   }
-  (c.owl||[]).forEach(l=>out.push(L({draft:OWLBEAR_STORY.draft, ...l})));
+  (c.owl||[]).forEach(l=>out.push(L({draft:OWLBEAR_STORY.draft, ...(l.face ? {on:"owlcub"} : {}), ...l})));
   out.push(L({who:"narr", text:T.morning}));
   return out;
 }

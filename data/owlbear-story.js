@@ -55,14 +55,15 @@ const OWLBEAR_STORY = {
     owl1:{title:"草叢裡的眼睛", text:"森林那條路上，有東西一直跟在後面。去看看吧。"},
     owl2:{title:"獵人的網子", text:"森林那條路傳來尖尖的叫聲，還有人在笑。"}
   },
+  // 梟熊寶寶的圖（大爺 10-21，assets/faces/owlcub/，12 種表情）：on:"owlcub"＝寶寶在畫面上、face＝表情；on:"-"＝不在
   seen:[
-    {who:"narr", text:"小傢伙們在路邊坐下，把午餐的麵包放在石頭上。"},
-    {who:"narr", text:"過了好一會兒，草叢裡探出一顆毛茸茸的頭——是那隻梟熊寶寶。"},
-    {who:"tiger", text:"（小聲）牠來了牠來了……", mood:"happy"},
-    {who:"narr", text:"寶寶叼起麵包，看了小傢伙們一眼，又一溜煙鑽回樹林裡。"},
-    {who:"fox", text:"牠還在怕我們。……也是啦。", mood:"awkward"},
-    {who:"wolf", text:"肯吃東西，就好。", mood:"smile"},
-    {who:"raccoon", text:"……這附近有獵人的陷阱。牠最好小心一點。", mood:"serious"}
+    {who:"narr", text:"小傢伙們在路邊坐下，把午餐的麵包放在石頭上。", on:"-"},
+    {who:"narr", text:"過了好一會兒，草叢裡探出一顆毛茸茸的頭——是那隻梟熊寶寶。", on:"owlcub", face:"puzzled"},
+    {who:"tiger", text:"（小聲）牠來了牠來了……", mood:"happy", on:"owlcub", face:"afraid"},
+    {who:"narr", text:"寶寶叼起麵包，看了小傢伙們一眼，又一溜煙鑽回樹林裡。", on:"owlcub", face:"happy"},
+    {who:"fox", text:"牠還在怕我們。……也是啦。", mood:"awkward", on:"-"},
+    {who:"wolf", text:"肯吃東西，就好。", mood:"smile", on:"-"},
+    {who:"raccoon", text:"……這附近有獵人的陷阱。牠最好小心一點。", mood:"serious", on:"-"}
   ],
   hunt:{
     log:"網子裡的梟熊寶寶拼命掙扎，旁邊幾個獵人在數等一下能賣多少錢。",
@@ -71,14 +72,14 @@ const OWLBEAR_STORY = {
   },
   // ---------- 第三段：露營時慢慢靠近（每次一段，最後一段＝加入） ----------
   approach:{need:3, steps:[
-    [{who:"narr", text:"營火的另一邊，有一雙圓圓的眼睛在看。小傢伙們留了一份晚餐在旁邊。"},
-     {who:"tiger", text:"我把我的分一半給牠！", mood:"happy"}, {who:"raccoon", text:"……妳只是不想吃青菜。", mood:"sly"}],
-    [{who:"narr", text:"梟熊寶寶走到火光邊緣，把晚餐吃得乾乾淨淨，然後在不遠的地方趴下來。"},
-     {who:"wolf", text:"……今天，牠離我們比較近。", mood:"smile"}],
-    [{who:"narr", text:"半夜，嬌嬌醒來的時候，發現寶寶縮在她身邊睡著了。"},
-     {who:"tiger", text:"（不敢動）……大家……牠……在我旁邊……", mood:"surprised"},
-     {who:"fox", text:"那就別動了。牠決定跟我們走了。", mood:"normal"},
-     {who:"narr", text:"梟熊寶寶加入了小傢伙們！"}]
+    [{who:"narr", text:"營火的另一邊，有一雙圓圓的眼睛在看。小傢伙們留了一份晚餐在旁邊。", face:"shy"},
+     {who:"tiger", text:"我把我的分一半給牠！", mood:"happy", face:"puzzled"}, {who:"raccoon", text:"……妳只是不想吃青菜。", mood:"sly", face:"smug"}],
+    [{who:"narr", text:"梟熊寶寶走到火光邊緣，把晚餐吃得乾乾淨淨，然後在不遠的地方趴下來。", face:"happy"},
+     {who:"wolf", text:"……今天，牠離我們比較近。", mood:"smile", face:"sleepy"}],
+    [{who:"narr", text:"半夜，嬌嬌醒來的時候，發現寶寶縮在她身邊睡著了。", face:"sleepy"},
+     {who:"tiger", text:"（不敢動）……大家……牠……在我旁邊……", mood:"surprised", face:"sleepy"},
+     {who:"fox", text:"那就別動了。牠決定跟我們走了。", mood:"normal", face:"sleepy"},
+     {who:"narr", text:"梟熊寶寶加入了小傢伙們！", face:"laugh"}]
   ]},
   // ---------- 加入以後 ----------
   pet:{

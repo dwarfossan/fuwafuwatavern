@@ -13,6 +13,9 @@ const PORTRAITS = {
           list:["annoyed","smile","grin","gritted","sad","surprised","smirk","shy"]},
   kam:   {base:"assets/portraits/kam_noface.webp",   faces:"assets/faces/kam/",   def:"smile",
           list:["annoyed","smile","laugh","gritted","sad","surprised","smirk","shy"]},
+  // 梟熊寶寶（大爺 10-21）：每個表情都是整隻的圖（不是無臉底圖＋臉），表情圖直接整張蓋在底圖上
+  owlcub: {base:"assets/faces/owlcub/neutral.webp", faces:"assets/faces/owlcub/", def:"neutral",
+          list:["neutral","happy","laugh","puzzled","surprised","angry","sad","crying","shy","smug","sleepy","afraid"]},
   // 商人：只有一張圖、沒有表情（大爺 10-03：情緒用泡泡框符號）
   merchant: {base:"assets/portraits/merchant.webp", faces:null}
 };

@@ -9,8 +9,8 @@ const SCENES = {
   caravan:  {get script(){ return caravanScript(); }, bg:"road", actors:["merchant"], back:null, next:["toRoad","繼續上路"]},
   townSupplier: {script:TOWN_SUPPLIER,bg:"town",actors:["merchant"],back:null,next:["finishSupplier","回到街上"]},
   townArrival: {get script(){return townArrivalScript();}, bg:"town", actors:["merchant"], back:null, next:["finishTownArrival","進城逛逛"]},
-  camp: {get script(){return campScript();}, bg:"road", back:null, next:["finishCamp","收拾營地"]},   // 野外露營長休（10-10）
-  owlbearSeen: {get script(){return OWLBEAR_STORY.seen.map(l=>({draft:OWLBEAR_STORY.draft, ...l}));}, bg:"road", back:null, next:["finishOwlbearSeen","繼續上路"]},   // 梟熊寶寶第二段（10-21）
+  camp: {get script(){return campScript();}, get actors(){ return state.camp?.owlCub ? ["owlcub"] : undefined; }, bg:"road", back:null, next:["finishCamp","收拾營地"]},   // 野外露營長休（10-10）；梟熊寶寶靠近時多一個角色（10-21）
+  owlbearSeen: {get script(){return OWLBEAR_STORY.seen.map(l=>({draft:OWLBEAR_STORY.draft, ...l}));}, bg:"road", actors:["owlcub"], back:null, next:["finishOwlbearSeen","繼續上路"]},   // 梟熊寶寶第二段（10-21）
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
@@ -231,7 +231,7 @@ function renderStory(){
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);
-  return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''}">
+  return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>

@@ -88,3 +88,22 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 米拉、艾妲、布隆均使用大爺原始4欄3列sheet.png，表情順序同liliana（名稱暫定GPT）。各自五官定位見CSS .mira-features／.ada-features／.brun-features。底圖改用大爺10-06裁切的1000×1000半身圖（遊戲WebP為600×600）；原圖到新圖座標位移：米拉x＋26、y＋1；艾妲x＋22、y−4；布隆x−1、y＋7。表情表不修改；位置／大小依像素位移換算，米拉臉部遮罩亦按相同座標轉換。
 
 米拉表情表每格內容有平移差異，不能只切格；PORTRAITS.mira.offsets以鼻子為共同定位點逐格校正，CSS保持同一縮放。
+
+## `owlcub/` 梟熊寶寶（大爺 10-21）
+
+大爺給的 12 種表情（原檔 1254×1254，裁成貼齊腳底的正方形、縮成 384×384 WebP）。**每張都是整隻**，不是無臉底圖＋臉，所以換表情就整張換。原檔裡 `04-puzzled-preview.png` 下半截壞掉了，用同一張底圖的 neutral 補回下半身（臉的部分是原圖）。
+
+| 檔名 | 表情 | 遊戲裡用在 |
+|---|---|---|
+| `neutral.webp` | 平常 | 戰場預設、先攻列頭像 |
+| `happy.webp` | 開心 | 劇情 |
+| `laugh.webp` | 大笑 | 加入的那一句 |
+| `puzzled.webp` | 疑惑 | 劇情 |
+| `surprised.webp` | 驚訝 | — |
+| `angry.webp` | 生氣 | 戰場出手 |
+| `sad.webp` | 難過 | — |
+| `crying.webp` | 哭 | 戰場被網子困住 |
+| `shy.webp` | 害羞 | 劇情 |
+| `smug.webp` | 得意 | 劇情 |
+| `sleepy.webp` | 想睡 | 戰場倒下、露營 |
+| `afraid.webp` | 害怕 | 戰場受傷、劇情 |
