@@ -1,6 +1,7 @@
 /* ======================== 回合流程、移動、敵人 AI ======================== */
 
 function nextTurn(){
+  grudgeShoutAll();   // 回來報仇的：第一次碰面喊一句（10-21）
   const b = B();
   if(b?.reactPending) return;   // 等玩家回答反應
   if(b.phase==="explore")return;
@@ -111,7 +112,7 @@ function endTurnRest(u){
 function awardBattleXP(){
   const b = B(); if(!b) return;
   const got = b.units.filter(u=>u.side==="foe" && u.dead && !u.xpGiven);
-  const total = got.reduce((a,u)=>a+((ENEMIES[u.type]||{}).xp||0),0); got.forEach(u=>u.xpGiven=true);
+  const total = got.reduce((a,u)=>a+Math.round(((ENEMIES[u.type]||{}).xp||0)*(u.xpMul||1)),0); got.forEach(u=>u.xpGiven=true);   // 回來報仇的經驗比較多（10-21）
   const pcs = b.units.filter(isPcCritter), each = Math.floor(total / pcs.length);
   if(!each) return;
   gainXP(pcs.map(u=>u.id), each);
@@ -1098,7 +1099,7 @@ function foeHit(e, t){
 }
 // 魔法飛彈分目標：每發打「還沒被分到足以打倒的傷害、血最少的」，大家都分夠了就補在血最少的身上（每發平均算 3.5）
 function foeDarts(e, sk, t){
-  const n = sk.impl.darts(), pool = seenFoes(e).filter(p=>validTarget(e, sk, p.x, p.y)).sort((a,c)=>a.hp-c.hp);
+  const n = sk.impl.darts(), pool = seenFoes(e).filter(p=>validTarget(e, sk, p.x, p.y)).sort((a,c)=>aiHp(e,a)-aiHp(e,c));
   if(!pool.length) return Array(n).fill(t);
   const got = new Map(), out = [];
   for(let i=0;i<n;i++){
@@ -1134,7 +1135,7 @@ function foeManeuver(e, adj){
 function foeMelee(e, adj){
   const m = foeManeuver(e, adj);
   if(m){ doGenAct(e, m.key, m.t); return settle(1300); }
-  return foeHit(e, adj.sort((a,c)=>a.hp-c.hp)[0]) || 600;
+  return foeHit(e, adj.sort((a,c)=>aiHp(e,a)-aiHp(e,c))[0]) || 600;
 }
 
 // ---------- AI：走向最近的對手，貼身就打（敵人＋失控的小傢伙共用，10-10） ----------
@@ -1180,7 +1181,7 @@ function aiTurn(e){
       if(sk.impl.target==="self") t=e;
       else if(sk.impl.target==="enemy"){
         const r=sk.impl.range?sk.impl.range(e):1;
-        t=seenFoes(e).filter(p=>dist(p,e)<=r).sort((a,c)=>a.hp-c.hp)[0]||null;
+        t=seenFoes(e).filter(p=>dist(p,e)<=r).sort((a,c)=>aiHp(e,a)-aiHp(e,c))[0]||null;
       }
       if(t){ e.testSkillUsed=true; doSkill(e,sk,t); later(endTurn,settle(1000)); return; }
     }
@@ -1224,7 +1225,7 @@ function aiTurn(e){
   let best = null;
   const probe = (x,y) => ({...e, x, y});
   for(const [k, path] of all){ const [x,y] = k.split(",").map(Number), here = probe(x,y);
-    pcs.forEach(p=>{ if(dist(here,p)<=reachOf(e) && (!best || path.cost < best.path.cost)) best = {p, path}; }); }
+    pcs.forEach(p=>{ const c = path.cost - grudgePull(e,p); if(dist(here,p)<=reachOf(e) && (!best || c < best.c)) best = {p, path, c}; }); }   // 記仇的往上次打暈牠的那隻走（10-21）
   if(!best || !b.moveLeft){ blog(`${e.name}在原地大叫。`); later(endTurn, 600); return; }
   if(best.path.cost > b.moveLeft) aiCunning(e, "dash");            // 走不到：帶狡詐就免費衝刺
   const steps = trimPath(best.path, b.moveLeft, victimsOf(e).length ? 2 : 1, e);
@@ -1252,7 +1253,7 @@ function aiRanged(e, pcs, R){
     if(e.dead || e.down || b.result){ refreshBattle(); if(!b.result) later(endTurn, settle(700)); return; }
     // 挑好打的：沒掩護、沒躲草叢的優先，再挑血少的
     const hard = p => coverAC(coverOf(e,p)) + (hidden(p) ? 5 : 0);
-    const inRange = seenFoes(e).filter(p=>dist(p,e)<=R).sort((a,c)=>hard(a)-hard(c) || a.hp-c.hp);
+    const inRange = seenFoes(e).filter(p=>dist(p,e)<=R).sort((a,c)=>(aiHp(e,a)<0?-99:hard(a))-(aiHp(e,c)<0?-99:hard(c)) || aiHp(e,a)-aiHp(e,c));
     let wait = 700;
     if(inRange.length && !e.dead){ wait = foeHit(e, inRange[0]) || 700; nimbleHide(e); }
     else blog(`${e.name}找不到可以射的目標。`);

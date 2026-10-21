@@ -86,7 +86,7 @@ function startWorldTravel(tr){
   if(frame&&c&&now>(state.worldCameraGestureUntil||0)){const x=c.cam.x+p.x*c.zoom,y=c.cam.y+(p.y-100)*c.zoom;if(x<50||x>frame.clientWidth-50||y<50||y>frame.clientHeight-50)focusWorldParty(p);}
   if(tr.chest&&!tr.chestSeen&&tr.leg===0&&tr.t>=.55){tr.chestSeen=true;state.worldChest=tr.chestEvent=createWorldChest();tr.alert=true;tr.running=false;state.worldLine=null;focusWorldParty(p);render();setTimeout(()=>{if(state.travel!==tr||state.page!=='map')return;state.page='story';state.scene='worldChest';state.line=0;state.info=null;render();},1500);return;}
   if(tr.elapsed>=tr.banterAt){
-   if(!tr.chat){const special=owlbearTravelChat(tr);if(special){tr.chat=special.lines;tr.chatIndex=0;}}
+   if(!tr.chat){const special=owlbearTravelChat(tr)||grudgeTravelChat(tr);if(special){tr.chat=special.lines;tr.chatIndex=0;}}
    if(!tr.chat){let candidates=WORLD_CHAT.banter.filter((_,i)=>i!==state.worldLastChat);const chat=candidates[Math.floor(Math.random()*candidates.length)];state.worldLastChat=WORLD_CHAT.banter.indexOf(chat);tr.chat=chat.lines;tr.chatIndex=0;}
    state.worldLine=tr.chat[tr.chatIndex++];updateWorldParty();
    if(tr.chatIndex===tr.chat.length){tr.chat=null;tr.banterAt=tr.elapsed+8;}else tr.banterAt=tr.elapsed+3;

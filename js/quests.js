@@ -68,7 +68,9 @@ function beginQuestTravel(id){
 // 走到了：開戰（探索開場，委託地圖不跳教學）
 function questBattle(q){
   const t = questTpl(q), l = questLink(q);
-  const d = generateQuestMap(q.seed, {theme:QUEST_THEME[`${l.a}-${l.b}`]||"plain", foeList:t.foes, name:t.title});   // 委託專用地圖（10-21）
+  const grudge = grudgeFoes(q);   // 記仇回來的（10-21，js/grudge.js）：混進敵人名單最後面
+  const d = generateQuestMap(q.seed, {theme:QUEST_THEME[`${l.a}-${l.b}`]||"plain", foeList:[...t.foes, ...(grudge ? grudge.extra : [])], name:t.title});   // 委託專用地圖（10-21）
+  grudgeMark(d, t.foes.length, grudge);
   d.quest = q.id; d.questStars = q.stars; d.questHome = questHome(q); d.after = "questDone";
   if(owlbearStoryFor(q)) d.owlbearStory = true;   // 第一次的梟熊委託：梟熊寶寶劇情（10-21）
   return d;
@@ -97,6 +99,7 @@ function grantQuestReward(){
   const q = questById(b.def.quest); if(q) q.done = true;   // 打到一半長休換日了：委託不在了，報酬照給
   b.questReward = out;
   owlbearQuestEnd(b);
+  grudgeRollAll(b);   // 被敲暈的擲 1d20（10-21）
   blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
 }
 function questRewardHTML(){
@@ -135,6 +138,7 @@ function retreatBattle(){
     b.units.filter(u=>u.frenzy).forEach(u=>endFrenzy(u, "撤退"));
     changeStressAll(v=>v + STRESS.retreat);
     queueAfterTalk(b);
+    grudgeRollAll(b);   // 撤退時已經被敲暈的也擲（10-21）
   }
   stashSteed(b); wakeAfterBattle(); syncLearnedState();
   state.location = b.def.questHome || state.location; state.mapSel = state.location;

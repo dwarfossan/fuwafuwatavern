@@ -69,7 +69,7 @@ function undeadFortitude(t, n, type){
 }
 
 // ---------- AI：輪到牠時，技能能用、用得上就用 ----------
-const monsterAdj = e => seenFoes(e).filter(p=>dist(p,e)<=reachOf(e)).sort((a,c)=>a.hp-c.hp)[0] || null;
+const monsterAdj = e => seenFoes(e).filter(p=>dist(p,e)<=reachOf(e)).sort((a,c)=>aiHp(e,a)-aiHp(e,c))[0] || null;
 const monsterNear = (e, r, ok=()=>true) => seenFoes(e).filter(p=>dist(p,e)<=r && ok(p)).sort((a,c)=>dist(a,e)-dist(c,e) || a.hp-c.hp)[0] || null;
 // 錐形：挑打到最多對手的方向
 function monsterConeAim(e){
@@ -138,7 +138,7 @@ function sizeLineHTML(v){
   return `<div class="dim race-line size-line" data-tip="${tip}" data-tip-title="${SIZE_UI.tipTitle}">${sz}${n>1 ? ` · ${SIZE_UI.foot(n)}` : ""}</div>`;
 }
 function monsterInfoHTML(v){
-  const size = sizeLineHTML(v);
+  const size = sizeLineHTML(v) + grudgeLineHTML(v);
   if(v.side!=="foe" || (!v.natural && !v.special)) return size;
   const sk = v.special && learnedSkillByKey(v.special), parts = [];
   if(v.natural) parts.push(`${v.natural.name} ${v.natural.dmg.replace(" ","・")}`);
