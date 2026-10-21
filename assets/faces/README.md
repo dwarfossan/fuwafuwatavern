@@ -109,3 +109,25 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 | `smug.webp` | 得意 |
 | `sleepy.webp` | 想睡 |
 | `afraid.webp` | 害怕 |
+
+## `druid/` 林間德魯伊（大爺 10-22）
+
+底圖 `assets/portraits/druid_noface.webp`，表情跟底圖一樣大（1254×1254），直接疊。
+
+| 檔名 | 表情 |
+|---|---|
+| `cold.webp` | 冷淡（預設） |
+| `contempt.webp` | 輕蔑 |
+| `impatient.webp` | 不耐煩 |
+| `cruel_smirk.webp` | 冷笑 |
+| `angry.webp` | 生氣 |
+| `alert.webp` | 警戒 |
+| `skeptical.webp` | 懷疑 |
+| `surprised.webp` | 驚訝 |
+| `hurt.webp` | 受傷 |
+| `sad.webp` | 難過 |
+| `acknowledge.webp` | 認同 |
+| `shout.webp` | 大喊 |
+
+其他 10-22 的素材（一張圖、沒有表情，放 `assets/portraits/`）：`chimera.webp` 兇猛的奇美拉、`mantrap.webp` 食人花、`townsfolk_*.webp` 鎮民男女各 4 張
+

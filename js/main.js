@@ -412,7 +412,8 @@ else { if(location.hash==="#doll") state.page = "doll"; render(); }
 // 所有實際遊戲位圖：首頁、人物底圖／表情、四隻全部表情、場景插圖。
 function gameImageSources(){
  const sources=new Set([...HOME_HEADS,...Object.values(SCENE_ART),...Object.values(WORLD_ART)]);
- for(const [id,p] of Object.entries(PORTRAITS)){sources.add(p.base);if(p.sheet)sources.add(p.sheet);if(p.faces)for(const face of p.list)sources.add(faceSrc(id,face));}
+ for(const [id,p] of Object.entries(PORTRAITS)){if(p.onDemand)continue;   // 還沒用在劇情裡的（10-22 素材）：開機不先下載
+  sources.add(p.base);if(p.sheet)sources.add(p.sheet);if(p.faces)for(const face of p.list)sources.add(faceSrc(id,face));}
  for(const [id,moods] of Object.entries(CRITTER_FACES))for(const mood of moods)sources.add(critterFaceSrc(id,mood));
  for(const src of Object.values(STORY_ART))sources.add(src);
  for(const scene of Object.values(SCENES))if(scene.image)sources.add(scene.image);
