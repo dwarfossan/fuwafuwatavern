@@ -57,6 +57,11 @@ const ENEMIES = {
   skeleton_archer:{size:"中型",detectRange:8,name:"骷髏弓手",look:"skeleton",gear:["短弓","箭袋"],hp:13,ac:13,speed:6,xp:50,stars:1,
     special:"loose_bones",resistances:["穿刺"],
     scores:{STR:10,DEX:14,CON:14,INT:6,WIS:8,CHA:5}},
+  // 骷髏勇士（大爺 10-21）：只從記仇進化出來（骷髏兵／骷髏弓手 擲到 20），不放進一般委託；SRD 沒有這隻，數值照骷髏兵往上調（暫定：香香）
+  //   披風（大爺 10-21）；會說話、記得生前的事（大爺 10-21：比較有喜感）
+  skeleton_warrior:{size:"中型",detectRange:6,name:"骷髏勇士",look:"skeleton_warrior",gear:["長劍","盾牌"],hp:26,ac:15,speed:6,xp:200,
+    special:"loose_bones",passives:["double_strike"],resistances:["穿刺"],
+    scores:{STR:14,DEX:12,CON:15,INT:8,WIS:8,CHA:6}},
   zombie:{size:"中型",detectRange:4,name:"殭屍",look:"zombie",gear:[],hp:20,ac:8,speed:4,xp:50,stars:1,
     natural:{name:"捶打",dmg:"1d6 鈍擊",stat:"STR"},special:"undead_fortitude",
     scores:{STR:13,DEX:6,CON:16,INT:3,WIS:6,CHA:5}},

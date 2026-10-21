@@ -46,6 +46,12 @@ const undeadFace = kind => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/
   // 大爺 10-10：骷髏一律用巫妖那顆 45 度的頭（原本骷髏兵的頭角度不對）
   const skeleton = {face:UNDEAD_ART.lich, head:UNDEAD_ART.lich, headHurt:UNDEAD_ART.lichHurt, body:BONE, skin:BONE, feet:BONE, belly:false, tail:"", bodyArt:UNDEAD_ART.skeletonBody};
   MONSTER_LOOK.skeleton = skeleton;
+  // 骷髏勇士（大爺 10-21：加披風）：破爛的暗紅披風垂在背後（朝右＝往左後方飄），領口扣環在前面；頭像也看得到一截紅領口（外觀暫定：香香）
+  const CAPE="#8e2f2f", CAPE_D="#6b2226", INK2="#2a2630";
+  const capeBack = `<g class="skw-cape"><path d="M57 80 Q40 90 31 108 Q24 122 19 135 L27 131 L31 138 L38 132 L44 138 L50 131 L56 136 L62 129 Q76 126 88 129 Q93 110 90 95 Q88 85 84 80 Z" fill="${CAPE}" stroke="${INK2}" stroke-width="3" stroke-linejoin="round"/><path d="M44 96 Q35 112 32 130 M52 98 Q46 114 45 133" stroke="${CAPE_D}" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M37 118 l5 2 l-3 4z" fill="${CAPE_D}"/></g>`;
+  const capeCollar = `<g class="skw-collar"><path d="M56 81 Q70 88 85 81 L84 86 Q70 93 57 86 Z" fill="#a33a36" stroke="${INK2}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="70" cy="89" r="3.2" fill="#d9b44a" stroke="${INK2}" stroke-width="2"/></g>`;
+  const collarFace = svg => svg.replace(/(<svg[^>]*>)/, `$1<path d="M14 104 Q22 86 50 92 Q78 86 88 104 Z" fill="#a33a36" stroke="${INK2}" stroke-width="3" stroke-linejoin="round"/><circle cx="51" cy="98" r="4" fill="#d9b44a" stroke="${INK2}" stroke-width="2"/>`);
+  MONSTER_LOOK.skeleton_warrior = {...skeleton, face:collarFace(skeleton.face), tail:capeBack, extra:capeCollar};
   MONSTER_LOOK.lich = {...skeleton};   // 巫妖＝骷髏本體；皇冠、袍子是裝備「巫妖法袍」
   MONSTER_LOOK.vampire = {face:UNDEAD_ART.vampire.replace(/(<svg[^>]*>)/,'$1<g transform="translate(-4 -20) scale(1.08)">').replace(/<\/svg>$/,"</g></svg>"), head:UNDEAD_ART.vampire, headHurt:UNDEAD_ART.vampireHurt, body:"#36313f", skin:"#e0cbd0", feet:"#3b3546", belly:false, tail:""};
   MONSTER_LOOK.zombie = {kind:"zombie", face:undeadFace("zombie"), render:undeadStaticDollSVG};

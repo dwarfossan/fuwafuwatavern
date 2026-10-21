@@ -8,17 +8,19 @@ const GRUDGE = {
   // d20 → 結果
   table:[[1,1,"dead"],[2,2,"grateful"],[3,5,"retire"],[6,10,"gone"],[11,15,"return"],[16,18,"gang"],[19,19,"train"],[20,20,"evolve"]],
   // 進化：一次只升一階；表裡沒有下一階的，照 19 閉關苦練算（之後補怪物再接）
-  evolve:{goblin:"goblin_hero", goblin_archer:"goblin_hero", goblin_hero:"goblin_chief", orc:"orc_hero", orc_hero:"orc_chief"},
+  evolve:{goblin:"goblin_hero", goblin_archer:"goblin_hero", goblin_hero:"goblin_chief", orc:"orc_hero", orc_hero:"orc_chief",
+    skeleton:"skeleton_warrior", skeleton_archer:"skeleton_warrior", skeleton_warrior:"lich"},   // 骷髏兵／弓手→骷髏勇士→巫妖（大爺 10-21）
   // 種類：人形／野獸／不死魔物（沒寫的當野獸）
   category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
     // 不死：有智慧的才會說話（大爺 10-21）＝幽靈、巫妖、死亡騎士；骷髏、殭屍、骷髏戰馬沒腦子，只有動作
     ghost:"undead",lich:"undead",death_knight:"undead",
+    skeleton_warrior:"warrior",   // 骷髏勇士：會說話、記得生前的事（大爺 10-21）
     skeleton:"mindless",skeleton_archer:"mindless",zombie:"mindless",dk_horse:"mindless"},
   // 回來時變多強：每回來一次等級 +1、血量 +25%；閉關苦練再多 +1 級、AC +1，沒有天生技能的學一招（看種類）
   hpPer:.25, trainAc:1, xpPer:.5,
-  trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail", mindless:"undead_fortitude"},
+  trainSkill:{humanoid:"bandit_sand", beast:"cub_pounce", undead:"ghost_wail", mindless:"undead_fortitude", warrior:"undead_fortitude"},
   // 傷疤造型（js/art/scars.js）只有這些頭畫得上；其他怪物先只有綽號、狀態卡那行
-  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton" : null,
+  scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton" : null,   // skeleton_warrior 也算骷髏
   // 綽號：照最後一道傷疤
   nick:{揮砍:"刀疤", 穿刺:"獨眼", 鈍擊:"腫眼", 火焰:"焦臉", 其他:"帶電"},
   nickTail:["", "老對手", "宿敵"],          // 第幾次回來（1、2、3）
@@ -44,6 +46,15 @@ const GRUDGE = {
       "（喀啦喀啦——骨頭全轉向{by}，下巴不停地開合）",
       "（認出{by}，發出沒有意義的低吼，拖著腳步直直衝過來）",
       "（身上還留著上次的傷，空洞的眼睛死盯著{by}）"
+    ],
+    // 骷髏勇士：生前的記憶東缺一塊西缺一塊（大爺 10-21：比較有喜感）
+    warrior:[
+      "{by}！我生前可是王國近衛隊的……隊……呃，某個隊！總之今天你死定了，臭毛球！",
+      "這把劍我生前練了二十年！……還是三十年？反正砍你這死畜生夠用了！",
+      "我想起來了！我生前最討厭的就是毛茸茸的東西！尤其是你，{by}！",
+      "（喀啦）……等等，我老婆叫什麼來著……算了！{by}，先扒了你的皮再說！",
+      "上次被你打散的骨頭，我一根一根撿回來的！少一根肋骨你知道我找多久嗎，{by}！",
+      "我生前戰無不勝！……除了那次。還有那次。還有上次被你打暈那次！"
     ],
     undead:[
       "……{by}……臭毛球……我從墳裡爬回來……就是為了你……",
