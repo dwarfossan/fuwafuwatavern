@@ -10,7 +10,7 @@ const br=await chromium.launch();try{
  assert.ok(await p.evaluate(()=>{state.main={};state.dungeons={};state.location='forest';state.page='map';render();enterWorldLocation();return state.page==='map'&&/公會/.test(document.getElementById('map-message').textContent);}),'還沒接主線：森林不開');
  // 公會：紅 ❗、對話「哥布林的消息」講完 → investigate
  await p.evaluate(()=>{state.townFounded=true;state.innNightDone=true;state.page='town';state.townPlace=null;render();});
- assert.equal(await p.locator('[data-town-place="guild"] .main-mark').count(),1,'公會有紅 ❗');await shot(p,'fm-town.png');
+ assert.equal(await p.locator('[data-town-place="guild"] .obs-main').count(),1,'公會有紅 ❗');await shot(p,'fm-town.png');
  await p.evaluate(()=>openTownPlace('guild'));await p.locator('#townMainTalk').click();
  const n=await p.evaluate(()=>FOREST.main.guild.length);for(let i=0;i<n;i++)await p.locator('#townTalkNext').click();
  assert.equal(await p.evaluate(()=>mainStage()),'investigate');assert.equal(await p.locator('#townMainTalk').count(),0);

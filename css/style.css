@@ -1459,8 +1459,7 @@ body.image-boot{background:#000}
 .camp-story .actor.owlcub{left:76%;height:40%;bottom:24%;z-index:3}
 /* 樹後面有人：樹變半透明（10-21） */
 .tree-see-through{opacity:.35;transition:opacity .2s}
-/* 主線（10-22）：公會的紅 ❗、紅色對話按鈕；森林主線劇情的德魯伊、奇美拉立繪 */
-.main-mark{background:#d64545;color:#fff;border:3px solid #2a2630;border-radius:10px;font-weight:900;font-size:26px;line-height:1;display:inline-flex;align-items:center;justify-content:center;animation:questBob 1.4s ease-in-out infinite}
+/* 主線（10-22）：紅色對話按鈕（公會的紅 ❗ 用共用泡泡框 obsBubbleHTML("main")）；森林主線劇情的德魯伊、奇美拉立繪 */
 .btn.main-talk{background:#d64545;color:#fff;border-color:#2a2630}
 .actor.druid{aspect-ratio:1;height:100%;bottom:-6%}
 .actor.chimera{aspect-ratio:1312/1199;height:78%;bottom:2%}
