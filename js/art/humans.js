@@ -112,8 +112,8 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
 // 矮人大爺（大爺 10-22 給了兩張戰棋草圖：便服、穿鎧甲，要改成跟戰場其他單位同一套畫風）
 // 大爺是 145cm 的矮小女黑暗精靈，「鬍子」是兩側頭髮編成辮子在下巴綁起來，不是真的鬍子（沒有八字鬍，嘴巴看得到）
 // 只有外觀，沒有數值、沒有放進任何戰鬥（要不要上場、什麼時候上場再跟大爺確認）
-//   便服：照紙娃娃規格（3/4 側臉朝右、大頭、圓身體、浮空圓球手、橢圓腳；外框 3～3.5），襯衫＋深紫背心＋吊帶圍裙
-//   鎧甲：大型體型（2×2，戰場放大 1.45 倍），整套盔甲包住全身，只有頭露出來；深灰板甲＋亮灰胸板＋橘色大護肩＋大鐵拳（外觀暫定：香香）
+//   便服：照大爺的原圖畫成正面、臉小一點（10-22），紙娃娃身體（圓身體、浮空圓球手、沒有手臂、橢圓腳；外框 3～3.5），襯衫＋深紫背心＋吊帶圍裙
+//   鎧甲：大型體型（2×2，戰場放大 1.45 倍），整套盔甲包住全身，只有頭（正面、小小一顆）露出來；深灰板甲＋亮灰胸板＋橘色大護肩＋大鐵拳（外觀暫定：香香）
 {
   const INK="#2a2630", SK="#7a4f33", SKD="#5e3a24", HR="#f3e6cf", HRD="#d8c7a6", GL="#c9932f";
   const p=(d,f,w=3.5)=>`<path d="${d}" fill="${f}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -144,16 +144,18 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
     + hairBeard(31, 76, 54);
   const side = hurt => svg(sideInner(hurt));
   // 正面（先攻列、狀態卡用）
-  const frontInner =
+  const frontInner = hurt =>
       p("M27 50 L5 34 L13 60 L29 66 Z", SK) + p("M73 50 L95 34 L87 60 L71 66 Z", SK)
     + p("M26 54 Q26 24 50 22 Q74 24 74 54 Q74 80 50 88 Q26 80 26 54 Z", SK)
     + p("M20 64 Q14 30 30 17 Q50 5 70 17 Q86 30 80 64 L68 64 Q68 46 64 34 L58 42 L52 30 L46 42 L40 31 L36 36 Q32 46 32 64 Z", HR)
     + ln("M32 42 L46 45 M54 45 L68 42", HR, 3)
-    + lens(40,53,7.2,false) + lens(60,53,7.2,false) + ln("M47.2 53 L52.8 53", INK, 2.6)
+    + lens(40,53,7.2,hurt) + lens(60,53,7.2,hurt) + ln("M47.2 53 L52.8 53", INK, 2.6)
     + p("M47 60 Q50 58 53 60 Q53 64 50 65 Q47 64 47 60 Z", SKD, 2.2)
     + ln("M44 71 Q50 72.5 56 71", INK, 2.4)
     + hairBeard(27, 73, 50, 10);
-  const front = svg(frontInner);
+  const front = svg(frontInner(false));
+  // 戰場用（大爺 10-22：照原圖改成正面、臉小一點）：正面的頭縮成 0.8，以下巴為中心縮
+  const small = hurt => svg(`<g transform="translate(50 96) scale(.8) translate(-50 -96)">${frontInner(hurt)}</g>`);
   // 胸口的辮子（紙娃娃座標；下巴中心在頭的 x≈54 → 紙娃娃 x≈73）
   const braid = (x,y0,n,s=1) => Array.from({length:n},(_,i)=>p(`M${x} ${y0+i*8*s} l${-5*s} ${4.5*s} l${5*s} ${4.5*s} l${5*s} ${-4.5*s} Z`, HR, 2.4)).join("")
     + `<rect x="${x-4*s}" y="${y0+n*8*s-1}" width="${8*s}" height="${5*s}" rx="1.5" fill="#d9b44a" stroke="${INK}" stroke-width="2"/>`
@@ -162,9 +164,9 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   const casual = p("M50 86 Q56 82 61 84 L57 129 Q51 128 48 127 Q42 110 50 86 Z", "#4f3f5c", 3) + p("M90 86 Q84 82 79 84 L83 129 Q89 128 92 127 Q98 110 90 86 Z", "#4f3f5c", 3)
     + p("M58 93 L82 93 L86 130 Q70 136 54 130 Z", "#8a5a32", 3) + p("M63 112 L77 112 L76 123 L64 123 Z", "#7a4c28", 2)
     + ln("M58 93 L55 84 M82 93 L85 84", "#5a3a22", 3.5) + `<circle cx="59" cy="95" r="2.2" fill="#d9b44a" stroke="${INK}" stroke-width="1.5"/><circle cx="81" cy="95" r="2.2" fill="#d9b44a" stroke="${INK}" stroke-width="1.5"/>`;
-  MONSTER_LOOK.dwarf = {face:front, head:side(false), headHurt:side(true), skin:SK, belly:false, body:"#efe4cf", feet:"#5a3e2e",
-    tail: p("M54 30 Q38 62 46 100 L58 97 Q53 70 60 40 Z", HR, 3),                // 後面的長髮，從身體左後方露出來
-    anchor: {head:[54,26,1.05], neck:[73,94]}, extra: casual + braid(73,82,3,1.1)};
+  MONSTER_LOOK.dwarf = {face:front, head:small(false), headHurt:small(true), skin:SK, belly:false, body:"#efe4cf", feet:"#5a3e2e",
+    tail: p("M52 34 Q38 66 44 112 L56 108 Q52 74 58 42 Z", HR, 3) + p("M88 34 Q102 66 96 112 L84 108 Q88 74 82 42 Z", HR, 3),   // 後面的長髮，兩邊垂到腰
+    anchor: {head:[50,30,.85], neck:[70,94]}, extra: casual + braid(70,80,3,1.1)};
   // 鎧甲：整隻一張圖（140×150，腳底 y≈140），大型單位在戰場上會放大 1.45 倍，所以線畫 2.4（放大後≈3.5）
   const q=(d,f,w=2.4)=>`<path d="${d}" fill="${f}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
   const fist = dx => q(`M${2+dx} 92 L${18+dx} 84 L${34+dx} 92 L${34+dx} 110 L${18+dx} 118 L${2+dx} 110 Z`, "#e0923a")
@@ -180,10 +182,10 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
     + q("M6 64 Q4 36 28 34 Q50 34 50 56 L48 66 Z", "#e0923a") + ln("M14 46 Q24 38 36 40", "#f4b868", 3) + q("M6 64 L48 64 L46 74 L8 76 Z", "#8c919b")
     + q("M134 64 Q136 36 112 34 Q90 34 90 56 L92 66 Z", "#e0923a") + ln("M104 40 Q116 38 126 46", "#f4b868", 3) + q("M134 64 L92 64 L94 74 L132 76 Z", "#8c919b")
     + fist(0) + fist(104)
-    + `<svg x="44" y="-4" width="54" height="54" viewBox="0 0 100 100" overflow="visible">${sideInner(hurt)}</svg>`
-    + p("M60 50 L54 46 L60 42 L66 46 Z", HR, 2);                                  // 辮子尾巴塞進領口
+    + `<svg x="48" y="4" width="44" height="44" viewBox="0 0 100 100" overflow="visible">${frontInner(hurt)}</svg>`
+    + p("M70 52 L65 48 L70 44 L75 48 Z", HR, 2);                                  // 辮子尾巴塞進領口
   const armorFront = svg(q("M4 100 Q6 76 26 74 L74 74 Q94 76 96 100 Z", "#5f6470", 3) + q("M2 92 Q0 70 18 68 Q32 68 32 84 Z M98 92 Q100 70 82 68 Q68 68 68 84 Z", "#e0923a", 3)
-    + `<g transform="translate(50 50) scale(.82) translate(-50 -56)">${frontInner}</g>`);
+    + `<g transform="translate(50 50) scale(.82) translate(-50 -56)">${frontInner(false)}</g>`);
   MONSTER_LOOK.dwarf_armored = {kind:"dwarf_armored", size:"大型", art:suit(false), face:armorFront,
     render:o=>undeadStaticDollSVG({...o, look:{...o.look, art:(o.down||o.anim?.k==="hurt") ? suit(true) : suit(false)}})};
 }
