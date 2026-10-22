@@ -23,7 +23,7 @@ const GRUDGE = {
   // 傷疤造型（js/art/scars.js）：沒有座標的怪物（龍、死亡騎士、寶箱怪、食人花……）先只有綽號、狀態卡那行
   scarBase:look => /^goblin/.test(look||"") ? "goblin" : /^orc/.test(look||"") ? "orc" : /^(skeleton|lich)/.test(look||"") ? "skeleton"   // skeleton_warrior 也算骷髏
     : /^(human|bandit)/.test(look||"") ? "human"                                          // 人類：盜賊、獵人、盜賊頭目（10-21）
-    : (typeof STATIC_SCAR!=="undefined" && STATIC_SCAR[look]) || (SCAR_SPOTS[look] && SCAR_SPOTS[look].doll) ? look : null,   // 殭屍、幽靈、食屍鬼、野獸（10-21）
+    : (typeof STATIC_SCAR!=="undefined" && STATIC_SCAR[look]) || SCAR_SPOTS[look] ? look : null,   // 殭屍、幽靈、食屍鬼、野獸（10-21；殭屍、食屍鬼 10-22 改紙娃娃，座標在 SCAR_SPOTS）
   // 綽號：照最後一道傷疤
   nick:{揮砍:"刀疤", 穿刺:"獨眼", 鈍擊:"腫眼", 火焰:"焦臉", 其他:"帶電"},
   nickTail:["", "老對手", "宿敵"],          // 第幾次回來（1、2、3）

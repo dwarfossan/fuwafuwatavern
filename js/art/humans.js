@@ -99,3 +99,60 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
       extra:`<g transform="${HUMAN_PARTS.base.female.fit}">${robe}</g>`}; }
   MONSTER_LOOK.bandit_captain = humanLook({sex:"male", hair:"03", beard:"03", hairColor:"#2b2523", beardColor:"#2b2523", skin:"#d4a27e"});
 }
+
+// 矮人大爺（大爺 10-22 給了兩張戰棋草圖：便服、穿鎧甲，要改成跟戰場其他單位同一套畫風）
+// 只有外觀，沒有數值、沒有放進任何戰鬥（要不要上場、什麼時候上場再跟大爺確認）
+// 照紙娃娃規格：3/4 側臉朝右、頭跟身體一樣寬、沒有脖子、浮空圓球手、橢圓腳；外框 3～3.5
+// 特徵照立繪（大爺是黑暗精靈，鬍子是頭髮編的）：深膚色、米白長髮、尖耳、圓眼鏡、編辮大鬍子、吊帶圍裙；鎧甲版是深灰板甲＋橘色大護肩（外觀暫定：香香）
+{
+  const INK="#2a2630", SK="#7a4f33", SKD="#5e3a24", HR="#f3e6cf", HRD="#d8c7a6", GL="#c9932f";
+  const p=(d,f,w=3.5)=>`<path d="${d}" fill="${f}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const ln=(d,c=HRD,w=2)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const lens=(x,y,r,hurt)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff3c8" stroke="${INK}" stroke-width="2.6"/><circle cx="${x}" cy="${y}" r="${r-2.2}" fill="none" stroke="${GL}" stroke-width="2"/>`
+    + (hurt ? `<path d="M${x-3.5} ${y-3.5} L${x+3.5} ${y+3.5} M${x+3.5} ${y-3.5} L${x-3.5} ${y+3.5}" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>` : `<path d="M${x-r*.5} ${y-r*.35} Q${x-r*.2} ${y-r*.65} ${x+r*.15} ${y-r*.6}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`);
+  const svg=g=>`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${g}</svg>`;
+  // 3/4 側臉（朝右）：遠側耳朵在右後方、近側耳朵從頭髮裡穿出來；鬍子蓋住嘴巴，往下接到胸口的辮子（畫在身體上）
+  const side = hurt => svg(
+      p("M73 46 L95 30 L87 55 L75 61 Z", SK) + ln("M78 48 L90 36 L85 52", SKD)
+    + p("M28 54 Q28 24 54 22 Q78 24 78 54 Q78 80 54 88 Q30 80 28 54 Z", SK)
+    + p("M23 64 Q16 30 34 17 Q54 5 74 15 Q87 23 82 45 L76 36 L70 44 L64 31 L57 42 L50 29 L43 41 L37 33 Q33 46 33 64 Z", HR)
+    + ln("M40 18 Q54 13 68 18")
+    + p("M33 51 L7 35 L15 60 L31 67 Z", SK) + ln("M28 53 L13 41 L18 58", SKD)
+    + p("M37 44 Q45 37 54 43 Q45 47 37 44 Z", HR, 2.4) + p("M61 43 Q69 38 76 43 Q69 46 61 43 Z", HR, 2.4)
+    + lens(46,52,7.5,hurt) + lens(68,52,6.6,hurt) + ln("M53.5 52 L61.4 52", INK, 2.6) + ln("M38.5 51 L30 50", GL, 2.4)
+    + p("M60 57 Q71 55 71 62 Q67 68 59 66 Z", SKD, 2.6)
+    + p("M30 58 Q29 84 44 96 L54 100 L64 96 Q78 84 78 58 Q73 70 64 71 Q55 67 47 71 Q37 70 30 58 Z", HR)
+    + ln("M40 80 L46 86 M52 84 L56 90 M62 82 L66 88 M47 92 L52 96")
+    + p("M42 71 Q53 61 64 68 Q71 72 77 66 Q75 78 63 76 Q54 72 46 78 Q37 79 35 70 Q39 73 42 71 Z", HR, 2.6));
+  // 正面（先攻列、狀態卡用）
+  const front = svg(
+      p("M27 50 L5 34 L13 60 L29 66 Z", SK) + p("M73 50 L95 34 L87 60 L71 66 Z", SK)
+    + p("M26 54 Q26 24 50 22 Q74 24 74 54 Q74 80 50 88 Q26 80 26 54 Z", SK)
+    + p("M20 64 Q14 30 30 17 Q50 5 70 17 Q86 30 80 64 L68 64 Q68 46 64 34 L58 42 L52 30 L46 42 L40 31 L36 36 Q32 46 32 64 Z", HR)
+    + p("M33 44 Q40 37 48 43 Q40 47 33 44 Z", HR, 2.4) + p("M52 43 Q60 37 67 44 Q60 47 52 43 Z", HR, 2.4)
+    + lens(40,52,7.2,false) + lens(60,52,7.2,false) + ln("M47.2 52 L52.8 52", INK, 2.6)
+    + p("M46 58 Q50 55 54 58 Q55 65 50 66 Q45 65 46 58 Z", SKD, 2.4)
+    + p("M26 58 Q25 86 40 96 L50 100 L60 96 Q75 86 74 58 Q68 70 58 71 Q50 67 42 71 Q32 70 26 58 Z", HR)
+    + p("M32 70 Q41 61 50 67 Q59 61 68 70 Q64 76 56 74 Q50 72 44 74 Q36 76 32 70 Z", HR, 2.6)
+    + ln("M38 80 L44 86 M50 84 L50 92 M62 80 L56 86"));
+  // 胸口的辮子（紙娃娃座標；鬍子中心在頭的 x≈54 → 紙娃娃 x≈73）
+  const braid = (x,y0,n,s=1) => Array.from({length:n},(_,i)=>p(`M${x} ${y0+i*8*s} l${-5*s} ${4.5*s} l${5*s} ${4.5*s} l${5*s} ${-4.5*s} Z`, HR, 2.4)).join("")
+    + `<rect x="${x-4*s}" y="${y0+n*8*s-1}" width="${8*s}" height="${5*s}" rx="1.5" fill="#d9b44a" stroke="${INK}" stroke-width="2"/>`
+    + p(`M${x-3*s} ${y0+n*8*s+4*s} L${x} ${y0+n*8*s+11*s} L${x+3*s} ${y0+n*8*s+4*s} Z`, HR, 2);
+  const braids = braid(73,79,4,1.15);
+  // 便服：白襯衫（身體色）＋深紫背心兩側＋吊帶皮圍裙
+  const casual = p("M50 86 Q56 82 61 84 L57 129 Q51 128 48 127 Q42 110 50 86 Z", "#4f3f5c", 3) + p("M90 86 Q84 82 79 84 L83 129 Q89 128 92 127 Q98 110 90 86 Z", "#4f3f5c", 3)
+    + p("M58 93 L82 93 L86 130 Q70 136 54 130 Z", "#8a5a32", 3) + p("M63 112 L77 112 L76 123 L64 123 Z", "#7a4c28", 2)
+    + ln("M58 93 L55 84 M82 93 L85 84", "#5a3a22", 3.5) + `<circle cx="59" cy="95" r="2.2" fill="#d9b44a" stroke="${INK}" stroke-width="1.5"/><circle cx="81" cy="95" r="2.2" fill="#d9b44a" stroke="${INK}" stroke-width="1.5"/>`;
+  // 鎧甲：深灰板甲、亮灰胸板、橘色大護肩、腰帶金扣（手是灰色鐵手套、腳是鐵靴）
+  const plate = p("M55 89 Q70 83 85 89 Q90 106 84 117 Q70 123 56 117 Q50 106 55 89 Z", "#b9bec8", 3) + ln("M64 96 L64 110 M76 96 L76 110", "#8c919b", 2.4)
+    + p("M48 117 Q70 125 92 117 L93 126 Q70 134 47 126 Z", "#3e3a3c", 3) + `<rect x="66" y="119" width="8" height="8" rx="1.5" fill="#d9b44a" stroke="${INK}" stroke-width="2"/>`
+    + p("M34 98 Q31 80 48 79 Q62 80 61 97 Z", "#e0923a", 3.2) + ln("M40 85 Q46 81 53 83", "#f4b868", 2.6) + p("M35 97 L61 96 L59 103 L37 104 Z", "#8c919b", 2.6)
+    + p("M106 98 Q109 80 92 79 Q78 80 79 97 Z", "#e0923a", 3.2) + ln("M86 83 Q93 81 99 85", "#f4b868", 2.6) + p("M105 97 L79 96 L81 103 L103 104 Z", "#8c919b", 2.6)
+    + `<circle cx="58" cy="108" r="2" fill="${INK}"/><circle cx="82" cy="108" r="2" fill="${INK}"/>`;
+  const base = {face:front, head:side(false), headHurt:side(true), skin:SK, belly:false,
+    tail: p("M54 30 Q38 62 46 100 L58 97 Q53 70 60 40 Z", HR, 3),                // 後面的長髮，從身體左後方露出來
+    anchor: {head:[54,26,1.05], neck:[73,94]}};
+  MONSTER_LOOK.dwarf = {...base, body:"#efe4cf", feet:"#5a3e2e", extra: casual + braids};
+  MONSTER_LOOK.dwarf_armored = {...base, body:"#6e7480", skin:"#8c919b", feet:"#5d636e", extra: plate + braids};
+}

@@ -8,15 +8,16 @@ const SCAR_SPOTS = {
   orc:    {side:{eyeR:6, eyeA:[43,49], eyeB:[68,49], top:[58,31], cheek:[48,66]}, front:{eyeR:6.5, eyeA:[36,49], eyeB:[63,49], top:[50,31], cheek:[31,65]}},
   // 人類（盜賊、獵人、盜賊頭目，10-21）：側臉照 humanLook 的頭縮放算出來；正面照 humanFrontSVG
   human:  {side:{eyeR:5, k:.8, eyeA:[45,69], eyeB:[65,67], top:[55,40], cheek:[37,86]}, front:{eyeR:4.4, k:.75, eyeA:[41,54], eyeB:[59,54], top:[50,25], cheek:[34,64]}},
+  // 殭屍、食屍鬼（10-22 改成紙娃娃）：照 undead.js 的頭
+  zombie: {side:{eyeR:7, eyeA:[43,54], eyeB:[67,53], top:[54,22], cheek:[36,72]}, front:{eyeR:7, eyeA:[38,54], eyeB:[62,54], top:[50,22], cheek:[30,70]}},
+  ghoul:  {side:{eyeR:7, eyeA:[43,52], eyeB:[67,51], top:[54,22], cheek:[36,70]}, front:{eyeR:7, eyeA:[37,52], eyeB:[63,52], top:[50,22], cheek:[30,68]}},
   // 森林的野豬、狼：紙娃娃是整隻側面（140×150 座標），頭像是正面（100×100）
   boar:   {doll:{eyeR:4.5, k:.65, eyeA:[93,96], eyeB:[111,95], top:[103,79], cheek:[96,108]}, front:{eyeR:5, eyeA:[35,47], eyeB:[65,47], top:[50,29], cheek:[29,64]}},
   forest_wolf:{doll:{eyeR:4.5, k:.65, eyeA:[99,86], eyeB:[115,86], top:[107,68], cheek:[101,99]}, front:{eyeR:5, eyeA:[35,47], eyeB:[65,47], top:[50,30], cheek:[29,64]}}
 };
-// 整隻一張圖的（殭屍、幽靈、食屍鬼、梟熊等六隻野獸）：傷疤畫進原圖同一層，頭像是從原圖裁的，自然一起有
+// 整隻一張圖的（幽靈、梟熊等六隻野獸）：傷疤畫進原圖同一層，頭像是從原圖裁的，自然一起有
 //   座標＝那張原圖自己的座標（野獸是 BEAST_ART 的座標，外面那層縮放會跟著縮）；k＝傷疤放大倍率（原圖很大的要放大）
 const STATIC_SCAR = {
-  zombie: {eyeR:8, eyeA:[60,54], eyeB:[81,58], top:[76,31], cheek:[51,73]},
-  ghoul:  {eyeR:8, eyeA:[60,55], eyeB:[81,61], top:[77,32], cheek:[50,74]},
   ghost:  {eyeR:8, eyeA:[59,56], eyeB:[81,56], top:[70,30], cheek:[50,80]},
   owlbear:{eyeR:20, k:1.8, eyeA:[124,111], eyeB:[151,109], top:[138,80], cheek:[104,146]},
   griffin:{eyeR:6, k:1.4, eyeA:[151,84], eyeB:[151,84], top:[140,64], cheek:[136,106]},

@@ -2,7 +2,7 @@
    - 骷髏：一個本體，骷髏兵／弓手／法師只是裝備不同（盾＋長劍、弓、法杖＋法袍），裝備全部是遊戲現有的
    - 巫妖：骷髏本體＋巫妖的頭；衣服是可以穿的裝備「巫妖法袍」（斗篷＋袍子＋領子、皇冠、項鍊一整套，跟 +1 薩滿袍一樣）
    - 女吸血鬼：自己的頭（含耳環；瀏海是大爺 10-10 要求加的，香香畫）；衣服是可以穿的裝備「吸血鬼禮服」（斗篷＋洋裝＋領子、項鍊）
-   - 殭屍、幽靈：整隻一張圖（手伸直、沒有腳），不拿裝備，用自己的 render
+   - 幽靈：整隻一張圖（沒有腳），不拿裝備，用自己的 render（殭屍、食屍鬼 10-22 改成紙娃娃）
    原圖朝右（10-21 統一規格：所有單位原圖朝右，要朝左就由 face:-1 翻）；不要永久翻轉來源 */
 const UNDEAD_ART = (()=>{
   const INK="#2a2630";
@@ -23,9 +23,6 @@ const UNDEAD_ART = (()=>{
     lichPendant: `<g transform="translate(-70 -95)"><g stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><circle cx="73" cy="96" r="4" fill="#85dcca" /></g></g>`,
     vampDress: `<g stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><g id="female-vampire-cape" transform="translate(72 0) scale(.86 1) translate(-72 0)"><path d="M46 77 L28 134 L47 128 L65 137 L87 130 L108 133 L96 78Z" fill="#783b46" /></g><g id="female-vampire-dress" transform="translate(72 0) scale(.86 1) translate(-72 0)"><path d="M49 84 Q69 78 89 85 L83 102 Q81 110 85 116 L97 132 Q73 140 45 132 L56 116 Q60 109 55 101Z" fill="#36313f" /><path d="M58 85 L72 98 L82 85 M72 99 L74 133 M49 127 Q72 136 93 127 M58 109 Q71 114 82 109" fill="none" stroke="#a15b68" stroke-width="2.5" /><path d="M47 95 L39 106 M92 94 L101 105" fill="none" stroke-width="8" /></g><path d="M48 83 L33 65 L53 71 L72 86 L92 68 L106 62 L94 88Z" fill="#783b46" id="female-vampire-cape-collar" transform="translate(72 0) scale(.86 1) translate(-72 0)" /></g>`,
     vampPendant: `<g transform="translate(-70 -95)"><g stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(72 0) scale(.86 1) translate(-72 0)"><path d="M73 88 L78 94 L73 99 L69 94Z" fill="#a15b68" stroke="#aa905d" stroke-width="2" /></g></g></g>`,
-    // 食屍鬼（大爺 10-21，殭屍記仇進化；香香畫、暫定）：駝背、尖耳、細長的手和爪子、一嘴尖牙；原圖朝右
-    ghoul: `<g transform="translate(0 12)"><g stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M60 104 L52 116 L57 126 M80 104 L88 116 L85 126" fill="none" stroke-width="10"/><path d="M60 104 L52 116 L57 126 M80 104 L88 116 L85 126" fill="none" stroke="#a39cae" stroke-width="6"/><ellipse cx="55" cy="127" rx="8" ry="4.5" fill="#a39cae"/><ellipse cx="88" cy="127" rx="8" ry="4.5" fill="#a39cae"/><path d="M50 74 Q68 64 88 74 L91 102 Q70 110 52 102Z" fill="#a39cae"/><path d="M58 82 Q70 79 82 83 M57 89 Q70 86 83 90 M58 96 Q70 93 82 97" fill="none" stroke="#7c7488" stroke-width="2"/><path d="M54 99 L87 99 L83 113 L76 107 L70 115 L64 107 L57 113Z" fill="#5c4a40"/><path d="M52 78 L42 94 L45 110" fill="none" stroke-width="9"/><path d="M52 78 L42 94 L45 110" fill="none" stroke="#a39cae" stroke-width="5"/><path d="M45 110 l-5 7 M45 110 l0 9 M45 110 l5 7" fill="none" stroke-width="2.4"/><path d="M86 78 L103 90 L115 100" fill="none" stroke-width="9"/><path d="M86 78 L103 90 L115 100" fill="none" stroke="#a39cae" stroke-width="5"/><path d="M115 100 l8 -2 M115 100 l9 4 M115 100 l5 8" fill="none" stroke-width="2.4"/><g transform="rotate(14 70 48)"><path d="M48 40 L33 27 L46 50Z" fill="#a39cae"/><path d="M47 40 Q49 20 70 19 Q95 20 95 43 L92 58 Q86 70 72 72 L52 66 L45 52Z" fill="#a39cae"/><path d="M54 27 Q60 24 66 27 M74 24 Q80 22 86 26" fill="none" stroke="#7c7488" stroke-width="2"/><ellipse cx="59" cy="46" rx="8" ry="8" fill="#3b3346" stroke="none"/><ellipse cx="81" cy="46" rx="7" ry="8" fill="#3b3346" stroke="none"/><circle cx="61" cy="48" r="3.6" fill="#f0d398"/><circle cx="83" cy="48" r="3.2" fill="#f0d398"/><path d="M62 57 L91 59 L87 68 L66 66Z" fill="#2a2630"/><path d="M65 58 L67 62 L70 58 L72 62 L75 58 L77 62 L80 59 L82 63 L85 59 L87 62" fill="none" stroke="#f0e6cc" stroke-width="1.6"/></g></g></g>`,
-    zombie: `<g transform="translate(0 10)"><g stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M56 108 L52 124 L66 126 L67 108 M75 108 L78 121 L89 126 L91 120 L86 106" fill="#7f9a86"/><path d="M52 120 L48 125 Q56 131 66 126 L65 122 M82 119 L83 126 L96 128 Q99 121 88 120Z" fill="#654d43"/><path d="M48 72 Q67 65 87 74 L94 111 L83 109 L78 117 L65 110 L57 115 L45 109Z" fill="#6c7780"/><path d="M48 74 L34 91 L24 98" fill="none" stroke-width="10"/><path d="M48 74 L34 91 L24 98" fill="none" stroke="#7f9a86" stroke-width="6"/><path d="M87 77 L103 86 L115 99" fill="none" stroke-width="10"/><path d="M87 77 L103 86 L115 99" fill="none" stroke="#7f9a86" stroke-width="6"/><circle cx="23" cy="100" r="6" fill="#7f9a86"/><circle cx="115" cy="101" r="6" fill="#7f9a86"/><path d="M62 71 L72 83 L80 72 M49 98 L58 90 L64 100 L61 109 M83 95 L89 102" fill="none" stroke="#40464e" stroke-width="2"/><path d="M69 84 L68 103 M49 104 L88 106" fill="none" stroke="#534336" stroke-width="3"/><g transform="rotate(12 70 49)"><path d="M46 37 Q48 17 70 19 Q96 20 95 44 L92 60 Q87 72 72 74 L50 67 L44 51Z" fill="#7f9a86"/><path d="M47 37 L46 24 L57 28 L64 17 L72 25 L84 18 L95 32 L94 40 L83 31 L58 33Z" fill="#454341"/><ellipse cx="59" cy="46" rx="9" ry="10" fill="#4e6455" stroke="none"/><ellipse cx="81" cy="46" rx="7" ry="8" fill="#a7b99b" stroke="none"/><circle cx="61" cy="48" r="4" fill="#f0d398"/><circle cx="61" cy="48" r="1.5" fill="#2a2630" stroke="none"/><path d="M77 46 L84 48" fill="none"/><path d="M66 57 L88 59 L85 67 L67 65Z" fill="#2a2630"/><path d="M70 59 L73 64 L76 59Z" fill="#f0e6cc" stroke-width="1"/><path d="M49 54 L59 59 M52 52 L50 57 M57 54 L55 60" fill="none" stroke-width="1.7"/></g></g></g>`,
     ghost: `<g transform="translate(0 8)"><g opacity=".78" stroke="#2a2630" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M50 66 Q35 70 27 84 L15 83 L22 93 L33 95 Q48 91 57 82 M88 66 Q105 72 112 87 L126 87 L120 98 L106 99 Q95 95 83 81" fill="#a7d0cd"/><path d="M46 56 Q40 35 52 25 Q71 13 89 27 Q100 37 94 60 L88 76 Q92 93 100 107 Q86 112 80 103 Q75 119 61 116 Q69 108 62 103 Q52 112 39 109 Q49 94 50 76Z" fill="#b9ded7"/><path d="M53 73 Q72 84 86 73 M59 86 Q69 94 80 86 M53 101 Q63 94 66 101" fill="none" stroke="#719e9b" stroke-width="2"/><ellipse cx="59" cy="48" rx="7" ry="10" fill="#384f58"/><ellipse cx="81" cy="48" rx="7" ry="10" fill="#384f58"/><ellipse cx="72" cy="64" rx="5" ry="7" fill="#384f58"/><circle cx="61" cy="47" r="2" fill="#e8fbf1" stroke="none"/><circle cx="83" cy="47" r="2" fill="#e8fbf1" stroke="none"/><path d="M48 120 Q42 123 39 117 M100 119 Q107 120 108 113" fill="none" stroke="#a7d0cd" stroke-width="2"/></g></g>`
   };
 })();
@@ -56,9 +53,63 @@ const undeadFace = kind => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/
   MONSTER_LOOK.skeleton_warrior = {...skeleton, face:collarFace(skeleton.face), tail:capeBack, extra:capeCollar};
   MONSTER_LOOK.lich = {...skeleton};   // 巫妖＝骷髏本體；皇冠、袍子是裝備「巫妖法袍」
   MONSTER_LOOK.vampire = {face:UNDEAD_ART.vampire.replace(/(<svg[^>]*>)/,'$1<g transform="translate(-4 -20) scale(1.08)">').replace(/<\/svg>$/,"</g></svg>"), head:UNDEAD_ART.vampire, headHurt:UNDEAD_ART.vampireHurt, body:"#36313f", skin:"#e0cbd0", feet:"#3b3546", belly:false, tail:""};
-  MONSTER_LOOK.zombie = {kind:"zombie", face:undeadFace("zombie"), render:undeadStaticDollSVG};
   MONSTER_LOOK.ghost = {kind:"ghost", face:undeadFace("ghost"), render:undeadStaticDollSVG};
-  MONSTER_LOOK.ghoul = {kind:"ghoul", face:undeadFace("ghoul"), render:undeadStaticDollSVG};
+}
+// 殭屍、食屍鬼改成紙娃娃（大爺 10-22 畫風統一：原本整張圖手腳細長，跟骷髏站一起不像同一套）
+// 跟骷髏、哥布林一樣：3/4 側臉朝右的大頭＋圓身體＋浮空圓球手＋橢圓腳；特徵照原圖（外觀暫定：香香）
+//   殭屍：灰綠皮膚、亂黑髮、一眼凹陷一眼瞇著、臉上縫線、破衣服
+//   食屍鬼：灰紫皮膚、光頭、大尖耳、黑眼窩發黃光、一嘴尖牙、肋骨、破腰布
+{
+  const INK="#2a2630", p=(d,f,w=3.5)=>`<path d="${d}" fill="${f}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const ln=(d,c,w=2.4)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const svg=g=>`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${g}</svg>`;
+  const xeye=(x,y,r=5)=>`<path d="M${x-r} ${y-r} L${x+r} ${y+r} M${x+r} ${y-r} L${x-r} ${y+r}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+  // 殭屍
+  const ZS="#7f9a86", ZD="#5f7766", ZH="#3b3a40", ZC="#f6efd6";
+  const zEyes=(a,b,hurt)=> hurt ? xeye(...a)+xeye(...b) :
+      `<circle cx="${a[0]}" cy="${a[1]}" r="9.5" fill="${ZD}"/><circle cx="${a[0]}" cy="${a[1]}" r="5.8" fill="${ZC}" stroke="${INK}" stroke-width="2.4"/><circle cx="${a[0]+.5}" cy="${a[1]+.5}" r="2.4" fill="${INK}"/>`
+    + `<ellipse cx="${b[0]}" cy="${b[1]}" rx="7" ry="5" fill="#a9bfa9"/>` + ln(`M${b[0]-6} ${b[1]} Q${b[0]} ${b[1]-3} ${b[0]+6} ${b[1]+1}`, INK, 3);
+  const zSide = hurt => svg(
+      p("M73 48 Q85 44 85 55 Q83 63 75 62 Z", ZS)
+    + p("M25 56 Q24 22 52 20 Q78 22 78 54 Q78 84 54 90 Q28 86 25 56 Z", ZS)
+    + p("M26 46 Q24 22 46 17 L52 9 L58 18 L68 12 L70 21 Q81 26 79 45 L73 34 L66 41 L60 30 L52 38 L45 29 L38 38 L32 31 Z", ZH)
+    + p("M29 50 Q15 45 15 57 Q16 66 28 64 L23 60 L27 57 Z", ZS)
+    + zEyes([43,54], [67,53], hurt)
+    + ln("M29 69 L41 63", INK, 2.4) + ln("M31 64 L34 70 M36 62 L39 68", INK, 2)
+    + p("M46 72 L73 68 Q72 81 60 83 Q49 82 46 72 Z", INK, 2.5) + p("M53 72 L58 71.5 L55.5 77 Z", ZC, 1.5));
+  const zFront = svg(
+      p("M24 50 Q12 46 12 58 Q14 66 25 64 Z", ZS) + p("M76 50 Q88 46 88 58 Q86 66 75 64 Z", ZS)
+    + p("M23 56 Q22 22 50 20 Q78 22 77 56 Q77 84 50 90 Q23 84 23 56 Z", ZS)
+    + p("M24 46 Q22 22 44 16 L50 8 L56 16 L66 11 L68 20 Q80 26 76 46 L70 34 L63 41 L57 30 L50 38 L43 29 L36 38 L30 31 Z", ZH)
+    + zEyes([38,54], [62,54], false)
+    + ln("M26 69 L37 63", INK, 2.4) + ln("M28 64 L31 70 M33 62 L36 68", INK, 2)
+    + p("M38 72 L64 70 Q63 82 51 84 Q40 82 38 72 Z", INK, 2.5) + p("M46 71.5 L51 71.2 L48.5 76.5 Z", ZC, 1.5));
+  const zShirt = ln("M54 92 L60 100 L56 106", "#4f5961", 2.4) + ln("M84 96 L79 104", "#4f5961", 2.4)
+    + p("M47 124 L52 131 L57 125 L62 133 L68 126 L74 133 L80 126 L86 132 L93 124 Q70 134 47 124 Z", "#6c7780", 2.6)
+    + ln("M50 114 Q70 120 90 114", "#654d43", 4) + ln("M70 90 L70 112", "#654d43", 3);
+  MONSTER_LOOK.zombie = {face:zFront, head:zSide(false), headHurt:zSide(true), body:"#6c7780", skin:ZS, feet:"#654d43", belly:false, tail:"", extra:zShirt};
+  // 食屍鬼
+  const GS="#a39cae", GD="#827a90", GY="#f0d398";
+  const gEyes=(a,b,hurt)=> hurt ? xeye(...a)+xeye(...b) :
+      `<ellipse cx="${a[0]}" cy="${a[1]}" rx="9" ry="10" fill="#3a3340"/><circle cx="${a[0]+2}" cy="${a[1]+2}" r="2.8" fill="${GY}"/>`
+    + `<ellipse cx="${b[0]}" cy="${b[1]}" rx="7.5" ry="9" fill="#3a3340"/><circle cx="${b[0]+2}" cy="${b[1]+2}" r="2.4" fill="${GY}"/>`;
+  const teeth=(x0,x1,y)=>{let d=`M${x0} ${y}`;for(let x=x0,i=0;x<x1;x+=4,i++)d+=` L${x+2} ${y+(i%2?-0:5)} L${x+4} ${y}`;return ln(d, ZC, 2.2);};
+  const gSide = hurt => svg(
+      p("M73 46 L92 28 L86 54 L76 60 Z", GS) + ln("M78 47 L88 34", GD)
+    + p("M25 54 Q24 20 52 18 Q79 20 78 54 Q78 84 54 90 Q28 86 25 54 Z", GS)
+    + ln("M38 28 Q52 22 66 28", GD, 2.6) + ln("M42 34 Q52 30 62 34", GD, 2)
+    + p("M30 50 L4 20 L16 58 L30 65 Z", GS) + ln("M26 52 L11 30 L17 54", GD)
+    + gEyes([43,52], [67,51], hurt)
+    + p("M41 69 Q57 76 76 66 Q74 83 58 86 Q44 84 41 69 Z", INK, 2.5) + teeth(45,73,71));
+  const gFront = svg(
+      p("M26 50 L4 22 L14 58 L27 64 Z", GS) + p("M74 50 L96 22 L86 58 L73 64 Z", GS)
+    + p("M23 54 Q22 20 50 18 Q78 20 77 54 Q77 84 50 90 Q23 84 23 54 Z", GS)
+    + ln("M36 28 Q50 22 64 28", GD, 2.6)
+    + gEyes([37,52], [63,52], false)
+    + p("M32 68 Q50 76 68 68 Q66 84 50 86 Q34 84 32 68 Z", INK, 2.5) + teeth(36,64,70));
+  const gBody = ln("M56 96 Q64 100 70 98 M54 104 Q62 108 70 106 M84 96 Q78 100 74 99 M86 104 Q80 108 74 107", GD, 2.6)
+    + p("M48 118 Q70 124 92 118 L93 126 L87 134 L82 128 L76 137 L70 129 L64 137 L58 128 L53 134 L47 126 Z", "#5a4a3a", 3);
+  MONSTER_LOOK.ghoul = {face:gFront, head:gSide(false), headHurt:gSide(true), body:GS, skin:GS, feet:GS, belly:false, tail:"", extra:gBody};
 }
 
 // 死亡騎士（10-10 素材包）：騎馬，整隻一張圖（卸甲版／上甲版），不拿裝備；比一格大，戰鬥用的佔格、移動等放進戰鬥時再定
