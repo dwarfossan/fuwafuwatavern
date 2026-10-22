@@ -213,6 +213,7 @@ function dollSVG(o){
 //   肩膀以上（y<92）照原樣畫（護肩可以伸出去），以下剪成身材的形狀；剪掉之後空出來的地方（臀部）用護甲的底色補，最後沿身材描一圈黑框
 const GEAR_TOP = 92;
 function fitGearToShape(body, shape){
+  for(const [from, to] of shape.swap || []) body = body.split(from).join(to);   // 照身材換形狀的零件（女性：胸板跟著胸線、腰身）
   const base = (body.match(/fill="(#[0-9a-fA-F]{3,6})"/)||[])[1] || "#9a6a3e";
   return `<defs><clipPath id="gear-fit-${shape.id}"><rect x="-20" y="-20" width="180" height="${GEAR_TOP+20}"/><path d="${shape.d}"/></clipPath></defs>`
     + `<path d="${shape.d}" fill="${base}"/><g clip-path="url(#gear-fit-${shape.id})">${body}</g>`

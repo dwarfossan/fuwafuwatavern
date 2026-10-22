@@ -12,7 +12,10 @@ HUMAN_PARTS.base.male.face = HUMAN_PARTS.base.male.face.replace('M65 65 Q75 70 8
 HUMAN_PARTS.base.female.face = HUMAN_PARTS.base.female.face.replace('M65 65 Q75 70 85 63','M66 66 Q75 64 84 65').replace('M58 39 L67 40 M84 38 L90 38','M58 37 L67 41 M83 40 L90 37').replace('M58 37 L67 41 M83 40 L90 37" fill="none" stroke="#59403a" stroke-width="2"','M58 37 L67 41 M83 40 L90 37" fill="none" stroke="#59403a" stroke-width="3.6" stroke-linecap="round"');
 const HUMAN_FEMALE_SHAPE = {id:"human-female",
   d:"M54 85 Q70 80 86 86 Q95 96 87 104 L89 114 Q91 123 97 129 Q70 140 43 130 Q49 121 51 113 L53 104 Q46 96 54 85Z",
-  edge:"M48.5 92 Q46 96 53 104 L51 113 Q49 121 43 130 Q70 140 97 129 Q91 123 89 114 L87 104 Q95 96 92.5 92"};
+  edge:"M48.5 92 Q46 96 53 104 L51 113 Q49 121 43 130 Q70 140 97 129 Q91 123 89 114 L87 104 Q95 96 92.5 92",
+  // 胸甲、半身板甲的胸板原本是照圓桶身體畫的橢圓，女性換成跟著胸線往外、腰部收進來的形狀（大爺 10-22）
+  swap:[["M55 90 Q70 84 85 90 Q90 104 84 114 Q70 120 56 114 Q50 104 55 90 Z", "M52 88 Q70 82 88 88 Q95 96 87 104 L86 110 Q70 118 54 110 L53 104 Q45 96 52 88 Z"],
+        ['<ellipse cx="62" cy="97" rx="4" ry="6"', '<ellipse cx="60" cy="95" rx="4" ry="5"']]};
 var humanLook = function({sex="male", hair="01", beard=null, ears="human", hairColor="#6b4a35", beardColor=hairColor, skin="#e8bb9b"}={}){
   const B = HUMAN_PARTS.base[sex], H = HUMAN_PARTS.hair[`${sex}-${hair}`] || HUMAN_PARTS.hair[`${sex}-01`];
   const col = s => (s||"").replace(/var\(--hair-color,[^)]*\)/g, hairColor).replace(/var\(--beard-color,[^)]*\)/g, beardColor).replace(/var\(--skin-color,[^)]*\)/g, skin);
