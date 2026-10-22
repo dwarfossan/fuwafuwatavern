@@ -594,7 +594,8 @@ function obsBubbleBody(kind, d){
       fill="#fff" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>`;
   let inner;
   if(kind==="side") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#f2b530" stroke="#2a2630" stroke-width="1.6" paint-order="stroke">!</text>`;   // 支線、城鎮事件：白底黃字（大爺 10-22）
-  else if(kind==="ok" || kind==="main") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
+  else if(kind==="main") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;   // 主線：白底紅字
+  else if(kind==="ok") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">!</text>`;   // 學到招式、劇情裡的「！」：藍字（大爺 10-22，跟主線紅、支線黃分開）
   else if(kind==="fail" || kind==="sneak") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
   // 漫畫符號（大爺 10-03：商人、躲著的薩滿等沒有表情圖的用；外觀、顏色、時間都暫定）
   else if(kind==="sweat") inner = `<g class="obs-drip"><path d="M2 ${T+6} Q9.5 ${T+16} 8 ${T+21} A6.5 6.5 0 1 1 -4.6 ${T+20.5} Q-4 ${T+15} 2 ${T+6} Z" fill="#7cc4f2" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>
