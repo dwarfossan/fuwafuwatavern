@@ -120,10 +120,6 @@ function levelButtonHTML(id){
   const ready=canLevelUp(id);
   return `<button class="level-button ${ready?"ready":""}" data-levelup="${id}" aria-label="${ready?"升級":"等級"}" ${ready?"":"disabled"}>Lv.${critterLevel(id)}</button><span class="level-message" data-level-message="${id}" role="status"></span>`;
 }
-function progressionCardHTML(id){
-  const u=progressionUnits(id)[0];if(!u)return "";
-  return `<div class="progression-card"><h3>${levelButtonHTML(id)}</h3><svg viewBox="-20 -10 180 170" width="150" height="145">${dollSVG({id:u.id,color:u.color,mood:u.svgMood,...dollGear(u),levelUpAt:u.levelUpAt,down:u.down,prone:!u.down&&!!has(u,"prone"),x:0,y:0,w:140,seed:u.id.length*3})}</svg>${infoBarsHTML(u,u.hp/u.maxHp)}</div>`;
-}
 function renderModal(){
   const m = state.modal; if(!m) return "";
   let body = "";
