@@ -15,7 +15,7 @@ function renderDollDemo(){
     : d.who==="beast" ? ["owlbear","griffin","chimera","giant_spider","slime","bat"].map(k=>({look:MONSTER_LOOK[k]}))   // 10-10 六隻怪物
     : d.who==="human" ? [{sex:"male",hair:"01",beard:"01"},{sex:"male",hair:"04",beard:"04",hairColor:"#3a3030"},{sex:"female",hair:"04"},{sex:"female",hair:"10",ears:"elf",hairColor:"#d9c27a"}].map(o=>({look:humanLook(o)}))   // 10-10 人類素材（組合是展示用）
     : CRITTERS.map(c=>({id:c.id, color:c.color}));
-  const dolls = who.map((w,i)=>`<svg viewBox="-20 -10 180 170" width="200" height="190">${dollSVG({...w, main:d.main, off:d.off, armor:d.armor, mood:d.mood, anim:live, face:-1, down:d.down, x:0, y:0, w:140, seed:i})}</svg>`).join("");
+  const dolls = who.map((w,i)=>`<svg viewBox="-20 -10 180 170" width="200" height="190">${dollSVG({...w, main:d.main, off:d.off, armor:d.armor, mood:d.mood, anim:live, down:d.down, x:0, y:0, w:140, seed:i})}</svg>`).join("");
   const chips = (list, cur, key, name) => list.map(v=>`<button class="chip ${v===cur?"on":""}" data-demo="${key}:${v??""}">${name(v)}</button>`).join("");
   return `<section class="page">
     <div class="head"><div><h2>紙娃娃動作測試</h2><p class="rule">簡單身體＋浮空的手，掛上裝備圖示，動作即時演出。</p></div></div>
