@@ -183,7 +183,7 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   // 頭（紙娃娃座標，跟人類的頭同一個位置、差不多大）：照原圖——頭髮像頭盔一樣包住整張臉、兩側垂到下巴，
   //   耳朵從頭髮兩側往外橫伸，大大的發亮眼鏡，鬍子是一條一條菱形編的辮子（不是一整團）
   const zig = (x,y0,y1,w=2.6) => { let d=`M${x} ${y0}`; for(let y=y0,i=0;y<y1;y+=3.4,i++) d+=` L${x+(i%2?-w:w)} ${y+3.4}`; return ln(d, "#b9a88a", 1.3); };
-  const head = hurt =>
+  const headTop = hurt =>
       p("M95 55 L106 49 L102 62 L96 64 Z", SK)                                                                              // 遠側的耳朵
     + p("M48 66 Q44 35 68 29 Q90 25 99 38 Q104 48 101 68 L98 84 L54 86 L50 82 Z", HR)                                       // 頭髮：寬寬一頂，包住整張臉
     + p("M56 50 L96 47 L95 68 Q90 80 77 82 Q63 80 57 70 Z", SK)                                                            // 臉
@@ -192,10 +192,12 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
     + p("M55 57 L37 50 L41 64 L54 66 Z", SK) + ln("M51 58 L42 54 L44 62", SKD)                                           // 近側的耳朵，往外橫伸
     + glow(68,57,7.6,5.6,hurt) + glow(86.5,56,6.2,5.3,hurt) + ln("M75.6 57 L80.3 56.6", INK, 2) + ln("M60.4 57.5 L55 57 M92.7 55.8 L96 55", GL, 2)
     + p("M80 61 Q84 61.5 83.5 64.5 Q81.5 66 80 65", SKD, 1.6)
-    + `<path d="M73 66.5 Q78 69 84 66 L83 69 Q78 71 74 69 Z" fill="#3a2620"/>`                                             // 鬍子縫裡露出一點嘴
-    + p("M54 61 Q59 66 65 63 Q71 67 76 65 Q78 67 80 65 Q86 68 92 63 Q96 62 98 59 L98 76 Q93 90 78 94 Q61 93 55 80 Z", HR) // 頭髮編的大鬍子
+    + `<path d="M73 66.5 Q78 69 84 66 L83 69 Q78 71 74 69 Z" fill="#3a2620"/>`;                                            // 鬍子縫裡露出一點嘴
+  const beardArt =                                                                                                         // 鬍子分開一層（鎧甲版要疊在鎧甲外面）
+      p("M54 61 Q59 66 65 63 Q71 67 76 65 Q78 67 80 65 Q86 68 92 63 Q96 62 98 59 L98 76 Q93 90 78 94 Q61 93 55 80 Z", HR) // 頭髮編的大鬍子
     + zig(60,68,86) + zig(67,68,90) + zig(87,67,90) + zig(93.5,64,82,2.2)                                                  // 一條一條的辮子紋
     + ln("M74 70 L78 74 L82 70 M74 76 L78 80 L82 76 M74 82 L78 86 L82 82", "#b9a88a", 1.3);
+  const head = hurt => headTop(hurt) + beardArt;
   // 胸前的格紋辮子、兩條側辮的金扣
   const lattice = (x,y0,y1,w=6) => p(`M${x-w} ${y0} L${x+w} ${y0} L${x+w*.8} ${y1-5} L${x} ${y1} L${x-w*.8} ${y1-5} Z`, HR, 2.2)
     + ln(Array.from({length:Math.floor((y1-y0-5)/4.5)},(_,i)=>`M${x-w*.8} ${y0+2+i*4.5} L${x+w*.8} ${y0+6.5+i*4.5} M${x+w*.8} ${y0+2+i*4.5} L${x-w*.8} ${y0+6.5+i*4.5}`).join(" "), "#b9a88a", 1.2)
@@ -211,5 +213,6 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   const hairBack = p("M53 62 Q44 82 48 100 L58 98 Q54 84 59 70 Z", HR, 2.6);
   const asHead = g => svg(`<g transform="scale(1.3158) translate(-32 -6)">${g}</g>`);
   MONSTER_LOOK.dwarf = {face: svg(`<g transform="translate(50 52) scale(1.6) translate(-74 -60)">${head(false)}</g>`), head:asHead(head(false)), headHurt:asHead(head(true)),
-    skin:SK, belly:false, body:PU, feet:"#5a3e2e", tail:hairBack, bodyArt:coat, extra: lattice(77, 88, 118) + cuff(64,92) + cuff(89,91), anchor:{head:[56,42,.8], neck:[76,92]}};
+    skin:SK, belly:false, body:PU, feet:"#5a3e2e", tail:hairBack, bodyArt:coat, extra: lattice(77, 88, 118) + cuff(64,92) + cuff(89,91), anchor:{head:[56,42,.8], neck:[76,92]},
+    parts:{headTop, beard:beardArt, chest: lattice(77, 88, 118) + cuff(64,92) + cuff(89,91)}};   // 鎧甲版拿去分層用
 }
