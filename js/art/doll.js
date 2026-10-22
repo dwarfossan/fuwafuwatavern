@@ -106,11 +106,11 @@ const ARMOR_ART = (()=>{
       + `<path d="M54 90 Q62 84 70 88 Q78 84 86 90 Q80 97 70 94 Q60 97 54 90 Z" fill="#e2cfa8" stroke="${INK}" stroke-width="2"/>` + line("M60 104 q3 -3 6 0 M74 108 q3 -3 6 0 M64 114 q3 -3 6 0","#7e6040",2),   // 毛領＋毛邊下擺
     "鏈甲衫": body(T,"#9aa3b2") + rings(grid(58,82,98,118,12,10),2.8,"#6f7888") + `<path d="M58 88 Q70 94 82 88 L80 92 Q70 97 60 92 Z" fill="#6b4a35" stroke="${INK}" stroke-width="1.5"/>`,   // 鏈環＋皮領
     "鱗甲": body(T,"#a99a72") + grid(58,82,98,122,12,8).map(([x,y])=>`<path d="M${x-3.5} ${y} Q${x} ${y+5} ${x+3.5} ${y}" stroke="#6e6244" stroke-width="1.6" fill="none"/>`).join("") + belt("#5e3a20"),   // 一片一片的鱗
-    "胸甲": body(T,"#7a5a3c") + `<path d="M55 90 Q70 84 85 90 Q90 104 84 114 Q70 120 56 114 Q50 104 55 90 Z" fill="#c9d0dc" stroke="${INK}" stroke-width="2.5"/>`
-      + line("M70 88 L70 116","#8c97ab",2) + `<ellipse cx="62" cy="97" rx="4" ry="6" fill="#f2f4f8" opacity=".8"/>` + belt("#4a2c18"),   // 亮面胸板＋皮裙
-    "半身板甲": body(T,"#7a5a3c") + `<path d="M55 90 Q70 84 85 90 Q90 104 84 114 Q70 120 56 114 Q50 104 55 90 Z" fill="#b7bfcc" stroke="${INK}" stroke-width="2.5"/>`
+    "胸甲": body(T,"#7a5a3c") + `<path d="M49 85 Q70 75 91 85 Q93 104 84 114 Q70 120 56 114 Q47 104 49 85 Z" fill="#c9d0dc" stroke="${INK}" stroke-width="2.5"/>`
+      + line("M70 80 L70 116","#8c97ab",2) + `<ellipse cx="62" cy="97" rx="4" ry="6" fill="#f2f4f8" opacity=".8"/>` + belt("#4a2c18"),   // 亮面胸板＋皮裙
+    "半身板甲": body(T,"#7a5a3c") + `<path d="M49 85 Q70 75 91 85 Q93 104 84 114 Q70 120 56 114 Q47 104 49 85 Z" fill="#b7bfcc" stroke="${INK}" stroke-width="2.5"/>`
       + `<path d="M46 92 Q52 84 60 89 Q56 96 48 98 Z M94 92 Q88 84 80 89 Q84 96 92 98 Z" fill="#c9d0dc" stroke="${INK}" stroke-width="2"/>`
-      + `<path d="M54 116 L86 116 L88 124 L52 124 Z" fill="#9aa3b2" stroke="${INK}" stroke-width="2"/>` + line("M70 88 L70 114","#7b8494",2),   // 胸板＋護肩＋腰甲片
+      + `<path d="M54 116 L86 116 L88 124 L52 124 Z" fill="#9aa3b2" stroke="${INK}" stroke-width="2"/>` + line("M70 80 L70 114","#7b8494",2),   // 胸板＋護肩＋腰甲片
     // 重甲
     "環甲": body(LONG,"#6b4a35") + rings(grid(58,84,96,126,10,9,false),3.6,"#b7bfcc") + line("M50 120 Q70 126 90 120","#4a2c18",3.5),   // 皮衣縫上大鐵環
     "鏈甲": body(LONG,"#8c95a4") + rings(grid(56,84,96,128,9,8),2.4,"#5f6878") + `<path d="M56 87 Q70 92 84 87 L83 91 Q70 96 57 91 Z" fill="#5f6878" stroke="${INK}" stroke-width="1.5"/>` + belt("#4a2c18"),   // 長到大腿的細密鏈甲
@@ -195,7 +195,6 @@ function dollSVG(o){
         ${L.bodyArt ?? `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="${L.body}" stroke="${INK}" stroke-width="3.5"/>`}
         ${L.belly?`<ellipse cx="70" cy="113" rx="13" ry="14" fill="#fbf4ee" opacity=".85"/>`:""}
         ${L.extra||""}
-        ${gear.body && L.sleeves ? sleeveSVG(L.sleeves, gear.body) : ""}
         <g class="dl-gear-body"${L.gearFit?` transform="${L.gearFit}"`:""}>${gear.body && L.gearShape ? fitGearToShape(gear.body, L.gearShape) : gear.body||""}</g>
         <g class="dl-gear-neck">${gear.neck ? `<g transform="translate(${anc.neck.join(" ")})">${gear.neck}</g>` : ""}</g>
         ${L.head.replace('<svg viewBox="0 0 100 100"', '<svg x="32" y="6" width="76" height="76" viewBox="0 0 100 100"')}
@@ -213,9 +212,7 @@ function dollSVG(o){
 // 身上的護甲照身材變形（大爺 10-22：女性皮甲要有腰身）：shape＝身材輪廓
 //   肩膀以上（y<92）照原樣畫（護肩可以伸出去），以下剪成身材的形狀；剪掉之後空出來的地方（臀部）用護甲的底色補，最後沿身材描一圈黑框
 const GEAR_TOP = 92;
-// 有露出手臂的身體（人類）：穿上護甲時，手臂蓋上一層護甲顏色的袖子，畫在護甲下面，讓護甲（護肩）蓋過肩膀（大爺 10-22）
 const gearBaseColor = body => (body.match(/fill="(#[0-9a-fA-F]{3,6})"/)||[])[1] || "#9a6a3e";
-const sleeveSVG = (d, body) => `<path d="${d}" stroke="#2a2630" stroke-width="13" stroke-linecap="round" fill="none"/><path d="${d}" stroke="${gearBaseColor(body)}" stroke-width="9" stroke-linecap="round" fill="none"/>`;
 function fitGearToShape(body, shape){
   for(const [from, to] of shape.swap || []) body = body.split(from).join(to);   // 照身材換形狀的零件（女性：胸板跟著胸線、腰身）
   const base = gearBaseColor(body);
