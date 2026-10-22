@@ -13,7 +13,7 @@ HUMAN_PARTS.base.female.face = HUMAN_PARTS.base.female.face.replace('M65 65 Q75 
 var humanLook = function({sex="male", hair="01", beard=null, ears="human", hairColor="#6b4a35", beardColor=hairColor, skin="#e8bb9b"}={}){
   const B = HUMAN_PARTS.base[sex], H = HUMAN_PARTS.hair[`${sex}-${hair}`] || HUMAN_PARTS.hair[`${sex}-01`];
   const col = s => (s||"").replace(/var\(--hair-color,[^)]*\)/g, hairColor).replace(/var\(--beard-color,[^)]*\)/g, beardColor).replace(/var\(--skin-color,[^)]*\)/g, skin);
-  const face = B.face.replace(/#e8bb9b/g, skin);
+  const face = B.face.replace(/#e8bb9b/g, skin).replace(/stroke="#(6b4a35|59403a)"/g, `stroke="${hairColor}"`);   // 10-22 大爺：側臉眉毛跟著髮色
   const inner = f => `<g ${B.headAttr}>${col(HUMAN_PARTS.ears[ears])}${f}${col(H.front)}${beard ? col(HUMAN_PARTS.beards[beard].art) : ""}</g>`;
   const hurtFace = face.replace(/<ellipse cx="(63|87)" cy="(4[68])"[^>]*\/>/g, (m,x,y)=>`<path d="M${x-5} ${y-5} L${+x+5} ${+y+5} M${+x+5} ${y-5} L${x-5} ${+y+5}" stroke="#2a2630" stroke-width="3"/>`).replace(/<circle cx="(64|87)" cy="4[57]"[^>]*\/>/g, "");
   const svg = g => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${g}</svg>`;
