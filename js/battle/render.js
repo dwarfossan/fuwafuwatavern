@@ -593,7 +593,8 @@ function obsBubbleBody(kind, d){
   const bubble = `<path d="M${L+10} ${T} H${-L-10} Q${-L} ${T} ${-L} ${T+10} V${T+h-10} Q${-L} ${T+h} ${-L-10} ${T+h} H7 L0 ${T+h+9} L-7 ${T+h} H${L+10} Q${L} ${T+h} ${L} ${T+h-10} V${T+10} Q${L} ${T} ${L+10} ${T} Z"
       fill="#fff" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>`;
   let inner;
-  if(kind==="ok" || kind==="main") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
+  if(kind==="side") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#f2b530" stroke="#2a2630" stroke-width="1.6" paint-order="stroke">!</text>`;   // 支線、城鎮事件：白底黃字（大爺 10-22）
+  else if(kind==="ok" || kind==="main") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#e0453a">!</text>`;
   else if(kind==="fail" || kind==="sneak") inner = `<text x="0" y="${T+h/2+11}" text-anchor="middle" class="obs-glyph" fill="#3d7fd9">?</text>`;
   // 漫畫符號（大爺 10-03：商人、躲著的薩滿等沒有表情圖的用；外觀、顏色、時間都暫定）
   else if(kind==="sweat") inner = `<g class="obs-drip"><path d="M2 ${T+6} Q9.5 ${T+16} 8 ${T+21} A6.5 6.5 0 1 1 -4.6 ${T+20.5} Q-4 ${T+15} 2 ${T+6} Z" fill="#7cc4f2" stroke="#2a2630" stroke-width="2" stroke-linejoin="round"/>

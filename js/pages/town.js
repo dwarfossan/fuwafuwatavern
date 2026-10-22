@@ -12,7 +12,7 @@ function townSymbolSVG(symbol){
 // 事件資料只描述呈現；實際內容／触發規則另由劇情提供。
 function townText(text){return String(text||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function townEvents(){return (state.townEvents||[]).filter(e=>e.location&&e.person&&e.action);}
-function townEventSymbol(e){return `<span class="town-event-symbol">${obsBubbleHTML(e.symbol==='?'?'fail':e.symbol==='…'?'known':'ok')}</span>`;}
+function townEventSymbol(e){return `<span class="town-event-symbol">${obsBubbleHTML(e.symbol==='?'?'fail':e.symbol==='…'?'known':'side')}</span>`;}   // 城鎮事件算支線：白底黃字（10-22）
 function townEventHint(e){return `<span class="town-hint" role="tooltip">${townText([...String(e.intro||e.action)].slice(0,10).join(''))}</span>`;}
 function townEventBubbleHTML(){
  return townEvents().filter(e=>!e.place).map((e,i)=>`<button class="town-building town-event-bubble" data-town-event="${i}" style="left:${Math.max(12,Math.min(70,Number(e.x)||50))}%;top:${Math.max(16,Math.min(78,Number(e.y)||70))}%" aria-label="${townText(e.location+'／'+e.person+'／'+e.action)}"><b>${townText(e.location)}</b><span>${townText(e.person)}／${townText(e.action)}</span>${townEventSymbol(e)}${townEventHint(e)}</button>`).join('');
