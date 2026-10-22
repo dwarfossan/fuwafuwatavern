@@ -10,6 +10,9 @@ ARMOR_ART["平民服"] = {body:HUMAN_PARTS.base.male.tunic+`<path d="M48 92 L40 
 // 大爺 10-22：人類表情改嚴肅一點（眉毛往中間壓、加粗，嘴巴拉平）；側臉、正面一起改
 HUMAN_PARTS.base.male.face = HUMAN_PARTS.base.male.face.replace('M65 65 Q75 70 85 63','M66 66 Q75 64 84 65').replace('M57 38 L68 40 M83 37 L91 37','M57 36 L68 41 M82 40 L91 36').replace('M57 36 L68 41 M82 40 L91 36" fill="none" stroke="#6b4a35" stroke-width="3"','M57 36 L68 41 M82 40 L91 36" fill="none" stroke="#6b4a35" stroke-width="4.6" stroke-linecap="round"');
 HUMAN_PARTS.base.female.face = HUMAN_PARTS.base.female.face.replace('M65 65 Q75 70 85 63','M66 66 Q75 64 84 65').replace('M58 39 L67 40 M84 38 L90 38','M58 37 L67 41 M83 40 L90 37').replace('M58 37 L67 41 M83 40 L90 37" fill="none" stroke="#59403a" stroke-width="2"','M58 37 L67 41 M83 40 L90 37" fill="none" stroke="#59403a" stroke-width="3.6" stroke-linecap="round"');
+const HUMAN_FEMALE_SHAPE = {id:"human-female",
+  d:"M54 85 Q70 80 86 86 Q95 96 87 104 L89 114 Q91 123 97 129 Q70 140 43 130 Q49 121 51 113 L53 104 Q46 96 54 85Z",
+  edge:"M48.5 92 Q46 96 53 104 L51 113 Q49 121 43 130 Q70 140 97 129 Q91 123 89 114 L87 104 Q95 96 92.5 92"};
 var humanLook = function({sex="male", hair="01", beard=null, ears="human", hairColor="#6b4a35", beardColor=hairColor, skin="#e8bb9b"}={}){
   const B = HUMAN_PARTS.base[sex], H = HUMAN_PARTS.hair[`${sex}-${hair}`] || HUMAN_PARTS.hair[`${sex}-01`];
   const col = s => (s||"").replace(/var\(--hair-color,[^)]*\)/g, hairColor).replace(/var\(--beard-color,[^)]*\)/g, beardColor).replace(/var\(--skin-color,[^)]*\)/g, skin);
@@ -24,6 +27,7 @@ var humanLook = function({sex="male", hair="01", beard=null, ears="human", hairC
     body:"#bba795", skin, feet:"#6b4a35", belly:false,
     tail: `<g ${B.headAttr}>${col(H.back)}</g>`,                                  // 後髮：畫在身體後面
     bodyArt: B.body + B.neck.replace(/#e8bb9b/g, skin) + arms, gearFit: B.fit || "",
+    gearShape: sex==="female" ? HUMAN_FEMALE_SHAPE : null,                      // 10-22：女性護甲照腰身、臀部的輪廓（跟素材的平民服同一個形狀）
     anchor: {head:[50,44,.8], neck:[72,88]},                                     // 頭小一號：頭飾、項鍊對準人類的頭（暫定）
     human: {sex, hair, beard, ears}};
 };
