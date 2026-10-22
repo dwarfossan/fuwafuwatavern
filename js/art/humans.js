@@ -172,3 +172,44 @@ function humanFrontSVG({sex="male", hair="01", beard=null, ears="human", hairCol
   MONSTER_LOOK.dwarf_armored = {kind:"dwarf_armored", size:"大型", art:suit(false), face:armorFace,
     render:o=>undeadStaticDollSVG({...o, look:{...o.look, art:(o.down||o.anim?.k==="hurt") ? suit(true) : suit(false)}})};
 }
+// 矮人大爺便服（大爺 10-22 第二版）：照原圖的造型（頭、身體的圖樣），整隻改成 45 度側臉朝右；頭跟人類的頭一樣大、身體用紙娃娃的位置
+{
+  const INK="#2a2630", SK="#7a4f33", SKD="#5e3a24", HR="#f3e6cf", HRD="#d8c7a6", GL="#c9932f", GOLD="#d9b44a", PU="#4f3f5c", PUD="#3d3048";
+  const p=(d,f,w=2.6)=>`<path d="${d}" fill="${f}" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const ln=(d,c=HRD,w=1.6)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const svg=g=>`<svg viewBox="0 0 100 100" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${g}</svg>`;
+  const glow=(x,y,rx,ry,hurt)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${hurt?"#d8cfae":"#fff1b8"}" stroke="${INK}" stroke-width="2"/><ellipse cx="${x}" cy="${y}" rx="${rx-1.3}" ry="${ry-1.3}" fill="none" stroke="${GL}" stroke-width="1.5"/>`
+    + (hurt ? `<path d="M${x-rx*.5} ${y-ry*.5} L${x+rx*.5} ${y+ry*.5} M${x+rx*.5} ${y-ry*.5} L${x-rx*.5} ${y+ry*.5}" stroke="${INK}" stroke-width="1.8" stroke-linecap="round"/>` : `<ellipse cx="${x}" cy="${y}" rx="${rx*.42}" ry="${ry*.42}" fill="#fffbe8"/>`);
+  // 頭（紙娃娃座標，跟人類的頭同一個位置、差不多大）：照原圖——頭髮像頭盔一樣包住整張臉、兩側垂到下巴，
+  //   耳朵從頭髮兩側往外橫伸，大大的發亮眼鏡，鬍子是一條一條菱形編的辮子（不是一整團）
+  const zig = (x,y0,y1,w=2.6) => { let d=`M${x} ${y0}`; for(let y=y0,i=0;y<y1;y+=3.4,i++) d+=` L${x+(i%2?-w:w)} ${y+3.4}`; return ln(d, "#b9a88a", 1.3); };
+  const head = hurt =>
+      p("M95 55 L106 49 L102 62 L96 64 Z", SK)                                                                              // 遠側的耳朵
+    + p("M48 66 Q44 35 68 29 Q90 25 99 38 Q104 48 101 68 L98 84 L54 86 L50 82 Z", HR)                                       // 頭髮：寬寬一頂，包住整張臉
+    + p("M56 50 L96 47 L95 68 Q90 80 77 82 Q63 80 57 70 Z", SK)                                                            // 臉
+    + p("M53 54 L57 44 L62 50 L69 35 L76 48 L84 36 L89 47 L94 42 L97 52 Q101 33 80 30 Q56 31 53 54 Z", HR)                  // 鋸齒瀏海（三個大尖）
+    + ln("M62 34 Q75 29 88 32")
+    + p("M55 57 L37 50 L41 64 L54 66 Z", SK) + ln("M51 58 L42 54 L44 62", SKD)                                           // 近側的耳朵，往外橫伸
+    + glow(68,57,7.6,5.6,hurt) + glow(86.5,56,6.2,5.3,hurt) + ln("M75.6 57 L80.3 56.6", INK, 2) + ln("M60.4 57.5 L55 57 M92.7 55.8 L96 55", GL, 2)
+    + p("M80 61 Q84 61.5 83.5 64.5 Q81.5 66 80 65", SKD, 1.6)
+    + `<path d="M73 66.5 Q78 69 84 66 L83 69 Q78 71 74 69 Z" fill="#3a2620"/>`                                             // 鬍子縫裡露出一點嘴
+    + p("M54 61 Q59 66 65 63 Q71 67 76 65 Q78 67 80 65 Q86 68 92 63 Q96 62 98 59 L98 76 Q93 90 78 94 Q61 93 55 80 Z", HR) // 頭髮編的大鬍子
+    + zig(60,68,86) + zig(67,68,90) + zig(87,67,90) + zig(93.5,64,82,2.2)                                                  // 一條一條的辮子紋
+    + ln("M74 70 L78 74 L82 70 M74 76 L78 80 L82 76 M74 82 L78 86 L82 82", "#b9a88a", 1.3);
+  // 胸前的格紋辮子、兩條側辮的金扣
+  const lattice = (x,y0,y1,w=6) => p(`M${x-w} ${y0} L${x+w} ${y0} L${x+w*.8} ${y1-5} L${x} ${y1} L${x-w*.8} ${y1-5} Z`, HR, 2.2)
+    + ln(Array.from({length:Math.floor((y1-y0-5)/4.5)},(_,i)=>`M${x-w*.8} ${y0+2+i*4.5} L${x+w*.8} ${y0+6.5+i*4.5} M${x+w*.8} ${y0+2+i*4.5} L${x-w*.8} ${y0+6.5+i*4.5}`).join(" "), "#b9a88a", 1.2)
+    + `<rect x="${x-w*.75}" y="${y1-9}" width="${w*1.5}" height="4" rx="1.2" fill="${GOLD}" stroke="${INK}" stroke-width="1.6"/>`;
+  const cuff = (x,y) => p(`M${x-3} ${y-6} L${x+3} ${y-6} L${x+3} ${y+2} L${x} ${y+6} L${x-3} ${y+2} Z`, HR, 1.8) + `<rect x="${x-4}" y="${y-1}" width="8" height="4" rx="1.2" fill="${GOLD}" stroke="${INK}" stroke-width="1.5"/>`;
+  // 身體（45 度：前襟、圍裙、辮子往右偏，遠側那半邊窄一點）
+  const coat = p("M47 128 Q74 138 99 129 L100 134 Q74 143 46 134 Z", "#efe4cf", 2.4)                                     // 下襬露出來的白襯衫
+    + p("M52 90 Q72 82 93 89 Q100 110 100 131 Q74 140 46 131 Q46 110 52 90 Z", PU, 3)                                    // 紫色長外套
+    + ln("M60 91 L57 129 M91 92 L95 128", PUD, 2.2)
+    + p("M66 88 Q76 85 86 88 L88 131 Q76 134 64 131 Z", "#efe4cf", 2.4)                                                    // 白襯衫
+    + p("M63 103 L88 103 L91 132 Q76 137 61 132 Z", "#8a5a32", 2.6) + p("M69 117 L82 117 L81 126 L70 126 Z", "#7a4c28", 1.8)   // 吊帶皮圍裙
+    + ln("M64 103 L66 88 M87 103 L85 88", "#5a3a22", 2.6) + `<circle cx="64.5" cy="104.5" r="1.8" fill="${GOLD}" stroke="${INK}" stroke-width="1.3"/><circle cx="87.5" cy="104.5" r="1.8" fill="${GOLD}" stroke="${INK}" stroke-width="1.3"/>`;
+  const hairBack = p("M53 62 Q44 82 48 100 L58 98 Q54 84 59 70 Z", HR, 2.6);
+  const asHead = g => svg(`<g transform="scale(1.3158) translate(-32 -6)">${g}</g>`);
+  MONSTER_LOOK.dwarf = {face: svg(`<g transform="translate(50 52) scale(1.6) translate(-74 -60)">${head(false)}</g>`), head:asHead(head(false)), headHurt:asHead(head(true)),
+    skin:SK, belly:false, body:PU, feet:"#5a3e2e", tail:hairBack, bodyArt:coat, extra: lattice(77, 88, 118) + cuff(64,92) + cuff(89,91), anchor:{head:[56,42,.8], neck:[76,92]}};
+}
