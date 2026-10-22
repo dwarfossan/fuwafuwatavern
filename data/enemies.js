@@ -12,7 +12,11 @@
    數值先用 SRD 5.2 的平民（Commoner）：AC 10、生命 4、屬性全 +0 */
 const NPCS = {
   merchant: {name:"商人", look:"merchant", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
-  owlbear_cub: {name:"梟熊寶寶", look:"owlbear_cub", hp:5, ac:12, speed:8, scores:{STR:13, DEX:14, CON:12, INT:3, WIS:12, CHA:7}}   // 被獵人網住（梟熊寶寶劇情第二段，10-21）
+  owlbear_cub: {name:"梟熊寶寶", look:"owlbear_cub", hp:5, ac:12, speed:8, scores:{STR:13, DEX:14, CON:12, INT:3, WIS:12, CHA:7}},   // 被獵人網住（梟熊寶寶劇情第二段，10-21）
+  // 矮人大爺（大爺 10-22：放進遊戲當備用，數值以後再想；先跟其他 NPC 一樣用平民的數字）。還沒有放進任何戰場
+  dwarf: {name:"矮人大爺", look:"dwarf", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
+  // 鎧甲版是大型（2×2）；NPC 目前一律佔 1 格，要放上戰場時再把佔格接上
+  dwarf_armored: {name:"矮人大爺（鎧甲）", look:"dwarf_armored", size:"大型", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}}
 };
 
 const ENEMIES = {
