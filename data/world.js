@@ -11,11 +11,14 @@ const WORLD = {
     {id:"forest", name:"森林",       kind:"forest", x:681, y:244,
      desc:"鎮外的森林，最近怪怪的。"},
     {id:"cave",   name:"洞窟",       kind:"cave",   x:200, y:407,
-     desc:"城鎮西邊丘陵裡的洞窟。"}
+     desc:"城鎮西邊丘陵裡的洞窟。"},
+    {id:"graveyard", name:"墓地",    kind:"graveyard", x:470, y:668,
+     desc:"城鎮南邊的老墓地。"}   // 10-22：先放上地圖，還不能探索（劇情未定）
   ],
   links: [
     {a:"tavern", b:"town",   style:"road"},
     {a:"town",   b:"forest", style:"road"},
-    {a:"town",   b:"cave",   style:"road"}
+    {a:"town",   b:"cave",   style:"road"},
+    {a:"town",   b:"graveyard", style:"trail"}
   ]
 };

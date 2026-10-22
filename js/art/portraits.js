@@ -24,8 +24,19 @@ const PORTRAITS = {
           list:["cold","contempt","impatient","cruel_smirk","angry","alert","skeptical","surprised","hurt","sad","acknowledge","shout"]},
   // 兇猛的奇美拉、食人花：一張圖、沒有表情
   chimera: {base:"assets/portraits/chimera.webp", faces:null},
-  mantrap: {base:"assets/portraits/mantrap.webp", faces:null, onDemand:true}
+  mantrap: {base:"assets/portraits/mantrap.webp", faces:null, onDemand:true},
+  // 10-22 大爺給的不死素材包（劇情場景用；戰場照舊用 SVG）。onDemand＝還沒放進劇情，開機不先下載
+  // 死亡騎士（長髮、不戴盔）、女貴族、女吸血鬼：無臉底圖＋表情（一樣大，直接疊）
+  deathknight: {base:"assets/portraits/deathknight_noface.webp", faces:"assets/faces/deathknight/", def:"neutral", onDemand:true,
+          list:["neutral","faint_smile","disdain","skeptical","annoyed","angry","command","surprised","regret","pain","embarrassed","relieved"]},
+  noblewoman: {base:"assets/portraits/noblewoman_noface.webp", faces:"assets/faces/noblewoman/", def:"haughty", onDemand:true,
+          list:["haughty","contempt","impatient","smirk","angry","reprimand","surprised","skeptical","sad","embarrassed","polite","laugh","white_eyes","stunned_smile"]},
+  vampire: {base:"assets/portraits/vampire_noface.webp", faces:"assets/faces/vampire/", def:"neutral", onDemand:true,
+          list:["neutral","smile","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"]}
 };
+// 一張圖、沒有表情的（10-22 不死素材包）：死亡騎士戴盔／長髮全身、巫妖、七種不死小兵（劇情用）
+["deathknight_helmet","deathknight_full","lich","undead_ghost","undead_ghoul","undead_zombie","skeleton_soldier","skeleton_archer","skeleton_mage","skeleton_warrior"]
+  .forEach(n=>{ PORTRAITS[n] = {base:`assets/portraits/${n}.webp`, faces:null, onDemand:true}; });
 // 鎮民（10-22，男女各 4 張，一張圖、沒有表情）：之後鎮上的路人、事件用
 ["female_01_blonde","female_02_auburn_bun","female_03_grey_hair","female_04_short_hair","male_01_brown_hair","male_02_black_hair","male_03_grey_beard","male_04_red_hair"]
   .forEach(n=>{ PORTRAITS[`townsfolk_${n}`] = {base:`assets/portraits/townsfolk_${n}.webp`, faces:null, onDemand:true}; });

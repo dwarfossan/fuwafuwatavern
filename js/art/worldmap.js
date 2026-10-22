@@ -21,11 +21,11 @@ function partyMarkerSVG(alert){
       + critterSVG(c.id).replace('<svg viewBox="0 0 100 100"', `<svg x="${x}" y="${y}" width="44" height="44" viewBox="0 0 100 100"`);
   }).join("") + (alert ? `<g class="map-alert" transform="translate(0 -105) scale(1.3)">${obsBubbleBody('ok',0)}</g>` : "");
 }
-const WORLD_ART={terrain:'assets/world/terrain.webp',town:'assets/world/town.webp',tavern:'assets/world/tavern.webp',forest:'assets/world/forest.webp',cave:'assets/world/cave.webp'};
+const WORLD_ART={terrain:'assets/world/terrain.webp',town:'assets/world/town.webp',tavern:'assets/world/tavern.webp',forest:'assets/world/forest.webp',cave:'assets/world/cave.webp',graveyard:'assets/world/graveyard.webp'};
 function worldMapSVG(sel,here,pos,alert){
  const {width:W,height:H,locations,links}=WORLD;
  const roads=links.map(({a,b})=>{const {p,q,cx,cy}=roadCurve(a,b);const d=`M${p.x} ${p.y} Q${cx} ${cy} ${q.x} ${q.y}`;return `<path d="${d}" stroke="#513826" stroke-width="21" fill="none" stroke-linecap="round"/><path d="${d}" stroke="#dbbd86" stroke-width="13" fill="none" stroke-linecap="round"/>`;}).join('');
- const places=[...locations].sort((a,b)=>a.y-b.y).map(l=>{const w=l.id==='tavern'?175:220,h=l.id==='town'?195:170;return `<image href="${sceneAssetURL(WORLD_ART[l.id])}" x="${l.x-w/2}" y="${l.y-h+15}" width="${w}" height="${h}"/>`;}).join('');
+ const places=[...locations].sort((a,b)=>a.y-b.y).map(l=>{const w=l.id==='tavern'?175:l.id==='graveyard'?160:220,h=l.id==='town'?195:l.id==='graveyard'?142:170;return `<image href="${sceneAssetURL(WORLD_ART[l.id])}" x="${l.x-w/2}" y="${l.y-h+15}" width="${w}" height="${h}"/>`;}).join('');
  const labels=locations.map(l=>`<g class="loc" data-loc="${l.id}" tabindex="0" role="button" aria-label="${l.name}"><rect x="${l.x-100}" y="${l.y-160}" width="200" height="240" fill="transparent"/></g>`).join('');
  const at=pos||locations.find(l=>l.id===here);
  return `<svg class="worldmap" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><g id="map-terrain"><image href="${sceneAssetURL(WORLD_ART.terrain)}" width="${W}" height="${H}" preserveAspectRatio="none"/></g><g id="map-roads">${roads}</g><g id="map-places">${places}</g><g id="map-labels">${labels}</g><g id="map-quests">${typeof questPinsSVG==="function"?questPinsSVG():""}${typeof mainPinsSVG==="function"?mainPinsSVG():""}</g><g id="party-marker" pointer-events="none" transform="translate(${at.x} ${at.y})">${partyMarkerSVG(alert)}</g></svg>`;
