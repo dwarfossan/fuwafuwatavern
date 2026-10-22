@@ -12,9 +12,9 @@ const SCENES = {
   camp: {get script(){return campScript();}, get actors(){ return state.camp?.owlCub ? ["owlcub"] : undefined; }, bg:"road", back:null, next:["finishCamp","收拾營地"]},   // 野外露營長休（10-10）；梟熊寶寶靠近時多一個角色（10-21）
   owlbearSeen: {get script(){return OWLBEAR_STORY.seen.map(l=>({draft:OWLBEAR_STORY.draft, ...l}));}, bg:"road", actors:["owlcub"], back:null, next:["finishOwlbearSeen","繼續上路"]},   // 梟熊寶寶第二段（10-21）
   // 森林主線（10-22，台詞 data/forest.js FOREST.main，香香草稿）
-  forestDruidMeet: {get script(){return FOREST.main.druidMeet.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", actors:["druid"], back:null, next:["finishForestScene","離開森林"]},
-  forestReveal: {get script(){return FOREST.main.reveal.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", actors:["druid","chimera"], back:null, next:["startForestBoss","戰鬥開始！"]},
-  forestAfter: {get script(){return FOREST.main.after.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"road", back:null, next:["finishForestScene","回大地圖"]},
+  forestDruidMeet: {get script(){return FOREST.main.druidMeet.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid"], back:null, next:["finishForestScene","離開森林"]},
+  forestReveal: {get script(){return FOREST.main.reveal.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid","chimera"], back:null, next:["startForestBoss","戰鬥開始！"]},
+  forestAfter: {get script(){return FOREST.main.after.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", back:null, next:["finishForestScene","回大地圖"]},
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
@@ -237,7 +237,7 @@ function renderStory(){
   const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
+      ${["road","town","shopfront","forest"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
       ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img draggable="false" src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
       <div class="lamp" aria-hidden="true"></div>
