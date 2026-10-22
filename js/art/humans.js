@@ -30,7 +30,8 @@ var humanLook = function({sex="male", hair="01", beard=null, ears="human", hairC
     body:"#bba795", skin, feet:"#6b4a35", belly:false,
     tail: `<g ${B.headAttr}>${col(H.back)}</g>`,                                  // 後髮：畫在身體後面
     bodyArt: B.body + B.neck.replace(/#e8bb9b/g, skin) + arms, gearFit: B.fit || "",
-    gearShape: sex==="female" ? HUMAN_FEMALE_SHAPE : null,                      // 10-22：女性護甲照腰身、臀部的輪廓（跟素材的平民服同一個形狀）
+    gearShape: sex==="female" ? HUMAN_FEMALE_SHAPE : null,
+    sleeves: "M48 92 L40 105 M91 92 L100 105",                                    // 10-22：穿護甲時手臂蓋上袖子                      // 10-22：女性護甲照腰身、臀部的輪廓（跟素材的平民服同一個形狀）
     anchor: {head:[50,44,.8], neck:[72,88]},                                     // 頭小一號：頭飾、項鍊對準人類的頭（暫定）
     human: {sex, hair, beard, ears}};
 };
