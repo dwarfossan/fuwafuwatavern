@@ -43,9 +43,9 @@ function bindQuestBoard(){
   document.querySelectorAll("[data-quest-accept]").forEach(el=>el.addEventListener("click", ()=>{ const q = questById(el.dataset.questAccept); if(!q || q.done) return; q.accepted = true; sfx("pop"); render(); }));
 }
 // ---------- 大地圖：❗ 泡泡 ----------
-// 驚嘆號（大爺 10-22）：主線紅底白字、支線黃底黑字
+// 驚嘆號（大爺 10-22）：主線白底紅字、支線黃底黑字
 function pinBubbleSVG(kind){
-  const main = kind==="main", bg = main ? "#d64545" : "#f2c94c", ink = main ? "#fff" : "#2a2630";
+  const main = kind==="main", bg = main ? "#fff" : "#f2c94c", ink = main ? "#d64545" : "#2a2630";
   return `<g class="quest-bob"><path d="M-17 -62 H17 Q25 -62 25 -54 V-34 Q25 -26 17 -26 H6 L0 -16 L-6 -26 H-17 Q-25 -26 -25 -34 V-54 Q-25 -62 -17 -62Z" fill="${bg}" stroke="#2a2630" stroke-width="3.5" stroke-linejoin="round"/><path d="M0 -56 V-40" stroke="${ink}" stroke-width="6" stroke-linecap="round"/><circle cx="0" cy="-32.5" r="3.6" fill="${ink}"/></g>`;
 }
 function questPinsSVG(){
