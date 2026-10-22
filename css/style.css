@@ -1404,7 +1404,7 @@ body.image-boot{background:#000}
 .quest-draft{display:block;font-size:11px;color:var(--dim);margin-top:4px}
 .quest-pin{cursor:pointer}.quest-pin:focus{outline:none}
 .quest-bob{animation:questBob 1.4s ease-in-out infinite}
-.quest-pin.on .quest-bob path:first-child{fill:#ffe9a8}.main-pin{cursor:pointer}
+.quest-pin.on .quest-bob path:first-child{fill:#ffe9a8}.main-pin{cursor:pointer}.quest-pin .obs-life,.quest-pin .obs-anim{animation:none;opacity:1;transform:none}
 @keyframes questBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @media (prefers-reduced-motion:reduce){.quest-bob{animation:none}}
 .quest-reward{margin:6px auto 4px;padding:6px 14px;width:max-content;max-width:90%;text-align:center;font-weight:bold;color:var(--honey);background:rgba(31,26,36,.9);border:2px solid var(--honey);border-radius:12px}
