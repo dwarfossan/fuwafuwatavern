@@ -4,7 +4,7 @@
    流程（邏輯 js/chicken.js）：
    - 住過第一晚後，城鎮街上有黃 ❗（養雞的大嬸）→ 接下 → 城鎮旁的路出現黃 ❗
    - 走過去：沿著雞毛找（感知檢定，過了撿到會單＝揭穿時優勢；沒過只是多繞一段）→ 撞見開標 → 揭穿／直接打
-       揭穿（魅力檢定）：成功＝直接打惡魔原形，雞群站我們這邊（每輪一起啄惡魔）；失敗＝雞群不信，照直接打
+       揭穿（魅力檢定）：成功＝雞群嚇得跑回家，只打惡魔原形（大爺 10-23）；失敗＝雞群不信，照直接打
        直接打：異界雞＋三隻雞（被標會壓力逼成獸人等級），雞群護著會頭；異界雞血量剩一半變回惡魔原形
    - 惡魔打到 0 血不死，化成黑煙飛走（重要角色）；雞不會自動敲暈，開戰時提示白雞是委託人家的
    - 打完：窩裡只剩幾顆蛋 → 還給雞群／交給大嬸 → 城鎮街上黃 ❗ 回報 → 沒人相信，報酬照給 */
@@ -20,9 +20,8 @@ const CHICKEN = {
   item:"雞蛋會單",
   ui:{plan:"要怎麼做？", eggs:"剩下的蛋怎麼辦？", accept:"接下委託", go:"戰鬥開始！", back:"回大地圖", done:"回到街上",
     expose:{label:"揭穿", sub:"魅力檢定・難度 {dc}（{who}）{adv}"}, adv:"・有會單：優勢", fight:{label:"直接打", sub:"把會頭抓起來"},
-    giveBack:{label:"還給雞群", sub:"每隻分一兩顆"}, toAuntie:{label:"交給大嬸", sub:"畢竟是她家的雞生的"},
+    giveBack:{label:"帶回雞舍", sub:"每隻分一兩顆"}, toAuntie:{label:"交給大嬸", sub:"畢竟是她家的雞生的"},
     hint:"（提示：白雞是委託人家的雞。行動選單的「敲暈」打開，近戰打到 0 血就不會打死）",
-    swarm:"雞群一擁而上，啄了{name} {n} 下！「咕咕咕！（還我蛋來！）」",
     transformLog:"{name}的羽毛一片片剝落——是惡魔！", transformSay:"哎呀，被逼出原形了呢。",
     repelLog:"{name}笑著化成一團黑煙，飛走了。", repelSay:"……這只是開始。",
     end:"雞群的事解決了。帶著剩下的蛋離開吧。", got:"委託報酬：每隻 {g} gp；默默收下了雞蛋會單"},
@@ -66,8 +65,9 @@ const CHICKEN = {
     {who:"narr", text:"異界雞的羽毛一片片剝落，黑煙裡張開一對巨大的翅膀。", on:"demon", face:"smug"},
     {who:"demon", text:"哎呀，被發現了呢。", on:"demon", face:"smug"},
     {who:"demon", text:"蛋？早就吃光啦，一顆都不剩——真的很好吃喔。", on:"demon", face:"teasing"},
-    {who:"rooster", text:"咕咕咕咕咕！（還我們蛋來！）", on:"rooster"},
-    {who:"wolf", text:"……雞群站到我們這邊了。", mood:"serious", on:"demon", face:"annoyed"}
+    {who:"rooster", text:"咕咕咕咕！（快逃啊！）", on:"rooster"},
+    {who:"narr", text:"雞群咕咕叫著，一哄而散，往家的方向跑了。", on:"demon", face:"annoyed"},
+    {who:"raccoon", text:"……跑得比標會還快。", mood:"sly", on:"demon", face:"annoyed"}
   ],
   exposeFail:[
     {who:"hen_brown", text:"咕咕！（外人懂什麼！）", on:"hen_brown"},

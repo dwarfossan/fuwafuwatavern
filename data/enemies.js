@@ -16,11 +16,7 @@ const NPCS = {
   // 矮人大爺（大爺 10-22：放進遊戲當備用，數值以後再想；先跟其他 NPC 一樣用平民的數字）。還沒有放進任何戰場
   dwarf: {name:"矮人大爺", look:"dwarf", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
   // 鎧甲版是大型（2×2）；NPC 目前一律佔 1 格，要放上戰場時再把佔格接上
-  dwarf_armored: {name:"矮人大爺（鎧甲）", look:"dwarf_armored", size:"大型", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
-  // 失蹤的雞（10-23）：揭穿之後站我們這邊的雞群（不行動，每輪開始一起啄惡魔，js/chicken.js chickenRound）
-  hen_white: {name:"白雞", look:"hen_white", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:6}},
-  hen_brown: {name:"棕雞", look:"hen_brown", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:6}},
-  rooster: {name:"公雞", look:"rooster", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:8}}
+  dwarf_armored: {name:"矮人大爺（鎧甲）", look:"dwarf_armored", size:"大型", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}}
 };
 
 const ENEMIES = {

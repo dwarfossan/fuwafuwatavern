@@ -8,7 +8,7 @@ function nextTurn(){
   if(checkResult()) return;
   do {
     b.turn++;
-    if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();orcLateJoin();chickenRound();}
+    if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();orcLateJoin();}
   } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]) || ridden(b.units[b.turn]));   // 被騎著的坐騎不輪回合（10-20）   // 昏迷的輪不到（10-09 拿掉死亡豁免）
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();

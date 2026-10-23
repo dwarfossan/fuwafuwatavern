@@ -4,7 +4,7 @@
      ev：大地圖走到 ❗ 的那次事件 {link, t, look:{id,roll,mod,total,ok}, plan, roll, result}
    - 城鎮街上的 ❗（chickenStreetHTML）→ 劇情 chickenAsk → acceptChickenQuest
    - 大地圖 ❗（chickenPins，借委託的泡泡、走路、到達）→ chickenArrive → 劇情 chickenSearch（找雞、開標、揭穿／直接打）→ startChickenFight
-   - 戰鬥：異界雞半血變身（chickenOnHurt）、惡魔不死（chickenRepel）、揭穿後雞群每輪一起啄（chickenRound）
+   - 戰鬥：異界雞半血變身（chickenOnHurt）、惡魔不死（chickenRepel）
    - 打完（grantQuestReward → chickenQuestEnd）→ 劇情 chickenEggs → finishChickenEggs → 城鎮 ❗ → 劇情 chickenEnd → finishChickenQuest（報酬） */
 const ensureChicken = () => (state.chicken ||= {seed:1 + Math.floor(Math.random()*2147483646)});
 const chickenOpen = () => !!(state.townFounded && state.innNightDone);
@@ -95,7 +95,7 @@ async function chickenPick(k){
 }
 
 // ---------- 戰鬥 ----------
-// fight：異界雞＋三隻雞（雞群護著會頭）｜expose：直接打惡魔原形，三隻雞站旁邊當 NPC、每輪一起啄
+// fight：異界雞＋三隻雞（雞群護著會頭）｜expose：雞群跑回家了，只打惡魔原形（大爺 10-23）
 function startChickenFight(){
   const s = state.chicken, e = s?.ev; if(!e?.result || state.page!=="story") return;
   const path = e.result, l = WORLD.links[e.link] || WORLD.links[0], home = e.t < .5 ? l.a : l.b;
@@ -108,7 +108,6 @@ function startChickenFight(){
   const near = (tx, ty) => { for(let r=0; r<=5; r++) for(let dx=-r; dx<=r; dx++) for(let dy=-r; dy<=r; dy++){ const x = tx+dx, y = ty+dy, k = `${x},${y}`;
     if(x<1 || y<1 || x>=d.w-1 || y>=d.h-1 || used.has(k)) continue; used.add(k); return {x, y}; } return null; };
   d.foes.forEach((f,i)=>{ const p = near(px-7-(i%2), py-1+i); if(p){ f.x = p.x; f.y = p.y; } f.hidden = false; f.squad = 0; });
-  if(path==="expose"){ const c = d.foes[0]; ["hen_white","hen_brown","rooster"].forEach((t,i)=>{ const p = near(c.x-1+i, c.y+(i===1?-2:2)); if(p) d.npcs.push({type:t, x:p.x, y:p.y, face:1}); }); }
   d.quest = "chicken"; d.questStars = 1; d.noReward = true; d.questLink = e.link; d.questHome = home; d.after = "questDone"; d.chicken = path;
   BATTLES.quest = d; state.page = "battle"; state.scout = null; startBattle("quest", false, "explore");
   if(B().phase!=="combat") enterExploreCombat("foe0", true);
@@ -130,14 +129,6 @@ function chickenRepel(t, at){
   t.dead = true; t.repelled = true; t.deadAt = impactAt();
   blog(CHICKEN.ui.repelLog.replace("{name}", t.name), "kill"); sfx("poof", at + 300); fxHit(t, "spark");
   say(t, CHICKEN.ui.repelSay, 200);
-}
-// 揭穿之後：每輪開始，還站著的雞一起啄惡魔（nextTurn 新一輪呼叫）
-function chickenRound(){
-  const b = B(); if(b?.def.chicken!=="expose" || b.phase!=="combat") return;
-  const dm = b.units.find(u=>u.type==="chicken_demon" && !u.dead); if(!dm) return;
-  const n = b.units.filter(u=>u.side==="npc" && ["hen_white","hen_brown","rooster"].includes(u.type)).length; if(!n) return;
-  blog(CHICKEN.ui.swarm.replace("{name}", dm.name).replace("{n}", n), "skill");
-  hurt(dm, rollDice(`${n}d4`).total, "穿刺", null);
 }
 // 打贏（grantQuestReward 呼叫）：記結果，接劇情（剩下的蛋）
 function chickenQuestEnd(b){
