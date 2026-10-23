@@ -223,6 +223,7 @@ function bind(){
       state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true});
     } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
+    const orcPk=e.target.closest("[data-orc-pick]");if(orcPk){orcPick(orcPk.dataset.orcPick);return;}   // 獨眼獸人（10-23）
     const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
     const sp = e.target.closest("[data-style-pick]"); if(sp){ pickStarterStyle(sp.dataset.styleWho, sp.dataset.stylePick); return; }   // 起始風格（10-10）
     const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
@@ -261,6 +262,8 @@ function bind(){
   if(state.page==="map") bindMap();
   $("startWorldMimic")?.addEventListener("click",startWorldMimic);
   $("resumeWorldTravel")?.addEventListener("click",resumeWorldTravel);
+  $("startOrcFight")?.addEventListener("click",startOrcFight);
+  $("resumeOrcTravel")?.addEventListener("click",resumeOrcTravel);
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}
   document.querySelectorAll("[data-magic-buy]").forEach(el=>el.addEventListener("click",()=>buyMagic(el.dataset.magicBuy)));

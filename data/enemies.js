@@ -131,6 +131,9 @@ const ENEMIES = {
     special:"nimble", scores:{STR:10,DEX:14,CON:10,INT:10,WIS:8,CHA:10}},
   goblin_chief:{size:"小型",detectRange:6,name:"哥布林酋長",look:"goblin_chief",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:30,ac:17,speed:6,xp:450,
     special:"nimble", scores:{STR:10,DEX:15,CON:12,INT:11,WIS:10,CHA:12}},
+  // 獨眼隊長（10-23，獨眼獸人強盜團支線 js/orc-gang.js）：數值香香配、暫定（獸人往上、獸人英雄往下）
+  orc_captain:{size:"中型",detectRange:6,name:"獨眼隊長",look:"orc_captain",gear:["巨斧","鏈甲衫"],hp:30,ac:14,speed:6,xp:200,stars:2,
+    special:"orc_charge", scores:{STR:16,DEX:12,CON:16,INT:10,WIS:11,CHA:12}},
   orc_hero:{size:"中型",detectRange:6,name:"獸人英雄",look:"orc_hero",gear:["巨斧","鏈甲衫"],hp:40,ac:14,speed:6,xp:450,stars:3,
     special:"orc_charge", scores:{STR:17,DEX:12,CON:16,INT:9,WIS:11,CHA:12}},
   orc_chief:{size:"中型",detectRange:6,name:"獸人酋長",look:"orc_chief",gear:["巨斧","鏈甲"],hp:60,ac:16,speed:6,xp:1100,stars:3,

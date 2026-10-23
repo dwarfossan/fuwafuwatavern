@@ -8,12 +8,13 @@ function nextTurn(){
   if(checkResult()) return;
   do {
     b.turn++;
-    if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();}
+    if(b.turn >= b.units.length){b.turn=0;b.round++;groundAdvance(6000,true);exploreReinforcements();orcLateJoin();}
   } while(b.units[b.turn].dead || b.units[b.turn].down || b.units[b.turn].side==="npc" || !inCombat(b.units[b.turn]) || ridden(b.units[b.turn]));   // 被騎著的坐騎不輪回合（10-20）   // 昏迷的輪不到（10-09 拿掉死亡豁免）
   if(b.turn===0 || b.round===0){ if(b.round===0) b.round=1; }
   const u = cur();
   beginTurn(u);
   if(u.surprised){b.moveLeft=0;b.actionUsed=true;b.freeUsed=2;b.busy=true;blog(`${u.name}：${EXPLORE_COMBAT.surprised}`);refreshBattle();later(()=>{u.surprised=false;b.busy=false;groundStatusSave(u);if(!checkResult())nextTurn();},1100);return;}
+  if(orcTurnStart(u)) return;   // 獨眼獸人：褲子沒穿好、隊長逃走（10-23）
   // 回合一開始就倒下（例如流血）：直接換下一個
   if(u.dead || u.down){ refreshBattle(); later(()=>{ groundStatusSave(u);if(!checkResult()) nextTurn(); }, 900); return; }
   // 麻痺：跳過這回合（回合結束的東西照樣算）

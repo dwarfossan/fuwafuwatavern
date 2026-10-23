@@ -74,6 +74,7 @@ function beginWorldTravel(to){
  if(state.travel||to===state.location)return;const route=worldRoute(state.location,to);if(!route)return;
  state.worldArrival=null;state.worldLine=null;state.worldChest=null;
  state.travel={route,from:state.location,to,leg:0,t:0,stop:1,alert:false,paused:false,chest:Math.random()<.2,chestSeen:false,banterAt:2.0,elapsed:0,chatIndex:0,chat:null};
+ if(!state.travel.chest)state.travel.orc=orcTravelRoll(route);   // 獨眼獸人（10-23）：一趟只遇一件事
  render();focusWorldParty(worldTravelPosition(state.travel));startWorldTravel(state.travel);
 }
 function startWorldTravel(tr){
@@ -85,6 +86,7 @@ function startWorldTravel(tr){
   const frame=document.querySelector('.map-frame'),c=state.worldCamera;
   if(frame&&c&&now>(state.worldCameraGestureUntil||0)){const x=c.cam.x+p.x*c.zoom,y=c.cam.y+(p.y-100)*c.zoom;if(x<50||x>frame.clientWidth-50||y<50||y>frame.clientHeight-50)focusWorldParty(p);}
   if(tr.chest&&!tr.chestSeen&&tr.leg===0&&tr.t>=.55){tr.chestSeen=true;state.worldChest=tr.chestEvent=createWorldChest();tr.alert=true;tr.running=false;state.worldLine=null;focusWorldParty(p);render();setTimeout(()=>{if(state.travel!==tr||state.page!=='map')return;state.page='story';state.scene='worldChest';state.line=0;state.info=null;render();},1500);return;}
+  if(tr.orc&&!tr.orcSeen&&tr.leg===tr.orc.leg&&tr.t>=tr.orc.t){orcTrigger(tr,p);return;}   // 獨眼獸人路上遇到（10-23）
   if(tr.elapsed>=tr.banterAt){
    if(!tr.chat){const special=owlbearTravelChat(tr)||grudgeTravelChat(tr);if(special){tr.chat=special.lines;tr.chatIndex=0;}}
    if(!tr.chat){let candidates=WORLD_CHAT.banter.filter((_,i)=>i!==state.worldLastChat);const chat=candidates[Math.floor(Math.random()*candidates.length)];state.worldLastChat=WORLD_CHAT.banter.indexOf(chat);tr.chat=chat.lines;tr.chatIndex=0;}

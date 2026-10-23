@@ -18,6 +18,7 @@ function townEventBubbleHTML(){
  return townEvents().filter(e=>!e.place).map((e,i)=>`<button class="town-building town-event-bubble" data-town-event="${i}" style="left:${Math.max(12,Math.min(70,Number(e.x)||50))}%;top:${Math.max(16,Math.min(78,Number(e.y)||70))}%" aria-label="${townText(e.location+'／'+e.person+'／'+e.action)}"><b>${townText(e.location)}</b><span>${townText(e.person)}／${townText(e.action)}</span>${townEventSymbol(e)}${townEventHint(e)}</button>`).join('');
 }
 function townShopEventHTML(place){if(place==='guild'&&guildMainTalk())return `<span class="town-event-symbol" aria-label="主線">${obsBubbleHTML("main")}</span>`;   // 主線紅 ❗（10-22）
+ if(place==='guild'&&orcGuildNotice())return `<span class="town-event-symbol" aria-label="支線">${obsBubbleHTML("side")}</span>`;   // 獨眼的通緝單、賞金（10-23）
  const e=townEvents().find(e=>e.place===place);return e?townEventSymbol(e)+townEventHint(e):'';}
 function renderTown(){
  const p=townPlace();

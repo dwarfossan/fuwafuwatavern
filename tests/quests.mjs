@@ -8,7 +8,7 @@ const br=await chromium.launch();try{
  await p.goto('file://'+path.resolve('index.html')+'#town');await p.locator('[data-town-place]').first().waitFor();
  // 公會委託板：三個（★／★★／★★★），接下
  await p.locator('[data-town-place="guild"]').tap();await p.locator('#townAction').tap();
- assert.equal(await p.locator('.quest-card').count(),3);
+ assert.equal(await p.locator('.quest-card:not(.orc-wanted)').count(),3);
  assert.deepEqual(await p.evaluate(()=>state.quests.list.map(q=>q.stars)),[1,2,3]);
  await shot(p,'quest-board.png');
  for(let i=0;i<3;i++)await p.locator('[data-quest-accept]').first().tap();

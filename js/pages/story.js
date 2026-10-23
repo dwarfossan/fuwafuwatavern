@@ -15,6 +15,7 @@ const SCENES = {
   forestDruidMeet: {get script(){return FOREST.main.druidMeet.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid"], back:null, next:["finishForestScene","離開森林"]},
   forestReveal: {get script(){return FOREST.main.reveal.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid","chimera"], back:null, next:["startForestBoss","戰鬥開始！"]},
   forestAfter: {get script(){return FOREST.main.after.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", back:null, next:["finishForestScene","回大地圖"]},
+  orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };
 /* ---------- 商隊戰後（大爺 10-03，資料在 data/story.js 的 CARAVAN_*） ---------- */
@@ -70,12 +71,13 @@ function styleChoicesHTML(id){
 function dialogInner(line, who, done){
   let extra = line.worldChestChoice?worldChestChoices():line.chestRoll?worldChestRollHTML(line.chestRoll):"";
   if(styleChoicePending(line)) extra = styleChoicesHTML(line.styleChoice);
+  if(orcChoicePending(line)) extra = orcChoiceHTML(line.orcChoice); else if(line.orcRoll) extra = orcRollHTML();   // 獨眼獸人（10-23）
   if(line.choice && !(state.caravan||{}).pick)
     extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
       return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
   if(line.roll){ const c = state.caravan;
     extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
-  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
+  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||orcChoicePending(line)||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
 }
 const storyWho = line => WHO(line.who);   // 合聲名牌一律「全員」（10-10 大爺，原本送別寫「小傢伙們」）
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
@@ -172,7 +174,7 @@ function updateStoryLine(){
   const progress = document.querySelector(".fp-page .progress");
   if(progress) progress.textContent = `${state.line+1} / ${scene.script.length}`;
   const next = document.getElementById(scene.next[0]);
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);   // 停在選項上不算演完
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
   syncBGM();
   prepareStoryImages(state.line+1);
@@ -234,7 +236,7 @@ function renderStory(){
   const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line);
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront","forest"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `

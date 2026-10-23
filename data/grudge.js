@@ -12,7 +12,7 @@ const GRUDGE = {
     skeleton:"skeleton_warrior", skeleton_archer:"skeleton_warrior", skeleton_warrior:"lich",
     bandit:"bandit_captain", bandit_archer:"bandit_captain", zombie:"ghoul"},   // 10-21   // 骷髏兵／弓手→骷髏勇士→巫妖（大爺 10-21）
   // 種類：人形／野獸／不死魔物（沒寫的當野獸）
-  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",bandit_captain:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
+  category:{goblin:"humanoid",goblin_archer:"humanoid",goblin_shaman:"humanoid",goblin_hero:"humanoid",goblin_chief:"humanoid",orc_hero:"humanoid",orc_captain:"humanoid",orc_chief:"humanoid",bandit:"humanoid",bandit_archer:"humanoid",bandit_captain:"humanoid",orc:"humanoid",hunter:"humanoid",hunter_archer:"humanoid",vampire:"humanoid",
     // 不死：有智慧的才會說話（大爺 10-21）＝幽靈、巫妖、死亡騎士；骷髏、殭屍、骷髏戰馬沒腦子，只有動作
     ghost:"undead",lich:"undead",death_knight:"undead",
     skeleton_warrior:"warrior",   // 骷髏勇士：會說話、記得生前的事（大爺 10-21）

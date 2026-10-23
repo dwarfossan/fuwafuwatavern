@@ -9,7 +9,7 @@ const grudgeCat = type => GRUDGE.category[type] || "beast";
 const grudgeKindOf = type => ["揮砍","穿刺","鈍擊","火焰"].includes(type) ? type : "其他";
 const grudgeById = id => (state.grudges||[]).find(g=>g.id===id) || null;
 // 跟劇情有關的不擲（劇情自己決定結局）
-const grudgeExempt = (b, u) => !!(b.def.owlbearStory && ["owlbear","owlbear_cub"].includes(u.type)) || !!(b.def.forest && u.type==="forest_druid");   // 森林的德魯伊是劇情（10-21）
+const grudgeExempt = (b, u) => !!(b.def.owlbearStory && ["owlbear","owlbear_cub"].includes(u.type)) || !!(b.def.forest && u.type==="forest_druid") || !!(b.def.orcGang && u.type==="orc_captain");   // 獨眼：敲暈＝活捉交公會（10-23）   // 森林的德魯伊是劇情（10-21）
 function grudgeResult(r){ const row = GRUDGE.table.find(([a,z])=>r>=a && r<=z); return row ? row[2] : "gone"; }
 function grudgeRollAll(b){
   // 委託：用委託那條路；委託以外（大地圖寶箱怪等，大爺 10-21 擴大）：用 def.grudgeLink（打的那條路）；劇情戰沒有路，不擲
@@ -62,7 +62,7 @@ function grudgeShoutAll(){
   const b = B(); if(!b || b.phase!=="combat") return;
   b.units.filter(u=>u.side==="foe" && u.grudge && !u.grudgeShouted && !u.dead && !u.down && !foeHid(u) && inCombat(u)).forEach((u,i)=>{
     u.grudgeShouted = true;
-    const by = b.units.find(v=>v.id===u.grudgeBy), byName = by ? by.name : "你們", list = GRUDGE.shout[grudgeCat(u.type)] || GRUDGE.shout.beast;
+    const by = b.units.find(v=>v.id===u.grudgeBy), byName = by ? by.name : "你們", list = u.shoutList || GRUDGE.shout[grudgeCat(u.type)] || GRUDGE.shout.beast;
     // 怪物不知道毛毛們的名字（大爺 10-21）：喊話用「白虎」「狐狸」這種叫法；旁白紀錄才用名字
     const crit = by && CRITTERS.find(c=>c.id===by.id), bySeen = crit ? crit.kind.replace(/^小/, "") : GRUDGE.byUnknown;
     blog(GRUDGE.shoutLog.replace("{name}", u.name).replace("{by}", byName), "kill");
@@ -71,6 +71,7 @@ function grudgeShoutAll(){
 }
 function grudgeLineHTML(v){
   const g = v.grudge && grudgeById(v.grudge); if(!g) return "";
+  if(g.orc) return `<div class="dim race-line grudge-line">${ORC_GANG.card}</div>`;   // 獨眼是逃走的，不是被敲暈（10-23）
   const last = g.scars[g.scars.length-1] || {}, by = CRITTERS.find(c=>c.id===last.by);
   return `<div class="dim race-line grudge-line">${GRUDGE.card(by ? by.name : "小傢伙們", GRUDGE.how[grudgeKindOf(last.type)], g.returns)}</div>`;
 }

@@ -1,7 +1,7 @@
 /* 每日委託（10-10）：資料在 data/quests.js
    state.quests＝{day, list:[{id, tpl, stars, link, t, seed, accepted, done}]}；day 跟道具店同一個遊戲日（長休 +1）
    流程：公會委託板接下 → 大地圖路上出現 ❗ 泡泡 → 點了走過去 → 隨機地圖（探索開場）→ 敵人全倒＝完成、給報酬 → 回大地圖 */
-const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl) || owlbearPinTpl(q.tpl);   // 梟熊寶寶劇情的 ❗ 也借用（10-21）
+const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl) || owlbearPinTpl(q.tpl) || orcPinTpl(q.tpl);   // 梟熊寶寶劇情的 ❗ 也借用（10-21）
 const questLink = q => WORLD.links[q.link] || WORLD.links[0];
 const questPos = q => { const l = questLink(q); return roadPoint(l.a, l.b, q.t); };
 const questHome = q => { const l = questLink(q); return q.t < .5 ? l.a : l.b; };   // 打完回到比較近的那一頭
@@ -19,8 +19,8 @@ function ensureQuests(){
   state.quests = {day, list};
   return state.quests;
 }
-const questById = id => ensureQuests().list.find(q=>q.id===id) || owlbearPins().find(q=>q.id===id) || null;
-const questOpen = () => [...ensureQuests().list.filter(q=>q.accepted && !q.done), ...owlbearPins()];
+const questById = id => ensureQuests().list.find(q=>q.id===id) || owlbearPins().find(q=>q.id===id) || orcPins().find(q=>q.id===id) || null;
+const questOpen = () => [...ensureQuests().list.filter(q=>q.accepted && !q.done), ...owlbearPins(), ...orcPins()];
 // 目擊的怪物：「哥布林 ×2、哥布林弓手」
 function questFoeText(t){
   const n = {}; t.foes.forEach(f=>{ const name = ENEMIES[f].name; n[name] = (n[name]||0) + 1; });
@@ -33,13 +33,14 @@ function questRewardText(stars){
 // ---------- 公會委託板 ----------
 function questBoardHTML(){
   const Q = ensureQuests();
-  return `<div class="quest-board"><h3>${QUEST_UI.board} <small>${QUEST_UI.day.replace("{d}", Q.day)}</small></h3><p class="quest-note">${QUEST_UI.refresh}</p>${Q.list.map(q=>{
+  return `<div class="quest-board"><h3>${QUEST_UI.board} <small>${QUEST_UI.day.replace("{d}", Q.day)}</small></h3><p class="quest-note">${QUEST_UI.refresh}</p>${orcWantedHTML()}${Q.list.map(q=>{
     const t = questTpl(q);
     const state_ = q.done ? `<span class="quest-state done">${QUEST_UI.done}</span>` : q.accepted ? `<span class="quest-state">${QUEST_UI.accepted}</span>` : `<button class="btn small" data-quest-accept="${q.id}">${QUEST_UI.accept}</button>`;
     return `<div class="quest-card${q.done?" done":""}" data-quest-card="${q.id}"><div class="quest-top"><b>${t.title}</b><span class="quest-stars" aria-label="${q.stars} 星">${questStars(q.stars)}</span></div><p>${t.text}</p><small>${QUEST_UI.client}：${t.client} · ${QUEST_UI.foes}：${questFoeText(t)}</small><small>${QUEST_UI.reward}：${questRewardText(q.stars)}</small>${state_}</div>`;
   }).join("")}</div>`;
 }
 function bindQuestBoard(){
+  bindOrcWanted();   // 獨眼的通緝單（10-23）
   document.querySelectorAll("[data-quest-accept]").forEach(el=>el.addEventListener("click", ()=>{ const q = questById(el.dataset.questAccept); if(!q || q.done) return; q.accepted = true; sfx("pop"); render(); }));
 }
 // ---------- 大地圖：❗ 泡泡 ----------
@@ -64,7 +65,7 @@ function beginQuestTravel(id){
   const q = questById(id); if(!q || !q.accepted || q.done || state.travel) return;
   const {route, stopT} = questRoute(q);
   state.worldArrival = null; state.worldLine = null; state.worldChest = null; state.questSel = null;
-  state.travel = {route, from:state.location, to:route[route.length-1], quest:q.id, stopT, leg:0, t:0, stop:1, alert:false, paused:false, chest:false, chestSeen:false, banterAt:2.0, elapsed:0, chatIndex:0, chat:null};
+  state.travel = {route, from:state.location, to:route[route.length-1], quest:q.id, stopT, leg:0, t:0, stop:1, alert:false, paused:false, chest:false, chestSeen:false, banterAt:2.0, elapsed:0, chatIndex:0, chat:null, orc:orcTravelRoll(route)};
   render(); focusWorldParty(worldTravelPosition(state.travel)); startWorldTravel(state.travel);
 }
 // 走到了：開戰（探索開場，委託地圖不跳教學）
@@ -82,6 +83,7 @@ function arriveQuest(tr){
   state.travel = null; state.worldLine = null;
   if(!q){ render(); return; }
   state.location = questHome(q); state.mapSel = state.location;   // 輸了傳回酒館、贏了回到這一頭
+  if(q.orc){ orcArrive(q); return; }   // 獨眼的營地（10-23）
   if(q.story){ owlbearArrive(q); return; }   // 梟熊寶寶劇情的 ❗（10-21）
   BATTLES.quest = questBattle(q);
   state.page = "battle"; state.scout = null; startBattle("quest", false, "explore"); render(); window.scrollTo(0,0);
@@ -101,13 +103,14 @@ function grantQuestReward(){
   const q = questById(b.def.quest); if(q) q.done = true;   // 打到一半長休換日了：委託不在了，報酬照給
   b.questReward = out;
   owlbearQuestEnd(b);
+  orcQuestEnd(b);     // 獨眼獸人（10-23）
   forestWin(b);       // 森林（10-21）
   grudgeRollAll(b);   // 被敲暈的擲 1d20（10-21）
   if(!b.def.noReward) blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
 }
 function questRewardHTML(){
   const r = B()?.questReward; if(!r) return "";
-  if(B().def.noReward) return owlbearEndHTML();
+  if(B().def.noReward) return owlbearEndHTML() + orcEndHTML();
   return `<p class="quest-reward">${QUEST_UI.got.replace("{g}", r.each)}${r.item ? `<br>${QUEST_UI.gotItem.replace("{who}", r.who).replace("{item}", r.item)}` : ""}</p>${owlbearEndHTML()}`;
 }
 // 勝利畫面按「繼續」：回大地圖
@@ -145,6 +148,7 @@ function retreatBattle(){
     changeStressAll(v=>v + STRESS.retreat);
     queueAfterTalk(b);
     grudgeRollAll(b);   // 撤退時已經被敲暈的也擲（10-21）
+    orcQuestEnd(b);     // 獨眼逃走了才撤退的也算（10-23）
   }
   stashSteed(b); wakeAfterBattle(); syncLearnedState();
   state.location = b.def.questHome || state.location; state.mapSel = state.location;

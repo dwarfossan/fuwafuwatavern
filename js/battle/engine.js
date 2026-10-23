@@ -89,7 +89,7 @@ function startBattle(id, retry=false, phase="combat"){
       learned:(e.passives||[]).map(key=>({key,name:learnedSkillByKey(key)?.def.name||key,from:e.name})), activeSkills:[...(e.passives||[])], spellKeys:e.spells?[...e.spells]:null,
       speed:e.speed, statuses:[], level:e.level||1, down:false, face:-1, oaUsed:false
     });
-    if(f.grudge) applyGrudgeUnit(units[units.length-1], f.grudge);   // 回來報仇的（10-21，js/grudge.js）
+    if(f.grudge){ applyGrudgeUnit(units[units.length-1], f.grudge); orcGrudgeUnit(units[units.length-1]); }   // 回來報仇的（10-21，js/grudge.js）
     // 騎乘出場（10-20）：坐騎是同一格的另一個敵人，騎士掛在牠身上
     if(e.mount){ const m = ENEMIES[e.mount], r = units[units.length-1];
       if(r.squad===undefined) r.squad = r.id;   // 騎士和坐騎同一小隊：探索切戰棋一起加入
