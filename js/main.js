@@ -263,6 +263,7 @@ function bind(){
   $("startWorldMimic")?.addEventListener("click",startWorldMimic);
   $("resumeWorldTravel")?.addEventListener("click",resumeWorldTravel);
   $("startOrcFight")?.addEventListener("click",startOrcFight);
+  $("startDkQuest")?.addEventListener("click",startDkQuest);
   $("resumeOrcTravel")?.addEventListener("click",resumeOrcTravel);
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}

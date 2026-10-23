@@ -25,6 +25,8 @@ const PORTRAITS = {
   // 兇猛的奇美拉、食人花：一張圖、沒有表情
   chimera: {base:"assets/portraits/chimera.webp", faces:null},
   mantrap: {base:"assets/portraits/mantrap.webp", faces:null, onDemand:true},
+  // 死亡騎士戴頭盔（10-23 用在討馬劇情）：身分主線後面才揭曉，劇情只用這張，不用長髮那張
+  dk_helmet: {base:"assets/portraits/deathknight_helmet.webp", faces:null},
   // 10-22 大爺給的不死素材包（劇情場景用；戰場照舊用 SVG）。onDemand＝還沒放進劇情，開機不先下載
   // 死亡騎士（長髮、不戴盔）、女貴族、女吸血鬼：無臉底圖＋表情（一樣大，直接疊）
   deathknight: {base:"assets/portraits/deathknight_noface.webp", faces:"assets/faces/deathknight/", def:"neutral", onDemand:true,

@@ -15,6 +15,7 @@ const SCENES = {
   forestDruidMeet: {get script(){return FOREST.main.druidMeet.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid"], back:null, next:["finishForestScene","離開森林"]},
   forestReveal: {get script(){return FOREST.main.reveal.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", actors:["druid","chimera"], back:null, next:["startForestBoss","戰鬥開始！"]},
   forestAfter: {get script(){return FOREST.main.after.map(l=>({draft:FOREST.main.draft, ...l}));}, bg:"forest", back:null, next:["finishForestScene","回大地圖"]},
+  dkDemand: {get script(){return dkDemandScript();}, bg:"road", actors:["dk_helmet"], back:null, next:["startDkQuest","戰鬥開始！"]},   // 死亡騎士討馬（10-23）
   orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）
 };

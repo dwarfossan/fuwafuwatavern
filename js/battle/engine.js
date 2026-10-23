@@ -91,7 +91,8 @@ function startBattle(id, retry=false, phase="combat"){
     });
     if(f.grudge){ applyGrudgeUnit(units[units.length-1], f.grudge); orcGrudgeUnit(units[units.length-1]); }   // 回來報仇的（10-21，js/grudge.js）
     // 騎乘出場（10-20）：坐騎是同一格的另一個敵人，騎士掛在牠身上
-    if(e.mount){ const m = ENEMIES[e.mount], r = units[units.length-1];
+    if(e.mount && f.onFoot){ const r = units[units.length-1]; r.look = e.lookOnFoot || r.look; r.speed = e.speedOnFoot ?? r.speed; }   // 馬在毛毛們手上：用走的來（死亡騎士，10-23）
+    else if(e.mount){ const m = ENEMIES[e.mount], r = units[units.length-1];
       if(r.squad===undefined) r.squad = r.id;   // 騎士和坐騎同一小隊：探索切戰棋一起加入
       units.push({
         id:r.id+"m", side:"foe", squad:r.squad, type:e.mount, name:m.name+r.name.slice(e.name.length), look:m.look, natural:m.natural||null, special:m.special||null,
@@ -721,7 +722,8 @@ function hurt(t, n, type, src, hitSfx){
   else endConc(t, "倒下了");
   // 已經倒下的再被打（例如普攻打死後狩印、偷襲的追加傷害）不再觸發一次倒下：紀錄、音效、台詞只算一次（大爺 10-11 回報哥布林吐槽兩次）
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
-    if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.koBy = src.id; t.koType = type; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
+    if(t.side==="foe" && t.type==="death_knight") dkRepel(t, at);   // 死亡騎士不會死、不會被敲暈（大爺 10-23）
+    else if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.koBy = src.id; t.koType = type; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
     else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }
     else { t.down = true; t.statuses = []; funNote("down", t); blog(t.pet ? `${t.name}${OWLBEAR_STORY.pet.down}` : t.steed ? `${t.name}${MOUNT_UI.bones}` : t.side==="pc" ? `${t.name}昏迷了……` : `${t.name}倒下了……`, "kill"); sfx("down", at + 250); if(t.frenzy){ t.frenzy = null; t.svgMood = stressMood(t); } }

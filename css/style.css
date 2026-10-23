@@ -1462,4 +1462,6 @@ body.image-boot{background:#000}
 .btn.main-talk{background:#d64545;color:#fff;border-color:#2a2630}
 .actor.druid{aspect-ratio:1;height:100%;bottom:-6%}
 .actor.chimera{aspect-ratio:1312/1199;height:78%;bottom:2%}
+/* 死亡騎士戴頭盔（10-23 討馬劇情，全身立繪；大小暫定） */
+.actor.dk_helmet{aspect-ratio:927/1697;height:96%;bottom:-4%}
 

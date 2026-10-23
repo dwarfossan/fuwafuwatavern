@@ -74,6 +74,7 @@ function questBattle(q){
   const grudge = grudgeFoes(q);   // 記仇回來的（10-21，js/grudge.js）：混進敵人名單最後面
   const d = generateQuestMap(q.seed, {theme:QUEST_THEME[`${l.a}-${l.b}`]||"plain", foeList:[...t.foes, ...(grudge ? grudge.extra : [])], name:t.title});   // 委託專用地圖（10-21）
   grudgeMark(d, t.foes.length, grudge);
+  dkQuestPatch(d);   // 死亡騎士：馬在我們手上就用走的來（10-23）
   d.quest = q.id; d.questStars = q.stars; d.questHome = questHome(q); d.after = "questDone";
   if(owlbearStoryFor(q)) d.owlbearStory = true;   // 第一次的梟熊委託：梟熊寶寶劇情（10-21）
   return d;
@@ -83,7 +84,8 @@ function arriveQuest(tr){
   state.travel = null; state.worldLine = null;
   if(!q){ render(); return; }
   state.location = questHome(q); state.mapSel = state.location;   // 輸了傳回酒館、贏了回到這一頭
-  if(q.orc){ orcArrive(q); return; }   // 獨眼的營地（10-23）
+  if(q.orc){ orcArrive(q); return; }
+  if(dkDemandDue(q)){ dkStartDemand(q); return; }   // 死亡騎士來討馬（10-23）   // 獨眼的營地（10-23）
   if(q.story){ owlbearArrive(q); return; }   // 梟熊寶寶劇情的 ❗（10-21）
   BATTLES.quest = questBattle(q);
   state.page = "battle"; state.scout = null; startBattle("quest", false, "explore"); render(); window.scrollTo(0,0);
