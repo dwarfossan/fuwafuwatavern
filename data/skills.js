@@ -209,7 +209,9 @@ SKILL_GROUPS.push({id:"natural",name:"天生技能",trait:true,weapons:[],stat:"
  {id:"pack_tactics",name:"圍毆",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"同伴貼著目標時，攻擊有優勢（SRD）。"},
  {id:"sun_sensitive",name:"怕陽光",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"在明亮的地方攻擊有劣勢（SRD 陽光敏感，這裡照亮度算）。"},
  {id:"nimble",name:"靈巧脫逃",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,text:"免費動作撤離或躲藏（每回合用免費動作那格）。"},
- {id:"darkvision",name:"黑暗視覺",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"}
+ {id:"darkvision",name:"黑暗視覺",innate:true,activation:"passive",kind:"被動",dmg:"",tier:0,darkvision:12,text:"黑暗看成黑白；仍受樹、馬車及關門等遮擋。"},
+ {id:"chicken_attack",name:"雞雞攻擊術",innate:true,kind:"近戰",dmg:"物理",tier:0,recharge:true,text:"被標會壓力逼出來的衝刺：衝向 3 格以外的敵人並啄；命中後目標力量豁免，失敗倒地。充能（10-23，數值照蠻衝）。"},
+ {id:"demon_wiles",name:"魅惑／業火",innate:true,kind:"豁免",dmg:"火焰",tier:0,recharge:true,text:"身邊 2 格內有敵人：業火，2 格內的敵人敏捷豁免，失敗 3d6 火焰、成功減半；沒有：魅惑 6 格內一個敵人，感知豁免失敗就恍神（只能移動或行動二選一）。充能（10-23，暫定）。"}
 ]});
 SKILL_GROUPS.forEach(g=>g.skills.forEach(s=>s.activation ||= "active"));
 

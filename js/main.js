@@ -223,6 +223,7 @@ function bind(){
       state.line++; updateStoryLine(); $("stage")?.focus({preventScroll:true});
     } };
   document.querySelector(".fp-page")?.addEventListener("click", e=>{
+    const chPk=e.target.closest("[data-chicken-pick]");if(chPk){chickenPick(chPk.dataset.chickenPick);return;}   // 失蹤的雞（10-23）
     const orcPk=e.target.closest("[data-orc-pick]");if(orcPk){orcPick(orcPk.dataset.orcPick);return;}   // 獨眼獸人（10-23）
     const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
     const sp = e.target.closest("[data-style-pick]"); if(sp){ pickStarterStyle(sp.dataset.styleWho, sp.dataset.stylePick); return; }   // 起始風格（10-10）
@@ -264,6 +265,7 @@ function bind(){
   $("resumeWorldTravel")?.addEventListener("click",resumeWorldTravel);
   $("startOrcFight")?.addEventListener("click",startOrcFight);
   $("startDkQuest")?.addEventListener("click",startDkQuest);
+  ["acceptChickenQuest","startChickenFight","finishChickenEggs","finishChickenQuest"].forEach(id=>$(id)?.addEventListener("click",window[id]));   // 失蹤的雞（10-23）
   $("resumeOrcTravel")?.addEventListener("click",resumeOrcTravel);
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}

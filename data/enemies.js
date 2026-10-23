@@ -16,7 +16,11 @@ const NPCS = {
   // 矮人大爺（大爺 10-22：放進遊戲當備用，數值以後再想；先跟其他 NPC 一樣用平民的數字）。還沒有放進任何戰場
   dwarf: {name:"矮人大爺", look:"dwarf", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
   // 鎧甲版是大型（2×2）；NPC 目前一律佔 1 格，要放上戰場時再把佔格接上
-  dwarf_armored: {name:"矮人大爺（鎧甲）", look:"dwarf_armored", size:"大型", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}}
+  dwarf_armored: {name:"矮人大爺（鎧甲）", look:"dwarf_armored", size:"大型", hp:4, ac:10, speed:6, scores:{STR:10, DEX:10, CON:10, INT:10, WIS:10, CHA:10}},
+  // 失蹤的雞（10-23）：揭穿之後站我們這邊的雞群（不行動，每輪開始一起啄惡魔，js/chicken.js chickenRound）
+  hen_white: {name:"白雞", look:"hen_white", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:6}},
+  hen_brown: {name:"棕雞", look:"hen_brown", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:6}},
+  rooster: {name:"公雞", look:"rooster", hp:15, ac:13, speed:6, scores:{STR:16, DEX:12, CON:16, INT:3, WIS:11, CHA:8}}
 };
 
 const ENEMIES = {
@@ -131,6 +135,17 @@ const ENEMIES = {
     special:"nimble", scores:{STR:10,DEX:14,CON:10,INT:10,WIS:8,CHA:10}},
   goblin_chief:{size:"小型",detectRange:6,name:"哥布林酋長",look:"goblin_chief",shieldArt:"round_shield",gear:["彎刀","盾牌","鏈甲衫"],hp:30,ac:17,speed:6,xp:450,
     special:"nimble", scores:{STR:10,DEX:15,CON:12,INT:11,WIS:10,CHA:12}},
+  // 失蹤的雞（10-23，js/chicken.js）：被標會壓力逼成獸人等級的雞（數值照獸人）、異界雞（惡魔變的，半血變回原形）、惡魔原形（打到 0 血不死、化成黑煙飛走）。數值香香配、暫定
+  hen_white:{size:"小型",detectRange:6,name:"白雞",look:"hen_white",gear:[],hp:15,ac:13,speed:6,xp:100,stars:1,
+    natural:{name:"啄",dmg:"1d10 穿刺",stat:"STR"},special:"chicken_attack", scores:{STR:16,DEX:12,CON:16,INT:3,WIS:11,CHA:6}},
+  hen_brown:{size:"小型",detectRange:6,name:"棕雞",look:"hen_brown",gear:[],hp:15,ac:13,speed:6,xp:100,stars:1,
+    natural:{name:"啄",dmg:"1d10 穿刺",stat:"STR"},special:"chicken_attack", scores:{STR:16,DEX:12,CON:16,INT:3,WIS:11,CHA:6}},
+  rooster:{size:"小型",detectRange:6,name:"公雞",look:"rooster",gear:[],hp:15,ac:13,speed:6,xp:100,stars:1,
+    natural:{name:"啄",dmg:"1d10 穿刺",stat:"STR"},special:"chicken_attack", scores:{STR:16,DEX:12,CON:16,INT:3,WIS:11,CHA:8}},
+  demon_chicken:{size:"小型",detectRange:6,name:"異界雞",look:"demon_chicken",gear:[],hp:30,ac:13,speed:6,xp:200,stars:2,
+    natural:{name:"啄",dmg:"1d8 穿刺",stat:"STR"},special:"chicken_attack", scores:{STR:14,DEX:14,CON:14,INT:16,WIS:12,CHA:18}},
+  chicken_demon:{size:"中型",detectRange:8,name:"惡魔",look:"chicken_demon",gear:[],hp:45,ac:15,speed:6,xp:700,stars:3,
+    natural:{name:"爪擊",dmg:"1d8 揮砍",stat:"DEX"},special:"demon_wiles",resistances:["火焰"], scores:{STR:12,DEX:16,CON:14,INT:16,WIS:13,CHA:20}},
   // 獨眼隊長（10-23，獨眼獸人強盜團支線 js/orc-gang.js）：數值香香配、暫定（獸人往上、獸人英雄往下）
   orc_captain:{size:"中型",detectRange:6,name:"獨眼隊長",look:"orc_captain",gear:["巨斧","鏈甲衫"],hp:30,ac:14,speed:6,xp:200,stars:2,
     special:"orc_charge", scores:{STR:16,DEX:12,CON:16,INT:10,WIS:11,CHA:12}},

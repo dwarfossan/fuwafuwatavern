@@ -71,7 +71,16 @@ SKILL_IMPL.natural = [
   {passive:true},   // 圍毆（狼、狗頭人）：attackRoll
   {passive:true},   // 怕陽光（狗頭人）：attackRoll
   {passive:true},   // 靈巧脫逃（哥布林）：flow.js 的 nimbleDisengage／nimbleHide
-  {passive:true}    // 黑暗視覺：darkvisionRange
+  {passive:true},   // 黑暗視覺：darkvisionRange
+  // 雞雞攻擊術（失蹤的雞，10-23）：跟蠻衝一樣，AI 先衝到旁邊
+  {target:"enemy", range:()=>1, run:(u,t)=>{ const r = weaponAttack(u,t,{});
+    if(r.hit && !t.dead && !t.down && !saveRoll(t,"STR",MONSTER_DC(u,"STR"))){ knockProne(t); blog(`　${t.name}被啄倒了！`,"skill"); } }},
+  // 魅惑／業火（惡魔，10-23）：貼近的有人＝業火（2 格內），沒有＝魅惑一個（恍神，借用現有狀態，不加新圖示）
+  {target:"self", run:u=>{ const near = enemiesOf(u).filter(p=>dist(p,u)<=2 && !p.down && !p.dead);
+    if(near.length){ blog(`　${u.name}腳下竄出業火！`, "skill"); near.forEach(p=>{ const n = rollDice("3d6").total; groundReact(p.x,p.y,"火焰"); hurt(p, saveRoll(p,"DEX",MONSTER_DC(u,"CHA"),u) ? Math.floor(n/2) : n, "火焰", u); }); return; }
+    const t = seenFoes(u).filter(p=>dist(p,u)<=6).sort((a,c)=>dist(a,u)-dist(c,u))[0]; if(!t){ blog("　沒有人看她。"); return; }
+    if(!saveRoll(t,"WIS",MONSTER_DC(u,"CHA"),u)){ addStatus(t,"dazed",{until:"end", of:t.id, via:"charm"}); fxFloat(t,"♥","dmg"); blog(`　${t.name}被${u.name}魅惑，恍神了！`,"skill"); }
+    else { fxFloat(t, POP_TEXT.miss, "miss"); blog(`　${t.name}甩甩頭，沒被魅惑。`); } }}
 ];
 SKILL_ANIM.natural = ["thrust","cast","slash","slash","punch","slash","cast","cast","slash","punch","cast","thrust","cast","slash","thrust","slash","cast","cast"];
 
@@ -115,7 +124,9 @@ const MONSTER_AI = {
   cub_pounce:     e=>monsterAdj(e),
   ghoul_claw:     e=>monsterAdj(e),
   vine_snare:     e=>monsterNear(e,2,p=>!has(p,"restrained")),
-  wyrm_breath:    e=>monsterConeAim(e)
+  wyrm_breath:    e=>monsterConeAim(e),
+  chicken_attack: e=>monsterRush(e),
+  demon_wiles:    e=>seenFoes(e).some(p=>dist(p,e)<=6) ? e : null
 };
 function monsterSpecialReady(e, def){
   if(def.once) return !e.specialUsed;

@@ -1,7 +1,7 @@
 /* 每日委託（10-10）：資料在 data/quests.js
    state.quests＝{day, list:[{id, tpl, stars, link, t, seed, accepted, done}]}；day 跟道具店同一個遊戲日（長休 +1）
    流程：公會委託板接下 → 大地圖路上出現 ❗ 泡泡 → 點了走過去 → 隨機地圖（探索開場）→ 敵人全倒＝完成、給報酬 → 回大地圖 */
-const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl) || owlbearPinTpl(q.tpl) || orcPinTpl(q.tpl);   // 梟熊寶寶劇情的 ❗ 也借用（10-21）
+const questTpl = q => QUEST_TEMPLATES.find(t=>t.id===q.tpl) || owlbearPinTpl(q.tpl) || orcPinTpl(q.tpl) || chickenPinTpl(q.tpl);   // 梟熊寶寶劇情的 ❗ 也借用（10-21）
 const questLink = q => WORLD.links[q.link] || WORLD.links[0];
 const questPos = q => { const l = questLink(q); return roadPoint(l.a, l.b, q.t); };
 const questHome = q => { const l = questLink(q); return q.t < .5 ? l.a : l.b; };   // 打完回到比較近的那一頭
@@ -19,8 +19,8 @@ function ensureQuests(){
   state.quests = {day, list};
   return state.quests;
 }
-const questById = id => ensureQuests().list.find(q=>q.id===id) || owlbearPins().find(q=>q.id===id) || orcPins().find(q=>q.id===id) || null;
-const questOpen = () => [...ensureQuests().list.filter(q=>q.accepted && !q.done), ...owlbearPins(), ...orcPins()];
+const questById = id => ensureQuests().list.find(q=>q.id===id) || owlbearPins().find(q=>q.id===id) || orcPins().find(q=>q.id===id) || chickenPins().find(q=>q.id===id) || null;
+const questOpen = () => [...ensureQuests().list.filter(q=>q.accepted && !q.done), ...owlbearPins(), ...orcPins(), ...chickenPins()];
 // 目擊的怪物：「哥布林 ×2、哥布林弓手」
 function questFoeText(t){
   const n = {}; t.foes.forEach(f=>{ const name = ENEMIES[f].name; n[name] = (n[name]||0) + 1; });
@@ -85,6 +85,7 @@ function arriveQuest(tr){
   if(!q){ render(); return; }
   state.location = questHome(q); state.mapSel = state.location;   // 輸了傳回酒館、贏了回到這一頭
   if(q.orc){ orcArrive(q); return; }
+  if(q.chicken){ chickenArrive(q); return; }   // 失蹤的雞（10-23）
   if(dkDemandDue(q)){ dkStartDemand(q); return; }   // 死亡騎士來討馬（10-23）   // 獨眼的營地（10-23）
   if(q.story){ owlbearArrive(q); return; }   // 梟熊寶寶劇情的 ❗（10-21）
   BATTLES.quest = questBattle(q);
@@ -106,13 +107,14 @@ function grantQuestReward(){
   b.questReward = out;
   owlbearQuestEnd(b);
   orcQuestEnd(b);     // 獨眼獸人（10-23）
+  chickenQuestEnd(b); // 失蹤的雞（10-23）
   forestWin(b);       // 森林（10-21）
   grudgeRollAll(b);   // 被敲暈的擲 1d20（10-21）
   if(!b.def.noReward) blog(QUEST_UI.got.replace("{g}", each) + (out.item ? `；${QUEST_UI.gotItem.replace("{who}", out.who).replace("{item}", out.item)}` : ""), "skill");
 }
 function questRewardHTML(){
   const r = B()?.questReward; if(!r) return "";
-  if(B().def.noReward) return owlbearEndHTML() + orcEndHTML();
+  if(B().def.noReward) return owlbearEndHTML() + orcEndHTML() + chickenEndHTML();
   return `<p class="quest-reward">${QUEST_UI.got.replace("{g}", r.each)}${r.item ? `<br>${QUEST_UI.gotItem.replace("{who}", r.who).replace("{item}", r.item)}` : ""}</p>${owlbearEndHTML()}`;
 }
 // 勝利畫面按「繼續」：回大地圖

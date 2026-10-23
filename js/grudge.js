@@ -9,7 +9,7 @@ const grudgeCat = type => GRUDGE.category[type] || "beast";
 const grudgeKindOf = type => ["揮砍","穿刺","鈍擊","火焰"].includes(type) ? type : "其他";
 const grudgeById = id => (state.grudges||[]).find(g=>g.id===id) || null;
 // 跟劇情有關的不擲（劇情自己決定結局）
-const grudgeExempt = (b, u) => !!(b.def.owlbearStory && ["owlbear","owlbear_cub"].includes(u.type)) || !!(b.def.forest && u.type==="forest_druid") || !!(b.def.orcGang && u.type==="orc_captain") || u.type==="death_knight";   // 死亡騎士是主線（10-23）   // 獨眼：敲暈＝活捉交公會（10-23）   // 森林的德魯伊是劇情（10-21）
+const grudgeExempt = (b, u) => !!(b.def.owlbearStory && ["owlbear","owlbear_cub"].includes(u.type)) || !!(b.def.forest && u.type==="forest_druid") || !!(b.def.orcGang && u.type==="orc_captain") || u.type==="death_knight" || !!b.def.chicken;   // 死亡騎士是主線；雞是委託人家的（10-23）   // 獨眼：敲暈＝活捉交公會（10-23）   // 森林的德魯伊是劇情（10-21）
 function grudgeResult(r){ const row = GRUDGE.table.find(([a,z])=>r>=a && r<=z); return row ? row[2] : "gone"; }
 function grudgeRollAll(b){
   // 委託：用委託那條路；委託以外（大地圖寶箱怪等，大爺 10-21 擴大）：用 def.grudgeLink（打的那條路）；劇情戰沒有路，不擲

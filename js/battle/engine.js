@@ -718,11 +718,13 @@ function hurt(t, n, type, src, hitSfx){
     const f = rollDice(`${1 + (has(t,"fireShield").n||0)}d6`).total;   // 升階：每高一階多 1d6（反燒的骰給攻擊者，沒有他的列就丟掉）
     blog(`　火焰護盾反燒 ${src.name}！`, "skill"); hurt(src, f, "火焰", null);
   }
+  chickenOnHurt(t);   // 異界雞半血變回惡魔原形（10-23）
   if(t.hp>0) concCheck(t, n);
   else endConc(t, "倒下了");
   // 已經倒下的再被打（例如普攻打死後狩印、偷襲的追加傷害）不再觸發一次倒下：紀錄、音效、台詞只算一次（大爺 10-11 回報哥布林吐槽兩次）
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
     if(t.side==="foe" && t.type==="death_knight") dkRepel(t, at);   // 死亡騎士不會死、不會被敲暈（大爺 10-23）
+    else if(t.side==="foe" && t.type==="chicken_demon") chickenRepel(t, at);   // 惡魔也是重要角色（失蹤的雞，10-23）
     else if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.koBy = src.id; t.koType = type; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
     else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }

@@ -201,7 +201,7 @@ function enterExploreCombat(targetId,manual=false){B().exploreMenu=null;
  const active=b.units.filter(u=>u.side==="pc"&&!u.dead).concat(enemies);
  // 在現身、排序以前個別記錄察覺；手動發起者知道自己要開始交戰。
  for(const u of active)u.surprised=enemies.length>0&&!(manual&&u===leader)&&!active.some(t=>t.side!==u.side&&(manual?exploreAware(u,t):b.exploreAwareness?.[u.id]?.includes(t.id)));
- orcCombatSurprise(b,active);   // 獨眼獸人：伏擊只奇襲大便那隻、正面打不算奇襲（10-23）
+ orcCombatSurprise(b,active); chickenCombatStart(b,active);   // 獨眼獸人：伏擊只奇襲大便那隻、正面打不算奇襲（10-23）
  if(!exploreAlignCombat())return;
  b.phase="combat";b.flowEpoch=(b.flowEpoch||0)+1;b.exploreMoveId=(b.exploreMoveId||0)+1;b.exploreGoal=null;b.busy=false;b.manualCombat=manual&&!target;b.exploreObject=null;b.exploreRest=false;b.round=0;b.turn=-1;b.result=null;b.panel=null;b.mode=null;b.moveMode=false;
  syncGroundClockTimer();

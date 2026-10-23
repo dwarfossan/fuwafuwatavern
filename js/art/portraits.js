@@ -27,6 +27,13 @@ const PORTRAITS = {
   mantrap: {base:"assets/portraits/mantrap.webp", faces:null, onDemand:true},
   // 死亡騎士戴頭盔（10-23 用在討馬劇情）：身分主線後面才揭曉，劇情只用這張，不用長髮那張
   dk_helmet: {base:"assets/portraits/deathknight_helmet.webp", faces:null},
+  // 失蹤的雞（10-23 大爺給的素材）：三隻雞、異界雞（一張圖）、惡魔原形（無臉底圖＋12 表情；髮色 10-23 改黑、香香清掉背景光暈）
+  hen_white: {base:"assets/portraits/hen_white.webp", faces:null}, hen_brown: {base:"assets/portraits/hen_brown.webp", faces:null},
+  rooster: {base:"assets/portraits/rooster.webp", faces:null}, demon_chicken: {base:"assets/portraits/demon_chicken.webp", faces:null},
+  demon: {base:"assets/portraits/demon_noface.webp", faces:"assets/faces/demon/", def:"smug",
+          list:["smug","teasing","laugh","disdain","skeptical","annoyed","angry","surprised","embarrassed","pouting","worried","smile"]},
+  // 養雞的大嬸＝鎮民（灰髮）那張
+  auntie: {base:"assets/portraits/townsfolk_female_03_grey_hair.webp", faces:null},
   // 10-22 大爺給的不死素材包（劇情場景用；戰場照舊用 SVG）。onDemand＝還沒放進劇情，開機不先下載
   // 死亡騎士（長髮、不戴盔）、女貴族、女吸血鬼：無臉底圖＋表情（一樣大，直接疊）
   deathknight: {base:"assets/portraits/deathknight_noface.webp", faces:"assets/faces/deathknight/", def:"neutral", onDemand:true,

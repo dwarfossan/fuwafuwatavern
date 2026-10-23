@@ -131,3 +131,22 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 
 其他 10-22 的素材（一張圖、沒有表情，放 `assets/portraits/`）：`chimera.webp` 兇猛的奇美拉、`mantrap.webp` 食人花、`townsfolk_*.webp` 鎮民男女各 4 張
 
+
+## `demon/` 惡魔（失蹤的雞，10-23）
+
+跟 `portraits/demon_noface.webp` 一樣大（1536×1024），直接疊。
+
+| 檔名 | 表情 |
+|---|---|
+| `smug.webp` | 得意 |
+| `teasing.webp` | 調侃 |
+| `laugh.webp` | 大笑 |
+| `disdain.webp` | 輕蔑 |
+| `skeptical.webp` | 懷疑 |
+| `annoyed.webp` | 不耐煩 |
+| `angry.webp` | 生氣 |
+| `surprised.webp` | 驚訝 |
+| `embarrassed.webp` | 害羞 |
+| `pouting.webp` | 嘟嘴 |
+| `worried.webp` | 擔心 |
+| `smile.webp` | 微笑 |
