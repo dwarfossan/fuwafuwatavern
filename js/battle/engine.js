@@ -144,7 +144,7 @@ function startBattle(id, retry=false, phase="combat"){
   syncBGM();
   units.filter(u=>u.revealedBy).forEach(u=>blog(`${u.name}躲在草叢裡，但已經被${u.revealedBy.map(id=>CRITTERS.find(c=>c.id===id).name).join("、")}發現了！`));
   if(phase==="explore")blog(EXPLORE_UI.enter);else blog(`戰鬥開始！先攻順序：${units.filter(u=>u.side!=="npc" && !foeHid(u) && !u.riderId).map(u=>u.name).join("、")}`);   // 躲著的敵人不列（大爺 10-02：拿掉 ???）
-  passivePocket();                                 // 開場看得到的敵人：先比一次被動感知
+  if(phase!=="explore") passivePocket();          // 開場看得到的敵人：先比一次被動感知；探索地圖等第一次被看到（markSeenFoes，10-28）
   if(phase==="explore")beginExplore();else nextTurn();
 }
 
@@ -286,8 +286,10 @@ const foeHid = u => u.side==="foe" && (isHid(u) || foeUnseen(u));   // 玩家看
 function markSeenFoes(){
   const b = B(); if(!b || !b.explorationMap) return;
   const pcs = b.phase==="explore" ? [exploreUnit()].filter(Boolean) : b.units.filter(u=>isPcCritter(u) && !u.dead && !u.down);
+  let fresh = false;
   b.units.forEach(e=>{ if(e.side!=="foe" || e.seen) return;
-    if(e.combatActive || e.dead || pcs.some(p=>exploreAware(p, e))) e.seen = true; });
+    if(e.combatActive || e.dead || pcs.some(p=>exploreAware(p, e))){ e.seen = true; fresh = true; } });
+  if(fresh) passivePocket();   // 第一次被看到才比被動感知（10-28：開場就比會把還沒看到的敵人寫進紀錄）
 }
 const nameFor = u => foeHid(u) ? "？？？" : u.name;
 const watchers = u => B().units.filter(v=>!v.fled&&v.side!==u.side&&v.side!=="npc"&&u.side!=="npc"&&!v.down&&!v.dead&&!isHid(v)&&(!B().explorationMap||(dist(v,u)<=(v.side==="foe"?ENEMIES[v.type].detectRange:senseRange(v))&&exploreSight(v,u))));
