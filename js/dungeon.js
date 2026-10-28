@@ -62,6 +62,7 @@ function forestClue(o, ok, u){
 function dungeonAfterClue(){ const b = B(), D = dungeonOf(b); if(D && D.onClue) D.onClue(b); }
 // 開戰（enterExploreCombat／增援 呼叫）：talker 喊話、打頭目時調查得到的好處
 function forestCombatStart(){
+  huntCombatStart();   // 驅除哥布林：帶頭的喊（10-28，開戰／增援都經過這裡）
   const b = B(), D = dungeonOf(b); if(!D) return;
   const act = b.units.filter(u=>u.side==="foe" && u.combatActive && !u.dead), st = dungeonState(b.def.dungeon);
   const tk = D.talker && act.find(u=>u.type===D.talker.type && !u.dungeonShout);

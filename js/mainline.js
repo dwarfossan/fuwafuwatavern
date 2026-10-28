@@ -12,7 +12,7 @@ FOREST.stageOf = () => { const s = mainStage(); return ["investigate","met","bos
 const forestLocked = () => !mainStage();
 // 公會那邊要不要紅 ❗
 const guildMainTalk = () => { const s = mainStage(); return !s && state.townFounded && state.innNightDone ? "start" : s==="report" ? "report" : null; };
-function mainTalkLines(kind){ return kind==="report" ? FOREST.main.report : FOREST.main.guild; }
+function mainTalkLines(kind){ return kind==="report" ? FOREST.main.report : [...FOREST.main.guild, ...GOBLIN_HUNT.guildAdd]; }   // 接著貼出驅除哥布林（10-28）
 function mainTalkDone(kind){ if(kind==="start" && !mainStage()) setMainStage("investigate"); if(kind==="report" && mainStage()==="report") setMainStage("done"); }
 // 大地圖：主線的地點上掛紅 ❗（點了就跟點地點一樣）
 function mainPinsSVG(){

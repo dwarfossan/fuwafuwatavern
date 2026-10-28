@@ -12,7 +12,8 @@ const br=await chromium.launch();try{
  await p.evaluate(()=>{state.townFounded=true;state.innNightDone=true;state.page='town';state.townPlace=null;render();});
  assert.equal(await p.locator('[data-town-place="guild"] .obs-main').count(),1,'公會有紅 ❗');await shot(p,'fm-town.png');
  await p.evaluate(()=>openTownPlace('guild'));await p.locator('#townMainTalk').click();
- const n=await p.evaluate(()=>FOREST.main.guild.length);for(let i=0;i<n;i++)await p.locator('#townTalkNext').click();
+ const n=await p.evaluate(()=>mainTalkLines('start').length);   // 後面接驅除哥布林那句（10-28）
+ for(let i=0;i<n;i++)await p.locator('#townTalkNext').click();
  assert.equal(await p.evaluate(()=>mainStage()),'investigate');assert.equal(await p.locator('#townMainTalk').count(),0);
  // 大地圖：森林紅 ❗
  assert.equal(await p.evaluate(()=>{state.page='map';render();return document.querySelectorAll('.main-pin').length;}),1,'森林紅 ❗');

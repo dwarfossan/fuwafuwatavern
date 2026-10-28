@@ -17,7 +17,7 @@ function townEventHint(e){return `<span class="town-hint" role="tooltip">${townT
 function townEventBubbleHTML(){
  return townEvents().filter(e=>!e.place).map((e,i)=>`<button class="town-building town-event-bubble" data-town-event="${i}" style="left:${Math.max(12,Math.min(70,Number(e.x)||50))}%;top:${Math.max(16,Math.min(78,Number(e.y)||70))}%" aria-label="${townText(e.location+'／'+e.person+'／'+e.action)}"><b>${townText(e.location)}</b><span>${townText(e.person)}／${townText(e.action)}</span>${townEventSymbol(e)}${townEventHint(e)}</button>`).join('');
 }
-function townShopEventHTML(place){if(place==='guild'&&guildMainTalk())return `<span class="town-event-symbol" aria-label="主線">${obsBubbleHTML("main")}</span>`;   // 主線紅 ❗（10-22）
+function townShopEventHTML(place){if(place==='guild'&&(guildMainTalk()||huntGuildNotice()))return `<span class="town-event-symbol" aria-label="主線">${obsBubbleHTML("main")}</span>`;   // 主線紅 ❗（10-22）
  if(place==='guild'&&orcGuildNotice())return `<span class="town-event-symbol" aria-label="支線">${obsBubbleHTML("side")}</span>`;   // 獨眼的通緝單、賞金（10-23）
  const e=townEvents().find(e=>e.place===place);return e?townEventSymbol(e)+townEventHint(e):'';}
 function renderTown(){
@@ -35,7 +35,8 @@ function townTalkButtons(p){
   if(t && t.place===p.id && !t.lines) return `<div class="town-talk-topics pop-choices" role="dialog">${Object.entries(TOWN_TALK_TOPICS).map(([k,n])=>`<button class="btn" data-talk-topic="${k}">${n}</button>`).join("")}<button class="btn ghost" id="townTalkClose">不聊了</button></div>`;
   if(t && t.place===p.id) return "";
   const mk = p.id==='guild' && guildMainTalk();   // 主線（10-22）
-  return `<div class="town-talk-topics">${mk?`<button class="btn main-talk" id="townMainTalk">${mk==='report'?FOREST.main.reportButton:FOREST.main.guildButton}</button>`:''}<button class="btn" id="townAction">${p.action}</button><button class="btn ghost" id="townTalk">對話</button></div>`;
+  const hk = p.id==='guild' && huntReportDue();   // 驅除哥布林回報（10-28）
+  return `<div class="town-talk-topics">${mk?`<button class="btn main-talk" id="townMainTalk">${mk==='report'?FOREST.main.reportButton:FOREST.main.guildButton}</button>`:''}${hk?`<button class="btn main-talk" id="townHuntTalk">${GOBLIN_HUNT.reportButton}</button>`:''}<button class="btn" id="townAction">${p.action}</button><button class="btn ghost" id="townTalk">對話</button></div>`;
 }
 function openTownPlace(id){state.townTalk=null;if(!TOWN_PLACES.some(p=>p.id===id))return;state.townPlace=id;state.townPanel=id==='inn'&&innFirstNight()&&state.townRest?'rest':null;state.restMessage=null;render();window.scrollTo(0,0);}
 function bindTown(){
@@ -45,7 +46,8 @@ function bindTown(){
  document.getElementById('townTalkClose')?.addEventListener('click',()=>{state.townTalk=null;render();});
  document.querySelectorAll('[data-talk-topic]').forEach(el=>el.addEventListener('click',()=>{const T=TOWN_TALK[state.townPlace],k=el.dataset.talkTopic;const lines=k==='chat'?T.chat[Math.floor(Math.random()*T.chat.length)]:T[k];state.townTalk={place:state.townPlace,topic:k,lines,i:0};render();}));
  document.getElementById('townMainTalk')?.addEventListener('click',()=>{const k=guildMainTalk();if(!k)return;state.townTalk={place:'guild',topic:'main',main:k,lines:mainTalkLines(k),i:0};render();});
- document.getElementById('townTalkNext')?.addEventListener('click',()=>{const t=state.townTalk;if(!t?.lines)return;if(t.i<t.lines.length-1)t.i++;else{if(t.main){mainTalkDone(t.main);state.townTalk=null;render();return;}t.lines=null;t.topic=null;}render();});
+ document.getElementById('townHuntTalk')?.addEventListener('click',()=>{if(!huntReportDue())return;state.townTalk={place:'guild',topic:'main',hunt:true,lines:huntReportLines(),i:0};render();});   // 驅除哥布林回報（10-28）
+ document.getElementById('townTalkNext')?.addEventListener('click',()=>{const t=state.townTalk;if(!t?.lines)return;if(t.i<t.lines.length-1)t.i++;else{if(t.main){mainTalkDone(t.main);state.townTalk=null;render();return;}if(t.hunt){huntReportDone();state.townTalk=null;render();return;}t.lines=null;t.topic=null;}render();});
  if(state.townPlace==='items'&&!state.supplierSeen)loadEntryImage(PORTRAITS.merchant.base).catch(()=>{});
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',e=>{if(e.pointerType==='touch'&&el.querySelector('.town-hint')&&!el.classList.contains('hint-open')){el.classList.add('hint-open');return;}openTownPlace(el.dataset.townPlace);}));
  document.getElementById('townMap')?.addEventListener('click',e=>{if(e.pointerType==='touch'&&!e.currentTarget.classList.contains('hint-open')){e.currentTarget.classList.add('hint-open');return;}state.page='map';state.mapSel='town';render();});

@@ -157,7 +157,7 @@ async function exploreInteract(action){
  if(!ok&&await luckReroll(u.id,`${text[action]} ${roll}${fmtN(u.mods[rule.ability])}＝${value}，沒到 DC ${dc}`)){roll=d20();value=roll+u.mods[rule.ability];ok=value>=dc;}
  blog(`${u.name}【${text[action]}】：${roll}＋${u.mods[rule.ability]}＝${value}／${dc}，${ok?"OK":text.failed}`);
  if(action==="investigate"){b.exploreObject=null;forestClue(o,ok,u);}   // 調查（森林，10-21）
- else if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);if(!o.contents?.length)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}}   // 打開就拿到裡面的東西（大爺 10-11：寶箱不用另外搜索）
+ else if(ok){if(action==="disarm"){o.disarmed=true;b.exploreObject=null;}else{o.opened=true;o.locked=false;blog(text.opened);const hadGold=!!o.gold;if(o.gold){grantPartyGold(o.gold);blog((o.goldLog||"箱子裡有 {g} gp（四隻平分）").replace("{g}",o.gold),"skill");o.gold=0;}if(!o.contents?.length&&!hadGold)blog(text.empty);else{o.contents.forEach(it=>u.backpack.push(makeItem({...it})));o.contents=[];syncBattleBag(u);}}}}   // 打開就拿到裡面的東西（大爺 10-11：寶箱不用另外搜索）
  exploreTraps();exploreDetect();refreshBattle();
 }
 
