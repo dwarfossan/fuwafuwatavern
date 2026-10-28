@@ -43,13 +43,14 @@ const PORTRAITS = {
   vampire: {base:"assets/portraits/vampire_noface.webp", faces:"assets/faces/vampire/", def:"neutral",   // 墓地線用到了（10-28）
           list:["neutral","smile","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"]},
   // 紅龍夫人（大爺 10-28，劇情還沒定）：人形＝無臉底圖＋12 表情（大爺給的校準版，跟底圖一樣大）；原形＝red_dragon_lady 一張圖
+  red_dragon_lady: {base:"assets/portraits/red_dragon_lady.webp", faces:null},   // 紅龍夫人原形（頂嘴時現身，10-28）
   // 狗頭人薩滿立繪（10-28）：洞窟打完的街角傳教用到了，所以不是 onDemand
   kobold_shaman: {base:"assets/portraits/kobold_shaman.webp", faces:null},
-  dragon_lady: {base:"assets/portraits/dragon_lady_noface.webp", faces:"assets/faces/dragon_lady/", def:"regal", onDemand:true,
+  dragon_lady: {base:"assets/portraits/dragon_lady_noface.webp", faces:"assets/faces/dragon_lady/", def:"regal",   // 怪獸家長事件用到了（10-28）
           list:["regal","warm_smile","smirk","disdain","skeptical","impatient","furious","command","surprised","regret","embarrassed","laugh"]}
 };
 // 一張圖、沒有表情的（10-22 不死素材包）：死亡騎士戴盔／長髮全身、巫妖、七種不死小兵（劇情用）
-["red_dragon_lady","kobold_archer","kobold_spear","guard_archer","guard_halberd","guard_captain","deathknight_helmet","deathknight_full","lich","undead_ghost","undead_ghoul","undead_zombie","skeleton_soldier","skeleton_archer","skeleton_mage","skeleton_warrior"]
+["kobold_archer","kobold_spear","guard_archer","guard_halberd","guard_captain","deathknight_helmet","deathknight_full","lich","undead_ghost","undead_ghoul","undead_zombie","skeleton_soldier","skeleton_archer","skeleton_mage","skeleton_warrior"]
   .forEach(n=>{ PORTRAITS[n] = {base:`assets/portraits/${n}.webp`, faces:null, onDemand:true}; });
 // 鎮民（10-22，男女各 4 張，一張圖、沒有表情）：之後鎮上的路人、事件用
 ["female_01_blonde","female_02_auburn_bun","female_03_grey_hair","female_04_short_hair","male_01_brown_hair","male_02_black_hair","male_03_grey_beard","male_04_red_hair"]

@@ -226,6 +226,7 @@ function bind(){
     const chPk=e.target.closest("[data-chicken-pick]");if(chPk){chickenPick(chPk.dataset.chickenPick);return;}   // 失蹤的雞（10-23）
     const orcPk=e.target.closest("[data-orc-pick]");if(orcPk){orcPick(orcPk.dataset.orcPick);return;}   // 獨眼獸人（10-23）
     const gvPk=e.target.closest("[data-grave-pick]");if(gvPk){gravePick(gvPk.dataset.gravePick);return;}   // 墓地線選邊（10-28）
+    const drPk=e.target.closest("[data-dragon-pick]");if(drPk){dragonPick(drPk.dataset.dragonPick);return;}   // 紅龍夫人（10-28）
     const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
     const sp = e.target.closest("[data-style-pick]"); if(sp){ pickStarterStyle(sp.dataset.styleWho, sp.dataset.stylePick); return; }   // 起始風格（10-10）
     const pk = e.target.closest("[data-pick]"); if(pk){ caravanPick(pk.dataset.pick); return; }   // 商隊：選誰出面（10-03）
@@ -270,6 +271,7 @@ function bind(){
   $("resumeOrcTravel")?.addEventListener("click",resumeOrcTravel);
   $("finishHuntMiss")?.addEventListener("click",finishHuntMiss);   // 驅除哥布林撲空（10-28）
   $("finishPreach")?.addEventListener("click",finishPreach);
+  $("finishDragonLady")?.addEventListener("click",finishDragonLady);   // 紅龍夫人（10-28）
   ["finishGraveAsk","finishGraveVampire","finishGraveNoble","startGraveFight","finishGraveCollar"].forEach(id=>$(id)?.addEventListener("click",window[id]));   // 墓地線（10-28）       // 狗頭人傳教（10-28）
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}

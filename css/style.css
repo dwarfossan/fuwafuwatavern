@@ -1472,6 +1472,9 @@ body.image-boot{background:#000}
 .actor.auntie{aspect-ratio:1;height:100%;bottom:-6%}
 /* 狗頭人薩滿（10-28 洞窟打完的街角傳教，全身立繪 1024×1536；大小暫定） */
 .actor.kobold_shaman{aspect-ratio:1024/1536;height:84%;bottom:0}
+/* 紅龍夫人（10-28，大小暫定）：人形全身立繪、原形（橫的大圖） */
+.actor.dragon_lady{aspect-ratio:1024/1536;height:96%;bottom:-4%}
+.actor.red_dragon_lady{aspect-ratio:1536/1024;height:74%;bottom:8%}
 /* 墓地線（10-28，大小暫定）：女吸血鬼、女貴族全身立繪；問話的三個居民跟養雞的大嬸一樣 */
 .actor.vampire{aspect-ratio:927/1697;height:96%;bottom:-4%}
 .actor.noblewoman{aspect-ratio:926/1698;height:96%;bottom:-4%}

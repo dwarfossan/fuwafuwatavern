@@ -729,6 +729,7 @@ function hurt(t, n, type, src, hitSfx){
     if(t.side==="foe" && t.type==="death_knight") dkRepel(t, at);   // 死亡騎士不會死、不會被敲暈（大爺 10-23）
     else if(t.side==="foe" && t.type==="chicken_demon") chickenRepel(t, at);   // 惡魔也是重要角色（失蹤的雞，10-23）
     else if(t.side==="foe" && t.type==="vampire") graveVampireRepel(t, at);    // 女吸血鬼：委託、墓地同一隻，化成蝙蝠飛走（10-28）
+    else if(t.side==="foe" && t.type==="red_wyrmling") wyrmRepel(t, at);      // 紅龍幼龍：紅龍夫人的女兒，哭著飛走（10-28）
     else if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.koBy = src.id; t.koType = type; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
     else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }

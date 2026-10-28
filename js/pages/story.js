@@ -27,6 +27,7 @@ const SCENES = {
   graveEnd: {get script(){return graveEndScript();}, bg:"graveyard", get actors(){return graveEndActors();}, back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveVisit: {get script(){return graveVisitScript();}, bg:"graveyard", actors:["vampire"], back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveNoble: {get script(){return graveNobleScript();}, bg:"town", actors:["noblewoman"], back:null, next:["finishGraveNoble",GRAVE.nobleNext]},
+  dragonLady: {get script(){return dragonScript();}, bg:"town", actors:["dragon_lady","red_dragon_lady"], back:null, next:["finishDragonLady",DRAGON_LADY.next]},   // 紅龍夫人・怪獸家長（10-28）
   koboldPreach: {get script(){return preachScript();}, bg:"town", actors:["kobold_shaman"], back:null, next:["finishPreach",CROSSLINE.preach.done]},   // 三線交會：狗頭人傳教（10-28）
   huntMiss: {get script(){return huntMissScript();}, bg:"road", back:null, next:["finishHuntMiss",GOBLIN_HUNT.missNext]},   // 驅除哥布林撲空（10-28）
   orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
@@ -88,12 +89,13 @@ function dialogInner(line, who, done){
   if(orcChoicePending(line)) extra = orcChoiceHTML(line.orcChoice); else if(line.orcRoll) extra = orcRollHTML();   // 獨眼獸人（10-23）
   if(chickenChoicePending(line)) extra = chickenChoiceHTML(line.chickenChoice); else if(line.chickenRoll) extra = chickenRollHTML(line.chickenRoll);   // 失蹤的雞（10-23）
   if(graveChoicePending(line)) extra = graveChoiceHTML();   // 墓地線選邊（10-28）
+  if(dragonChoicePending(line)) extra = dragonChoiceHTML(); else if(line.dragonRoll) extra = dragonRollHTML();   // 紅龍夫人（10-28）
   if(line.choice && !(state.caravan||{}).pick)
     extra = `<div class="choice-list">${CARAVAN_PICKS.map(p=>{ const c = CRITTERS.find(x=>x.id===p.id), m = modOf(finalScore(p.id, p.stat));
       return `<button class="choice" data-pick="${p.id}" style="--c:${c.color}"><b>${c.name}</b><span>${p.say}</span><small>${STAT_NAME(p.stat)} ${m>=0?"+":"−"}${Math.abs(m)}・難度 ${CARAVAN_DC}</small></button>`; }).join("")}</div>`;
   if(line.roll){ const c = state.caravan;
     extra = `<div class="check-row">${STAT_NAME(c.stat)}檢定 ${diceFormulaHTML({dice:dieFace(20,c.roll,0,DICE_TUMBLE,c.flick,false),base:c.roll,total:c.total,result:c.ok?"hit":"miss",land:DICE_TUMBLE})}<span class="check-vs">${c.ok?"≥":"<"} ${CARAVAN_DC}　${c.ok?"成功！":"失敗"}</span></div>`; }
-  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||orcChoicePending(line)||chickenChoicePending(line)||graveChoicePending(line)||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
+  return `${who.name?`<div class="speaker" style="--c:${who.color}">${who.name}</div>`:""}<p>${line.text}</p>${extra}<span class="hint">${done||line.choice||line.worldChestChoice||orcChoicePending(line)||chickenChoicePending(line)||graveChoicePending(line)||dragonChoicePending(line)||styleChoicePending(line)?"":"▼ 點一下繼續"}</span>`;
 }
 const storyWho = line => WHO(line.who);   // 合聲名牌一律「全員」（10-10 大爺，原本送別寫「小傢伙們」）
 const markHTML = line => line.mark ? obsBubbleHTML(line.mark) : "";
@@ -190,7 +192,7 @@ function updateStoryLine(){
   const progress = document.querySelector(".fp-page .progress");
   if(progress) progress.textContent = `${state.line+1} / ${scene.script.length}`;
   const next = document.getElementById(scene.next[0]);
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line) && !graveChoicePending(line);   // 停在選項上不算演完
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line) && !graveChoicePending(line) && !dragonChoicePending(line);   // 停在選項上不算演完
   if(next){ next.disabled = !done; next.textContent = done ? scene.next[1] : "劇情進行中"; }
   syncBGM();
   prepareStoryImages(state.line+1);
@@ -252,7 +254,7 @@ function renderStory(){
   const last = state.line === SCRIPT_.length-1;
 
   const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
-  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line) && !graveChoicePending(line);
+  const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line) && !graveChoicePending(line) && !dragonChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
       ${["road","town","shopfront","forest","graveyard"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:scene.bg==="graveyard"?`<img draggable="false" src="${SCENE_ART.graveyard}" alt="墓地">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
