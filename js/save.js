@@ -1,7 +1,7 @@
 /* 存檔／讀檔（大爺 10-10）：1 格自動＋3 格手動，存在瀏覽器；可匯出／匯入成檔案。
    只在安全的地方存：城鎮、大地圖（沒在移動）、商店；劇情、探索、戰鬥中不能存。
    測試版（/dev/）和正式版各存各的（同一個網域，靠前綴分開）；音量、說明泡泡看過沒有是個人設定，維持共用。 */
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;   // 2（10-28）：修 10-23 道具 id 錯位
 const SAVE_SLOTS = ["auto","1","2","3"];
 const SAVE_NS = /\/dev\//.test(location.pathname) ? "dev:" : "";
 const saveKey = slot => `${SAVE_NS}fuwa-save-${slot}`;
@@ -39,8 +39,18 @@ function saveProblem(data){
   if(!Number.isInteger(data.v)||data.v>SAVE_VERSION) return "版本太新，讀不了";
   return "";
 }
-// 舊格式升級：之後改了存檔格式就在這裡補，現在只有第 1 版
-function upgradeSave(data){return data;}
+// 舊格式升級：之後改了存檔格式就在這裡補
+//   1 → 2（10-28）：道具 id 是照 data/items.js 的順序編的（"it"＋位置）。10-23 的「雞蛋會單」插在「骷髏戰馬的韁繩」前面，
+//     韁繩從 it90 變成 it91、it90 變成雞蛋會單。雞蛋會單只有打完失蹤的雞（state.chicken.stage==="done"）才拿得到，
+//     所以雞的委託還沒結案、背包裡卻有 it90 的，那件其實是 10-23 以前拿到的韁繩，換回 it91
+function upgradeSave(data){
+  if((data.v||1) < 2){
+    const s = data.state || {};
+    if(s.chicken?.stage!=="done" && s.inv) for(const id of Object.keys(s.inv)) s.inv[id] = (s.inv[id]||[]).map(x=>x==="it90" ? "it91" : x);
+    data.v = 2;
+  }
+  return data;
+}
 function writeSave(slot,data){try{localStorage.setItem(saveKey(slot),JSON.stringify(data));return true;}catch(e){return false;}}
 function saveTo(slot){if(saveBlockReason())return false;return writeSave(slot,saveSnapshot());}
 function autoSave(){if(!saveBlockReason())writeSave("auto",saveSnapshot());}

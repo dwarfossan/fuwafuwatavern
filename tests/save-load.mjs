@@ -10,7 +10,7 @@ try{
  // 新遊戲：沒存檔，首頁沒有「繼續冒險」
  await open('');assert.equal(await pg.locator('#continueGame').count(),0);
  // 進城鎮（安全的地方）自動存檔
- await open('#town');const auto=await pg.evaluate(()=>readSave('auto'));assert(auto&&auto.v===1&&auto.state.page==='town');
+ await open('#town');const auto=await pg.evaluate(()=>readSave('auto'));assert(auto&&auto.v===await pg.evaluate(()=>SAVE_VERSION)&&auto.state.page==='town');   // 版本照 SAVE_VERSION（10-28 升到 2）
  assert.equal(auto.state.battle,undefined);assert.equal(auto.state.modal,undefined);
  // 手動存到 1
  await pg.evaluate(()=>{openTownPlace('smith');});const gold=await pg.evaluate(()=>state.gold.fox);
