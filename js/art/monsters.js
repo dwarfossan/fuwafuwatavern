@@ -168,32 +168,52 @@ const MONSTER_LOOK = (()=>{
   tail:`<path d="M45 79 L34 131 L58 134 L70 123 L86 135 L106 132 L95 80Z" fill="#5b4c96" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`};
 })();
 
-// 狗頭人（大爺 10-21 洞窟，香香畫、暫定）：小小的爬蟲類，鐵鏽紅的鱗片、兩支小角、往前伸的吻部、黃眼睛、尾巴；原圖朝右
+// 狗頭人（10-21 香香畫；10-28 照大爺給的立繪重畫）：鮮紅鱗片＋深紅菱形斑、奶油色下顎／肚子／尾巴腹側、
+//   往後彎的奶油色角、兩側帶刺的耳鰭、頭頂一排小刺、黃眼直瞳、齜牙；原圖朝右（立繪 assets/portraits/kobold_*.webp）
 (()=>{
- const INK="#2a2630", R="#c0603e", RD="#9a4a30", H="#e8d2a8";
- // 3/4 側臉（朝右，大爺 10-22：跟哥布林、四小隻一樣 45 度）：兩隻眼睛都看得到（遠的小一點）、遠側的角在後面、吻部往右前方伸
+ const INK="#2a2630", R="#d4473a", RD="#a8352d", C="#ecd2a2", H="#f1e3c4";
+ const spots = pts => pts.map(([x,y,k=1])=>`<path d="M${x} ${y-3*k} L${x+2.4*k} ${y} L${x} ${y+3*k} L${x-2.4*k} ${y}Z" fill="${RD}" stroke="none"/>`).join("");
+ // 3/4 側臉（朝右）
  const side = hurt => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke="${INK}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
-  <path d="M60 28 L68 8 L74 30Z" fill="${H}"/>
-  <path d="M24 54 Q22 24 50 22 Q72 22 77 40 L90 47 Q97 53 91 62 L77 68 Q67 84 48 84 Q26 80 24 60Z" fill="${R}"/>
-  <path d="M36 30 L22 9 L46 25Z" fill="${H}"/>
-  <path d="M77 64 L92 59" fill="none" stroke-width="2.2"/><path d="M80 64 l2.5 4 l2.5 -5 M86 62 l2 3.6 l2 -4.4" fill="#f4ecd8" stroke-width="1.5"/>
-  <circle cx="88" cy="51" r="1.8" fill="${INK}" stroke="none"/>
-  ${hurt ? `<path d="M37 44 L47 54 M47 44 L37 54 M61 43 L69 51 M69 43 L61 51" stroke-width="3"/>` : `<ellipse cx="42" cy="49" rx="6.5" ry="7.5" fill="#f2c43a"/><ellipse cx="43.5" cy="50" rx="2" ry="4.8" fill="${INK}" stroke="none"/><ellipse cx="65" cy="47" rx="5.2" ry="6.5" fill="#f2c43a"/><ellipse cx="66.5" cy="48" rx="1.7" ry="4.2" fill="${INK}" stroke="none"/>`}
-  <path d="M34 38 L48 42 M60 40 L70 38" fill="none" stroke="${RD}" stroke-width="2.6"/>
-  <path d="M30 62 Q30 70 37 75 M44 74 Q50 78 57 78" fill="none" stroke="${RD}" stroke-width="2"/></g></svg>`;
+  <path d="M60 26 Q62 8 76 4 Q68 14 70 28Z" fill="${H}"/>
+  <path d="M30 40 L4 30 L12 40 L2 46 L14 50 L8 58 L28 56Z" fill="${R}"/>
+  <path d="M28 40 Q22 26 30 22 L33 30 Q36 18 44 18 L45 26 Q50 16 58 18 L56 24" fill="${R}"/>
+  <path d="M26 56 Q22 26 50 22 Q70 20 76 36 L88 42 Q97 48 92 59 Q86 67 76 68 Q66 84 46 84 Q28 80 26 60Z" fill="${R}"/>
+  <path d="M42 82 Q60 84 72 70 L90 61 Q84 70 74 72 Q62 88 44 86Z" fill="${C}" stroke-width="2.5"/>
+  <path d="M44 28 Q34 8 18 8 Q28 14 32 32Z" fill="${H}"/>
+  ${spots([[50,30],[58,34,.8],[40,36,.9],[36,66,.8],[30,50,.7]])}
+  <path d="M73 66 L93 58" fill="none" stroke-width="2.4"/><path d="M76 66 l2.4 4 l2.4 -5 M82 64 l2.2 3.8 l2.2 -4.6 M88 62 l1.8 3.2 l1.8 -4" fill="#f8f2e4" stroke-width="1.4"/>
+  <circle cx="88" cy="50" r="1.8" fill="${INK}" stroke="none"/>
+  ${hurt ? `<path d="M38 44 L48 54 M48 44 L38 54 M61 42 L69 50 M69 42 L61 50" stroke-width="3"/>`
+         : `<path d="M35 43 L50 47 M60 44 L71 41" fill="none" stroke-width="3"/><ellipse cx="43" cy="51" rx="6.2" ry="6.6" fill="#f2b33a"/><ellipse cx="44.5" cy="51.6" rx="1.7" ry="4.6" fill="${INK}" stroke="none"/><ellipse cx="65" cy="48" rx="5" ry="5.6" fill="#f2b33a"/><ellipse cx="66.3" cy="48.6" rx="1.5" ry="4" fill="${INK}" stroke="none"/>`}
+  </g></svg>`;
  const front = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke="${INK}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
-  <path d="M30 32 L20 10 L40 26Z M70 32 L80 10 L60 26Z" fill="${H}"/>
-  <path d="M22 50 Q22 24 50 24 Q78 24 78 50 Q78 64 68 72 L64 88 Q50 96 36 88 L32 72 Q22 64 22 50Z" fill="${R}"/>
-  <path d="M36 74 Q50 80 64 74 L62 88 Q50 94 38 88Z" fill="#d97a55"/><circle cx="44" cy="80" r="1.8" fill="${INK}" stroke="none"/><circle cx="56" cy="80" r="1.8" fill="${INK}" stroke="none"/>
-  <ellipse cx="38" cy="50" rx="7" ry="8" fill="#f2c43a"/><ellipse cx="62" cy="50" rx="7" ry="8" fill="#f2c43a"/><ellipse cx="38" cy="51" rx="2.2" ry="5" fill="${INK}" stroke="none"/><ellipse cx="62" cy="51" rx="2.2" ry="5" fill="${INK}" stroke="none"/>
-  <path d="M40 88 l2 4 l2 -4 M56 88 l2 4 l2 -4" fill="#f4ecd8" stroke-width="1.5"/></g></svg>`;
- const tail = `<path d="M52 118 Q30 126 14 110 Q20 122 16 130 Q36 136 56 128Z" fill="${R}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
- MONSTER_LOOK.kobold = {face:front, head:side(false), headHurt:side(true), body:R, skin:R, feet:RD, belly:false, tail, anchor:{head:[52,28,1], neck:[70,95]}};
- // 狗頭人法師：同一隻加藍色尖帽（帽上一顆星）＋藍披風；拿的奧術法杖是裝備
- const hat=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><path d="M-28 8 Q0 -4 28 6 L24 12 Q0 4 -24 14Z" fill="#33507a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M-16 8 L4 -38 Q8 -22 18 6 Q0 0 -16 8Z" fill="#3f65a0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M3 -15 l2 4 4 1 -3 3 1 4 -4 -2 -4 2 1 -4 -3 -3 4 -1z" fill="#f2d35e" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/></g>`;
+  <path d="M30 44 L4 36 L12 46 L4 54 L26 58Z M70 44 L96 36 L88 46 L96 54 L74 58Z" fill="${R}"/>
+  <path d="M38 26 L42 14 L46 24 L50 10 L54 24 L58 14 L62 26" fill="${R}"/>
+  <path d="M22 52 Q22 24 50 24 Q78 24 78 52 Q78 64 68 72 L64 88 Q50 96 36 88 L32 72 Q22 64 22 52Z" fill="${R}"/>
+  <path d="M36 32 Q26 12 12 10 Q22 18 28 36Z M64 32 Q74 12 88 10 Q78 18 72 36Z" fill="${H}"/>
+  <path d="M34 74 Q50 82 66 74 L63 88 Q50 95 37 88Z" fill="${C}" stroke-width="2.5"/>
+  ${spots([[50,34],[40,30,.8],[60,30,.8],[30,60,.7],[70,60,.7]])}
+  <path d="M38 80 H62" fill="none" stroke-width="2.4"/><path d="M41 80 l2 3.6 l2 -3.6 M48 80 l2 3.6 l2 -3.6 M55 80 l2 3.6 l2 -3.6" fill="#f8f2e4" stroke-width="1.4"/>
+  <circle cx="45" cy="70" r="1.7" fill="${INK}" stroke="none"/><circle cx="55" cy="70" r="1.7" fill="${INK}" stroke="none"/>
+  <path d="M28 44 L44 49 M72 44 L56 49" fill="none" stroke-width="3"/>
+  <ellipse cx="38" cy="54" rx="6.5" ry="7" fill="#f2b33a"/><ellipse cx="62" cy="54" rx="6.5" ry="7" fill="#f2b33a"/><ellipse cx="38" cy="55" rx="1.9" ry="4.8" fill="${INK}" stroke="none"/><ellipse cx="62" cy="55" rx="1.9" ry="4.8" fill="${INK}" stroke="none"/></g></svg>`;
+ // 長尾巴：上面紅、腹側奶油色、幾個斑
+ const tail = `<path d="M54 114 Q34 124 20 116 Q8 108 4 94 Q0 112 12 126 Q30 140 56 130Z" fill="${R}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M7 106 Q14 128 34 132 Q46 133 55 128 L55 124 Q42 130 30 126 Q14 120 7 106Z" fill="${C}" stroke="none"/>
+  <path d="M54 114 Q34 124 20 116 Q8 108 4 94 Q0 112 12 126 Q30 140 56 130Z" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+  ${spots([[20,114,.8],[32,121,.8],[12,104,.7]])}`;
+ // 奶油色的肚子（衣服會蓋住大半，露出來的部分跟立繪一樣）
+ const belly = `<path d="M60 90 Q70 84 80 90 Q84 110 80 128 Q70 132 60 128 Q56 110 60 90Z" fill="${C}" stroke="none"/>`;
+ MONSTER_LOOK.kobold = {face:front, head:side(false), headHurt:side(true), body:R, skin:R, feet:RD, belly:false, extra:belly, tail, anchor:{head:[52,28,1], neck:[70,95]}};
+ // 狗頭人法師（10-28 照「狗頭人薩滿」立繪）：破爛的紫袍（照哥布林巫師的做法畫在背後，下襬破成鋸齒、帶咖啡色破布條）、
+ //   角上綁羽毛（青綠、白）和一串木珠；拿的奧術法杖是裝備
  const deco=(svg,art)=>svg.replace(/<\/svg>\s*$/,art+"</svg>"), k=MONSTER_LOOK.kobold;
- MONSTER_LOOK.kobold_mage = {...k, face:deco(k.face,hat(50,22,.95)), head:deco(k.head,hat(48,26,.85)), headHurt:deco(k.headHurt,hat(48,26,.85)),
-  tail:`<path d="M45 79 L34 131 L58 134 L70 123 L86 135 L106 132 L95 80Z" fill="#3f65a0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`+tail};
+ const feathers=(x,y,k=1.35)=>`<g stroke="${INK}" stroke-width="2" stroke-linejoin="round" transform="translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})"><path d="M${x} ${y} L${x-2} ${y+10}" fill="none"/><circle cx="${x-1}" cy="${y+4}" r="2" fill="#8a5a36"/><circle cx="${x-2}" cy="${y+8}" r="2" fill="#8a5a36"/>
+  <path d="M${x-2} ${y+10} Q${x-9} ${y+18} ${x-6} ${y+30} Q${x+1} ${y+20} ${x-2} ${y+10}Z" fill="#2fa59a"/><path d="M${x-2} ${y+10} Q${x+4} ${y+20} ${x+2} ${y+30} Q${x-4} ${y+22} ${x-2} ${y+10}Z" fill="#f4ecd8"/></g>`;
+ const robe = `<path d="M42 80 L26 138 L38 130 L44 143 L56 133 L64 144 L74 133 L84 143 L96 132 L112 138 L98 80Z" fill="#5a3a74" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M36 110 L30 134 L40 129Z M102 108 L108 132 L99 127Z" fill="#7a5a3c" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`;
+ MONSTER_LOOK.kobold_mage = {...k, face:deco(k.face,feathers(24,24)), head:deco(k.head,feathers(28,16)), headHurt:deco(k.headHurt,feathers(28,16)), tail:robe+tail};
 })();
 
 /* 小龍專屬本體，接共用紙娃娃入口與動作／倒下 class；尺寸、色票暫定。 */

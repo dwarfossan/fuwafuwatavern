@@ -150,3 +150,22 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 | `pouting.webp` | 嘟嘴 |
 | `worried.webp` | 擔心 |
 | `smile.webp` | 微笑 |
+
+## `dragon_lady/` 紅龍夫人・人形（10-28）
+
+跟 `portraits/dragon_lady_noface.webp` 一樣大（1024×1536），直接疊。原形是 `portraits/red_dragon_lady.webp`（一張圖）。
+
+| 檔名 | 表情 |
+|---|---|
+| `cold.webp` | 冷淡 |
+| `smile.webp` | 微笑 |
+| `smirk.webp` | 得意 |
+| `disdain.webp` | 不屑 |
+| `annoyed.webp` | 不耐煩 |
+| `suspicious.webp` | 懷疑 |
+| `angry.webp` | 生氣 |
+| `shout.webp` | 怒斥 |
+| `surprised.webp` | 驚訝 |
+| `troubled.webp` | 困擾 |
+| `blush.webp` | 臉紅 |
+| `laugh.webp` | 大笑 |

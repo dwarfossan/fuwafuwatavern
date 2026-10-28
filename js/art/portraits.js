@@ -41,10 +41,13 @@ const PORTRAITS = {
   noblewoman: {base:"assets/portraits/noblewoman_noface.webp", faces:"assets/faces/noblewoman/", def:"haughty", onDemand:true,
           list:["haughty","contempt","impatient","smirk","angry","reprimand","surprised","skeptical","sad","embarrassed","polite","laugh","white_eyes","stunned_smile"]},
   vampire: {base:"assets/portraits/vampire_noface.webp", faces:"assets/faces/vampire/", def:"neutral", onDemand:true,
-          list:["neutral","smile","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"]}
+          list:["neutral","smile","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"]},
+  // 紅龍夫人（大爺 10-28，劇情還沒定）：人形＝無臉底圖＋12 表情（香香對齊疊好，跟底圖一樣大）；原形＝red_dragon_lady 一張圖
+  dragon_lady: {base:"assets/portraits/dragon_lady_noface.webp", faces:"assets/faces/dragon_lady/", def:"cold", onDemand:true,
+          list:["cold","smile","smirk","disdain","annoyed","suspicious","angry","shout","surprised","troubled","blush","laugh"]}
 };
 // 一張圖、沒有表情的（10-22 不死素材包）：死亡騎士戴盔／長髮全身、巫妖、七種不死小兵（劇情用）
-["deathknight_helmet","deathknight_full","lich","undead_ghost","undead_ghoul","undead_zombie","skeleton_soldier","skeleton_archer","skeleton_mage","skeleton_warrior"]
+["red_dragon_lady","kobold_archer","kobold_shaman","kobold_spear","deathknight_helmet","deathknight_full","lich","undead_ghost","undead_ghoul","undead_zombie","skeleton_soldier","skeleton_archer","skeleton_mage","skeleton_warrior"]
   .forEach(n=>{ PORTRAITS[n] = {base:`assets/portraits/${n}.webp`, faces:null, onDemand:true}; });
 // 鎮民（10-22，男女各 4 張，一張圖、沒有表情）：之後鎮上的路人、事件用
 ["female_01_blonde","female_02_auburn_bun","female_03_grey_hair","female_04_short_hair","male_01_brown_hair","male_02_black_hair","male_03_grey_beard","male_04_red_hair"]
