@@ -169,3 +169,22 @@ sheet.png 為大爺提供的原始4欄3列表情表，依序 smile、happy、lau
 | `regret.webp` | 懊悔 |
 | `embarrassed.webp` | 害羞 |
 | `laugh.webp` | 大笑 |
+
+## `wyrmling/` 紅龍幼龍・人形（10-28，大爺給的校準版）
+
+紅龍夫人的女兒。跟 `portraits/wyrmling_noface.webp` 一樣大（926×1698），直接疊。原形是 `portraits/red_wyrmling.webp`（一張圖）。
+
+| 檔名 | 表情 |
+|---|---|
+| `smug.webp` | 得意 |
+| `boastful.webp` | 臭屁 |
+| `laugh.webp` | 大笑 |
+| `contempt.webp` | 不屑 |
+| `skeptical.webp` | 懷疑 |
+| `pout.webp` | 嘟嘴 |
+| `angry.webp` | 生氣 |
+| `orders.webp` | 下令 |
+| `surprised.webp` | 驚訝 |
+| `embarrassed.webp` | 害羞 |
+| `teary.webp` | 含淚 |
+| `gentle_smile.webp` | 溫柔微笑 |

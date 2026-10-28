@@ -43,6 +43,10 @@ const PORTRAITS = {
   vampire: {base:"assets/portraits/vampire_noface.webp", faces:"assets/faces/vampire/", def:"neutral",   // 墓地線用到了（10-28）
           list:["neutral","smile","laugh","smirk","angry","annoyed","sad","surprised","shy","confused","serious","sly"]},
   // 紅龍夫人（大爺 10-28，劇情還沒定）：人形＝無臉底圖＋12 表情（大爺給的校準版，跟底圖一樣大）；原形＝red_dragon_lady 一張圖
+  // 紅龍幼龍（紅龍夫人的女兒，10-28 大爺給的素材）：人形＝無臉底圖＋12 表情（校準版，直接疊）；原形＝red_wyrmling 一張圖。劇情還沒用，onDemand
+  wyrmling: {base:"assets/portraits/wyrmling_noface.webp", faces:"assets/faces/wyrmling/", def:"smug", onDemand:true,
+          list:["smug","boastful","laugh","contempt","skeptical","pout","angry","orders","surprised","embarrassed","teary","gentle_smile"]},
+  red_wyrmling: {base:"assets/portraits/red_wyrmling.webp", faces:null, onDemand:true},
   red_dragon_lady: {base:"assets/portraits/red_dragon_lady.webp", faces:null},   // 紅龍夫人原形（頂嘴時現身，10-28）
   // 狗頭人薩滿立繪（10-28）：洞窟打完的街角傳教用到了，所以不是 onDemand
   kobold_shaman: {base:"assets/portraits/kobold_shaman.webp", faces:null},
