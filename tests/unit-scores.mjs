@@ -8,7 +8,8 @@ const r=await p.evaluate(()=>{
  const original={goblin:{STR:-1,DEX:2,CON:0,INT:0,WIS:-1,CHA:-1},goblin_archer:{STR:-1,DEX:2,CON:0,INT:0,WIS:-1,CHA:-1},goblin_shaman:{STR:-1,DEX:2,CON:0,INT:0,WIS:2,CHA:0}};
  const balance=Object.entries(original).every(([k,mods])=>JSON.stringify(abilityMods(ENEMIES[k]))===JSON.stringify(mods));
  const merchant=b.units.find(v=>v.side==='npc');const npc=merchant&&Object.values(merchant.scores).every(n=>n===10)&&Object.values(merchant.mods).every(n=>n===0);
- const existingNoPassive=Object.values(ENEMIES).every(e=>!e.passives?.length);
+ // 10-21 起有敵人帶被動（狡詐、圍毆、黑暗視覺……）：改成檢查被動都是登記過的被動技能，沒有亂寫的
+ const existingNoPassive=Object.values(ENEMIES).every(e=>(e.passives||[]).every(k=>{const s=learnedSkillByKey(k);return !!s&&isPassiveSkill(s);}));
  const base=ENEMIES.goblin;ENEMIES.score_fixture={...base,scores:{...base.scores,STR:13,WIS:13},passives:['darkvision']};
  const def={...b.def,foes:[{type:'score_fixture',x:10,y:10}],npcs:[],blocks:[],elev:[]};BATTLES.score_fixture=def;
  startBattle('score_fixture',false,'explore');const e=B().units.find(v=>v.side==='foe'),it=makeItem(ITEMS.find(x=>x.n==='薩滿圖騰'),false);e.weapon=e.focus=null;e.shield=false;
