@@ -272,6 +272,7 @@ function bind(){
   $("finishHuntMiss")?.addEventListener("click",finishHuntMiss);   // 驅除哥布林撲空（10-28）
   $("finishPreach")?.addEventListener("click",finishPreach);
   $("finishDragonLady")?.addEventListener("click",finishDragonLady);   // 紅龍夫人（10-28）
+  $("finishWyrmFlee")?.addEventListener("click",finishWyrmFlee);       // 小紅龍哭著飛走（10-28）
   ["finishGraveAsk","finishGraveVampire","finishGraveNoble","startGraveFight","finishGraveCollar"].forEach(id=>$(id)?.addEventListener("click",window[id]));   // 墓地線（10-28）       // 狗頭人傳教（10-28）
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}

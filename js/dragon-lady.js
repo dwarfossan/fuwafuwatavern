@@ -14,6 +14,10 @@ function wyrmRepel(t, at){
   say(t, DRAGON_LADY.wyrmSay, 200);
 }
 
+// ---------- 洞窟第一次打完：原形立繪哭著飛走 ----------
+const wyrmFleeScript = () => DRAGON_LADY.flee.map(l=>({draft:DRAGON_LADY.draft, ...l}));
+function finishWyrmFlee(){ state.page = "map"; state.mapSel = state.location = "cave"; render(); window.scrollTo(0,0); }
+
 // ---------- 城鎮街上 ----------
 function dragonStreetHTML(){
   if(!dragonDue()) return "";
@@ -28,7 +32,10 @@ function startDragonLady(){
 }
 
 // ---------- 劇情 ----------
-const dragonLines = list => list.map(l=>({draft:DRAGON_LADY.draft, ...l}));
+// 女兒現身之後（有 withFace 的那句起），媽媽在畫面上時女兒都站在旁邊（with）
+const dragonLines = list => { let shown = false; return list.map(l=>{ if(l.withFace) shown = true;
+  const keep = shown && ["dragon_lady","red_dragon_lady"].includes(l.on);
+  return {draft:DRAGON_LADY.draft, ...l, ...(keep ? {with:"wyrmling", withFace:l.withFace || "pout"} : {})}; }); };
 function dragonScript(){
   const D = DRAGON_LADY, e = ensureDragon();
   const L = [...D.intro, ...(state.crossline?.preached ? D.preached : []), {...D.ask, dragonChoice:true}];

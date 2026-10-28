@@ -27,7 +27,8 @@ const SCENES = {
   graveEnd: {get script(){return graveEndScript();}, bg:"graveyard", get actors(){return graveEndActors();}, back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveVisit: {get script(){return graveVisitScript();}, bg:"graveyard", actors:["vampire"], back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveNoble: {get script(){return graveNobleScript();}, bg:"town", actors:["noblewoman"], back:null, next:["finishGraveNoble",GRAVE.nobleNext]},
-  dragonLady: {get script(){return dragonScript();}, bg:"town", actors:["dragon_lady","red_dragon_lady"], back:null, next:["finishDragonLady",DRAGON_LADY.next]},   // 紅龍夫人・怪獸家長（10-28）
+  wyrmFlee: {get script(){return wyrmFleeScript();}, bg:"cave", actors:["red_wyrmling"], back:null, next:["finishWyrmFlee",DRAGON_LADY.fleeNext]},   // 洞窟打完：小紅龍哭著飛走（10-28）
+  dragonLady: {get script(){return dragonScript();}, bg:"town", actors:["dragon_lady","red_dragon_lady","wyrmling"], back:null, next:["finishDragonLady",DRAGON_LADY.next]},   // 紅龍夫人・怪獸家長（10-28）
   koboldPreach: {get script(){return preachScript();}, bg:"town", actors:["kobold_shaman"], back:null, next:["finishPreach",CROSSLINE.preach.done]},   // 三線交會：狗頭人傳教（10-28）
   huntMiss: {get script(){return huntMissScript();}, bg:"road", back:null, next:["finishHuntMiss",GOBLIN_HUNT.missNext]},   // 驅除哥布林撲空（10-28）
   orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
@@ -156,7 +157,9 @@ const onStage = (line,index=state.line) => {
   if(state.scene==="prologue" && !SCENES.prologue.script.slice(0,index+1).some(l=>l.who==="dwarf"))return null;
   return line.on || stageActors()[0];
 };
-const actorFace = (id, line,index=state.line) => onStage(line,index)===id && line.face ? line.face : PORTRAITS[id].def;
+const actorFace = (id, line,index=state.line) => onStage(line,index)===id && line.face ? line.face : line.with===id && line.withFace ? line.withFace : PORTRAITS[id].def;
+// line.with：同時站在旁邊的第二個角色（10-28，紅龍夫人的女兒躲在媽媽背後）；主角往左讓位
+const actorClass = (id, line) => onStage(line)===id ? (line.with ? "lead" : "") : line.with===id ? "with" : "off";
 
 function updateStoryLine(){
   const scene = SCENES[state.scene], line = scene.script[state.line], who = storyWho(line);
@@ -171,7 +174,7 @@ function updateStoryLine(){
   if(state.scene==='worldChest'){const chest=stage.querySelector('.story-chest');if(chest)chest.outerHTML=worldChestStage(line);}
   const mk = stage.querySelector(".story-mark"); if(mk) mk.innerHTML = markHTML(line);
   stageActors().forEach(id=>{ const el = stage.querySelector(".actor."+id); if(!el) return;
-    el.classList.toggle("off", onStage(line)!==id); el.classList.toggle("talk", line.who===id);
+    const ac = actorClass(id, line); el.classList.toggle("off", ac==="off"); el.classList.toggle("with", ac==="with"); el.classList.toggle("lead", ac==="lead"); el.classList.toggle("talk", line.who===id);
     setPortraitFace(el, actorFace(id, line)); });
   const dialog = stage.querySelector(".dialog");
   if(dialog){
@@ -232,7 +235,7 @@ function prepareStoryImages(index=state.line){
  if(!line)return Promise.resolve([]);
  const add=src=>{if(src)urls.add(src);};
  const actor=onStage(line,index);
- if(PORTRAITS[actor]){const p=PORTRAITS[actor];add(p.base);add(p.sheet);if(p.faces)add(faceSrc(actor,actorFace(actor,line,index)));}
+ for(const a of [actor, line.with]) if(PORTRAITS[a]){const p=PORTRAITS[a];add(p.base);add(p.sheet);if(p.faces)add(faceSrc(a,actorFace(a,line,index)));}
  for(const c of CRITTERS)add(critterFaceSrc(c.id,critterMood(c.id,line,index)));
  add(scene.image);if(line.art)add(STORY_ART[line.art]);
  return Promise.allSettled([...urls].map(src=>{
@@ -253,11 +256,11 @@ function renderStory(){
   if(line.grantStarter)grantStarterGear();
   const last = state.line === SCRIPT_.length-1;
 
-  const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${onStage(line)===id?"":"off"} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
+  const actorsHTML = stageActors().map(id=>`<div class="actor ${id} ${actorClass(id, line)} ${line.who===id?"talk":""}">${portraitHTML(id, actorFace(id, line))}</div>`).join("");
   const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line) && !graveChoicePending(line) && !dragonChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront","forest","graveyard"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:scene.bg==="graveyard"?`<img draggable="false" src="${SCENE_ART.graveyard}" alt="墓地">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
+      ${["road","town","shopfront","forest","graveyard","cave"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:scene.bg==="graveyard"?`<img draggable="false" src="${SCENE_ART.graveyard}" alt="墓地">`:scene.bg==="cave"?`<img draggable="false" src="${SCENE_ART.cave}" alt="洞窟">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
       ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img draggable="false" src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
       <div class="lamp" aria-hidden="true"></div>

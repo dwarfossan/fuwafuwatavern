@@ -91,7 +91,7 @@ function forestCombatEnd(){
 function forestWin(b){
   const D = dungeonOf(b); if(!D) return;
   if(D.onWin && D.onWin(b)) return;   // 有階段的（森林主線）自己處理
-  const st = dungeonState(b.def.dungeon); if(!st.cleared){ st.cleared = true; blog(D.cleared, "kill"); }
+  const st = dungeonState(b.def.dungeon); if(!st.cleared){ st.cleared = true; blog(D.cleared, "kill"); if(b.def.dungeon==="cave") state.afterQuestScene = "wyrmFlee"; }   // 洞窟第一次打完：小紅龍哭著飛走（10-28）
   if(b.def.dungeon==="cave") caveMainCleared();   // 洞窟主線：回公會報告（10-28）
   (D.win||[]).forEach(([who, text], i)=>{ const u = b.units.find(v=>v.id===who && !v.down); if(u) say(u, text, 600 + i*1700); });
 }

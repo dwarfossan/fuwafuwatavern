@@ -1475,6 +1475,12 @@ body.image-boot{background:#000}
 /* 紅龍夫人（10-28，大小暫定）：人形全身立繪、原形（橫的大圖） */
 .actor.dragon_lady{aspect-ratio:1024/1536;height:96%;bottom:-4%}
 .actor.red_dragon_lady{aspect-ratio:1536/1024;height:74%;bottom:8%}
+/* 紅龍幼龍（10-28）：原形一張圖、人形全身立繪。with＝站在旁邊的第二個角色（躲在媽媽背後探頭），主角 lead 往左讓位 */
+.actor.red_wyrmling{aspect-ratio:1;height:72%;bottom:8%}
+.actor.wyrmling{aspect-ratio:926/1698;height:96%;bottom:-4%}
+.actor.lead{left:40%}
+.actor.with{left:80%;height:62%;bottom:-2%;z-index:1}
+.actor.red_dragon_lady.lead{left:46%}
 /* 墓地線（10-28，大小暫定）：女吸血鬼、女貴族全身立繪；問話的三個居民跟養雞的大嬸一樣 */
 .actor.vampire{aspect-ratio:927/1697;height:96%;bottom:-4%}
 .actor.noblewoman{aspect-ratio:926/1698;height:96%;bottom:-4%}
