@@ -42,7 +42,8 @@ function callCompanion(u, s, pet){
   useAction(u);
   const h = {
     id:pet ? "pet" : STEED_ID, side:"pc", steed:true, pet, type:s.type, name:s.name || m.name, color:pet ? "#d9a66b" : "#b9a0ff", look:m.look, natural:m.natural||null, special:null,
-    x:p.x, y:p.y, hp:Math.max(1, Math.min(s.hp, m.hp)), maxHp:m.hp, scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac,
+    x:p.x, y:p.y, hp:Math.max(1, Math.min(s.hp, m.hp + (s.bonusHp||0))), maxHp:m.hp + (s.bonusHp||0),   // bonusHp：死亡騎士託付骨骨（墓地線，10-28）
+    scores:{...m.scores}, mods:abilityMods(m), baseAc:m.ac,
     resistances:[...(m.resistances||[])], damageImmunities:[...(m.damageImmunities||[])], vulnerabilities:[...(m.vulnerabilities||[])],
     weapon:null, focus:null, shield:false, armor:null, spare:[], items:[], backpackEquip:null, learned:[], activeSkills:[],
     speed:m.speed, statuses:[], level:1, down:false, face:u.face||1, oaUsed:false, slots:[0], combatActive:true, init:u.init - .001, born:null
@@ -83,7 +84,7 @@ function stashSteed(b=B()){
   if(rec){ rec.hp = h.down || h.dead ? 0 : h.hp; rec.bones = !!(h.down || h.dead || h.hp<=0); }
   const i = b.units.indexOf(h); b.units.splice(i, 1); if(i <= b.turn) b.turn--;
 }
-function steedLongRest(){ for(const s of [state.steed, state.pet]){ if(!s) continue; const m = ENEMIES[s.type]; s.hp = m ? m.hp : s.hp; s.bones = false; } }
+function steedLongRest(){ for(const s of [state.steed, state.pet]){ if(!s) continue; const m = ENEMIES[s.type]; s.hp = m ? m.hp + (s.bonusHp||0) : s.hp; s.bones = false; } }
 
 // 小傢伙騎上／下馬（花一半移動，照 SRD 騎乘）
 const steedNear = u => { const h = steedUnit(); return h && !h.dead && !h.down && !ridden(h) && !has(h,"prone") && dist(u,h)<=1 ? h : null; };

@@ -97,6 +97,13 @@ const ENEMIES = {
   // ===== 洞窟（大爺 10-21）：狗頭人照 SRD；狗頭人薩滿（原狗頭人法師）＝SRD 狗頭人拿奧術法杖（會魔法飛彈）；頭目紅龍幼龍照 SRD（飛行先不做；咬的火焰追加先不做）。數值暫定：香香 =====
   kobold:{size:"小型",detectRange:6,name:"狗頭人",look:"kobold",gear:["匕首","破布衣"],hp:5,ac:12,speed:6,xp:25,stars:1,srd:true,
     passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},
+  // 女貴族的護衛隊（墓地線，大爺 10-28 給立繪；香香照著畫 SVG）：斧兵、弓兵照 SRD 衛兵，隊長照 SRD 騎士往下調；數值暫定：香香
+  guard_halberd:{size:"中型",detectRange:6,name:"護衛隊斧兵",look:"guard",gear:["戟","護衛隊鏈甲衫"],hp:11,ac:14,speed:6,xp:25,srd:true,
+    scores:{STR:13,DEX:12,CON:12,INT:10,WIS:11,CHA:10}},
+  guard_archer:{size:"中型",detectRange:8,name:"護衛隊弓兵",look:"guard_archer",gear:["長弓","箭袋","護衛隊鏈甲衫"],hp:11,ac:14,speed:6,xp:25,srd:true,
+    scores:{STR:11,DEX:14,CON:12,INT:10,WIS:11,CHA:10}},
+  guard_captain:{size:"中型",detectRange:6,name:"護衛隊長",look:"guard_captain",shieldArt:"shield",gear:["長劍","盾牌","護衛隊長鏈甲衫"],hp:33,ac:18,speed:6,xp:450,srd:true,
+    passives:["double_strike"],scores:{STR:16,DEX:11,CON:14,INT:11,WIS:11,CHA:15}},
   // 狗頭人弓手、矛兵（大爺 10-28 給立繪）：SRD 狗頭人換武器（短弓＋箭袋／矛＋盾），數值暫定：香香
   kobold_archer:{size:"小型",detectRange:7,name:"狗頭人弓手",look:"kobold",gear:["短弓","箭袋","破布衣"],hp:5,ac:12,speed:6,xp:25,srd:true,
     passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},

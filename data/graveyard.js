@@ -39,7 +39,18 @@ const GRAVE = {
         {type:"skeleton", x:17, y:8, squad:1}, {type:"skeleton", x:16, y:10, squad:1}, {type:"zombie", x:18, y:10, squad:1},   // 離入口要比偵測距離多 2 格以上
         {type:"ghost", x:10, y:6, squad:2}, {type:"skeleton_archer", x:9, y:10, squad:2}, {type:"skeleton", x:11, y:10, squad:2},
         {type:"vampire", x:1, y:10, squad:3, boss:true}, {type:"bat", x:1, y:8, squad:3}, {type:"bat", x:2, y:12, squad:3}],
-      intro:[["raccoon","……墓碑好多。"],["tiger","晚、晚上的墓地，我才不怕！"],["wolf","……有東西在動。"],["fox","小心點。牠們好像在……排隊？"]]}
+      intro:[["raccoon","……墓碑好多。"],["tiger","晚、晚上的墓地，我才不怕！"],["wolf","……有東西在動。"],["fox","小心點。牠們好像在……排隊？"]]},
+    // 第二批：回墓地找最老的那座墳（調查點 G，過不過都會撞見死亡騎士 → 談判、選邊）
+    ancestor:{stars:0, noReward:true, revealAt:1,
+      foes:[{type:"skeleton", x:17, y:8, squad:1}, {type:"zombie", x:10, y:10, squad:2}],
+      intro:[["wolf","……吸血鬼說，老祖宗們都睡在這裡。"],["fox","找找看，最老的那座墳在哪。"]]},
+    // 跟死亡騎士站一邊：對上女貴族的護衛隊（隊長＋斧兵×2＋弓兵×2，一進去就開打）
+    guards:{stars:0, noReward:true, combat:true, party:[[3,9],[4,9],[2,9],[4,10]],
+      foes:[{type:"guard_captain", x:11, y:8, squad:6, boss:true}, {type:"guard_halberd", x:13, y:10, squad:6}, {type:"guard_halberd", x:14, y:8, squad:6},
+            {type:"guard_archer", x:15, y:8, squad:6}, {type:"guard_archer", x:14, y:10, squad:6}]},
+    // 幫女貴族：對上死亡騎士＋女吸血鬼（兩個都不會死；骨骨在毛毛們手上的，騎士用走的來）
+    knight:{stars:0, noReward:true, combat:true, party:[[13,9],[12,10],[13,10],[14,9]],
+      get foes(){ return [{type:"death_knight", x:1, y:9, squad:7, boss:true, ...(partyHasReins() ? {onFoot:true} : {})}, {type:"vampire", x:3, y:12, squad:7}]; }}
   },
   // 不在任何階段（還沒打、或打完女吸血鬼以後）：零星幾隻
   again:[
@@ -48,12 +59,16 @@ const GRAVE = {
   clues:{
     R:{id:"banner", name:"抗議布條", art:"marks", dc:10,
        ok:"破布條上用暗紅色的字寫著：「還我安寧！反對開發！」——字很漂亮，大概是很久以前的人寫的。", fail:"布條爛成一條一條，看不出寫什麼。"},
+    G:{id:"oldest", name:"最老的那座墳", art:"stele", dc:10, stage:["ancestor"],
+       ok:"墓碑上的字幾乎磨平了，只剩一個家徽還看得清清楚楚。", fail:"苔蘚太厚了，看不清楚……正想再擦擦看，地面忽然震了一下。"},
     O:{id:"offering", name:"打翻的供品", art:"bones", dc:12, effect:"loot",
        ok:"供品盤底下壓著一件不像供品的東西！", fail:"只有幾個發霉的饅頭……還有幾枚銅板。", gold:5}
   },
   intro:[["fox","墓地……先四處看看。"]],
   againIntro:[["fox","老祖宗們安靜多了。"]],
-  bossShout:"（女吸血鬼從墓碑上站起來，拉了拉禮服的裙襬）「毛球？……這裡不歡迎觀光客。」",
+  // 頭目開戰喊話：照階段換（墓地第一次＝女吸血鬼；幫女貴族＝女吸血鬼站在死亡騎士旁邊）
+  get bossShout(){ const s = graveStage(); return s==="haunt" ? "（女吸血鬼從墓碑上站起來，拉了拉禮服的裙襬）「毛球？……這裡不歡迎觀光客。」"
+    : s==="fight_dk" ? "（女吸血鬼站到死亡騎士身邊）「拿了錢就翻臉……毛球，你們會後悔的。」" : ""; },
   win:[["tiger","她又變成蝙蝠跑掉了！"],["raccoon","……又。"]],
   cleared:"墓地安靜下來了。",
 
@@ -131,4 +146,96 @@ const GRAVE = {
       "我們在抗議，你們在搗亂！那隻{by}，今天讓你也變成老祖宗！"]
   }
 };
+// ---------- 第二批（大爺 10-28）：祖先、談判、選邊、結局。台詞香香草稿 ----------
+Object.assign(GRAVE, {
+  // 最老的墳 → 死亡騎士現身 → 女貴族帶護衛隊來 → 選邊（死亡騎士一律用「他」，不寫出性別、不用祖父母之類的稱呼）
+  ancestorTalk:[
+    {who:"narr", text:"墓地最深處，有一座比其他墓碑都老的墳。墓碑上刻著一個家徽。", on:"-"},
+    {who:"fox", text:"這個家徽……跟那輛馬車上的一樣。", mood:"surprised", on:"-"}],
+  ancestorCollar:[{who:"wolf", text:"……也跟奇美拉項圈上的一樣。", mood:"serious", on:"-"}],
+  ancestorTalk2:[
+    {who:"vampire", text:"你們發現了。", on:"vampire", face:"serious"},
+    {who:"narr", text:"墳前的地面裂開，一個穿著黑色鎧甲的騎士慢慢站了起來。", on:"dk_helmet"},
+    {who:"tiger", text:"是那個黑馬騎士！", mood:"fierce", on:"dk_helmet"},
+    {who:"dk", text:"……這是我的墳。", on:"dk_helmet"},
+    {who:"vampire", text:"他是這座墓地最老的祖先。也是那位貴族小姐家的祖先。", on:"vampire", face:"smirk"},
+    {who:"raccoon", text:"……所以那塊地，是他的。", mood:"sly", on:"vampire", face:"smirk"},
+    {who:"narr", text:"墓地外傳來馬蹄聲。女貴族帶著一隊護衛走了進來。", on:"noblewoman", face:"haughty"},
+    {who:"noblewoman", text:"工人明天就要開工。不相干的人——還有不相干的死人——全部讓開。", on:"noblewoman", face:"haughty"},
+    {who:"dk", text:"……我是妳的祖先。這塊地，是我的。", on:"dk_helmet"},
+    {who:"noblewoman", text:"祖先？", on:"noblewoman", face:"skeptical"},
+    {who:"noblewoman", text:"祖先沒有權利管活人的事。地契上寫的，是我的名字。", on:"noblewoman", face:"haughty"},
+    {who:"noblewoman", text:"毛球們，幫我把這些死人趕走。報酬隨你們開。", on:"noblewoman", face:"smirk"},
+    {who:"narr", text:"要站在哪一邊？", on:"-", graveChoice:true}],
+  pick:{
+    noble:{label:"幫女貴族", sub:"豪華獎勵・對上死亡騎士和女吸血鬼"},
+    knight:{label:"跟死亡騎士站一邊", sub:"對上女貴族的護衛隊"},
+    collar:{label:"拿出奇美拉的項圈", sub:"森林裡找到的那個・不用打"}},
+  picked:{
+    noble:[
+      {who:"fox", text:"……對不起了，老祖宗們。", mood:"awkward", on:"noblewoman", face:"laugh"},
+      {who:"noblewoman", text:"很好。護衛，退後——讓毛球們去。", on:"noblewoman", face:"laugh"},
+      {who:"dk", text:"……有意思。", on:"dk_helmet"}],
+    knight:[
+      {who:"tiger", text:"才不幫妳！老祖宗們也要睡覺！", mood:"angry", on:"noblewoman", face:"angry"},
+      {who:"noblewoman", text:"……不識抬舉。護衛，把這些毛球一起清掉！", on:"noblewoman", face:"angry"},
+      {who:"dk", text:"……我不能對自己的後代拔劍。這一仗，交給你們。", on:"dk_helmet"}],
+    collar:[
+      {who:"raccoon", text:"……這個，妳認得嗎？", mood:"sly", on:"noblewoman", face:"surprised"},
+      {who:"narr", text:"鑲金的大項圈。上面刻著同一個家徽，還有「小咪咪」三個字。", on:"noblewoman", face:"surprised"},
+      {who:"fox", text:"森林裡的奇美拉，是妳家丟的吧？公會已經往上報了。", mood:"smug", on:"noblewoman", face:"embarrassed"},
+      {who:"noblewoman", text:"……", on:"noblewoman", face:"embarrassed"},
+      {who:"noblewoman", text:"度假村的事……我、我會再考慮。護衛，走！", on:"noblewoman", face:"angry"},
+      {who:"vampire", text:"……你們比我想的有用。", on:"vampire", face:"smile"}]},
+  // 結局（獎勵數字暫定）
+  noble:{gold:1200, item:{key:"ceremonial_longsword", n:"鑲金嵌寶的禮儀長劍", base:"長劍", rarity:"yellow", cost:3000, hitBonus:1, weightMul:1.5,
+    desc:"武器攻擊命中加值 +1。劍柄鑲滿寶石，比一般長劍重一半。", lore:"女貴族家拿來掛在牆上的禮儀用劍。很亮、很貴，砍東西的時候寶石會掉。", draft:"香香"}},
+  knight:{item:{key:"ancestor_longsword", n:"祖先的長劍", base:"長劍", rarity:"gold", cost:3000, hitBonus:1, extraDamage:{type:"死靈", amount:1},
+    desc:"武器攻擊命中加值 +1；命中時額外造成 1 點死靈傷害。", lore:"死亡騎士生前的佩劍。劍柄上的家徽被磨掉了一半，像是有人一直用拇指摩挲那裡。", draft:"香香"},
+    steedBonusHp:10},
+  rewardTo:"tiger",
+  endNoble:[
+    {who:"narr", text:"死亡騎士化成黑霧，女吸血鬼化成一群蝙蝠。墓地只剩下風聲。", on:"-"},
+    {who:"noblewoman", text:"做得好，毛球們。這是說好的報酬。", on:"noblewoman", face:"laugh"},
+    {who:"narr", text:"拿到 1,200 gp（四隻平分），還有一把鑲滿寶石的禮儀長劍（嬌嬌收下了）。", on:"noblewoman", face:"polite"},
+    {who:"noblewoman", text:"度假村開幕那天，給你們打九折。", on:"noblewoman", face:"polite"},
+    {who:"tiger", text:"……才九折？", mood:"confused", on:"noblewoman", face:"polite"},
+    {who:"raccoon", text:"……老祖宗們，對不起。", mood:"down", on:"-"},
+    {who:"wolf", text:"……這就是有錢人。", mood:"sigh", on:"-"}],
+  endKnight:[
+    {who:"narr", text:"護衛隊丟下武器逃出墓地，女貴族的馬車也調頭跑了。遠遠傳來一聲：「你們給我記住——！」", on:"-"},
+    {who:"dk", text:"……做得好。", on:"dk_helmet"}],
+  endCollar:[
+    {who:"narr", text:"女貴族的馬車頭也不回地走了。", on:"-"},
+    {who:"dk", text:"……不用拔劍，就讓她退了。", on:"dk_helmet"}],
+  endGifts:[
+    {who:"dk", text:"這把劍，跟了我很久。……拿去。", on:"dk_helmet"},
+    {who:"narr", text:"嬌嬌收下了【祖先的長劍】。", on:"dk_helmet"}],
+  giftHorseNew:[
+    {who:"dk", text:"還有骨骨。牠喜歡你們。", on:"dk_helmet"},
+    {who:"narr", text:"嬌嬌拿到了骷髏戰馬的韁繩。", on:"dk_helmet"}],
+  giftHorseKept:[
+    {who:"dk", text:"骨骨……在你們那裡過得不錯。以後，就交給你們了。", on:"dk_helmet"},
+    {who:"narr", text:"骨骨的骨頭好像變結實了（最大生命 +10）。", on:"dk_helmet"}],
+  endVampire:[
+    {who:"vampire", text:"老祖宗們可以繼續睡了。……謝謝你們，毛球。", on:"vampire", face:"smile"},
+    {who:"vampire", text:"有空來墓地坐坐。我請你們喝茶——活人喝的那種。", on:"vampire", face:"laugh"},
+    {who:"fox", text:"……活人喝的茶，是什麼茶？", mood:"confused", on:"vampire", face:"laugh"}],
+  endNext:"回大地圖", fightNext:"戰鬥開始！", collarNext:"收下",
+  // 結局之後
+  resort:{name:"度假村", desc:"城鎮南邊。以前是墓地，現在掛著「豪華度假勝地・即將開幕」的招牌。", art:"assets/world/resort.webp", locked:"度假村還在施工，門口的護衛說：「毛球不准進來。」"},
+  protectedIntro:[["fox","老祖宗們睡得很安穩。"],["raccoon","……吸血鬼說要請喝茶。"]],
+  // 結局之後去墓地找女吸血鬼喝茶（輪流演）
+  visit:[
+    [{who:"narr", text:"墓地很安靜。女吸血鬼坐在墓碑上，端著一杯紅色的茶。", on:"vampire", face:"smile"},
+     {who:"vampire", text:"番茄汁啦。……你們那是什麼表情。", on:"vampire", face:"annoyed"},
+     {who:"tiger", text:"我們什麼都沒說！", mood:"confused", on:"vampire", face:"annoyed"}],
+    [{who:"vampire", text:"死亡騎士說，你們用那把劍用得還不錯。", on:"vampire", face:"smirk"},
+     {who:"fox", text:"他會說話以外的話？", mood:"surprised", on:"vampire", face:"smirk"},
+     {who:"vampire", text:"……他說了「還行」。這已經是最高的稱讚了。", on:"vampire", face:"laugh"}],
+    [{who:"vampire", text:"老祖宗們想辦個慶祝會，問你們要不要來。", on:"vampire", face:"smile"},
+     {who:"raccoon", text:"……要穿什麼？", mood:"normal", on:"vampire", face:"smile"},
+     {who:"vampire", text:"隨便。他們大部分只穿骨頭。", on:"vampire", face:"sly"}]],
+  resortShout:"（女吸血鬼瞪著毛毛們）「蓋度假村的幫兇……今天別想走！」"
+});
 DUNGEONS.graveyard = GRAVE;

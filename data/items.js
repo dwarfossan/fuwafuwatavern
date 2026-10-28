@@ -140,5 +140,8 @@ const ITEMS = [
 // 狗頭人薩滿袍（10-28，照大爺給的狗頭人薩滿立繪）：破爛紫袍＋骨頭牙齒項鍊；AC 跟沒穿一樣，數值暫定（香香）、商店不賣
 // ↓ 新東西一律加在最後面：id 是照順序編的（"it"＋位置），插在中間會讓舊存檔裡的東西全部錯位（10-28）
 , {type:"armor",n:"狗頭人薩滿袍",en:"Kobold Shaman Robe",cat:"護甲",tier:"衣服",cost:0,wt:3,ac:10,dex:"full",cloth:true,noShop:true}
+// 護衛隊的鏈甲衫（墓地線，10-28）：藍上衣＋皮帶，數值跟鏈甲衫一樣；隊長那件多一個鐵護肩。商店不賣
+, {type:"armor",n:"護衛隊鏈甲衫",en:"Guard's Chain Shirt",cat:"護甲",tier:"中甲",cost:50*GP,wt:20,ac:13,dex:"max2",noShop:true}
+, {type:"armor",n:"護衛隊長鏈甲衫",en:"Guard Captain's Chain Shirt",cat:"護甲",tier:"中甲",cost:50*GP,wt:22,ac:13,dex:"max2",noShop:true}
 ].map((it,i)=>({...it,id:"it"+i}));
 const CATS = ["簡易近戰","簡易遠程","軍用近戰","軍用遠程","護甲","盾牌","法器","道具","冒險用品"];

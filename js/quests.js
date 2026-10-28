@@ -13,7 +13,7 @@ function ensureQuests(){
   // 每條路一個，泡泡不疊在一起（路比委託少才會重複）
   const links = WORLD.links.map((_,i)=>i).sort(()=>r()-.5);
   const list = [1,2,3].slice(0, QUEST_PER_DAY).map((stars, i)=>{
-    const pool = QUEST_TEMPLATES.filter(t=>t.stars===stars), ws = pool.map(questTplWeight);   // 森林＋驅除哥布林都打完：哥布林的減半（10-28）
+    const pool = QUEST_TEMPLATES.filter(t=>t.stars===stars), ws = pool.map(t=>questTplWeight(t)*graveQuestWeight(t));   // 墓地線：抗議結束後不再有女吸血鬼（10-28）   // 森林＋驅除哥布林都打完：哥布林的減半（10-28）
     let x = r()*ws.reduce((a,b)=>a+b, 0), tpl = pool[pool.length-1]; for(let k=0; k<pool.length; k++){ x -= ws[k]; if(x<0){ tpl = pool[k]; break; } }
     return {id:`q${day}-${i}`, tpl:tpl.id, stars, link:links[i % links.length], t:+(.3 + r()*.4).toFixed(3), seed:Math.floor(r()*2147483647), accepted:false, done:false};
   });

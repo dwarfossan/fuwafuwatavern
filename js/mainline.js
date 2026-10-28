@@ -19,7 +19,7 @@ function mainPinsSVG(){
   if(typeof state==="undefined") return "";
   const pin = (id, name) => { const l = WORLD.locations.find(x=>x.id===id);
     return `<g class="quest-pin main-pin" data-loc="${id}" transform="translate(${l.x} ${l.y-120})" role="button" aria-label="主線：${name}">${pinBubbleSVG("main")}<circle r="30" cy="-36" fill="transparent"/></g>`; };
-  return (["investigate","met"].includes(mainStage()) ? pin("forest","森林") : "") + (caveStage()==="investigate" ? pin("cave","洞窟") : "") + (graveStage()==="haunt" ? pin("graveyard","墓地") : "");
+  return (["investigate","met"].includes(mainStage()) ? pin("forest","森林") : "") + (caveStage()==="investigate" ? pin("cave","洞窟") : "") + (["haunt","ancestor","fight_dk","fight_guards"].includes(graveStage()) ? pin("graveyard","墓地") : "");
 }
 // 洞窟主線（10-28）state.main.cave：(沒有) → investigate（大地圖洞窟紅 ❗）→ 打倒紅龍幼龍 → report（公會紅 ❗「回報洞窟的事」）→ done
 //   洞窟本身照舊一開始就進得去；還沒聽艾妲講就先打完的，聽完直接是 report
