@@ -4,7 +4,7 @@
 (()=>{
  const INK="#2a2630";
  // 鐵盔畫在人類頭的原始座標裡（臉 x 43–99、頭頂 y 15、眉毛 y 37），貼著頭頂戴、盔沿壓在眉毛上方；
- // 戴盔的時候把前髮拿掉（不然頭髮會從盔沿底下戳出來），側臉、頭像、受傷臉都套跟頭一樣的位移（10-28 大爺：沒戴好又太大）
+ // 戴盔的時候把前髮拿掉（不然頭髮會從盔沿底下戳出來），側臉、受傷臉套跟頭一樣的位移（10-28 大爺：沒戴好又太大、浮起來）
  const helmet = `<g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round">
    <path d="M44 35 L42 48 L48 47 L49 35Z" fill="#8b9299"/>
    <path d="M43 35 Q44 12 70 11 Q95 12 97 34Z" fill="#a3aab1"/>
@@ -17,11 +17,13 @@
    <path d="M50 17 Q51 30 50 42 M37 20 Q34 31 36 42 M63 20 Q66 31 64 42" fill="none" stroke="#6f767d" stroke-width="2"/>
    <path d="M22 43 Q50 38 78 43 L78 47 Q50 42.5 22 47Z" fill="#8b9299"/></g>`;
  const noHair = svg => svg.replace(/<g id="male-hair-\d+-front">[\s\S]*?<\/g>/g, "");
+ // 跟人類的頭同一套位移：先放到側臉的位置，再照頭那層的 headAttr 以 (72,78) 為中心縮成 0.65（之前漏了這層，盔才會又大又浮在頭上）
+ const HEAD_TF = "scale(1.3158) translate(-32 -6) translate(72 78) scale(0.65) translate(-72 -78)";
  const wrap = (svg, tf) => noHair(svg).replace(/<\/svg>\s*$/, `<g transform="${tf}">${helmet}</g></svg>`);
  const withHelmet = L => ({...L,
    face: L.face.replace(/<\/svg>\s*$/, frontHelmet + "</svg>"),
-   head: wrap(L.head, "scale(1.3158) translate(-32 -6)"),
-   headHurt: wrap(L.headHurt, "scale(1.3158) translate(-32 -6)")});
+   head: wrap(L.head, HEAD_TF),
+   headHurt: wrap(L.headHurt, HEAD_TF)});
  MONSTER_LOOK.guard = withHelmet(humanLook({sex:"male", hair:"01", hairColor:"#5a3b26", skin:"#e2b089"}));
  MONSTER_LOOK.guard_archer = withHelmet(humanLook({sex:"male", hair:"02", hairColor:"#4a3020", skin:"#d9a47c"}));
  const cap = withHelmet(humanLook({sex:"male", hair:"01", beard:"01", hairColor:"#5a3b26", beardColor:"#5a3b26", skin:"#e2b089"}));
