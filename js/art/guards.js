@@ -3,16 +3,23 @@
    隊長多一個鐵護肩（立繪上拿劍那個）。原圖朝右 */
 (()=>{
  const INK="#2a2630";
- // 鐵盔畫在人類頭的原始座標裡（跟頭髮同一套），再套跟頭一樣的位移，側臉、頭像、受傷臉都對得上
- const helmet = `<g stroke="${INK}" stroke-width="3" stroke-linejoin="round">
-   <path d="M42 38 L39 56 L49 55 L50 38Z" fill="#8b9299"/>
-   <path d="M40 36 Q41 12 70 11 Q98 12 99 33 L102 38 L38 38Z" fill="#a3aab1"/>
-   <path d="M70 12 Q72 25 70 37 M54 15 Q52 26 54 37" fill="none" stroke="#6f767d" stroke-width="2.5"/>
-   <path d="M38 38 L102 38" fill="none" stroke-width="3.5"/></g>`;
- const faceHelmet = `<g stroke="${INK}" stroke-width="3" stroke-linejoin="round"><path d="M4 20 Q6 -16 50 -16 Q94 -16 96 20 L99 25 L1 25Z" fill="#a3aab1"/><path d="M50 -14 Q53 4 50 23 M26 -8 Q22 8 25 23" fill="none" stroke="#6f767d" stroke-width="3"/><path d="M1 25 L99 25" fill="none" stroke-width="4"/></g>`;
- const wrap = (svg, tf) => svg.replace(/<\/svg>\s*$/, `<g transform="${tf}">${helmet}</g></svg>`);
+ // 鐵盔畫在人類頭的原始座標裡（臉 x 43–99、頭頂 y 15、眉毛 y 37），貼著頭頂戴、盔沿壓在眉毛上方；
+ // 戴盔的時候把前髮拿掉（不然頭髮會從盔沿底下戳出來），側臉、頭像、受傷臉都套跟頭一樣的位移（10-28 大爺：沒戴好又太大）
+ const helmet = `<g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round">
+   <path d="M44 35 L42 48 L48 47 L49 35Z" fill="#8b9299"/>
+   <path d="M43 35 Q44 12 70 11 Q95 12 97 34Z" fill="#a3aab1"/>
+   <path d="M70 12 Q71 23 70 34 M56 14 Q54 24 56 34" fill="none" stroke="#6f767d" stroke-width="2"/>
+   <path d="M41 36 Q70 31 100 34 L100 37 Q70 34.5 41 39.5Z" fill="#8b9299"/></g>`;
+ // 頭像是另一張正面的臉（js/art/humans.js humanFrontSVG：頭 x 28–72、頭頂 y 26、眉毛 y 44），鐵盔另外照它畫，蓋住前髮
+ const frontHelmet = `<g stroke="${INK}" stroke-width="2.6" stroke-linejoin="round">
+   <path d="M26 42 L24 57 L31 56 L32 42Z M74 42 L76 57 L69 56 L68 42Z" fill="#8b9299"/>
+   <path d="M25 43 Q25 17 50 16 Q75 17 75 43Z" fill="#a3aab1"/>
+   <path d="M50 17 Q51 30 50 42 M37 20 Q34 31 36 42 M63 20 Q66 31 64 42" fill="none" stroke="#6f767d" stroke-width="2"/>
+   <path d="M22 43 Q50 38 78 43 L78 47 Q50 42.5 22 47Z" fill="#8b9299"/></g>`;
+ const noHair = svg => svg.replace(/<g id="male-hair-\d+-front">[\s\S]*?<\/g>/g, "");
+ const wrap = (svg, tf) => noHair(svg).replace(/<\/svg>\s*$/, `<g transform="${tf}">${helmet}</g></svg>`);
  const withHelmet = L => ({...L,
-   face: L.face.replace(/<\/svg>\s*$/, faceHelmet + "</svg>"),   // 頭像是放大的臉：盔沿另外畫在畫框上緣
+   face: L.face.replace(/<\/svg>\s*$/, frontHelmet + "</svg>"),
    head: wrap(L.head, "scale(1.3158) translate(-32 -6)"),
    headHurt: wrap(L.headHurt, "scale(1.3158) translate(-32 -6)")});
  MONSTER_LOOK.guard = withHelmet(humanLook({sex:"male", hair:"01", hairColor:"#5a3b26", skin:"#e2b089"}));
