@@ -23,7 +23,8 @@ function dungeonBattle(id){
   if(S?.revealAt) d.noClear = true;
   const stageNow = S ? S.key : cleared ? "done" : null, clueOn = k => !k.stage || !stageNow || k.stage.includes(stageNow);   // 這個階段才有的調查點
   D.map.forEach((row, y)=>[...row].forEach((c, x)=>{
-    if(DUNGEON_KINDS[c]){ d.blocks.push({x, y, kind:DUNGEON_KINDS[c], ...(c==="C" ? {locked:true, contents:[]} : {})}); if(c==="F") d.lights.push({x, y, bright:2, dim:4}); }   // 火盆＝光源
+    const K = D.kinds?.[c] || DUNGEON_KINDS[c];   // 地城自己的格子（墓地的墓碑，10-28）
+    if(K){ d.blocks.push({x, y, kind:K, ...(c==="C" ? {locked:true, contents:[]} : {})}); if(c==="F") d.lights.push({x, y, bright:2, dim:4}); }   // 火盆＝光源
     else if(c==="S") d.blocks.push({x, y, kind:st.clues[D.shortcutClue]==="ok" ? D.shortcutOpen : D.shortcutClosed, shortcut:true});   // 捷徑
     else if(D.clues[c]){ const k = D.clues[c]; if(clueOn(k)) d.blocks.push({x, y, kind:"clue", clue:k.id, name:k.name, art:k.art, dc:k.dc, done:!!st.clues[k.id]}); }
   }));

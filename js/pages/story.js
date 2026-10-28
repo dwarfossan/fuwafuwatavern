@@ -20,6 +20,10 @@ const SCENES = {
   chickenEggs: {get script(){return chickenEggsScript();}, bg:"forest", actors:["hen_brown","rooster"], back:null, next:["finishChickenEggs",CHICKEN.ui.back]},
   chickenEnd: {get script(){return chickenEndScript();}, bg:"town", actors:["auntie"], back:null, next:["finishChickenQuest",CHICKEN.ui.done]},
   dkDemand: {get script(){return dkDemandScript();}, bg:"road", actors:["dk_helmet"], back:null, next:["startDkQuest","戰鬥開始！"]},   // 死亡騎士討馬（10-23）
+  // 墓地線（10-28，台詞 data/graveyard.js，香香草稿）
+  graveAsk: {get script(){return graveAskScript();}, bg:"town", get actors(){return graveAskActors();}, back:null, next:["finishGraveAsk",GRAVE.askDone]},
+  graveVampire: {get script(){return graveVampireScript();}, bg:"graveyard", actors:["vampire"], back:null, next:["finishGraveVampire",GRAVE.vampireNext]},
+  graveNoble: {get script(){return graveNobleScript();}, bg:"town", actors:["noblewoman"], back:null, next:["finishGraveNoble",GRAVE.nobleNext]},
   koboldPreach: {get script(){return preachScript();}, bg:"town", actors:["kobold_shaman"], back:null, next:["finishPreach",CROSSLINE.preach.done]},   // 三線交會：狗頭人傳教（10-28）
   huntMiss: {get script(){return huntMissScript();}, bg:"road", back:null, next:["finishHuntMiss",GOBLIN_HUNT.missNext]},   // 驅除哥布林撲空（10-28）
   orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
@@ -247,7 +251,7 @@ function renderStory(){
   const done = last && !line.worldChestChoice && !(line.choice && !(state.caravan||{}).pick) && !styleChoicePending(line) && !orcChoicePending(line) && !chickenChoicePending(line);
   return `<section class="page fp-page ${state.scene==='townSupplier'?'supplier-story':''} ${state.scene==='camp'?'camp-story':''}">
     <div class="story-head"><span></span>${pageToolsHTML()}</div>\n    <div class="stage ${line.hug?"hugging":""}" id="stage" role="button" tabindex="0" aria-label="下一句">
-      ${["road","town","shopfront","forest"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
+      ${["road","town","shopfront","forest","graveyard"].includes(scene.bg) ? `<div class="scene-bg${line.shake?" bush-shake":""}">${scene.image?`<img draggable="false" fetchpriority="high" decoding="async" src="${scene.image}" alt="哥布林攔截商隊">`:scene.bg==="shopfront"?townShopFrontSVG():scene.bg==="town"?`<img draggable="false" src="${SCENE_ART.town}" alt="城鎮街景">`:scene.bg==="forest"?`<img draggable="false" src="${SCENE_ART.forest}" alt="森林">`:scene.bg==="graveyard"?`<img draggable="false" src="${SCENE_ART.graveyard}" alt="墓地">`:`<img draggable="false" src="${SCENE_ART.road}" alt="郊外道路">${state.scene==="ambush"?roadAmbushSVG():state.scene==="worldChest"?worldChestStage(line):''}`}</div>${actorsHTML}` : `
       <div class="wall"></div>
       ${state.scene==='prologue'?`<div class="scene-bg equipment-wall ${storyBackground()==='equipmentWall'?'on':''}"><img draggable="false" src="${SCENE_ART.equipmentWall}" alt="翻轉後的裝備牆"></div>`:''}
       <div class="lamp" aria-hidden="true"></div>

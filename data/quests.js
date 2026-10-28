@@ -19,7 +19,7 @@ const QUEST_TEMPLATES = [
   {id:"griffin_hunt",  stars:2, title:"叼羊的獅鷲",   client:"牧羊人",   foes:["griffin","bat","bat"],                      text:"獅鷲把羊叼走了。今天兩隻，明天可能是牧羊人。"},
   {id:"owlbear",       stars:3, title:"梟熊出沒",     client:"樵夫",     foes:["owlbear"],                                  text:"樵夫被追了半座山。牠還在附近，而且看起來還沒吃飽。"},
   {id:"chimera",       stars:3, title:"三個頭的怪物", client:"公會",     foes:["chimera"],                                  text:"目擊者說是獅子、說是山羊、說是龍。三個人說的都對。"},
-  {id:"night_lady",    stars:3, title:"夜裡的貴婦",   client:"鎮長",     foes:["vampire","bat","bat","bat"],                text:"有位貴婦只在晚上出門。跟她出去散步的人，回來都很蒼白。"},
+  {id:"night_lady",    stars:3, title:"夜裡的貴婦",   client:"鎮民聯名", foes:["vampire","bat","bat","bat"],                text:"夜裡有個穿禮服的女吸血鬼在鎮上嚇人，已經好幾次了。鎮民聯名請公會處理。"},   // 跟墓地線的女吸血鬼是同一隻（10-28）
   {id:"bone_master",   stars:3, title:"骨頭的主人",   client:"守墓人",   foes:["lich","skeleton","skeleton_archer"],        text:"骨頭會走路，是因為有人在後面拉線。去把拉線的找出來。"},
   {id:"black_rider",   stars:3, title:"黑馬騎士",     client:"公會",     foes:["death_knight","skeleton","skeleton"],      text:"路上有個騎黑馬的騎士。他不說話，只是一直往這邊騎。"}
 ];

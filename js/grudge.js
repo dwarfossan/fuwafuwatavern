@@ -25,7 +25,7 @@ function grudgeRollAll(b){
     const r = 1 + Math.floor(Math.random()*20), kind = grudgeResult(r), scar = {type:u.koType || "鈍擊", by:u.koBy || null};
     let g = u.grudge && grudgeById(u.grudge);
     if(g){ g.scars.push(scar); g.kind = kind; g.roll = r; g.by = scar.by || g.by; }
-    else { g = {id:`g${Date.now().toString(36)}${Math.floor(Math.random()*1e4)}`, type:u.type, look:u.baseLook || u.look, link, kind, roll:r, scars:[scar], by:scar.by, returns:0};
+    else { g = {id:`g${Date.now().toString(36)}${Math.floor(Math.random()*1e4)}`, type:u.type, look:u.baseLook || u.look, link, kind, roll:r, scars:[scar], by:scar.by, returns:0, ...(b.def.dungeon==="graveyard" ? {grave:true} : {})};   // 墓地出身：回來喊墓地那套（10-28）
       state.grudges.push(g); }
     if(kind==="evolve"){ const next = GRUDGE.evolve[g.type]; if(next && ENEMIES[next]){ g.evolvedFrom = g.type; g.type = next; g.look = ENEMIES[next].look; } else g.kind = "train"; }   // 進化：升一階（沒有下一階＝閉關苦練）
     g.status = ["return","gang","train","evolve"].includes(g.kind) ? (g.returns >= GRUDGE.maxReturns ? "done" : "pending") : ["retire","grateful"].includes(kind) ? "news" : "done";
@@ -62,7 +62,7 @@ function grudgeShoutAll(){
   const b = B(); if(!b || b.phase!=="combat") return;
   b.units.filter(u=>u.side==="foe" && u.grudge && !u.grudgeShouted && !u.dead && !u.down && !foeHid(u) && inCombat(u)).forEach((u,i)=>{
     u.grudgeShouted = true;
-    const by = b.units.find(v=>v.id===u.grudgeBy), byName = by ? by.name : "你們", list = u.shoutList || GRUDGE.shout[grudgeCat(u.type)] || GRUDGE.shout.beast;
+    const by = b.units.find(v=>v.id===u.grudgeBy), byName = by ? by.name : "你們", list = u.shoutList || (grudgeById(u.grudge)?.grave && GRAVE.grudgeShout[grudgeCat(u.type)]) || GRUDGE.shout[grudgeCat(u.type)] || GRUDGE.shout.beast;
     // 怪物不知道毛毛們的名字（大爺 10-21）：喊話用「白虎」「狐狸」這種叫法；旁白紀錄才用名字
     const crit = by && CRITTERS.find(c=>c.id===by.id), bySeen = crit ? crit.kind.replace(/^小/, "") : GRUDGE.byUnknown;
     blog(GRUDGE.shoutLog.replace("{name}", u.name).replace("{by}", byName), "kill");

@@ -15,9 +15,9 @@ function townGateSVG(){
     </g></svg>`;
 }
 // 劇情專用素材；戰場與狀態卡仍使用原 SVG。
-const SCENE_ART={equipmentWall:"assets/scenes/equipment_wall.webp",road:"assets/scenes/road.webp",town:"assets/scenes/town.webp",cart:"assets/scenes/cart.webp",bow:"assets/scenes/goblin_bow.webp",club:"assets/scenes/goblin_club.webp",sword:"assets/scenes/goblin_sword.webp",mapMarker:"assets/scenes/map_marker.webp",forest:"assets/scenes/forest.webp"};
+const SCENE_ART={equipmentWall:"assets/scenes/equipment_wall.webp",road:"assets/scenes/road.webp",town:"assets/scenes/town.webp",cart:"assets/scenes/cart.webp",bow:"assets/scenes/goblin_bow.webp",club:"assets/scenes/goblin_club.webp",sword:"assets/scenes/goblin_sword.webp",mapMarker:"assets/scenes/map_marker.webp",forest:"assets/scenes/forest.webp",graveyard:"assets/scenes/graveyard.webp"};   // 墓地 10-28 墓地線用到了
 // 10-22 大爺給的劇情背景，還沒有劇情用到：開機不先下載，用到時搬進 SCENE_ART
-const SCENE_ART_LATER={cave:"assets/scenes/cave.webp",graveyard:"assets/scenes/graveyard.webp"};
+const SCENE_ART_LATER={cave:"assets/scenes/cave.webp"};
 function sceneAssetURL(src){return entryImageURLs.get(src)||src;}
 function roadAmbushSVG(encounter=true){
  const INK="#2a2630";

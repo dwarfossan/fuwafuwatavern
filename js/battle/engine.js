@@ -177,6 +177,7 @@ const TERRAIN = {
   rubble:{name:"塌方", solid:true, cover:1},
   gravel:{name:"碎石路", solid:false, cost:2},
   brazier:{name:"火盆", solid:true, cover:.25},
+  tomb:  {name:"墓碑", solid:true, cover:.5},           // 墓地（10-28）
   bush:  {name:"草叢", solid:false, cost:2, hide:true}
 };
 const terrainAt = (x,y) => { const o = B().def.blocks.find(b=>b.x===mapCell(x)&&b.y===mapCell(y)); return o ? TERRAIN[o.kind] : null; };
@@ -210,7 +211,7 @@ function stepCostU(u, fx, fy, x, y){
 // 攻擊者自己的同伴不會擋。取經過的東西裡最好的掩護。回傳 {v:0|.5|.75, by:"箱子"...}
 //   高度（2026-10-01）：線從攻擊者出手的高度（站的層 + .8）直直連到目標身體中間（層 + .5）。
 //   經過的格子，東西的頂端比線在那裡的高度還低，線就從上面過去、不算掩護；地面本身比線高（斷層）就是四分之三掩護
-const COVER_TOP = {wagon:1.5, crate:1, chest:1, door:3, tree:3};   // 地形物件高出地面幾層；角色算 1 層
+const COVER_TOP = {wagon:1.5, crate:1, chest:1, door:3, tree:3, tomb:1};   // 地形物件高出地面幾層；角色算 1 層
 // 多格的（10-21，SRD）：攻擊者挑自己身體的任一格、對準目標身體的任一格，取最有利（掩護最少）的那條線
 function coverOf(a, t){
   if(footOf(a)===1 && footOf(t)===1) return coverLine(a, t, a.x, a.y, t.x, t.y);
@@ -727,6 +728,7 @@ function hurt(t, n, type, src, hitSfx){
   if(t.hp===0 && !(t.side==="foe" ? t.dead : t.down)){
     if(t.side==="foe" && t.type==="death_knight") dkRepel(t, at);   // 死亡騎士不會死、不會被敲暈（大爺 10-23）
     else if(t.side==="foe" && t.type==="chicken_demon") chickenRepel(t, at);   // 惡魔也是重要角色（失蹤的雞，10-23）
+    else if(t.side==="foe" && t.type==="vampire") graveVampireRepel(t, at);    // 女吸血鬼：委託、墓地同一隻，化成蝙蝠飛走（10-28）
     else if(t.side==="foe" && koApplies(src, t)){ t.dead = true; t.ko = true; t.koBy = src.id; t.koType = type; t.deadAt = impactAt(); blog(KO_UI.knocked(t.name, src.name), "kill"); sfx("down", at + 250); }
     else if(t.side==="foe"){ t.dead = true; t.deadAt = impactAt(); blog(`${t.name}倒下了！`, "kill"); sfx("poof", at + 300);
       if(src && !B().units.some(v=>v.side==="foe" && !v.dead && !v.down && !v.fled)) funNote("lastKill", src, {t:t.name}); }

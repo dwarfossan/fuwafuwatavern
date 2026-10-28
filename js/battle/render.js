@@ -685,6 +685,14 @@ function blockSVG(o){
   if(o.kind==="brazier"){ const p=iso(o.x,o.y), cx=p.x, cy=p.y+TH/2;
     return `<g class="brazier" transform="translate(${cx} ${cy})"><path d="M-10 0 L-6 -26 M10 0 L6 -26 M0 2 V-26" stroke="#2a2630" stroke-width="4" stroke-linecap="round"/><path d="M-20 -30 Q0 -20 20 -30 L16 -40 L-16 -40Z" fill="#5a544c" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>
       <path class="brazier-flame" d="M-12 -40 Q-14 -56 -4 -64 Q-6 -52 2 -50 Q2 -66 10 -72 Q8 -58 14 -52 Q16 -44 12 -40Z" fill="#f2a13a" stroke="#2a2630" stroke-width="2.2" stroke-linejoin="round"/><path d="M-4 -42 Q-4 -52 2 -56 Q2 -48 6 -46 Q8 -42 6 -40Z" fill="#ffe08a"/></g>`; }
+  // 墓碑（墓地，10-28，外觀暫定：香香）：圓頂石碑＋十字刻痕＋底座，位置照座標錯開一點，不會排得像閱兵
+  if(o.kind==="tomb"){ const p=iso(o.x,o.y), cx=p.x+((o.x*7+o.y*3)%9-4), cy=p.y+TH/2, lean=((o.x*5+o.y)%5-2)*2;
+    return `<g class="tomb" transform="translate(${cx} ${cy})"><ellipse cx="0" cy="2" rx="26" ry="9" fill="#000" opacity=".22"/>
+      <path d="M-22 4 L22 4 L18 -6 L-18 -6Z" fill="#6f6a66" stroke="#2a2630" stroke-width="2.5" stroke-linejoin="round"/>
+      <g transform="rotate(${lean} 0 -6)"><path d="M-15 -6 L-15 -50 Q0 -66 15 -50 L15 -6Z" fill="#9aa1a6" stroke="#2a2630" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M15 -50 Q0 -66 -15 -50 L-11 -50 Q0 -61 11 -50Z" fill="#b6bcc0"/>
+      <path d="M0 -46 V-26 M-7 -39 H7" stroke="#5e6468" stroke-width="3" stroke-linecap="round"/>
+      <path d="M-9 -18 Q-2 -14 6 -19" stroke="#6f9960" stroke-width="3" fill="none" stroke-linecap="round"/></g></g>`; }
   if(o.kind==="oil")return o.found?`<polygon class="ground-oil" points="${diamond(o.x,o.y)}" fill="#665954" stroke="#2a2630" stroke-width="2"/>`:"";
   const p = iso(o.x,o.y), cx = p.x, cy = p.y+TH/2;
   const box = (h, top, side1, side2) =>
