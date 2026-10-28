@@ -4,6 +4,7 @@
    - arriveQuest 呼叫 dkDemandDue：第一次帶著韁繩去接「黑馬騎士」→ 先演討馬（劇情 dkDemand）→ startDkQuest 開打 */
 const partyHasReins = () => CRITTERS.some(c=>invItems(c.id).some(it=>it && it.summon==="dk_horse"));
 function dkRepel(t, at){
+  markMet("deathKnight");   // 三線交會的伏筆閒聊（10-28）
   t.dead = true; t.repelled = true; t.deadAt = impactAt();
   blog(DEATH_KNIGHT.repelLog.replace("{name}", t.name), "kill"); sfx("poof", at + 300); fxHit(t, "spark");
   say(t, DEATH_KNIGHT.repelSay, 200);

@@ -12,14 +12,22 @@ FOREST.stageOf = () => { const s = mainStage(); return ["investigate","met","bos
 const forestLocked = () => !mainStage();
 // 公會那邊要不要紅 ❗
 const guildMainTalk = () => { const s = mainStage(); return !s && state.townFounded && state.innNightDone ? "start" : s==="report" ? "report" : null; };
-function mainTalkLines(kind){ return kind==="report" ? FOREST.main.report : [...FOREST.main.guild, ...GOBLIN_HUNT.guildAdd]; }   // 接著貼出驅除哥布林（10-28）
-function mainTalkDone(kind){ if(kind==="start" && !mainStage()) setMainStage("investigate"); if(kind==="report" && mainStage()==="report") setMainStage("done"); }
+function mainTalkLines(kind){ return kind==="report" ? FOREST.main.report : [...FOREST.main.guild, ...CAVE.main.lead, ...GOBLIN_HUNT.guildAdd]; }   // 三條線索一起講：森林、洞窟、驅除哥布林（10-28）
+function mainTalkDone(kind){ if(kind==="start" && !mainStage()){ setMainStage("investigate"); if(!caveStage()) setCaveStage(dungeonState("cave").cleared ? "report" : "investigate"); } if(kind==="report" && mainStage()==="report") setMainStage("done"); }
 // 大地圖：主線的地點上掛紅 ❗（點了就跟點地點一樣）
 function mainPinsSVG(){
-  if(typeof state==="undefined" || !["investigate","met"].includes(mainStage())) return "";
-  const l = WORLD.locations.find(x=>x.id==="forest");
-  return `<g class="quest-pin main-pin" data-loc="forest" transform="translate(${l.x} ${l.y-120})" role="button" aria-label="主線：森林">${pinBubbleSVG("main")}<circle r="30" cy="-36" fill="transparent"/></g>`;
+  if(typeof state==="undefined") return "";
+  const pin = (id, name) => { const l = WORLD.locations.find(x=>x.id===id);
+    return `<g class="quest-pin main-pin" data-loc="${id}" transform="translate(${l.x} ${l.y-120})" role="button" aria-label="主線：${name}">${pinBubbleSVG("main")}<circle r="30" cy="-36" fill="transparent"/></g>`; };
+  return (["investigate","met"].includes(mainStage()) ? pin("forest","森林") : "") + (caveStage()==="investigate" ? pin("cave","洞窟") : "");
 }
+// 洞窟主線（10-28）state.main.cave：(沒有) → investigate（大地圖洞窟紅 ❗）→ 打倒紅龍幼龍 → report（公會紅 ❗「回報洞窟的事」）→ done
+//   洞窟本身照舊一開始就進得去；還沒聽艾妲講就先打完的，聽完直接是 report
+const caveStage = () => (state.main ||= {}).cave || null;
+const setCaveStage = s => { (state.main ||= {}).cave = s; };
+const caveReportDue = () => caveStage()==="report";
+function caveMainCleared(){ if(caveStage()==="investigate") setCaveStage("report"); }
+function caveReportDone(){ if(caveStage()==="report") setCaveStage("done"); }
 // 打完（forestWin 呼叫）：照階段往下走、接劇情
 FOREST.onWin = b => {
   const s = mainStage();

@@ -206,7 +206,7 @@ const MONSTER_LOOK = (()=>{
  // 奶油色的肚子（衣服會蓋住大半，露出來的部分跟立繪一樣）
  const belly = `<path d="M60 90 Q70 84 80 90 Q84 110 80 128 Q70 132 60 128 Q56 110 60 90Z" fill="${C}" stroke="none"/>`;
  MONSTER_LOOK.kobold = {face:front, head:side(false), headHurt:side(true), body:R, skin:R, feet:RD, belly:false, extra:belly, tail, anchor:{head:[52,28,1], neck:[70,95]}};
- // 狗頭人法師（10-28 照「狗頭人薩滿」立繪）：破爛的紫袍（照哥布林巫師的做法畫在背後，下襬破成鋸齒、帶咖啡色破布條）、
+ // 狗頭人薩滿（id kobold_mage，10-28 照立繪）：身上穿裝備「狗頭人薩滿袍」（js/art/doll.js）；背後再垂一片破爛紫袍（下襬破成鋸齒、帶咖啡色破布條）、
  //   角上綁羽毛（青綠、白）和一串木珠；拿的奧術法杖是裝備
  const deco=(svg,art)=>svg.replace(/<\/svg>\s*$/,art+"</svg>"), k=MONSTER_LOOK.kobold;
  const feathers=(x,y,k=1.35)=>`<g stroke="${INK}" stroke-width="2" stroke-linejoin="round" transform="translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})"><path d="M${x} ${y} L${x-2} ${y+10}" fill="none"/><circle cx="${x-1}" cy="${y+4}" r="2" fill="#8a5a36"/><circle cx="${x-2}" cy="${y+8}" r="2" fill="#8a5a36"/>

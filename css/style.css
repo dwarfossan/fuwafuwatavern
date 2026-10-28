@@ -1470,4 +1470,6 @@ body.image-boot{background:#000}
 .actor.hen_white,.actor.hen_brown,.actor.rooster,.actor.demon_chicken{aspect-ratio:1;height:62%;bottom:8%}
 .actor.demon{aspect-ratio:1536/1024;height:60%;bottom:26%}
 .actor.auntie{aspect-ratio:1;height:100%;bottom:-6%}
+/* 狗頭人薩滿（10-28 洞窟打完的街角傳教，全身立繪 1024×1536；大小暫定） */
+.actor.kobold_shaman{aspect-ratio:1024/1536;height:84%;bottom:0}
 

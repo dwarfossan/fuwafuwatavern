@@ -80,7 +80,7 @@ function huntBattle(q){
   // 營地寶箱＝贓物：金幣＋搶來的道具
   const chest = d.blocks.find(o=>o.kind==="chest"), r = mapRng(q.seed ^ 0x5bd1e995);
   if(chest){
-    const pool = ITEMS.filter(it=>G.lootCats.includes(it.cat));
+    const pool = ITEMS.filter(it=>G.lootCats.includes(it.cat) && !it.contains);   // 只抽單件，不抽套組（大爺 10-28）
     chest.contents = Array.from({length:G.loot.items}, ()=>({...pool[Math.floor(r()*pool.length)]}));
     chest.gold = G.loot.gold[0] + Math.floor(r()*(G.loot.gold[1] - G.loot.gold[0] + 1));
     chest.goldLog = G.lootLog;

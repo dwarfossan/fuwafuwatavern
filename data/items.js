@@ -136,5 +136,9 @@ const ITEMS = [
 , {type:"gear",n:"火藥桶",en:"Powder Barrel",cat:"冒險用品",cost:0,wt:20,noShop:true,placeable:"powderBarrel",art:"powder_barrel",desc:"可放在相鄰空格。攻擊破壞或遇火焰會引爆：所在格與周圍八格，2d6 火焰傷害，敏捷 DC13 成功減半，敵我皆傷。戰棋收納與放置各用一個主要動作。"}
 , {type:"gear",n:"雞蛋會單",en:"Egg Club Ledger",cat:"冒險用品",cost:0.01,wt:0,noShop:true,desc:"雞群標會的會單。每一期得標的都是「咕咕三號」。沒有任何用處，但很有紀念價值。（失蹤的雞，10-23）"}
 , {type:"gear",n:"骷髏戰馬的韁繩",en:"Skeletal Reins",cat:"冒險用品",cost:0,wt:1,noShop:true,summon:"dk_horse",desc:"死亡騎士的韁繩。隊上有人帶著，戰鬥中誰拉一下（主要動作），骷髏戰馬就會從地上冒出來。牠被打倒會散成骨頭，長休後拼回來。"}
+, {type:"gear",n:"龍神傳單",en:"Dragon God Flyer",cat:"冒險用品",cost:0.01,wt:0,noShop:true,desc:"狗頭人塞過來的傳教傳單。畫上的紅龍比本人帥很多，背面寫著「入教只要三個銅板」。沒有任何用處。"}   // 三線交會：洞窟打完的狗頭人傳教（10-28，香香草稿）
+// 狗頭人薩滿袍（10-28，照大爺給的狗頭人薩滿立繪）：破爛紫袍＋骨頭牙齒項鍊；AC 跟沒穿一樣，數值暫定（香香）、商店不賣
+// ↓ 新東西一律加在最後面：id 是照順序編的（"it"＋位置），插在中間會讓舊存檔裡的東西全部錯位（10-28）
+, {type:"armor",n:"狗頭人薩滿袍",en:"Kobold Shaman Robe",cat:"護甲",tier:"衣服",cost:0,wt:3,ac:10,dex:"full",cloth:true,noShop:true}
 ].map((it,i)=>({...it,id:"it"+i}));
 const CATS = ["簡易近戰","簡易遠程","軍用近戰","軍用遠程","護甲","盾牌","法器","道具","冒險用品"];

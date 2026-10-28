@@ -20,6 +20,7 @@ const SCENES = {
   chickenEggs: {get script(){return chickenEggsScript();}, bg:"forest", actors:["hen_brown","rooster"], back:null, next:["finishChickenEggs",CHICKEN.ui.back]},
   chickenEnd: {get script(){return chickenEndScript();}, bg:"town", actors:["auntie"], back:null, next:["finishChickenQuest",CHICKEN.ui.done]},
   dkDemand: {get script(){return dkDemandScript();}, bg:"road", actors:["dk_helmet"], back:null, next:["startDkQuest","戰鬥開始！"]},   // 死亡騎士討馬（10-23）
+  koboldPreach: {get script(){return preachScript();}, bg:"town", actors:["kobold_shaman"], back:null, next:["finishPreach",CROSSLINE.preach.done]},   // 三線交會：狗頭人傳教（10-28）
   huntMiss: {get script(){return huntMissScript();}, bg:"road", back:null, next:["finishHuntMiss",GOBLIN_HUNT.missNext]},   // 驅除哥布林撲空（10-28）
   orcEvent: {get script(){return orcEventScript();}, bg:"road", back:null, get next(){return orcEventNext();}},   // 獨眼獸人路上遇到（10-23）
   innRest: {script:INN_REST, bg:"town", back:null, next:["finishInnRest","隔天早上"]}   // 旅店長休 CG＋交換心得（10-10）

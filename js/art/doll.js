@@ -85,6 +85,15 @@ const ARMOR_ART = (()=>{
     // 衣服：破布衣（哥布林穿的），形狀跟紙娃娃身體一樣；麻繩腰帶、下襬破成鋸齒
     "破布衣": `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 L85 126 L79 133 L72 128 L65 134 L58 127 L49 130 Q42 110 50 86 Z" fill="#7a5a3c" stroke="${INK}" stroke-width="3.5"/>
       ${line("M49 112 Q70 119 91 112","#c9a86a",3.5)}`,
+    // 狗頭人薩滿袍（10-28，照大爺給的狗頭人薩滿立繪）：破爛的紫袍（下襬、袖口破成鋸齒，幾條咖啡色破布）、麻繩腰帶＋小皮袋、骨頭牙齒項鍊＋小鳥頭骨
+    "狗頭人薩滿袍": {
+      body: `<path d="M49 86 Q70 74 91 86 Q99 108 98 132 L91 127 L86 136 L79 128 L72 138 L65 128 L58 137 L52 128 L44 133 Q41 108 49 86 Z" fill="#5a3a74" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M84 120 L88 136 L80 130Z M52 118 L49 134 L56 129Z" fill="#7a5a3c" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M58 96 l3 3 m-3 0 l3 -3 M80 104 l3 3 m-3 0 l3 -3" stroke="#3e2852" stroke-width="1.6" fill="none"/>
+        ${line("M48 111 Q70 118 92 111","#b08a56",4)}<path d="M74 113 h8 v8 q-4 3 -8 0Z" fill="#8a5a36" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`,
+      neck: [[-12,-2],[-6,1.5],[6,1.5],[12,-2]].map(([x,y])=>`<path d="M${x-2.4} ${y-2}L${x+2.4} ${y-2}L${x} ${y+5}Z" fill="#fffbe8" stroke="${INK}" stroke-width="1.3"/>`).join("")
+        + `<path d="M-4 1 Q-5 -4 0 -4 Q6 -4 6 1 L9 3 L5 5 Q2 8 -2 6 Q-5 5 -4 1Z" fill="#f3ead2" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="1.5" cy="0" r="1.3" fill="${INK}"/>`
+    },
     // +1 薩滿袍（大爺 10-02）：紫袍＋骷髏頭飾＋牙齒項鍊，一整套
     "+1 薩滿袍": {
       body: `<path d="M50 86 Q70 74 90 86 Q98 110 92 128 Q70 140 48 128 Q42 110 50 86 Z" fill="#5e4a6e" stroke="${INK}" stroke-width="3.5"/>

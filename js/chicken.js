@@ -126,6 +126,7 @@ function chickenOnHurt(t){
 }
 // 惡魔打到 0 血：不死，化成黑煙飛走（算打倒）
 function chickenRepel(t, at){
+  markMet("demon");   // 三線交會的伏筆閒聊（10-28）
   t.dead = true; t.repelled = true; t.deadAt = impactAt();
   blog(CHICKEN.ui.repelLog.replace("{name}", t.name), "kill"); sfx("poof", at + 300); fxHit(t, "spark");
   say(t, CHICKEN.ui.repelSay, 200);

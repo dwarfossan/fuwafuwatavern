@@ -2,8 +2,8 @@
    地圖：一個字一格。進場在右邊，一路往左走到龍巢；整張是黑的（lighting:"dark"），入口有一點天光、火盆 F 會照亮周圍
      W 岩壁　. 地面　~ 地下河（過不去）　= 淺灘（踩石頭過）　S 塌方（看懂礦工筆記才挖得開，變碎石路）　F 火盆（光源）
      X 箱子　C 寶箱　t 陷阱（藏著）　N 礦工筆記　K 狗頭人的落石機關　A 龍語祭壇　H 龍的寶藏堆（調查點）
-   區域：A 入口 → B 蝙蝠洞（蝙蝠×2、史萊姆）→ C 廢棄礦工營地（筆記、陷阱）→ D 狗頭人窩（狗頭人×3＋狗頭人法師）
-         → 地下河（南邊淺灘繞路，或北邊塌方捷徑）→ E 龍語祭壇（狗頭人×2、落石機關）→ F 龍巢（紅龍幼龍、寶藏堆） */
+   區域：A 入口 → B 蝙蝠洞（蝙蝠×2、史萊姆）→ C 廢棄礦工營地（筆記、陷阱）→ D 狗頭人窩（狗頭人、矛兵、弓手＋狗頭人薩滿）
+         → 地下河（南邊淺灘繞路，或北邊塌方捷徑）→ E 龍語祭壇（狗頭人矛兵＋弓手、落石機關）→ F 龍巢（紅龍幼龍、寶藏堆） */
 const CAVE = {
   draft:"香香", name:"洞窟", theme:"cave", lighting:"dark", boss:"red_wyrmling",
   lights:[{x:38, y:13, bright:3, dim:6}],   // 入口的天光（火盆 F 另外自動算）
@@ -39,8 +39,8 @@ const CAVE = {
   party:[[37,13],[38,13],[37,14],[38,14]],
   foes:[
     {type:"bat", x:28, y:11, squad:1}, {type:"bat", x:27, y:14, squad:1}, {type:"slime", x:28, y:13, squad:1},
-    {type:"kobold", x:16, y:10, squad:2}, {type:"kobold", x:17, y:13, squad:2}, {type:"kobold", x:15, y:14, squad:2}, {type:"kobold_mage", x:15, y:12, squad:2},
-    {type:"kobold", x:8, y:13, squad:3}, {type:"kobold", x:9, y:15, squad:3},
+    {type:"kobold_spear", x:16, y:10, squad:2}, {type:"kobold_archer", x:17, y:13, squad:2}, {type:"kobold", x:15, y:14, squad:2}, {type:"kobold_mage", x:15, y:12, squad:2},
+    {type:"kobold_spear", x:8, y:13, squad:3}, {type:"kobold_archer", x:9, y:15, squad:3},
     {type:"red_wyrmling", x:2, y:3, squad:4, boss:true}
   ],
   again:[
@@ -63,6 +63,13 @@ const CAVE = {
   againIntro:[["fox","龍走了以後，洞裡只剩蝙蝠跟蜘蛛了。"]],
   bossShout:"（紅龍睜開眼睛，噴出一口煙）「……狗頭人呢？誰准你們進來的？」",
   win:[["tiger","我們打贏龍了！！"],["fox","……雖然只是小龍。"],["raccoon","寶藏。"]],
-  cleared:"打倒了紅龍幼龍，洞窟安靜下來了。"
+  cleared:"打倒了紅龍幼龍，洞窟安靜下來了。",
+  // 洞窟主線開頭與回報（大爺 10-28：三條線一開始都能選；開頭＝狗頭人半夜敲鑼吵礦工）。艾妲說的，香香草稿
+  main:{
+    draft:"香香",
+    lead:["還有一件。洞窟那邊的礦工來抱怨，說每天半夜都有東西在洞裡敲鑼，吵得他們睡不著。","……一邊敲還一邊唱歌，唱得很難聽。礦工說，聽起來像在拜什麼東西。","有空的話去看看是誰在吵。礦工會很感激。"],
+    report:["狗頭人在洞裡拜一隻小紅龍？……然後你們把牠們的神打倒了。","礦工說昨晚終於睡了個好覺，要我跟你們道謝。","……不過狗頭人那邊，大概會很難過吧。沒了神，牠們要拜什麼？"],
+    reportButton:"❗ 回報洞窟的事"
+  }
 };
 DUNGEONS.cave = CAVE;

@@ -16,7 +16,7 @@ const br=await chromium.launch();try{
  for(let i=0;i<n;i++)await p.locator('#townTalkNext').click();
  assert.equal(await p.evaluate(()=>mainStage()),'investigate');assert.equal(await p.locator('#townMainTalk').count(),0);
  // 大地圖：森林紅 ❗
- assert.equal(await p.evaluate(()=>{state.page='map';render();return document.querySelectorAll('.main-pin').length;}),1,'森林紅 ❗');
+ assert.equal(await p.evaluate(()=>{state.page='map';render();return document.querySelectorAll('.main-pin[data-loc="forest"]').length;}),1,'森林紅 ❗（洞窟另外也有一個，10-28）');
  // 第一次：霧擋著溪
  const reach=()=>p.evaluate(()=>{const b=B(),fox=b.units.find(u=>u.id==='fox'),paths=reachable({...fox,x:37,y:13},100000);const can=(x,y)=>[...paths.keys()].some(k=>{const [a,c]=k.split(',').map(Number);return Math.max(Math.abs(a-x),Math.abs(c-y))<=1;});return {D:can(17,12),E:can(6,14),F:can(2,2)};});
  await p.evaluate(()=>{state.location='forest';enterWorldLocation();});

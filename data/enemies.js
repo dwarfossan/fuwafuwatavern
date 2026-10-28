@@ -94,10 +94,16 @@ const ENEMIES = {
     special:"nimble",scores:{STR:8,DEX:14,CON:10,INT:10,WIS:8,CHA:14}},
   forest_druid:{size:"中型",detectRange:7,name:"林間德魯伊",look:"forest_druid",gear:["治癒法書","聖徽"],spells:["bless"],hp:27,ac:11,speed:6,xp:450,srd:true,
     scores:{STR:10,DEX:12,CON:13,INT:12,WIS:15,CHA:11}},
-  // ===== 洞窟（大爺 10-21）：狗頭人照 SRD；狗頭人法師＝SRD 狗頭人拿奧術法杖（會魔法飛彈）；頭目紅龍幼龍照 SRD（飛行先不做；咬的火焰追加先不做）。數值暫定：香香 =====
+  // ===== 洞窟（大爺 10-21）：狗頭人照 SRD；狗頭人薩滿（原狗頭人法師）＝SRD 狗頭人拿奧術法杖（會魔法飛彈）；頭目紅龍幼龍照 SRD（飛行先不做；咬的火焰追加先不做）。數值暫定：香香 =====
   kobold:{size:"小型",detectRange:6,name:"狗頭人",look:"kobold",gear:["匕首","破布衣"],hp:5,ac:12,speed:6,xp:25,stars:1,srd:true,
     passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},
-  kobold_mage:{size:"小型",detectRange:6,name:"狗頭人法師",look:"kobold_mage",gear:["奧術法杖","破布衣"],spells:["magic_missile"],hp:9,ac:12,speed:6,xp:100,
+  // 狗頭人弓手、矛兵（大爺 10-28 給立繪）：SRD 狗頭人換武器（短弓＋箭袋／矛＋盾），數值暫定：香香
+  kobold_archer:{size:"小型",detectRange:7,name:"狗頭人弓手",look:"kobold",gear:["短弓","箭袋","破布衣"],hp:5,ac:12,speed:6,xp:25,srd:true,
+    passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},
+  kobold_spear:{size:"小型",detectRange:6,name:"狗頭人矛兵",look:"kobold",shieldArt:"round_shield",gear:["矛","盾牌","破布衣"],hp:5,ac:14,speed:6,xp:25,srd:true,
+    passives:["pack_tactics","sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:9,INT:8,WIS:7,CHA:8}},
+  // 狗頭人薩滿（10-28 從「狗頭人法師」改名，id 照舊 kobold_mage）：照立繪穿紫色的狗頭人薩滿袍
+  kobold_mage:{size:"小型",detectRange:6,name:"狗頭人薩滿",look:"kobold_mage",gear:["奧術法杖","狗頭人薩滿袍"],spells:["magic_missile"],hp:9,ac:12,speed:6,xp:100,
     passives:["sun_sensitive","darkvision"],scores:{STR:7,DEX:15,CON:10,INT:14,WIS:9,CHA:8}},
   red_wyrmling:{size:"中型",detectRange:8,name:"紅龍幼龍",look:"dragon",gear:[],hp:75,ac:17,speed:6,xp:1100,stars:3,srd:true,
     natural:{name:"咬",dmg:"1d10 穿刺",stat:"STR"},special:"wyrm_breath",damageImmunities:["火焰"],passives:["darkvision"],

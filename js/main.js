@@ -268,6 +268,7 @@ function bind(){
   ["acceptChickenQuest","startChickenFight","finishChickenEggs","finishChickenQuest"].forEach(id=>$(id)?.addEventListener("click",window[id]));   // 失蹤的雞（10-23）
   $("resumeOrcTravel")?.addEventListener("click",resumeOrcTravel);
   $("finishHuntMiss")?.addEventListener("click",finishHuntMiss);   // 驅除哥布林撲空（10-28）
+  $("finishPreach")?.addEventListener("click",finishPreach);       // 狗頭人傳教（10-28）
   document.querySelectorAll("[data-stab]").forEach(b=>b.addEventListener("click", ()=>{state.shopActive=+b.dataset.stab;render()}));
   if(state.page==="shop"){bindShop();bindSeal();}
   document.querySelectorAll("[data-magic-buy]").forEach(el=>el.addEventListener("click",()=>buyMagic(el.dataset.magicBuy)));
