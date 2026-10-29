@@ -20,7 +20,8 @@ const br=await chromium.launch();try{
  await p.evaluate(()=>{state.page='map';state.mapSel='town';render();});
  const shown=()=>p.evaluate(()=>state.quests.list.filter(q=>q.accepted&&!q.done&&(isNight()||!questNightOnly(questTpl(q)))).length);   // 10-29：不死的委託白天不出現在地圖上
  assert.equal(await p.locator('.quest-pin').count(),await shown());
- const q0=await p.evaluate(()=>state.quests.list.find(q=>!questNightOnly(questTpl(q))));   // 白天看得到的那個（10-29）
+ // 白天看得到的那個；三個都是晚上才出沒的就換成晚上（10-29：抽到哪些委託會隨模板數量變）
+ const q0=await p.evaluate(()=>{let q=state.quests.list.find(q=>!questNightOnly(questTpl(q)));if(!q){state.time={night:true,ticks:3};render();q=state.quests.list[0];}return q;});
  await p.locator(`.quest-pin[data-quest="${q0.id}"]`).dispatchEvent('click');
  assert.equal(await p.locator('#questGo').count(),1);
  await shot(p,'quest-map.png');

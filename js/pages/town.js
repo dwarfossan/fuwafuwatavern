@@ -17,7 +17,7 @@ function townEventHint(e){return `<span class="town-hint" role="tooltip">${townT
 function townEventBubbleHTML(){
  return townEvents().filter(e=>!e.place).map((e,i)=>`<button class="town-building town-event-bubble" data-town-event="${i}" style="left:${Math.max(12,Math.min(70,Number(e.x)||50))}%;top:${Math.max(16,Math.min(78,Number(e.y)||70))}%" aria-label="${townText(e.location+'／'+e.person+'／'+e.action)}"><b>${townText(e.location)}</b><span>${townText(e.person)}／${townText(e.action)}</span>${townEventSymbol(e)}${townEventHint(e)}</button>`).join('');
 }
-function townShopEventHTML(place){if(place==='guild'&&(guildMainTalk()||huntGuildNotice()||caveReportDue()||graveGuildDue()))return `<span class="town-event-symbol" aria-label="主線">${obsBubbleHTML("main")}</span>`;   // 主線紅 ❗（10-22）
+function townShopEventHTML(place){if(place==='guild'&&(guildMainTalk()||huntGuildNotice()||caveReportDue()||graveGuildDue()||druidDue()))return `<span class="town-event-symbol" aria-label="主線">${obsBubbleHTML("main")}</span>`;   // 主線紅 ❗（10-22）
  if(place==='guild'&&orcGuildNotice())return `<span class="town-event-symbol" aria-label="支線">${obsBubbleHTML("side")}</span>`;   // 獨眼的通緝單、賞金（10-23）
  const e=townEvents().find(e=>e.place===place);return e?townEventSymbol(e)+townEventHint(e):'';}
 function renderTown(){
@@ -37,8 +37,9 @@ function townTalkButtons(p){
   const mk = p.id==='guild' && guildMainTalk();   // 主線（10-22）
   const hk = p.id==='guild' && huntReportDue();   // 驅除哥布林回報（10-28）
   const ck = p.id==='guild' && caveReportDue();   // 洞窟回報（10-28）
-  const gk = p.id==='guild' && graveGuildDue();   // 舊存檔：墓地鬧鬼的線索（10-28）
-  return `<div class="town-talk-topics">${mk?`<button class="btn main-talk" id="townMainTalk">${mk==='report'?FOREST.main.reportButton:FOREST.main.guildButton}</button>`:''}${hk?`<button class="btn main-talk" id="townHuntTalk">${GOBLIN_HUNT.reportButton}</button>`:''}${ck?`<button class="btn main-talk" id="townCaveTalk">${CAVE.main.reportButton}</button>`:''}${gk?`<button class="btn main-talk" id="townGraveTalk">${GRAVE.guildButton}</button>`:''}<button class="btn" id="townAction">${p.action}</button><button class="btn ghost" id="townTalk">對話</button></div>`;
+  const gk = p.id==='guild' && graveGuildDue();
+  const dk = p.id==='guild' && druidDue();   // 德魯伊的抗議（10-29）   // 舊存檔：墓地鬧鬼的線索（10-28）
+  return `<div class="town-talk-topics">${mk?`<button class="btn main-talk" id="townMainTalk">${mk==='report'?FOREST.main.reportButton:FOREST.main.guildButton}</button>`:''}${hk?`<button class="btn main-talk" id="townHuntTalk">${GOBLIN_HUNT.reportButton}</button>`:''}${ck?`<button class="btn main-talk" id="townCaveTalk">${CAVE.main.reportButton}</button>`:''}${gk?`<button class="btn main-talk" id="townGraveTalk">${GRAVE.guildButton}</button>`:''}${dk?`<button class="btn main-talk" id="townDruidTalk">${DRUID_END.guildButton}</button>`:''}<button class="btn" id="townAction">${p.action}</button><button class="btn ghost" id="townTalk">對話</button></div>`;
 }
 function openTownPlace(id){state.townTalk=null;if(!TOWN_PLACES.some(p=>p.id===id))return;if(townClosed(id)){state.townClosedMsg=DAYTIME.ui.closed.replace('{name}',TOWN_PLACES.find(p=>p.id===id).name);sfx('miss');render();return;}   // 晚上打烊（10-29）
  state.townClosedMsg=null;state.townPlace=id;state.townPanel=id==='inn'&&innFirstNight()&&state.townRest?'rest':null;state.restMessage=null;render();window.scrollTo(0,0);}
@@ -52,6 +53,7 @@ function bindTown(){
  document.getElementById('townHuntTalk')?.addEventListener('click',()=>{if(!huntReportDue())return;state.townTalk={place:'guild',topic:'main',hunt:true,lines:huntReportLines(),i:0};render();});   // 驅除哥布林回報（10-28）
  document.getElementById('townCaveTalk')?.addEventListener('click',()=>{if(!caveReportDue())return;state.townTalk={place:'guild',topic:'main',cave:true,lines:CAVE.main.report,i:0};render();});   // 洞窟回報（10-28）
  document.getElementById('townGraveTalk')?.addEventListener('click',()=>{if(!graveGuildDue())return;state.townTalk={place:'guild',topic:'main',grave:true,lines:GRAVE.lead,i:0};render();});   // 墓地鬧鬼（10-28）
+ document.getElementById('townDruidTalk')?.addEventListener('click',startDruidProtest);   // 德魯伊的抗議（10-29）
  document.getElementById('townTalkNext')?.addEventListener('click',()=>{const t=state.townTalk;if(!t?.lines)return;if(t.i<t.lines.length-1)t.i++;else{if(t.main){mainTalkDone(t.main);state.townTalk=null;render();return;}if(t.hunt){huntReportDone();state.townTalk=null;render();return;}if(t.cave){caveReportDone();state.townTalk=null;render();return;}if(t.grave){graveLeadDone();state.townTalk=null;render();return;}t.lines=null;t.topic=null;}render();});
  if(state.townPlace==='items'&&!state.supplierSeen)loadEntryImage(PORTRAITS.merchant.base).catch(()=>{});
  document.querySelectorAll('[data-town-place]').forEach(el=>el.addEventListener('click',e=>{if(e.pointerType==='touch'&&el.querySelector('.town-hint')&&!el.classList.contains('hint-open')){el.classList.add('hint-open');return;}openTownPlace(el.dataset.townPlace);}));

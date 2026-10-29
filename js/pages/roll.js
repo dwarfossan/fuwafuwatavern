@@ -84,7 +84,7 @@ const WHO = id => id==="narr" ? {name:"", color:"var(--dim)"} :
                   id==="auntie" ? {name:"養雞的大嬸", color:"#c9b7a6"} :
                   id==="kobold_shaman" ? {name:"狗頭人薩滿", color:"#d4473a"} :
                   id==="lady" ? {name:"紅禮服的貴婦", color:"#d9463a"} : id==="dragon_lady" ? {name:"紅龍夫人", color:"#d9463a"} : id==="wyrmling" ? {name:"紅龍幼龍", color:"#e8a33a"} :   // 紅龍夫人（10-28，顏色暫定）
-                  id==="vampire" ? {name:"女吸血鬼", color:"#c0505e"} : id==="noblewoman" ? {name:"女貴族", color:"#d9b45a"} :   // 墓地線（10-28，顏色暫定）
+                  id==="vampire" ? {name:"女吸血鬼", color:"#c0505e"} : id==="noblewoman" ? {name:"女貴族芙蘿拉", color:"#d9b45a"} :   // 墓地線（10-28，顏色暫定）
                   Object.values(GRAVE.residents).some(r=>r.portrait===id) ? {name:Object.values(GRAVE.residents).find(r=>r.portrait===id).name, color:"#c9b7a6"} :   // 狗頭人傳教（10-28，顏色暫定）   // 失蹤的雞（10-23，顏色暫定）
                   id==="hen_white" ? {name:"白雞", color:"#f4efe4"} : id==="hen_brown" ? {name:"棕雞", color:"#d18a4a"} : id==="rooster" ? {name:"公雞", color:"#e08a2c"} :
                   id==="demon_chicken" ? {name:"會頭（異界雞）", color:"#d94a4a"} : id==="demon" ? {name:"惡魔", color:"#d94a4a"} :   // 10-22   // 紅髮（10-03，顏色暫定）

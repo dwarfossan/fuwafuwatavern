@@ -40,6 +40,7 @@ function enterDungeon(id){
   state.page = "battle"; state.scout = null; startBattle("quest", false, "explore"); render(); window.scrollTo(0,0);
   const D = DUNGEONS[id], S = dungeonStage(id), lines = S ? S.intro : (D.stageOf ? true : dungeonState(id).cleared) ? D.againIntro : D.intro;
   (lines||[]).forEach(([who, text], i)=>{ const u = B().units.find(v=>v.id===who); if(u) say(u, text, 500 + i*1700); });
+  druidForestGift(id);   // 叫德魯伊自己收拾之後：偶爾撿到她留的藥水（10-29）
   if(S?.combat){ const e = B().units.find(u=>u.side==="foe"); if(e) enterExploreCombat(e.id, false); }   // 一進去就開打（撞見之後的頭目戰）
 }
 const enterForest = () => enterDungeon("forest");
@@ -64,6 +65,7 @@ function dungeonAfterClue(){ const b = B(), D = dungeonOf(b); if(D && D.onClue) 
 // 開戰（enterExploreCombat／增援 呼叫）：talker 喊話、打頭目時調查得到的好處
 function forestCombatStart(){
   huntCombatStart();   // 驅除哥布林：帶頭的喊（10-28，開戰／增援都經過這裡）
+  graveAfterQuestShout();   // 臨檢站、度假村的客訴（10-29）
   graveQuestShout();   // 度假村蓋了以後，委託裡的女吸血鬼多嗆一句（10-28）
   const b = B(), D = dungeonOf(b); if(!D) return;
   const act = b.units.filter(u=>u.side==="foe" && u.combatActive && !u.dead), st = dungeonState(b.def.dungeon);

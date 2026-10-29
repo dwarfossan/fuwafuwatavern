@@ -27,9 +27,10 @@ function questFoeText(t){
   const n = {}; t.foes.forEach(f=>{ const name = ENEMIES[f].name; n[name] = (n[name]||0) + 1; });
   return Object.entries(n).map(([k,v])=>v>1?`${k} ×${v}`:k).join("、");
 }
-function questRewardText(stars){
+const questGold = (stars, t) => Math.round(QUEST_REWARD[stars].gold * (t?.goldMul || 1));   // 度假村的客訴打九折（10-29）
+function questRewardText(stars, t){
   const rw = QUEST_REWARD[stars];
-  return QUEST_UI.rewardText.replace("{g}", rw.gold) + (rw.magic>=1 ? QUEST_UI.magic : rw.magic>0 ? QUEST_UI.magicChance.replace("{p}", Math.round(rw.magic*100)) : "");
+  return QUEST_UI.rewardText.replace("{g}", questGold(stars, t)) + (rw.magic>=1 ? QUEST_UI.magic : rw.magic>0 ? QUEST_UI.magicChance.replace("{p}", Math.round(rw.magic*100)) : "");
 }
 // ---------- 公會委託板 ----------
 function questBoardHTML(){
@@ -37,7 +38,7 @@ function questBoardHTML(){
   return `<div class="quest-board"><h3>${QUEST_UI.board} <small>${QUEST_UI.day.replace("{d}", Q.day)}</small></h3><p class="quest-note">${QUEST_UI.refresh}</p>${huntCardHTML()}${orcWantedHTML()}${Q.list.map(q=>{
     const t = questTpl(q);
     const state_ = q.done ? `<span class="quest-state done">${QUEST_UI.done}</span>` : q.accepted ? `<span class="quest-state">${QUEST_UI.accepted}</span>` : `<button class="btn small" data-quest-accept="${q.id}">${QUEST_UI.accept}</button>`;
-    return `<div class="quest-card${q.done?" done":""}" data-quest-card="${q.id}"><div class="quest-top"><b>${t.title}</b><span class="quest-stars" aria-label="${q.stars} 星">${questStars(q.stars)}</span></div><p>${t.text}${questNightOnly(t)?`<b class="night-only">${DAYTIME.ui.nightOnly}</b>`:""}</p><small>${QUEST_UI.client}：${t.client} · ${QUEST_UI.foes}：${questFoeText(t)}</small><small>${QUEST_UI.reward}：${questRewardText(q.stars)}</small>${state_}</div>`;
+    return `<div class="quest-card${q.done?" done":""}" data-quest-card="${q.id}"><div class="quest-top"><b>${t.title}</b><span class="quest-stars" aria-label="${q.stars} 星">${questStars(q.stars)}</span></div><p>${t.text}${questNightOnly(t)?`<b class="night-only">${DAYTIME.ui.nightOnly}</b>`:""}</p><small>${QUEST_UI.client}：${t.client} · ${QUEST_UI.foes}：${questFoeText(t)}</small><small>${QUEST_UI.reward}：${questRewardText(q.stars, t)}</small>${state_}</div>`;
   }).join("")}</div>`;
 }
 function bindQuestBoard(){
@@ -97,7 +98,7 @@ function arriveQuest(tr){
 // 打贏（checkResult 呼叫）：報酬當場給，勝利畫面顯示
 function grantQuestReward(){
   const b = B(); if(!b?.def.quest || b.questReward) return;
-  const rw = b.def.noReward ? {gold:0, magic:0} : QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(isPcCritter), each = Math.floor(rw.gold / pcs.length);   // 森林打完再來：沒有報酬（10-21）
+  const rw = b.def.noReward ? {gold:0, magic:0} : QUEST_REWARD[b.def.questStars] || QUEST_REWARD[1], pcs = b.units.filter(isPcCritter), qt = questById(b.def.quest), each = Math.floor((b.def.noReward ? 0 : questGold(b.def.questStars in QUEST_REWARD ? b.def.questStars : 1, qt && questTpl(qt))) / pcs.length);   // 森林打完再來：沒有報酬（10-21）
   pcs.forEach(u=>{ state.gold[u.id] = (state.gold[u.id]||0) + each*GP; });
   const out = {each, item:null, who:null};
   if(rw.magic>0 && Math.random() < rw.magic){

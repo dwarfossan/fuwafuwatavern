@@ -236,6 +236,11 @@ Object.assign(GRAVE, {
     [{who:"vampire", text:"老祖宗們想辦個慶祝會，問你們要不要來。", on:"vampire", face:"smile"},
      {who:"raccoon", text:"……要穿什麼？", mood:"normal", on:"vampire", face:"smile"},
      {who:"vampire", text:"隨便。他們大部分只穿骨頭。", on:"vampire", face:"sly"}]],
-  resortShout:"（女吸血鬼瞪著毛毛們）「蓋度假村的幫兇……今天別想走！」"
+  resortShout:"（女吸血鬼瞪著毛毛們）「蓋度假村的幫兇……今天別想走！」",
+  // 結局之後的每日委託（10-29，data/quests.js 的 grave）：開戰喊話
+  afterQuestShout:{
+    noble_revenge:{type:"guard_captain", text:"小姐說了，抓到毛球的，年終多發半個月！……上次說的那半個月也還沒發。"},
+    resort_haunt:{type:"ghost", text:"我的墳……我的墳上面……怎麼蓋了一座泳池……"}
+  }
 });
 DUNGEONS.graveyard = GRAVE;

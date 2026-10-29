@@ -131,11 +131,17 @@ const graveMapArt = id => id==="graveyard" && graveStage()==="resort" ? GRAVE.re
 const graveMapName = (id, name) => id==="graveyard" && graveStage()==="resort" ? GRAVE.resort.name : name;
 const graveMapDesc = (id, desc) => id==="graveyard" && graveStage()==="resort" ? GRAVE.resort.desc : desc;
 // 每日委託「夜裡的貴婦」：抗議結束＝不再出現；度假村蓋了＝更生氣，開戰多嗆一句
-const graveQuestWeight = t => t.id==="night_lady" && graveStage()==="protected" ? 0 : 1;
+const graveQuestWeight = t => t.grave ? (graveStage()===t.grave ? 1 : 0) : t.id==="night_lady" && graveStage()==="protected" ? 0 : 1;   // 結局之後的委託：臨檢站、度假村的客訴（10-29）
 function graveQuestShout(){
   const b = B(); if(!b || b.graveShout || graveStage()!=="resort") return;
   const q = b.def.quest && questById(b.def.quest), v = q && q.tpl==="night_lady" && b.units.find(u=>u.type==="vampire" && u.combatActive && !u.dead);
   if(v){ b.graveShout = true; say(v, GRAVE.resortShout, 300); }
+}
+// 結局之後的委託：開戰時帶頭的喊一句（10-29）
+function graveAfterQuestShout(){
+  const b = B(); if(!b || b.graveAfterShout) return;
+  const q = b.def.quest && questById(b.def.quest), S = q && GRAVE.afterQuestShout[q.tpl], u = S && b.units.find(x=>x.type===S.type && x.combatActive && !x.dead);
+  if(u){ b.graveAfterShout = true; say(u, S.text, 300); }
 }
 
 // ---------- 女吸血鬼：不會死，化成蝙蝠 ----------

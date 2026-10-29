@@ -226,6 +226,7 @@ function bind(){
     const chPk=e.target.closest("[data-chicken-pick]");if(chPk){chickenPick(chPk.dataset.chickenPick);return;}   // 失蹤的雞（10-23）
     const orcPk=e.target.closest("[data-orc-pick]");if(orcPk){orcPick(orcPk.dataset.orcPick);return;}   // 獨眼獸人（10-23）
     const gvPk=e.target.closest("[data-grave-pick]");if(gvPk){gravePick(gvPk.dataset.gravePick);return;}   // 墓地線選邊（10-28）
+    const dePk=e.target.closest("[data-druid-pick]");if(dePk){druidPick(dePk.dataset.druidPick);return;}   // 德魯伊的抗議（10-29）
     const drPk=e.target.closest("[data-dragon-pick]");if(drPk){dragonPick(drPk.dataset.dragonPick);return;}   // 紅龍夫人（10-28）
     const chestPick=e.target.closest("[data-chest-pick]");if(chestPick){worldChestPick(chestPick.dataset.chestPick);return;}
     const sp = e.target.closest("[data-style-pick]"); if(sp){ pickStarterStyle(sp.dataset.styleWho, sp.dataset.stylePick); return; }   // 起始風格（10-10）
