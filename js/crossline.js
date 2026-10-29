@@ -13,12 +13,12 @@ function markMet(key){ (state.met ||= {})[key] = true; }
 // ---------- 森林打完：艾妲換台詞 ----------
 function townTalkData(place){
   const T = TOWN_TALK[place];
-  return place==="guild" && mainStage()==="done" ? {...T, ...CROSSLINE.guildAfterForest} : T;
+  return place==="guild" && mainStage()==="done" ? {...T, ...(druidRoute() ? DRUID_ROUTE.guildAfter : CROSSLINE.guildAfterForest)} : T;   // 聽德魯伊的另一套（10-29）
 }
 
 // ---------- 森林＋驅除哥布林都打完：哥布林委託減半 ----------
 const goblinQuieted = () => mainStage()==="done" && state.goblinHunt?.stage==="done";
-const questTplWeight = t => goblinQuieted() && t.foes.some(f=>String(f).startsWith("goblin")) ? CROSSLINE.goblinQuestWeight : 1;
+const questTplWeight = t => !t.foes.some(f=>String(f).startsWith("goblin")) ? 1 : goblinGone() ? 0 : goblinQuieted() ? CROSSLINE.goblinQuestWeight : 1;   // 聽德魯伊的打倒酋長：哥布林委託不再出現（10-29）
 
 // ---------- 洞窟打完：狗頭人傳教 ----------
 const preachDue = () => !!(state.townFounded && dungeonState("cave").cleared && !ensureCross().preached);

@@ -1,5 +1,5 @@
 /* 主線（大爺 10-22）：紅色 ❗＝主線、黃色 ❗＝支線（docs/主線.md）
-   森林主線 state.main.forest：(沒有) → investigate → met → boss → report → done
+   森林主線 state.main.forest：(沒有) → investigate → met → boss → report → done；聽德魯伊的（10-29）：met → chief → report → done（js/druid-route.js）
      (沒有)：公會艾妲有紅 ❗（進城、住過第一晚以後）；對話「哥布林的消息」→ investigate
      investigate：大地圖森林紅 ❗；第一次進森林（霧擋著溪），打完 → 劇情「遇到德魯伊」→ met
      met：第二次進森林（霧散了），深處食人花；調查兩處花粉線索、或走到巢穴附近 → 劇情「撞見」→ boss，直接開打
@@ -7,12 +7,12 @@
    資料、台詞：data/forest.js 的 FOREST.stages、FOREST.main */
 const mainStage = () => (state.main ||= {}).forest || null;
 const setMainStage = s => { (state.main ||= {}).forest = s; };
-FOREST.stageOf = () => { const s = mainStage(); return ["investigate","met","boss"].includes(s) ? s : null; };
+FOREST.stageOf = () => { const s = mainStage(); return druidRouteQuiet() ? "quiet" : ["investigate","met","boss"].includes(s) ? s : null; };   // 聽德魯伊的：森林一直安靜（10-29）
 // 還沒接到主線：森林先不開（大地圖點了只顯示一句）
 const forestLocked = () => !mainStage();
 // 公會那邊要不要紅 ❗
 const guildMainTalk = () => { const s = mainStage(); return !s && state.townFounded && state.innNightDone ? "start" : s==="report" ? "report" : null; };
-function mainTalkLines(kind){ return kind==="report" ? FOREST.main.report : [...FOREST.main.guild, ...CAVE.main.lead, ...GRAVE.lead, ...GOBLIN_HUNT.guildAdd]; }   // 三條線索一起講：森林、洞窟、驅除哥布林（10-28）
+function mainTalkLines(kind){ return kind==="report" ? (druidRoute() ? DRUID_ROUTE.report : FOREST.main.report) : [...FOREST.main.guild, ...CAVE.main.lead, ...GRAVE.lead, ...GOBLIN_HUNT.guildAdd]; }   // 三條線索一起講：森林、洞窟、驅除哥布林（10-28）
 function mainTalkDone(kind){ if(kind==="start" && !mainStage()){ setMainStage("investigate"); if(!caveStage()) setCaveStage(dungeonState("cave").cleared ? "report" : "investigate"); graveLeadDone(); } if(kind==="report" && mainStage()==="report") setMainStage("done"); }
 // 大地圖：主線的地點上掛紅 ❗（點了就跟點地點一樣）
 function mainPinsSVG(){
@@ -32,6 +32,7 @@ function caveReportDone(){ if(caveStage()==="report") setCaveStage("done"); }
 FOREST.onWin = b => {
   const s = mainStage();
   if(s==="investigate"){ setMainStage("met"); state.afterQuestScene = "forestDruidMeet"; return true; }
+  if(druidRouteQuiet()) return true;   // 安靜的森林：沒有劇情（10-29）
   if(s==="boss"){ setMainStage("report"); dungeonState("forest").cleared = true; state.afterQuestScene = "forestAfter"; blog(FOREST.cleared, "kill"); return true; }
   return false;
 };

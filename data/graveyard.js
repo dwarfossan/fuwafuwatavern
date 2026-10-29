@@ -130,7 +130,7 @@ const GRAVE = {
   repelLog:"{name}化成一大群蝙蝠，吱吱叫著飛走了。",
   repelSay:"……下次可沒這麼簡單。",
   // 街口的貴族馬車（紅 ❗）
-  carriage:{place:"街口", who:"貴族的馬車", x:52, y:44},
+  carriage:{place:"街口", who:"貴族的馬車", x:50, y:24},
   nobleTalk:[
     {who:"narr", text:"一輛鑲金邊的馬車停在街口。車窗拉開了一半。", on:"noblewoman", face:"haughty"},
     {who:"fox", text:"請問，墓地要改建成度假勝地的事——", mood:"normal", on:"noblewoman", face:"haughty"},

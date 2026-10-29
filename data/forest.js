@@ -102,10 +102,7 @@ const FOREST = {
       {who:"fox", text:"（小聲）食人花的花粉……她在控制牠！", mood:"surprised", on:"druid", face:"cold"},
       {who:"druid", text:"乖。明天去東邊，把剩下的哥布林窩也清掉。", on:"druid", face:"cruel_smirk"},
       {who:"wolf", text:"……所以森林會這麼安靜，是因為牠。", mood:"serious", on:"druid", face:"alert"},
-      {who:"druid", text:"……誰在那裡？", on:"druid", face:"alert"},
-      {who:"druid", text:"又是你們這群毛球。——起來！", on:"druid", face:"shout"},
-      {who:"narr", text:"奇美拉睜開了六隻眼睛。德魯伊退進樹林，不見了。", on:"chimera"},
-      {who:"raccoon", text:"……跑了。", mood:"normal", on:"chimera"}],
+      {who:"druid", text:"……誰在那裡？", on:"druid", face:"alert"}],   // 接著選邊（10-29，data/druid-route.js：維持生態／聽德魯伊的）
     // 打倒奇美拉以後
     after:[
       {who:"narr", text:"奇美拉倒下了。森林深處，第一次傳來一聲鳥叫。", on:"-"},

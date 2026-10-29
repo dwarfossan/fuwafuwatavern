@@ -4,7 +4,7 @@
    - 劇情 druidProtest：揭穿（撿到花粉袋多兩句）→ 選 druidPick → finishDruidProtest 結算
    - 叫她自己收拾之後：進森林偶爾撿到藥水（druidForestGift，enterDungeon 呼叫） */
 const druidEnd = () => (state.main ||= {}).druidEnd || null;
-const druidDue = () => !!(state.townFounded && mainStage()==="done" && !druidEnd());
+const druidDue = () => !!(state.townFounded && mainStage()==="done" && !druidEnd() && !druidRoute());   // 聽德魯伊的那條沒有抗議（10-29）
 const ensureDruidProtest = () => (state.druidProtest ||= {});
 const druidLines = list => list.map(l=>({draft:DRUID_END.draft, ...l}));
 function startDruidProtest(){
@@ -38,7 +38,7 @@ function finishDruidProtest(){
 }
 // 進森林（打完以後）：她偶爾留一瓶藥水
 function druidForestGift(id){
-  if(id!=="forest" || druidEnd()!=="atone" || mainStage()!=="done" || Math.random() >= DRUID_END.giftChance) return;
+  if(id!=="forest" || !(druidEnd()==="atone" || druidRoute()) || mainStage()!=="done" || Math.random() >= DRUID_END.giftChance) return;   // 聽德魯伊的：她也偶爾留（10-29）
   const b = B(), u = b && b.units.find(v=>isPcCritter(v) && !v.dead), it = ITEMS.find(i=>i.n===DRUID_END.giftItem); if(!u || !it) return;
   const got = makeItem(it, true, u.id);
   u.backpack.push(got); (state.inv[u.id] ||= []).push(got.id); syncBattleBag(u);

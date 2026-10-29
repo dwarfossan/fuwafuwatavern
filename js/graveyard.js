@@ -44,12 +44,13 @@ function graveLeadDone(){ if(!graveStage()) setGraveStage("rumor"); }
 const graveStreetBubble = (attr, S, label) => `<button class="town-building town-event-bubble grave-bubble" ${attr} style="left:${S.x}%;top:${S.y}%" aria-label="${S.place}／${label}"><b>${S.place}</b><span>${label}</span><span class="town-event-symbol">${obsBubbleHTML("main")}</span></button>`;
 function graveStreetHTML(){
   if(graveStage()==="rumor") return Object.entries(GRAVE.residents).filter(([k])=>!graveAsked()[k]).map(([k,r])=>graveStreetBubble(`data-grave-ask="${k}"`, r, r.name)).join("");
-  if(graveStage()==="noble") return graveStreetBubble(`data-grave-noble="1"`, GRAVE.carriage, GRAVE.carriage.who);
-  return "";
+  if(graveStage()==="noble") return graveStreetBubble(`data-grave-noble="1"`, GRAVE.carriage, GRAVE.carriage.who) + druidShopHTML();
+  return druidShopHTML();   // 聽德魯伊的：市場遇到買東西的德魯伊（10-29）
 }
 function bindGraveStreet(){
   document.querySelectorAll("[data-grave-ask]").forEach(el=>el.addEventListener("click", ()=>graveGo("graveAsk", el.dataset.graveAsk)));
   document.querySelector("[data-grave-noble]")?.addEventListener("click", ()=>graveGo("graveNoble"));
+  bindDruidShop();
 }
 function graveGo(scene, who){
   if(scene==="graveAsk" && (graveStage()!=="rumor" || !GRAVE.residents[who])) return;
@@ -77,16 +78,18 @@ const graveVampireScript = () => graveLines(GRAVE.vampireTalk);
 function finishGraveVampire(){ state.page = "map"; state.mapSel = state.location = "graveyard"; render(); window.scrollTo(0,0); }
 
 // ---------- 談判、選邊 ----------
-const graveHasCollar = () => dungeonState("forest").clues.collar==="ok";   // 森林巢穴的項圈調查成功＝手上有項圈
+const graveHasRealCollar = () => dungeonState("forest").clues.collar==="ok";
+const graveHasCollar = () => graveHasRealCollar() || gravePlate();   // 聽德魯伊的：沒有項圈，但德魯伊給了名牌（10-29）   // 森林巢穴的項圈調查成功＝手上有項圈
 const graveChoicePending = line => !!(line && line.graveChoice && !graveDeal().pick);
 function graveChoiceHTML(){
-  const P = GRAVE.pick, keys = ["noble","knight", ...(graveHasCollar() ? ["collar"] : [])];
+  const P = {...GRAVE.pick, ...(graveHasRealCollar() ? {} : {collar:DRUID_ROUTE.pickPlate})}, keys = ["noble","knight", ...(graveHasCollar() ? ["collar"] : [])];
   return `<div class="choice-list">${keys.map(k=>`<button class="choice" data-grave-pick="${k}"><b>${P[k].label}</b><small>${P[k].sub}</small></button>`).join("")}</div>`;
 }
 function graveAncestorScript(){
   const pick = graveDeal().pick;
-  const L = [...GRAVE.ancestorTalk, ...(graveHasCollar() ? GRAVE.ancestorCollar : []), ...GRAVE.ancestorTalk2];
-  if(pick) L.push(...GRAVE.picked[pick]);
+  const plate = !graveHasRealCollar() && gravePlate();
+  const L = [...GRAVE.ancestorTalk, ...(graveHasRealCollar() ? GRAVE.ancestorCollar : plate ? DRUID_ROUTE.ancestorPlate : []), ...GRAVE.ancestorTalk2];
+  if(pick) L.push(...(pick==="collar" && plate ? DRUID_ROUTE.pickedPlate : GRAVE.picked[pick]));
   if(pick==="collar") L.push(...GRAVE.endCollar, ...graveGiftLines(), ...GRAVE.endVampire);
   return graveLines(L);
 }

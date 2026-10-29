@@ -64,6 +64,7 @@ function forestClue(o, ok, u){
 function dungeonAfterClue(){ const b = B(), D = dungeonOf(b); if(D && D.onClue) D.onClue(b); }
 // 開戰（enterExploreCombat／增援 呼叫）：talker 喊話、打頭目時調查得到的好處
 function forestCombatStart(){
+  chiefCombatStart();  // 哥布林酋長（10-29）
   huntCombatStart();   // 驅除哥布林：帶頭的喊（10-28，開戰／增援都經過這裡）
   graveAfterQuestShout();   // 盤查哨、度假村的客訴（10-29）
   graveQuestShout();   // 度假村蓋了以後，委託裡的女吸血鬼多嗆一句（10-28）
