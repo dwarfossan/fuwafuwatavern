@@ -39,7 +39,11 @@ const DRAGON_LADY = {
     {who:"tiger", text:"欸？那隻小龍……變成人了？", mood:"confused", on:"dragon_lady", face:"command", withFace:"angry"},
     {who:"wyrmling", text:"哼！本小姐才不是小龍！", on:"dragon_lady", face:"command", withFace:"contempt"}],
   preached:[{who:"wolf", text:"……狗頭人說「龍神會回來」。回來的是龍神的媽媽。", mood:"sigh", on:"dragon_lady", face:"command"}],
-  ask:{who:"dragon_lady", text:"你們最好給我一個解釋。", on:"dragon_lady", face:"command"},
+  // 凱倫（大爺 10-29）：要找管事的、要投訴
+  ask:[
+    {who:"dragon_lady", text:"叫你們公會管事的出來。我要投訴。", on:"dragon_lady", face:"command"},
+    {who:"fox", text:"艾、艾妲今天輪休……", mood:"awkward", on:"dragon_lady", face:"disdain"},
+    {who:"dragon_lady", text:"那就由你們給我一個解釋。", on:"dragon_lady", face:"command"}],
   pick:{
     sorry:{label:"道歉", sub:"先把她安撫下來"},
     reason:{label:"講道理", sub:"魅力檢定・難度 {dc}（{who}）"},
@@ -66,6 +70,7 @@ const DRAGON_LADY = {
     {who:"fox", text:"她、她在洞裡……那個……收了很多……狗頭人……", mood:"awkward", on:"dragon_lady", face:"skeptical"},
     {who:"dragon_lady", text:"我女兒有信徒，是因為她生來就值得被崇拜。", on:"dragon_lady", face:"smirk", withFace:"boastful"},
     {who:"wyrmling", text:"就是說！", on:"dragon_lady", face:"smirk", withFace:"laugh"},
+    {who:"dragon_lady", text:"我會讓全城的吟遊詩人都知道，毛絨絨小隊是怎麼欺負小孩的。", on:"dragon_lady", face:"disdain"},
     {who:"dragon_lady", text:"下次再讓我聽到你們欺負她——我就親自去你們家拜訪。", on:"dragon_lady", face:"command"},
     {who:"narr", text:"貴婦轉身離開。地上留下一圈燒焦的腳印。", on:"-"},
     {who:"tiger", text:"……她知道我們家在哪嗎？", mood:"confused", on:"-"}],

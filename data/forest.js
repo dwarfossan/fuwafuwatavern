@@ -89,6 +89,7 @@ const FOREST = {
       {who:"wolf", text:"……森林太安靜了。鳥呢？", mood:"serious", on:"druid", face:"alert"},
       {who:"druid", text:"……季節到了而已。", on:"druid", face:"cold"},
       {who:"raccoon", text:"……她在說謊。", mood:"sly", on:"druid", face:"cruel_smirk"},
+      {who:"druid", text:"森林需要的是保護，不是你們這種踩壞草皮的外人。", on:"druid", face:"contempt"},
       {who:"druid", text:"回去吧，毛球們。森林深處，你們走不進去的。", on:"druid", face:"cruel_smirk"},
       {who:"narr", text:"她轉身走進霧裡。霧散開的時候，她已經不見了——溪邊那條路，好像又看得見了。", on:"-"},
       {who:"fox", text:"……她剛剛是不是說了「走不進去」？下次再來看看。", mood:"confused", on:"-"}],

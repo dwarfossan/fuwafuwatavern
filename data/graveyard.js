@@ -83,7 +83,9 @@ const GRAVE = {
       {who:"townsfolk_male_03_grey_beard", text:"鬧鬼？那是老祖宗在生氣啦。現在的年輕人都不去掃墓。"},
       {who:"townsfolk_male_03_grey_beard", text:"我？我每年都有去喔。……今年還沒去而已。"},
       {who:"townsfolk_male_03_grey_beard", text:"啊對了，前幾天有幾個穿得很體面的人，拿著繩子在墓地量來量去。大概是來掃墓的吧。"},
-      {who:"fox", text:"（小聲）……拿繩子掃墓？", mood:"confused"}]},
+      {who:"fox", text:"（小聲）……拿繩子掃墓？", mood:"confused"},
+      {who:"townsfolk_male_03_grey_beard", text:"聽說那裡要蓋什麼度假村，地價會漲喔。我家祖墳那塊……要是賣得到好價錢，也不是不行啦。"},
+      {who:"wolf", text:"……老祖宗聽到會哭。", mood:"serious"}]},
     baker:{portrait:"townsfolk_female_02_auburn_bun", name:"麵包店的老闆娘", place:"麵包店", x:20, y:80, lines:[
       {who:"townsfolk_female_02_auburn_bun", text:"鬧鬼？絕對是對面那家麵包店搞的鬼！他們半夜把發霉的麵包倒在墓地，老祖宗當然會生氣！"},
       {who:"tiger", text:"真的嗎？！", mood:"confused"},
@@ -111,6 +113,8 @@ const GRAVE = {
     {who:"vampire", text:"鎮上有個貴族，要把整座墓地剷平，蓋成什麼「豪華度假勝地」。溫泉、別墅，還有給有錢人散步的花園。", on:"vampire", face:"angry"},
     {who:"tiger", text:"那老祖宗們要睡哪裡？", mood:"confused", on:"vampire", face:"angry"},
     {who:"vampire", text:"好問題。她說：「死人不需要地方睡。」", on:"vampire", face:"sad"},
+    {who:"vampire", text:"好笑的是，以前領主說墓地是聖地，一塊磚都不准動。老祖宗想修個墳都不行，一禁就是三百年。", on:"vampire", face:"annoyed"},
+    {who:"vampire", text:"現在她一來，整片要剷平。聖地就這樣變成了——「與森林共生的豪華度假勝地」。", on:"vampire", face:"smirk"},
     {who:"wolf", text:"……所以骷髏舉的牌子，是抗議標語。", mood:"serious", on:"vampire", face:"sad"},
     {who:"vampire", text:"寫得很漂亮吧？我寫的。", on:"vampire", face:"smile"},
     {who:"raccoon", text:"……那個貴族在哪？", mood:"sly", on:"vampire", face:"smile"},
@@ -127,7 +131,10 @@ const GRAVE = {
     {who:"noblewoman", text:"……誰准毛球靠近我的馬車的？", on:"noblewoman", face:"contempt"},
     {who:"tiger", text:"老祖宗們在抗議耶！你們要把他們的墳剷掉！", mood:"angry", on:"noblewoman", face:"contempt"},
     {who:"noblewoman", text:"那塊地是我家的。我家的地，我想蓋什麼就蓋什麼。", on:"noblewoman", face:"haughty"},
-    {who:"noblewoman", text:"死人沒有投票權，也不繳稅。他們的意見，不重要。", on:"noblewoman", face:"smirk"},
+    {who:"noblewoman", text:"而且這是整體規劃。老祖宗們會被妥善遷葬到……另一塊規劃中的用地。", on:"noblewoman", face:"polite"},
+    {who:"fox", text:"在哪裡？", mood:"normal", on:"noblewoman", face:"polite"},
+    {who:"noblewoman", text:"……還在規劃。", on:"noblewoman", face:"stunned_smile"},
+    {who:"noblewoman", text:"總之，死人不納稅，也不在領主的名冊上。他們的意見，不在程序裡。", on:"noblewoman", face:"smirk"},
     {who:"wolf", text:"……那塊地，是妳家的？", mood:"serious", on:"noblewoman", face:"smirk"},
     {who:"noblewoman", text:"車夫，走。", on:"noblewoman", face:"impatient"},
     {who:"narr", text:"馬車揚長而去，濺了毛毛們一身泥。", on:"-"},
@@ -165,7 +172,12 @@ Object.assign(GRAVE, {
     {who:"dk", text:"……我是妳的祖先。這塊地，是我的。", on:"dk_helmet"},
     {who:"noblewoman", text:"祖先？", on:"noblewoman", face:"skeptical"},
     {who:"noblewoman", text:"祖先沒有權利管活人的事。地契上寫的，是我的名字。", on:"noblewoman", face:"haughty"},
-    {who:"noblewoman", text:"毛球們，幫我把這些死人趕走。報酬隨你們開。", on:"noblewoman", face:"smirk"},
+    {who:"vampire", text:"地脈審查呢？動祖墳要先請法師塔看過地脈，這是王國律法。", on:"vampire", face:"serious"},
+    {who:"noblewoman", text:"審過了。文書齊全，蓋了章的。", on:"noblewoman", face:"haughty"},
+    {who:"vampire", text:"審查的法師是誰？", on:"vampire", face:"sly"},
+    {who:"noblewoman", text:"…………我表哥。", on:"noblewoman", face:"embarrassed"},
+    {who:"raccoon", text:"……噗。", mood:"sly", on:"noblewoman", face:"embarrassed"},
+    {who:"noblewoman", text:"（咳）毛、毛球們，幫我把這些死人趕走。報酬隨你們開。", on:"noblewoman", face:"smirk"},
     {who:"narr", text:"要站在哪一邊？", on:"-", graveChoice:true}],
   pick:{
     noble:{label:"幫女貴族", sub:"豪華獎勵・對上死亡騎士和女吸血鬼"},
@@ -203,7 +215,8 @@ Object.assign(GRAVE, {
     {who:"raccoon", text:"……老祖宗們，對不起。", mood:"down", on:"-"},
     {who:"wolf", text:"……這就是有錢人。", mood:"sigh", on:"-"}],
   endKnight:[
-    {who:"narr", text:"護衛隊丟下武器逃出墓地，女貴族的馬車也調頭跑了。遠遠傳來一聲：「你們給我記住——！」", on:"-"},
+    {who:"narr", text:"護衛隊丟下武器逃出墓地。女貴族的馬車調頭的時候，輪子卡進了墳坑，護衛們推了三次才推出來。", on:"-"},
+    {who:"narr", text:"遠遠傳來一聲：「你們給我記住——！」", on:"-"},
     {who:"dk", text:"……做得好。", on:"dk_helmet"}],
   endCollar:[
     {who:"narr", text:"女貴族的馬車頭也不回地走了。", on:"-"},
@@ -223,7 +236,7 @@ Object.assign(GRAVE, {
     {who:"fox", text:"……活人喝的茶，是什麼茶？", mood:"confused", on:"vampire", face:"laugh"}],
   endNext:"回大地圖", fightNext:"戰鬥開始！", collarNext:"收下",
   // 結局之後
-  resort:{name:"度假村", desc:"城鎮南邊。以前是墓地，現在掛著「豪華度假勝地・即將開幕」的招牌。", art:"assets/world/resort.webp", locked:"度假村還在施工，門口的護衛說：「毛球不准進來。」"},
+  resort:{name:"度假村", desc:"城鎮南邊。以前是墓地，現在掛著「與森林共生・豪華度假勝地・即將開幕」的招牌，「共生」兩個字寫得特別大。", art:"assets/world/resort.webp", locked:"度假村還在施工，門口的護衛說：「毛球不准進來。」"},
   protectedIntro:[["fox","老祖宗們睡得很安穩。"],["raccoon","……吸血鬼說要請喝茶。"]],
   // 結局之後去墓地找女吸血鬼喝茶（輪流演）
   visit:[
@@ -239,8 +252,8 @@ Object.assign(GRAVE, {
   resortShout:"（女吸血鬼瞪著毛毛們）「蓋度假村的幫兇……今天別想走！」",
   // 結局之後的每日委託（10-29，data/quests.js 的 grave）：開戰喊話
   afterQuestShout:{
-    noble_revenge:{type:"guard_captain", text:"小姐說了，抓到毛球的，年終多發半個月！……上次說的那半個月也還沒發。"},
-    resort_haunt:{type:"ghost", text:"我的墳……我的墳上面……怎麼蓋了一座泳池……"}
+    noble_revenge:{type:"guard_captain", text:"小姐說了，抓到毛球的，年底賞銀加倍！……去年說好的那份也還沒發。"},
+    resort_haunt:{type:"ghost", text:"我的墳……我的墳上面……怎麼挖了一座溫泉池……"}
   }
 });
 DUNGEONS.graveyard = GRAVE;

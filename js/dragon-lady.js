@@ -38,7 +38,7 @@ const dragonLines = list => { let shown = false; return list.map(l=>{ if(l.withF
   return {draft:DRAGON_LADY.draft, ...l, ...(keep ? {with:"wyrmling", withFace:l.withFace || "pout"} : {})}; }); };
 function dragonScript(){
   const D = DRAGON_LADY, e = ensureDragon();
-  const L = [...D.intro, ...(state.crossline?.preached ? D.preached : []), {...D.ask, dragonChoice:true}];
+  const L = [...D.intro, ...(state.crossline?.preached ? D.preached : []), ...D.ask.slice(0,-1), {...D.ask[D.ask.length-1], dragonChoice:true}];
   if(e.pick==="sorry") L.push(...D.sorry);
   if(e.pick==="reason"){
     L.push({who:e.roll.id, text:D.rollLine, dragonRoll:true, mood:"normal", on:"dragon_lady", face:"skeptical"});
