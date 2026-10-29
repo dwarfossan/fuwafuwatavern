@@ -63,7 +63,7 @@ try{
   await pg.getByRole('button',{name:'關閉',exact:true}).click();ok('大地圖說明泡泡可開關');
   await pg.waitForTimeout(500);
   assert.equal(await pg.locator('#map-party .pf').count(),4);
-  assert.equal(await pg.locator('#map-places image').count(),4);
+  assert.equal(await pg.locator('#map-places image').count(),5);   // 10-22 大地圖加了墓地（森林、洞窟、城鎮、酒館、墓地）
   assert(await pg.locator('.map-frame').evaluate(e=>Math.abs(e.clientHeight/e.clientWidth-1.25)<.03));
   if(process.env.MOBILE_SCREENSHOTS) await pg.screenshot({path:process.env.MOBILE_SCREENSHOTS+'/map.png'});
   for(const id of ['cave','forest','town','tavern']){

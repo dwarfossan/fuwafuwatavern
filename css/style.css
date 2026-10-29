@@ -936,6 +936,13 @@ button.token:hover{transform:translateY(-2px)}
 .bt-dock.dk-root [data-cmd="act"]{min-height:54px;border-color:var(--c)}
 .bt-dock.dk-root [data-cmd="wait"]{min-height:38px}
 .board-wrap .bt-bottom .bt-dock.dk-pick{width:min(150px,100%)}
+/* 技能內頁固定寬度（10-29 大爺回報：玲玲瞬發後，灰掉的法術寫「本回合已花熟練格施過法」把整塊撐寬、往左跑）：寬度不跟著字變，長的原因換行 */
+.board-wrap .bt-bottom .bt-dock.dk-skills{width:210px;max-width:100%}
+/* 招式名一行、標籤（幾格、為什麼不能用）固定在下一行：不管標籤長短，高度、位置都一樣 */
+.bt-dock.dk-skills .skill{grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;row-gap:0}
+.bt-dock.dk-skills .skill>svg{grid-row:1/3}
+.bt-dock.dk-skills .sk-n{line-height:1.2}
+.bt-dock.dk-skills .sk-t{grid-column:2;white-space:nowrap;line-height:1.2;min-height:1.2em}
 .board-wrap .bt-bottom .bt-dock.dk-slim{width:120px}
 .bt-dock.dk-slim .aim-note{font-size:12.5px;line-height:1.4}
 .bt-dock.dk-act .mn-list{grid-template-columns:1fr 1fr}

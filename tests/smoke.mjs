@@ -36,7 +36,7 @@ console.log('封面 → 擲屬性 → 序章');
   ok('從封面開始', await pg.evaluate(()=>state.page) === 'cover');
   await rollAll(pg);
   ok('四隻都分配完', await pg.evaluate(()=>CRITTERS.every(c=>ABILITIES.every(a=>state.slot[c.id] && state.slot[c.id][a.k]!==undefined))));
-  await pg.click('#next'); await pg.waitForTimeout(200);
+  await pg.click('#next'); await pg.waitForFunction(()=>state.page==='story', null, {timeout:5000}).catch(()=>{}); await pg.waitForTimeout(200);   // 10-29：第一次進序章要先載圖，有時超過 200ms
   ok('進入序章', await pg.evaluate(()=>state.page==='story' && state.scene==='prologue'));
   const stage = await pg.evaluate(()=>{ window.__st=document.getElementById('stage'); return true; });
   await pg.mouse.click(200, 60); await pg.waitForTimeout(150);
