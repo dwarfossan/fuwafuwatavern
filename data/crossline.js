@@ -17,15 +17,15 @@ const CROSSLINE = {
     item:"龍神傳單",
     lines:[
       {who:"narr", text:"街角圍了一小圈人。中間站著一隻狗頭人，揮著掛滿羽毛的木杖。", on:"kobold_shaman"},
-      {who:"kobold_shaman", text:"龍神沒有輸！龍神只是……去休息！龍神會回來！", on:"kobold_shaman"},
-      {who:"kobold_shaman", text:"現在入教，只要三個銅板！龍神回來的時候，先保佑你！", on:"kobold_shaman"},
-      {who:"tiger", text:"……牠說的龍神，是我們打的那隻嗎？", mood:"confused", on:"kobold_shaman"},
+      {who:"kobold_shaman", text:"洞裡那隻是壞龍！假的！真正的龍神，還沒來！", on:"kobold_shaman"},
+      {who:"kobold_shaman", text:"現在入教，只要三個銅板！真正的龍神來的時候，先保佑你！", on:"kobold_shaman"},
+      {who:"tiger", text:"……牠還在拜喔？", mood:"confused", on:"kobold_shaman"},
       {who:"fox", text:"噓。", mood:"awkward", on:"kobold_shaman"},
       {who:"kobold_shaman", text:"（看到毛毛們，尾巴豎了起來）……！", on:"kobold_shaman"},
       {who:"kobold_shaman", text:"我、我沒看到毛球！傳單給你們，快走快走！", on:"kobold_shaman"},
       {who:"narr", text:"狗頭人把一張傳單塞過來，抱著木杖跑了。", on:"-"},
       {who:"raccoon", text:"……收下了。", mood:"sly", on:"-"},
-      {who:"wolf", text:"上面畫的龍……比本人帥很多。", mood:"serious", on:"-"}
+      {who:"wolf", text:"上面畫的龍……誰都不像。", mood:"serious", on:"-"}
     ],
     done:"回到街上"
   },

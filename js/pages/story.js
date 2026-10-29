@@ -27,7 +27,7 @@ const SCENES = {
   graveEnd: {get script(){return graveEndScript();}, bg:"graveyard", get actors(){return graveEndActors();}, back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveVisit: {get script(){return graveVisitScript();}, bg:"graveyard", actors:["vampire"], back:null, next:["finishGraveVampire",GRAVE.endNext]},
   graveNoble: {get script(){return graveNobleScript();}, bg:"town", actors:["noblewoman"], back:null, next:["finishGraveNoble",GRAVE.nobleNext]},
-  wyrmFlee: {get script(){return wyrmFleeScript();}, bg:"cave", actors:["red_wyrmling"], back:null, next:["finishWyrmFlee",DRAGON_LADY.fleeNext]},   // 洞窟打完：小紅龍哭著飛走（10-28）
+  wyrmFlee: {get script(){return wyrmFleeScript();}, bg:"cave", actors:["red_wyrmling","kobold_shaman"], back:null, next:["finishWyrmFlee",DRAGON_LADY.fleeNext]},   // 洞窟打完：小紅龍哭著飛走（10-28）
   dragonLady: {get script(){return dragonScript();}, bg:"town", actors:["dragon_lady","red_dragon_lady","wyrmling"], back:null, next:["finishDragonLady",DRAGON_LADY.next]},   // 紅龍夫人・怪獸家長（10-28）
   druidProtest: {get script(){return druidScript();}, bg:"town", actors:["druid"], back:null, next:["finishDruidProtest",DRUID_END.next]},   // 森林線收尾：德魯伊的抗議（10-29）
   koboldPreach: {get script(){return preachScript();}, bg:"town", actors:["kobold_shaman"], back:null, next:["finishPreach",CROSSLINE.preach.done]},   // 三線交會：狗頭人傳教（10-28）

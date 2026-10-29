@@ -30,6 +30,8 @@ const DRUID_END = {
   expose:[
     {who:"fox", text:"我們在巢穴前面親眼看到了。妳用食人花的花粉讓奇美拉聽話，叫牠去清哥布林窩。", mood:"serious", on:"druid", face:"alert"},
     {who:"druid", text:"那、那是維持森林的平衡！哥布林是害蟲，我只是讓森林——", on:"druid", face:"alert"},
+    {who:"tiger", text:"那被趕出來的哥布林跑去搶鎮上，妳都不管喔？", mood:"angry", on:"druid", face:"alert"},
+    {who:"druid", text:"城鎮是人造的東西。人造的東西，自己顧。", on:"druid", face:"contempt"},
     {who:"wolf", text:"讓森林只剩下一隻奇美拉。", mood:"serious", on:"druid", face:"hurt"},
     {who:"narr", text:"圍觀的人開始竊竊私語。有人默默把請願書上自己的手印塗掉了。", on:"druid", face:"hurt"},
     {who:"druid", text:"…………", on:"druid", face:"hurt"}

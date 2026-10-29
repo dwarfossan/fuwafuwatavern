@@ -85,7 +85,7 @@ const FOREST = {
       {who:"fox", text:"妳是……德魯伊？我們在調查哥布林為什麼跑出森林。", mood:"normal", on:"druid", face:"skeptical"},
       {who:"druid", text:"哥布林就是會搶東西的害蟲。牠們離開森林，是森林的福氣。", on:"druid", face:"contempt"},
       {who:"tiger", text:"可是牠們跑去搶鎮上的人耶！", mood:"angry", on:"druid", face:"impatient"},
-      {who:"druid", text:"那是鎮上的事。", on:"druid", face:"impatient"},
+      {who:"druid", text:"那是鎮上的事。城鎮是你們自己蓋出來的東西，跟森林無關。", on:"druid", face:"impatient"},
       {who:"wolf", text:"……森林太安靜了。鳥呢？", mood:"serious", on:"druid", face:"alert"},
       {who:"druid", text:"……季節到了而已。", on:"druid", face:"cold"},
       {who:"raccoon", text:"……她在說謊。", mood:"sly", on:"druid", face:"cruel_smirk"},
