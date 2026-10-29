@@ -94,7 +94,7 @@ function startWorldTravel(tr){
    if(tr.chatIndex===tr.chat.length){tr.chat=null;tr.banterAt=tr.elapsed+8;}else tr.banterAt=tr.elapsed+3;
   }
   if(tr.quest&&tr.leg===tr.route.length-2&&tr.t>=tr.stopT){tr.running=false;arriveQuest(tr);return;}   // 委託：走到泡泡的位置就開打（10-10）
-  if(tr.t>=1){if(tr.leg<tr.route.length-2){tr.leg++;tr.t=0;}else{tr.running=false;state.location=tr.to;state.mapSel=tr.to;state.travel=null;state.worldLine=null;state.worldVisits||={};const seen=state.worldVisits[tr.to];state.worldVisits[tr.to]=true;state.worldArrival={index:0,done:!!seen};render();showWorldArrivalLine();return;}}
+  if(tr.t>=1){if(tr.leg<tr.route.length-2){tr.leg++;tr.t=0;}else{tr.running=false;daytimeTick("travel");state.location=tr.to;state.mapSel=tr.to;state.travel=null;state.worldLine=null;state.worldVisits||={};const seen=state.worldVisits[tr.to];state.worldVisits[tr.to]=true;state.worldArrival={index:0,done:!!seen};render();showWorldArrivalLine();return;}}
   requestAnimationFrame(step);
  };
  requestAnimationFrame(step);

@@ -18,8 +18,9 @@ const br=await chromium.launch();try{
  assert.equal(await p.evaluate(()=>{const a=JSON.stringify(state.quests.list.map(q=>q.tpl));ensureQuests();return JSON.stringify(state.quests.list.map(q=>q.tpl))===a;}),true);
  // 大地圖：三個泡泡；點第一個 → 出發
  await p.evaluate(()=>{state.page='map';state.mapSel='town';render();});
- assert.equal(await p.locator('.quest-pin').count(),3);
- const q0=await p.evaluate(()=>state.quests.list[0]);
+ const shown=()=>p.evaluate(()=>state.quests.list.filter(q=>q.accepted&&!q.done&&(isNight()||!questNightOnly(questTpl(q)))).length);   // 10-29：不死的委託白天不出現在地圖上
+ assert.equal(await p.locator('.quest-pin').count(),await shown());
+ const q0=await p.evaluate(()=>state.quests.list.find(q=>!questNightOnly(questTpl(q))));   // 白天看得到的那個（10-29）
  await p.locator(`.quest-pin[data-quest="${q0.id}"]`).dispatchEvent('click');
  assert.equal(await p.locator('#questGo').count(),1);
  await shot(p,'quest-map.png');
@@ -41,7 +42,7 @@ const br=await chromium.launch();try{
  await p.locator('#afterWin').tap();
  assert.equal(await p.evaluate(()=>state.page),'map');
  assert.equal(await p.evaluate(id=>questById(id).done,q0.id),true);
- assert.equal(await p.locator('.quest-pin').count(),2);
+ assert.equal(await p.locator('.quest-pin').count(),await shown());
  assert.equal(await p.evaluate(()=>WORLD.locations.some(l=>l.id===state.location)),true);
  // ★★★ 一定給魔法物品
  await p.evaluate(()=>{const q=state.quests.list[2];BATTLES.quest=questBattle(q);state.page='battle';startBattle('quest',false,'explore');B().units.filter(u=>u.side==='foe').forEach(u=>{u.hp=0;u.dead=true;});checkResult();});

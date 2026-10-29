@@ -64,6 +64,7 @@ function leaveBattleTo(scene){
 function startBattle(id, retry=false, phase="combat"){
   if(!retry) snapBattle(id);
   const def = BATTLES[id];
+  nightLighting(def);   // 晚上：外面的戰場變微光（10-29）
   const units = [];
   CRITTERS.forEach((c,i)=>{
     const scores = abilityScores(c.id), mods = abilityMods({scores});

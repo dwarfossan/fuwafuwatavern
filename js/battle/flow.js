@@ -625,7 +625,7 @@ function takeRest(kind, selections={},b=B()){
   restStress(kind);   // 壓力：短休 −10、長休 −30（10-10，暫定）
   if(kind==="long") clearMeals(b);   // 料理效果到下一次長休（10-10）
   if(kind==="long") steedLongRest();  // 坐騎：散掉的骨頭拼回來、血回滿（10-20）
-  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); }   // 長休：重新挑戰的次數也回滿
+  if(kind==="short") state.shortRestsUsed++; else { state.shortRestsUsed=0; state.luckUsed={}; state.retriesLeft=RETRY_MAX; advanceMarketDay(); daytimeDawn(); }   // 長休：天亮（日夜，10-29）   // 長休：重新挑戰的次數也回滿
   b.restPicks={};
   const copyId=b.noteCopyId=(b.noteCopyId||0)+1;
   setTimeout(()=>{if(copyId!==b.noteCopyId)return;if(b!==B() && !(state.page==="town" && b===state.townRest))return;b.noteCopy=null;if(b===B())refreshBattle();else render();},1800);

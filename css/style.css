@@ -1486,3 +1486,19 @@ body.image-boot{background:#000}
 .actor.noblewoman{aspect-ratio:926/1698;height:96%;bottom:-4%}
 .actor.townsfolk_male_03_grey_beard,.actor.townsfolk_female_02_auburn_bun,.actor.townsfolk_male_04_red_hair{aspect-ratio:1;height:100%;bottom:-6%}
 
+
+/* 日夜（10-29）：右上角的太陽／月亮（跟喇叭、齒輪同一組，大地圖、城鎮、劇情、戰鬥都有）；晚上的夜色 */
+.time-btn{background:var(--plank);border:2px solid var(--plank-2);border-radius:999px;width:42px;height:42px;display:grid;place-items:center;flex:none;cursor:pointer;padding:0}
+.time-btn.night{background:#232a4a;border-color:#3d4a7a}
+.time-btn:hover{border-color:var(--honey)}
+.time-btn.fresh{animation:time-fresh 1s ease-in-out 3}
+@keyframes time-fresh{50%{transform:scale(1.18);box-shadow:0 0 0 4px rgba(242,180,65,.35)}}
+.battle .time-btn{width:32px;height:32px}.battle .time-btn svg{width:20px;height:20px}
+@media(max-width:600px){.time-btn{width:38px;height:38px}}
+.time-pop{position:absolute;right:0;top:50px;width:min(240px,calc(100vw - 30px));background:var(--plank);border:2px solid var(--plank-2);border-radius:12px;padding:10px 12px;color:var(--cream,#f6e9d8);z-index:40;font-size:14px;line-height:1.5}
+.time-pop h3{margin:0 0 4px;font-size:15px;color:var(--honey)}.time-pop p{margin:2px 0}
+.sys-tools--page .time-pop{top:45px}
+.night-tint{fill:rgba(18,26,66,.42)}
+div.night-tint{position:absolute;inset:0;background:rgba(18,26,66,.42);pointer-events:none}
+.town-building.closed{filter:grayscale(.7) brightness(.8)}
+.night-only{display:block;margin-top:2px;color:#9fb3ff;font-size:12px;font-weight:600}

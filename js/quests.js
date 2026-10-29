@@ -37,7 +37,7 @@ function questBoardHTML(){
   return `<div class="quest-board"><h3>${QUEST_UI.board} <small>${QUEST_UI.day.replace("{d}", Q.day)}</small></h3><p class="quest-note">${QUEST_UI.refresh}</p>${huntCardHTML()}${orcWantedHTML()}${Q.list.map(q=>{
     const t = questTpl(q);
     const state_ = q.done ? `<span class="quest-state done">${QUEST_UI.done}</span>` : q.accepted ? `<span class="quest-state">${QUEST_UI.accepted}</span>` : `<button class="btn small" data-quest-accept="${q.id}">${QUEST_UI.accept}</button>`;
-    return `<div class="quest-card${q.done?" done":""}" data-quest-card="${q.id}"><div class="quest-top"><b>${t.title}</b><span class="quest-stars" aria-label="${q.stars} 星">${questStars(q.stars)}</span></div><p>${t.text}</p><small>${QUEST_UI.client}：${t.client} · ${QUEST_UI.foes}：${questFoeText(t)}</small><small>${QUEST_UI.reward}：${questRewardText(q.stars)}</small>${state_}</div>`;
+    return `<div class="quest-card${q.done?" done":""}" data-quest-card="${q.id}"><div class="quest-top"><b>${t.title}</b><span class="quest-stars" aria-label="${q.stars} 星">${questStars(q.stars)}</span></div><p>${t.text}${questNightOnly(t)?`<b class="night-only">${DAYTIME.ui.nightOnly}</b>`:""}</p><small>${QUEST_UI.client}：${t.client} · ${QUEST_UI.foes}：${questFoeText(t)}</small><small>${QUEST_UI.reward}：${questRewardText(q.stars)}</small>${state_}</div>`;
   }).join("")}</div>`;
 }
 function bindQuestBoard(){
@@ -51,7 +51,7 @@ const pinBubbleSVG = kind => `<g class="quest-bob"><g transform="translate(0 -16
 function questPinsSVG(){
   if(typeof state==="undefined") return "";
   // 還沒去過公會也會有梟熊寶寶的 ❗（10-21）
-  return (state.quests ? questOpen() : owlbearPins()).map(q=>{ const p = questPos(q), t = questTpl(q), on = state.questSel===q.id;
+  return (state.quests ? questOpen() : owlbearPins()).filter(q=>isNight() || !questNightOnly(questTpl(q))).map(q=>{ const p = questPos(q), t = questTpl(q), on = state.questSel===q.id;   // 不死的委託白天找不到（10-29）
     return `<g class="quest-pin${on?" on":""}" data-quest="${q.id}" transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})" tabindex="0" role="button" aria-label="${QUEST_UI.pin}：${t.title}">${pinBubbleSVG(q.main ? "main" : "side")}<circle r="30" cy="-36" fill="transparent"/></g>`;
   }).join("");
 }
@@ -83,7 +83,7 @@ function questBattle(q){
 }
 function arriveQuest(tr){
   const q = questById(tr.quest);
-  state.travel = null; state.worldLine = null;
+  state.travel = null; state.worldLine = null; daytimeTick("travel");   // 走到 ❗ 也算出門一趟（日夜，10-29）
   if(!q){ render(); return; }
   state.location = questHome(q); state.mapSel = state.location;   // 輸了傳回酒館、贏了回到這一頭
   if(q.orc){ orcArrive(q); return; }
@@ -124,7 +124,7 @@ function questRewardHTML(){
 // 勝利畫面按「繼續」：回大地圖
 function finishQuest(){
   const b = B(); if(!b || b.result!=="win" || !b.def.quest) return;
-  syncLearnedState();
+  syncLearnedState(); daytimeTick("battle");   // 打完一場委託／地城算一格（日夜，10-29）
   state.location = b.def.questHome || state.location; state.mapSel = state.location;
   state.battle = null; state.scout = null; state.questSel = null;
   state.page = "map";
@@ -151,6 +151,7 @@ function answerRetreat(go){
 function retreatBattle(){
   const b = B(); if(!canRetreat()) return;
   if(b.phase==="combat"){
+    daytimeTick("battle");   // 打到一半撤退也算一格（10-29）
     awardBattleXP();
     b.units.filter(u=>u.frenzy).forEach(u=>endFrenzy(u, "撤退"));
     changeStressAll(v=>v + STRESS.retreat);
