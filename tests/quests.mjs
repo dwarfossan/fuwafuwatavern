@@ -37,7 +37,7 @@ const br=await chromium.launch();try{
  await p.evaluate(()=>{B().units.filter(u=>u.side==='foe').forEach(u=>{u.hp=0;u.dead=true;});checkResult();});
  assert.equal(await p.evaluate(()=>B().result),'win');
  assert.equal(await p.locator('.quest-reward').count(),1);
- const [each,want]=await p.evaluate(()=>[B().questReward.each,Math.floor(QUEST_REWARD[1].gold/4)]);assert.equal(each,want);
+ const [each,want]=await p.evaluate(id=>{const q=questById(id);return [B().questReward.each,Math.floor(questGold(q.stars,questTpl(q))/4)];},q0.id);assert.equal(each,want);   // 10-29：q0 不一定是 ★（白天看得到的那個），照它自己的星數算
  assert.deepEqual(await p.evaluate(()=>CRITTERS.map(c=>state.gold[c.id])),before.map(g=>g+each*100));
  await shot(p,'quest-win.png');
  await p.locator('#afterWin').tap();

@@ -107,6 +107,7 @@ function startBattle(id, retry=false, phase="combat"){
   });
   if(!retry){
     for(const k of ["equipmentItems","equipmentSerial","focusItems","focusSerial"])state.battleSnap.data[k]=JSON.parse(JSON.stringify(state[k]??null)); }
+  scaleFoes(units);   // 怪物跟著毛毛們的等級浮動（10-29，js/scaling.js）
   // NPC：站在戰場上、不參與先攻、不行動（行為之後跟劇情一起定）
   (def.npcs||[]).forEach((n,i)=>{
     const d = NPCS[n.type];
@@ -481,7 +482,7 @@ function rangeOf(u){        // 遠程或投擲的射程（格）
 }
 const isRanged = u => !!(u.weapon && (u.weapon.props||[]).some(p=>p.startsWith("彈藥")));
 const spellStat = u => ["INT","WIS","CHA"].reduce((best,k)=>(u.mods[k]||0)>(u.mods[best]||0)?k:best,"INT");
-const dcOf = (u, stat) => 8 + 2 + u.mods[stat];
+const dcOf = (u, stat) => 8 + 2 + u.mods[stat] + (u.scaleHit||0);   // 浮動（10-29）
 
 // ---------- 攻擊與傷害 ----------
 function saveRoll(t, stat, dc, source=null){
@@ -576,7 +577,7 @@ function attackRoll(a, t, o={}){
   adv += frenzyAdv(a, t);   // 失控：嬌嬌魯莽打擊、默默高等隱形（stress.js）
   let r1 = d20(), r2 = d20();
   let r = adv>0 ? Math.max(r1,r2) : adv<0 ? Math.min(r1,r2) : r1;
-  const bonus = o.bonus||0;
+  const bonus = (o.bonus||0) + (a.scaleHit||0);   // 浮動：等級高的怪物命中加值（10-29）
   B()._noCap = true;                               // 祝福、災禍的 1d4 不是傷害骰
   const bless = has(a,"blessed") ? rollDice("1d4").total : 0;
   const bane = baned(a) ? rollDice("1d4").total : 0;
@@ -697,6 +698,7 @@ function damageAfterResistance(t, n, type){
 function hurt(t, n, type, src, hitSfx){
   if(t.worldObject){if(n>0&&!t.dead){t.dead=true;explodeBarrel(t.worldObject,src);}return;}
   if(n>0&&src?.side==="pc"&&t.side==="foe")engageExploreSquad(t,src);
+  if(n>0 && src?.scaleDmg) n += src.scaleDmg;   // 浮動：等級高的怪物傷害加值（10-29）
   const raw = Math.max(0, n); n = damageAfterResistance(t, raw, type);
   if(raw>n && !t.down && !t.dead) blog(`　${t.name}的${dmgShown(type)}${(t.damageImmunities||[]).includes(type)?"免疫":"抗性"}：${raw} → ${n}`, "skill");
   if(raw<n && !t.down && !t.dead) blog(`　${t.name}怕${dmgShown(type)}（易傷）：${raw} → ${n}`, "skill");

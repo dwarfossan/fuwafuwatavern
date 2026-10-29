@@ -10,7 +10,7 @@
 const DRUID_ROUTE = {
   draft:"香香",
   road:["town","cave"],
-  foes:["goblin_chief","goblin_hero","goblin_shaman","goblin_archer","goblin_archer","goblin","goblin","goblin"],
+  foes:["goblin_chief","goblin_hero","goblin_shaman","goblin_archer","goblin_archer","goblin","goblin"],   // 10-29：2 級剛好（少一隻哥布林）
   loot:{gold:[80,140], items:3},
   pin:"哥布林酋長的營地",
   // 撞見：她發現毛毛們之後、叫醒奇美拉之前（接在 FOREST.main.reveal 的「……誰在那裡？」後面）
