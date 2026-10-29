@@ -27,7 +27,7 @@ try{
  await p.waitForFunction(()=>window.__hits===1&&!B().busy);assert.equal(await p.evaluate(()=>window.__hits),1);assert(await p.evaluate(()=>window.__target.hp<window.__hp));assert.equal(await p.evaluate(()=>groundAt(7,4)?.kind),'fire');assert.equal(await p.evaluate(()=>window.__floor===document.getElementById('board-floor')),true);
  await p.screenshot({path:shots+'/impact.png'});
  await p.evaluate(()=>{
-  B().info=window.__dragon.id;refreshBattle();if(!document.querySelector(`.foe-view [data-monster=${window.__lookKey}]`))throw Error('shared status card missing dragon');B().info=null;window.__target.x=1;window.__cancelHits=0;dragonBreath(window.__dragon,window.__target,{range:3,onImpact:()=>window.__cancelHits++});if(window.__dragon.face!==-1||B().fx.at(-1).face!==-1)throw Error('left facing breath');B().flowEpoch++;B().busy=false;window.__dragon.anim=null;refreshBattle();
+  B().info=window.__dragon.id;refreshBattle();if(!document.querySelector(`.foe-view [data-monster=${window.__lookKey}]`))throw Error('shared status card missing dragon');B().info=null;window.__target.x=window.__dragon.x+2;window.__target.y=window.__dragon.y;/* 10-29：10-21 起畫面 x＝y−x，x 變大才是畫面左邊 */window.__cancelHits=0;dragonBreath(window.__dragon,window.__target,{range:3,onImpact:()=>window.__cancelHits++});if(window.__dragon.face!==-1||B().fx.at(-1).face!==-1)throw Error('left facing breath');B().flowEpoch++;B().busy=false;window.__dragon.anim=null;refreshBattle();
  });await p.waitForTimeout(1650);assert.equal(await p.evaluate(()=>window.__cancelHits),0);
  await p.evaluate(()=>{
   const base={x:0,y:0,w:148,face:1},captain=MONSTER_LOOK.orc_captain,dragon=MONSTER_LOOK[window.__lookKey];
